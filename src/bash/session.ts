@@ -63,6 +63,7 @@ import {
 import { ReadOnlyFs } from "./fs/readOnly.js";
 import type { MountReader } from "./mountReader.js";
 import type { SessionCtx, SnippetRuntime } from "./snippetRuntime.js";
+import type { BashExecResult, BashLikeSession } from "./types.js";
 import type { LibraryResolver } from "../sdk/index.js";
 import { defaultBaseDir, isReservedTenantId } from "../paths.js";
 
@@ -80,12 +81,6 @@ export type BashSessionInit = {
   baseDir?: string;
   // Optional. If supplied, propagated through SessionCtx.trajectoryId.
   trajectoryId?: string;
-};
-
-export type BashExecResult = {
-  stdout: string;
-  stderr: string;
-  exitCode: number;
 };
 
 // --- Helpers ---------------------------------------------------------------
@@ -220,7 +215,7 @@ async function buildLibFs(
 
 // --- BashSession -----------------------------------------------------------
 
-export class BashSession {
+export class BashSession implements BashLikeSession {
   readonly tenantId: string;
   readonly mountIds: string[];
   readonly baseDir: string;

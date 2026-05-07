@@ -16,9 +16,15 @@
 import { Hono } from "hono";
 import * as v from "valibot";
 
-import { BashSession } from "../bash/session.js";
+import { MirageSession } from "../bash/mirageSession.js";
+import { BashSession, type BashSessionInit } from "../bash/session.js";
 import type { MountReader } from "../bash/mountReader.js";
 import type { SnippetRuntime } from "../bash/snippetRuntime.js";
+import {
+  resolveBashRuntimeKind,
+  type BashLikeSession,
+  type BashRuntimeKind,
+} from "../bash/types.js";
 import type { LibraryResolver } from "../sdk/index.js";
 
 // --- App factory inputs -----------------------------------------------------
@@ -29,6 +35,8 @@ export type BashAppDeps = {
   libraryResolver: LibraryResolver | null;
   // Optional baseDir override for tests.
   baseDir?: string;
+  // Optional runtime override. Defaults to DATAFETCH_BASH_RUNTIME, then just-bash.
+  runtime?: BashRuntimeKind;
   // Optional. Defaults to 30 minutes.
   sessionTtlMs?: number;
 };
@@ -47,7 +55,7 @@ type BashRequest = v.InferOutput<typeof bashRequestSchema>;
 // --- Session cache ----------------------------------------------------------
 
 type CachedSession = {
-  session: BashSession;
+  session: BashLikeSession;
   lastTouched: number;
   tenantId: string;
 };
@@ -58,6 +66,7 @@ const DEFAULT_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 export function createBashApp(deps: BashAppDeps): Hono {
   const ttl = deps.sessionTtlMs ?? DEFAULT_TTL_MS;
+  const runtime = deps.runtime ?? resolveBashRuntimeKind(process.env["DATAFETCH_BASH_RUNTIME"]);
   const sessions = new Map<string, CachedSession>();
 
   // Drop expired sessions from the cache. Before forgetting a session,
@@ -83,14 +92,14 @@ export function createBashApp(deps: BashAppDeps): Hono {
     }
   }
 
-  function getOrCreateSession(req: BashRequest): BashSession {
+  function getOrCreateSession(req: BashRequest): BashLikeSession {
     evictExpired();
     const cached = sessions.get(req.sessionId);
     if (cached) {
       cached.lastTouched = Date.now();
       return cached.session;
     }
-    const sessionInit: ConstructorParameters<typeof BashSession>[0] = {
+    const sessionInit: BashSessionInit = {
       tenantId: req.tenantId,
       mountIds: req.mountIds,
       mountReader: deps.mountReader,
@@ -98,7 +107,10 @@ export function createBashApp(deps: BashAppDeps): Hono {
       libraryResolver: deps.libraryResolver,
     };
     if (deps.baseDir !== undefined) sessionInit.baseDir = deps.baseDir;
-    const session = new BashSession(sessionInit);
+    const session =
+      runtime === "mirage"
+        ? new MirageSession(sessionInit)
+        : new BashSession(sessionInit);
     sessions.set(req.sessionId, {
       session,
       lastTouched: Date.now(),

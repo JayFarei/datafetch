@@ -2,7 +2,7 @@
 title: "feat: Mirage runtime parity spike"
 summary: "Evaluate Mirage as the VFS substrate by reaching parity with the current just-bash intent workspace and adding full committed-worktree snapshots."
 type: feat
-status: in-progress
+status: evaluated
 date: 2026-05-07
 related_research:
   - kb/br/13-strukto-mirage-vfs.md
@@ -16,6 +16,33 @@ related_research:
 This spike creates an isolated implementation track for replacing the current just-bash substrate with a Mirage-backed workspace, without changing the Datafetch product contract. The branch must preserve the current `datafetch mount -> run -> commit -> observer -> reuse` behavior while adding a full workspace snapshot at commit time.
 
 The purpose is not to rewrite Datafetch around Mirage. The purpose is to test whether Mirage makes the VFS/worktree model cleaner than the current hybrid of disk intent workspaces plus just-bash runtime sessions.
+
+## Implementation Result (2026-05-07)
+
+The first implementation slice reached opt-in `/v1/bash` parity rather than a full product migration.
+
+What shipped in the spike branch:
+
+- `@struktoai/mirage-node` is available behind `DATAFETCH_BASH_RUNTIME=mirage`.
+- `createBashApp(...)` can construct either the existing `BashSession` or the new `MirageSession`.
+- `datafetch agent` can also opt into Mirage with `--runtime mirage` or `DATAFETCH_BASH_RUNTIME=mirage`.
+- `MirageSession` mounts a writable root, writable `/lib`, and read-only `/db/<mount>` resources.
+- The existing `npx tsx`, `pnpm exec tsx`, `yarn tsx`, `apropos`, and `man` affordances are preserved.
+- The bash smoke harness and `/v1/bash` tests now run against both runtimes.
+
+What the tests showed:
+
+- Default just-bash path still passes the full suite: `pnpm test` reports 191 passing Vitest tests plus smoke harnesses.
+- Mirage-selected path also passes the full suite: `DATAFETCH_BASH_RUNTIME=mirage pnpm test` reports the same 191 passing Vitest tests plus smoke harnesses.
+- Default acceptance still passes: `session-switch` 14 assertions and `intent-workspace` 38 assertions.
+- Mirage-selected acceptance also passes the same `session-switch` and `intent-workspace` assertions.
+- A real Mirage compatibility gap surfaced: `ls /db /lib` initially failed because Mirage rejects cross-mount `ls` calls. The spike added a small multi-path `ls` compatibility shim because that command shape is natural for agents.
+
+Decision:
+
+- Keep just-bash as the default MVP substrate for now.
+- Keep Mirage as an opt-in runtime spike because it cleanly expresses per-resource mount modes and gives us a credible path toward FUSE, richer command routing, and server-managed VFS snapshots.
+- Do not claim real Git/worktree semantics yet. The current version-control value comes from Datafetch commit snapshots, not from Mirage itself.
 
 ## Problem Frame
 

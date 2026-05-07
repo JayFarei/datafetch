@@ -23,8 +23,10 @@ import { serve } from "@hono/node-server";
 import { atlasMount } from "./adapter/atlasMount.js";
 import { publishMount } from "./adapter/publishMount.js";
 import { closeAllMounts, getMountRuntimeRegistry } from "./adapter/runtime.js";
+import { MirageSession } from "./bash/mirageSession.js";
 import { BashSession } from "./bash/session.js";
 import { DiskMountReader } from "./bash/mountReader.js";
+import { resolveBashRuntimeKind, type BashLikeSession } from "./bash/types.js";
 import { runDemo } from "./demo/index.js";
 import { loadProjectEnv } from "./env.js";
 import { installFlueDispatcher } from "./flue/install.js";
@@ -266,18 +268,25 @@ async function cmdAgent(_positionals: string[], flags: Flags): Promise<void> {
     );
   }
 
-  const session = new BashSession({
+  const runtime = resolveBashRuntimeKind(
+    flagString(flags, "runtime") ?? process.env["DATAFETCH_BASH_RUNTIME"],
+  );
+  const sessionInit = {
     tenantId: tenant,
     mountIds,
     mountReader: new DiskMountReader({ baseDir }),
     snippetRuntime,
     libraryResolver: getLibraryResolver(),
     baseDir,
-  });
+  };
+  const session: BashLikeSession =
+    runtime === "mirage"
+      ? new MirageSession(sessionInit)
+      : new BashSession(sessionInit);
 
   // eslint-disable-next-line no-console
   console.log(
-    `[agent] tenant=${tenant} mounts=${JSON.stringify(mountIds)} baseDir=${baseDir}`,
+    `[agent] tenant=${tenant} mounts=${JSON.stringify(mountIds)} baseDir=${baseDir} runtime=${runtime}`,
   );
   // eslint-disable-next-line no-console
   console.log("[agent] type bash commands; ^D / ^C to exit");

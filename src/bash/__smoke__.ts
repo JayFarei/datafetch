@@ -28,7 +28,9 @@ import path from "node:path";
 
 import * as v from "valibot";
 
+import { MirageSession } from "./mirageSession.js";
 import { BashSession } from "./session.js";
+import { resolveBashRuntimeKind, type BashLikeSession } from "./types.js";
 import type { MountReader } from "./mountReader.js";
 import { StubSnippetRuntime } from "./snippetRuntime.js";
 import {
@@ -137,14 +139,19 @@ async function main(): Promise<void> {
   const resolver = makeStubResolver();
   setLibraryResolver(resolver);
   const baseDir = `/tmp/df-bash-smoke-${process.pid}-${Date.now()}`;
-  const session = new BashSession({
+  const runtime = resolveBashRuntimeKind(process.env["DATAFETCH_BASH_RUNTIME"]);
+  const sessionInit = {
     tenantId: "smoke-tenant",
     mountIds: ["demo"],
     mountReader: stubMountReader,
     snippetRuntime: new StubSnippetRuntime(),
     libraryResolver: resolver,
     baseDir,
-  });
+  };
+  const session: BashLikeSession =
+    runtime === "mirage"
+      ? new MirageSession(sessionInit)
+      : new BashSession(sessionInit);
 
   const results: CheckResult[] = [];
 
