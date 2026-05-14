@@ -259,11 +259,14 @@ export function computeIntentSignature(
 // (NOT by contiguity — the parent lib.* call is recorded AFTER its
 // nested calls) and emits each group as a candidate template.
 //
-// iter 3 ships this as a standalone export; the observer worker does
-// not call it yet. iter 4 wires it into the convergence-gated path.
+// iter 3 shipped this as a standalone export; iter 4 wires it into the
+// convergence-gated worker path. Returns the template AND the call
+// slice it was built from — the slice is needed because nested
+// templates carry slice-relative `outputName`s, so the author must walk
+// the slice (not the whole trajectory) when harvesting example values.
 export function extractNestedTemplates(
   trajectory: TrajectoryRecord,
-): CallTemplate[] {
+): Array<{ template: CallTemplate; calls: PrimitiveCallRecord[] }> {
   const byParent = new Map<string, PrimitiveCallRecord[]>();
   for (const call of trajectory.calls) {
     const scope = call.scope;
@@ -273,7 +276,7 @@ export function extractNestedTemplates(
     group.push(call);
     byParent.set(parent, group);
   }
-  const out: CallTemplate[] = [];
+  const out: Array<{ template: CallTemplate; calls: PrimitiveCallRecord[] }> = [];
   for (const [parent, group] of byParent) {
     // Need >= 2 calls for a template (extractTemplateFromCalls requires
     // non-empty; a 1-call nested group is not a reusable pattern).
@@ -281,9 +284,10 @@ export function extractNestedTemplates(
     // Suffix keeps the helper name distinct from the wrapper's own
     // template; derive a short slug from the parent primitive.
     const parentSlug = sanitizeSlug(parent.replace(/^lib\./, "")).slice(0, 24);
-    out.push(
-      extractTemplateFromCalls(group, trajectory, `nested_${parentSlug}`),
-    );
+    out.push({
+      template: extractTemplateFromCalls(group, trajectory, `nested_${parentSlug}`),
+      calls: group,
+    });
   }
   return out;
 }

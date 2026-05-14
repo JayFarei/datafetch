@@ -529,11 +529,13 @@ describe("extractNestedTemplates (Goal-4 Change 2)", () => {
     ]);
     const nested = extractNestedTemplates(traj);
     expect(nested).toHaveLength(1);
-    expect(nested[0]!.steps).toHaveLength(3);
-    expect(nested[0]!.steps.every((s) => s.primitive === "tool.api.getInfo")).toBe(true);
+    expect(nested[0]!.template.steps).toHaveLength(3);
+    expect(nested[0]!.template.steps.every((s) => s.primitive === "tool.api.getInfo")).toBe(true);
     // The nested fan-out has its own intentSignature.
-    expect(nested[0]!.intentSignature).toBe("FANOUT(tool,3-5,cycle1)");
-    expect(nested[0]!.topic).toContain("nested_per_entity");
+    expect(nested[0]!.template.intentSignature).toBe("FANOUT(tool,3-5,cycle1)");
+    expect(nested[0]!.template.topic).toContain("nested_per_entity");
+    // The slice is the group of nested calls.
+    expect(nested[0]!.calls).toHaveLength(3);
   });
 
   it("ignores nested groups with fewer than 2 calls", () => {

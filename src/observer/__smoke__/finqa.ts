@@ -270,59 +270,76 @@ async function main(): Promise<void> {
   const reg = getMountRuntimeRegistry();
   reg.register("smoke-mount", makeStubRuntime());
 
-  // 3. Run the first snippet.
-  const result1 = await snippetRuntime.run({
-    source: FIRST_SNIPPET,
-    sessionCtx: {
-      tenantId: TENANT,
-      mountIds: ["smoke-mount"],
-      baseDir,
-    },
-  });
+  // 3. Run the first snippet TWICE. Goal-4 Change 3: the observer
+  //    crystallises on intent CONVERGENCE — an intentSignature must
+  //    recur across >= 2 trajectories before a helper is committed. The
+  //    first run records the intent (observer skips, "not converged");
+  //    the second convergent run crystallises.
+  const runFirstSnippet = async (): Promise<{
+    trajectoryId: string;
+    observeResult:
+      | { kind: "crystallised"; name: string; path: string }
+      | { kind: "skipped"; reason: string };
+  } | null> => {
+    const result = await snippetRuntime.run({
+      source: FIRST_SNIPPET,
+      sessionCtx: { tenantId: TENANT, mountIds: ["smoke-mount"], baseDir },
+    });
+    if (result.exitCode !== 0 || !result.trajectoryId) {
+      checks.push({
+        name: "FIRST_SNIPPET run exits 0 with a trajectory id",
+        pass: false,
+        detail: `exitCode=${result.exitCode}, stderr=${result.stderr}`,
+      });
+      return null;
+    }
+    let observePromise: Promise<unknown> | undefined;
+    for (let i = 0; i < 50; i += 1) {
+      observePromise = observer.observerPromise.get(result.trajectoryId);
+      if (observePromise) break;
+      await sleep(20);
+    }
+    if (!observePromise) {
+      checks.push({
+        name: "observer fired on trajectory save",
+        pass: false,
+        detail: "observerPromise map never populated",
+      });
+      return null;
+    }
+    return {
+      trajectoryId: result.trajectoryId,
+      observeResult: (await observePromise) as
+        | { kind: "crystallised"; name: string; path: string }
+        | { kind: "skipped"; reason: string },
+    };
+  };
 
+  const firstRun = await runFirstSnippet();
+  if (!firstRun) {
+    finalizeAndExit(checks);
+    return;
+  }
   checks.push({
-    name: "first snippet exits 0",
-    pass: result1.exitCode === 0,
+    name: "first run records the intent without crystallising (convergence N=2)",
+    pass:
+      firstRun.observeResult.kind === "skipped" &&
+      firstRun.observeResult.reason.includes("not converged"),
     detail:
-      result1.exitCode === 0
-        ? undefined
-        : `exitCode=${result1.exitCode}, stderr=${result1.stderr}`,
+      firstRun.observeResult.kind === "skipped"
+        ? firstRun.observeResult.reason
+        : `unexpectedly crystallised on the FIRST trajectory`,
   });
 
-  // 4. Wait for the observer's async observe to complete.
-  if (!result1.trajectoryId) {
-    checks.push({
-      name: "first snippet recorded trajectory id",
-      pass: false,
-      detail: "no trajectoryId on RunResult",
-    });
+  const secondRun = await runFirstSnippet();
+  if (!secondRun) {
     finalizeAndExit(checks);
     return;
   }
-  // The snippet runtime fires the callback fire-and-forget. The observer
-  // records its in-flight promise on `observerPromise`. We poll briefly
-  // for the entry to appear, then await it.
-  let observePromise: Promise<unknown> | undefined;
-  for (let i = 0; i < 50; i += 1) {
-    observePromise = observer.observerPromise.get(result1.trajectoryId);
-    if (observePromise) break;
-    await sleep(20);
-  }
-  if (!observePromise) {
-    checks.push({
-      name: "observer fired on trajectory save",
-      pass: false,
-      detail: "observerPromise map never populated",
-    });
-    finalizeAndExit(checks);
-    return;
-  }
-  const observeResult = (await observePromise) as
-    | { kind: "crystallised"; name: string; path: string }
-    | { kind: "skipped"; reason: string };
+  const observeResult = secondRun.observeResult;
 
   checks.push({
-    name: "observer returned learned interface",
+    name: "second (convergent) run crystallises the learned interface",
     pass: observeResult.kind === "crystallised",
     detail:
       observeResult.kind === "crystallised"
@@ -468,8 +485,6 @@ console.log("learned-interface-result=" + JSON.stringify(out.value));
   }
 
   finalizeAndExit(checks, {
-    snippetStdout: result1.stdout,
-    snippetStderr: result1.stderr,
     secondStdout: result2.stdout,
     secondStderr: result2.stderr,
     crystallised:

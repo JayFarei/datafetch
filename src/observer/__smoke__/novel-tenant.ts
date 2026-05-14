@@ -291,55 +291,71 @@ async function main(): Promise<void> {
   const reg = getMountRuntimeRegistry();
   reg.register("novel-tenant-books", makeBookRuntime());
 
-  // 4. Run the first snippet. Expected trajectory shape:
-  //    [db.records.findExact, lib.summariseRecords]. Both calls are
-  //    substrate-rooted, so the gate should accept and crystallise.
-  const result1 = await snippetRuntime.run({
-    source: FIRST_SNIPPET,
-    sessionCtx: {
-      tenantId: TENANT,
-      mountIds: ["novel-tenant-books"],
-      baseDir,
-    },
-  });
+  // 4. Run the first snippet TWICE. Goal-4 Change 3: the observer
+  //    crystallises on intent CONVERGENCE — the intentSignature
+  //    `db→lib` must recur across >= 2 trajectories before a helper is
+  //    committed. First run records the intent; second convergent run
+  //    crystallises. Expected trajectory shape per run:
+  //    [db.records.findExact, lib.summariseRecords].
+  const runFirstSnippet = async (): Promise<
+    | { kind: "crystallised"; name: string; path: string }
+    | { kind: "skipped"; reason: string }
+    | null
+  > => {
+    const result = await snippetRuntime.run({
+      source: FIRST_SNIPPET,
+      sessionCtx: { tenantId: TENANT, mountIds: ["novel-tenant-books"], baseDir },
+    });
+    if (result.exitCode !== 0 || !result.trajectoryId) {
+      checks.push({
+        name: "FIRST_SNIPPET run exits 0 with a trajectory id",
+        pass: false,
+        detail: `exitCode=${result.exitCode}, stderr=${result.stderr}`,
+      });
+      return null;
+    }
+    let observePromise: Promise<unknown> | undefined;
+    for (let i = 0; i < 50; i += 1) {
+      observePromise = observer.observerPromise.get(result.trajectoryId);
+      if (observePromise) break;
+      await sleep(20);
+    }
+    if (!observePromise) {
+      checks.push({
+        name: "observer fired on trajectory save",
+        pass: false,
+        detail: "observerPromise map never populated",
+      });
+      return null;
+    }
+    return (await observePromise) as
+      | { kind: "crystallised"; name: string; path: string }
+      | { kind: "skipped"; reason: string };
+  };
+
+  const firstObserve = await runFirstSnippet();
+  if (!firstObserve) {
+    finalizeAndExit(checks);
+    return;
+  }
   checks.push({
-    name: "first snippet exits 0",
-    pass: result1.exitCode === 0,
+    name: "first run records the intent without crystallising (convergence N=2)",
+    pass:
+      firstObserve.kind === "skipped" &&
+      firstObserve.reason.includes("not converged"),
     detail:
-      result1.exitCode === 0
-        ? undefined
-        : `exitCode=${result1.exitCode}, stderr=${result1.stderr}`,
+      firstObserve.kind === "skipped"
+        ? firstObserve.reason
+        : "unexpectedly crystallised on the FIRST trajectory",
   });
 
-  if (!result1.trajectoryId) {
-    checks.push({
-      name: "first snippet recorded trajectory id",
-      pass: false,
-      detail: "no trajectoryId on RunResult",
-    });
+  const observeResult = await runFirstSnippet();
+  if (!observeResult) {
     finalizeAndExit(checks);
     return;
   }
-  let observePromise: Promise<unknown> | undefined;
-  for (let i = 0; i < 50; i += 1) {
-    observePromise = observer.observerPromise.get(result1.trajectoryId);
-    if (observePromise) break;
-    await sleep(20);
-  }
-  if (!observePromise) {
-    checks.push({
-      name: "observer fired on trajectory save",
-      pass: false,
-      detail: "observerPromise map never populated",
-    });
-    finalizeAndExit(checks);
-    return;
-  }
-  const observeResult = (await observePromise) as
-    | { kind: "crystallised"; name: string; path: string }
-    | { kind: "skipped"; reason: string };
   checks.push({
-    name: "observer returned learned interface",
+    name: "second (convergent) run crystallises the learned interface",
     pass: observeResult.kind === "crystallised",
     detail:
       observeResult.kind === "crystallised"
@@ -452,8 +468,6 @@ console.log("learned-interface-result=" + JSON.stringify(out.value));
   }
 
   finalizeAndExit(checks, {
-    snippetStdout: result1.stdout,
-    snippetStderr: result1.stderr,
     secondStdout: result2.stdout,
     secondStderr: result2.stderr,
     crystallised: {

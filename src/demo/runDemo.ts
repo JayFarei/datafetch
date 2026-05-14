@@ -97,6 +97,16 @@ const SEED_LIBRARY_PRIMITIVES = new Set([
 ]);
 
 export async function runDemo(opts: RunDemoOpts = {}): Promise<RunDemoResult> {
+  // The demo is the canonical two-question learn→reuse showcase: Q1
+  // crystallises, Q2 reuses. Goal-4's convergence gate (default N=2)
+  // would require Q1 to recur before crystallising — which is the right
+  // production policy but breaks the demo's tight narrative. The demo
+  // showcases the loop's SHAPE, not the convergence policy (the observer
+  // smokes cover convergence), so pin N=1 here unless the operator
+  // overrode it.
+  if (!process.env["DATAFETCH_CONVERGENCE_N"]) {
+    process.env["DATAFETCH_CONVERGENCE_N"] = "1";
+  }
   const tenant = opts.tenant ?? "demo-tenant";
   const mountId = opts.mount ?? "finqa-2024";
   const atlasUri = opts.atlasUri ?? process.env["ATLAS_URI"];

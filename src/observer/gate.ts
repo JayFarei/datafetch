@@ -65,6 +65,18 @@ export type ShouldCrystalliseArgs = {
   // distinct-primitive count; the gate treats the slice the same way it
   // treats the whole.
   callsSlice?: ReadonlyArray<TrajectoryRecord["calls"][number]>;
+  // Goal-4 Change 3 — intent-convergence gate. When both are supplied,
+  // the candidate is crystallised only once its `intentSignature` has
+  // been seen across >= `convergenceThreshold` DISTINCT trajectories
+  // (the count comes from the on-disk convergence index, which the
+  // worker reads once per observe() call). The first trajectory of a
+  // new intent is recorded-but-not-crystallised; the Nth convergent one
+  // passes this check. When `convergenceCount` is undefined the gate
+  // skips this check entirely — preserves the pre-Goal-4 behaviour for
+  // callers (tests, the demo, the legacy path) that have not wired the
+  // convergence index.
+  convergenceCount?: number;
+  convergenceThreshold?: number;
 };
 
 export function shouldCrystallise(args: ShouldCrystalliseArgs): GateOutcome {
@@ -270,6 +282,24 @@ export function shouldCrystallise(args: ShouldCrystalliseArgs): GateOutcome {
       ok: false,
       reason: `call shape already learned (shapeHash=${shapeHash})`,
     };
+  }
+
+  // 7. Intent convergence (Goal-4 Change 3). The MVP crystallised from a
+  //    single trajectory; Goal 4 requires an intent to RECUR across
+  //    >= N distinct trajectories before the substrate commits a learned
+  //    interface to it. Only enforced when the caller wired the
+  //    convergence index (`convergenceCount` supplied) — otherwise this
+  //    check is a no-op and pre-Goal-4 callers behave unchanged.
+  if (args.convergenceCount !== undefined) {
+    const threshold = args.convergenceThreshold ?? 2;
+    if (args.convergenceCount < threshold) {
+      return {
+        ok: false,
+        reason:
+          `intent has not converged: seen in ${args.convergenceCount} trajectory(ies), ` +
+          `need ${threshold}. Recorded; will crystallise once it recurs.`,
+      };
+    }
   }
 
   return { ok: true };

@@ -717,6 +717,17 @@ async function runLiveExperimental(input: {
       datafetchHome,
       tenantId,
     });
+  } else if (input.libCacheDir) {
+    // Goal-4 Change 3: even when this episode did NOT promote a helper
+    // (failed, or a hard-tier level we don't learn from), persist the
+    // convergence index — the intents this episode exhibited must carry
+    // forward so a later episode of the family can converge on them.
+    await persistFamilyConvergenceIndex({
+      family: input.task.family,
+      libCacheDir: input.libCacheDir,
+      datafetchHome,
+      tenantId,
+    });
   }
   if (mountedRuntime) {
     getMountRuntimeRegistry().unregister(mountId);
@@ -1131,6 +1142,11 @@ function renderAnswerScaffold(task: SkillCraftTask): string {
   ].join("\n");
 }
 
+// Name of the Goal-4 convergence index file. It travels with the
+// per-family lib-cache so intent convergence accrues over a family's
+// e1..h1 run (hydrate at episode start, persist at episode end).
+const INTENT_INDEX_FILE = "intent-index.jsonl";
+
 async function hydrateFamilyLibCache(input: {
   family: string;
   libCacheDir: string;
@@ -1146,6 +1162,18 @@ async function hydrateFamilyLibCache(input: {
   if (await isDirectory(familyCacheDir)) {
     await copyTsFiles(familyCacheDir, workspaceLibDir);
     await copyTsFiles(familyCacheDir, resolverLibDir, { markLearned: true });
+  }
+  // Goal-4 Change 3: hydrate the convergence index so the observer sees
+  // intents recorded by earlier episodes of this family.
+  const cachedIndex = path.join(familyCacheDir, INTENT_INDEX_FILE);
+  if (await exists(cachedIndex)) {
+    const observerDir = path.join(
+      input.datafetchHome,
+      "observer",
+      input.tenantId,
+    );
+    await fsp.mkdir(observerDir, { recursive: true });
+    await fsp.copyFile(cachedIndex, path.join(observerDir, INTENT_INDEX_FILE));
   }
   return listLibFunctionNames(workspaceLibDir);
 }
@@ -1208,14 +1236,28 @@ async function persistFamilyLibCache(input: {
 }): Promise<void> {
   const workspaceLibDir = path.join(input.workspace, "lib");
   const observerLibDir = path.join(input.datafetchHome, "lib", input.tenantId);
+  const familyCacheDir = path.join(input.libCacheDir, input.family);
   const workspaceNames = (await isDirectory(workspaceLibDir))
     ? await listLibFunctionNames(workspaceLibDir)
     : [];
   const observerNames = (await isDirectory(observerLibDir))
     ? await listLibFunctionNames(observerLibDir)
     : [];
+  // Goal-4 Change 3: persist the convergence index even when NO helper
+  // crystallised this episode — the first episode of a family records
+  // intents that the second episode needs to see in order to converge.
+  // So this runs BEFORE the no-helpers early return.
+  const observerIndex = path.join(
+    input.datafetchHome,
+    "observer",
+    input.tenantId,
+    INTENT_INDEX_FILE,
+  );
+  if (await exists(observerIndex)) {
+    await fsp.mkdir(familyCacheDir, { recursive: true });
+    await fsp.copyFile(observerIndex, path.join(familyCacheDir, INTENT_INDEX_FILE));
+  }
   if (workspaceNames.length === 0 && observerNames.length === 0) return;
-  const familyCacheDir = path.join(input.libCacheDir, input.family);
   await fsp.mkdir(familyCacheDir, { recursive: true });
   if (observerNames.length > 0) {
     await copyTsFiles(observerLibDir, familyCacheDir, { markLearned: true });
@@ -1223,6 +1265,28 @@ async function persistFamilyLibCache(input: {
   if (workspaceNames.length > 0) {
     await copyTsFiles(workspaceLibDir, familyCacheDir, { markLearned: true });
   }
+}
+
+// Goal-4 Change 3: persist ONLY the convergence index (no helper
+// copy). Called for episodes that did not promote a helper, so the
+// intents they exhibited still accrue toward convergence for later
+// episodes of the same family.
+async function persistFamilyConvergenceIndex(input: {
+  family: string;
+  libCacheDir: string;
+  datafetchHome: string;
+  tenantId: string;
+}): Promise<void> {
+  const observerIndex = path.join(
+    input.datafetchHome,
+    "observer",
+    input.tenantId,
+    INTENT_INDEX_FILE,
+  );
+  if (!(await exists(observerIndex))) return;
+  const familyCacheDir = path.join(input.libCacheDir, input.family);
+  await fsp.mkdir(familyCacheDir, { recursive: true });
+  await fsp.copyFile(observerIndex, path.join(familyCacheDir, INTENT_INDEX_FILE));
 }
 
 async function copyTsFiles(
