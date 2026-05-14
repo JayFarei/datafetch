@@ -14,6 +14,78 @@
 > intent-shape interface when intent emerges across runs, agnostic of
 > the shape of the data underneath."
 
+---
+
+### ⇨ HANDOFF (2026-05-14) — read this first
+
+**Status: iters 1-6 + the R9 transfer harness are DONE, committed, and
+probe-verified. The next step is iter 7 — the instrumented full-126.**
+A fresh-context agent picking this up should start here.
+
+**What is built and committed** (`b3b2e18c` → `21ec6b46` on `main`):
+
+| iter | deliverable | commit | verified |
+|---|---|---|---|
+| 1 | `eval/skillcraft/scripts/walk-artifacts.ts` — artifact walker; makes R6-R9 scoreable | `b3b2e18c` | dry-score on iter14 data |
+| 2 | `eval/skillcraft/scripts/intent-cluster-analysis.ts` — offline analyzer; de-risk verdict PROCEED | `16a6dea5` | 146 traj → 55 clusters, 17 cross-family, 0 incoherent |
+| 3 | `intentSignature` on `CallTemplate` + `extractNestedTemplates` | `c7d44f7b` | behaviour-preserving, unit tests |
+| 4 | `src/observer/convergenceIndex.ts` + gate check #7 + worker rewrite + eval hydrate/persist | (in `c7d44f7b`..`a5d06ffb` range) | tvmaze probe: helpers accrue 0→0→1→1→2→3, 6/6 pass |
+| 5 | `renderFanOutSource` in `author.ts` — parameterised fan-out authoring | `a5d06ffb` | tvmaze probe: `...Ne` helpers parameterised, 5/6 pass |
+| 6 | `src/observer/__smoke__/cross-shape-transfer.ts` — R9 proof | `d8c6bc8f` | 8/8 — widgets-learned helper runs on gadgets |
+| R9 harness | `__intent__/` shared pool wired into the eval hydrate/persist | `21ec6b46` | typecheck + 269 tests + 5 smokes |
+
+`pnpm typecheck` clean. `pnpm test` = 269 vitest + 5 smokes (snippet,
+finqa, novel-tenant, cross-shape-transfer, bash) all green.
+
+**The NEXT STEP — iter 7, the instrumented full-126** (~$30, ~2.5h, 4 shards):
+
+```
+ITER_TAG=goal4-iter7 bash scripts/goal2-full.sh        # 4-shard full-126
+# then, per shard dir <D>-g1..-g4:
+pnpm eval:skillcraft:normalize --datafetch-run <D>-g<N> --out <D>-g<N>/normalized.jsonl
+cat <D>-g*/normalized.jsonl > <D>/normalized.jsonl
+pnpm eval:skillcraft:analyze --input <D>/normalized.jsonl --out <D>/analysis.json
+pnpm tsx eval/skillcraft/scripts/walk-artifacts.ts --run <D> --out <D>/helper-instrumentation.jsonl
+pnpm tsx eval/skillcraft/scripts/intent-cluster-analysis.ts --run <D> --out <D>/intent-clusters.json
+```
+
+Then score R1-R9 (see "What proves Goal 4" below). **NOTE the normalizer
+false-negative fix is committed (`bfd8c847`) — but always re-check the
+gap between `passRate` and `score >= 70` counts; a timed-out agent that
+still wrote a valid answer must not be demoted.**
+
+**R6-R9 are NOT yet computed by `analyze-results.ts`.** iter 7 needs a
+small scoring step that joins `helper-instrumentation.jsonl` +
+`intent-clusters.json` + `normalized.jsonl` and emits the R1-R9
+scorecard. The instrumentation fields are all there (see
+`walk-artifacts.ts`'s `EpisodeInstrumentation`); the join is
+straightforward. Consider adding it as `eval/skillcraft/scripts/score-r1-r9.ts`.
+
+**After iter 7 — iter 8**: either the retire-the-seed stretch (Change 5
+— demonstrate the substrate learns the fan-out interface WITHOUT
+shipping `per_entity`, on ≥1 family; the parameterised fan-out authoring
++ convergence gate + transfer harness are the machinery for it) OR a
+targeted fix for whichever R-condition iter 7 surfaces as the gap.
+
+**Things a fresh agent must know:**
+- The Stop hook is bound to `@../experiments/PLAN.md`. The CWD for
+  commands is `/Users/jayfarei/src/tries/2026-05-01-hackathon` (not
+  `docs/`).
+- `DATAFETCH_CONVERGENCE_N` env var sets the convergence threshold
+  (default 2). The demo pins it to 1.
+- The convergence gate means crystallisation NO LONGER happens on a
+  single trajectory — e1 records intents, e2 converges. Any new smoke
+  or test that expects crystallisation must run the crystalliser twice.
+- The persisted hook manifests have empty `origin.trajectoryIds` (they
+  are re-created on lib-cache hydration). The crystallised `.ts` file
+  headers (`@shape-hash`, `@intent-signature`, `@origin-trajectory`) are
+  the only stable provenance — `walk-artifacts.ts` reads the headers.
+- mid-iteration probe bug-fixing is expected; budget for it.
+- Commit cadence: one commit per iter, `pnpm test` green + typecheck
+  clean before each commit.
+
+---
+
 ### Why Goal 4 exists
 
 Goal 3 (iter9-15) made the learning loop fire on SkillCraft: full-126
@@ -167,7 +239,8 @@ offline analyzer proves the signatures cluster cleanly.
 | 4 ✓ | convergence index + intent-convergence gate. **DONE** — commit pending. `convergenceIndex.ts` (append-only JSONL); gate check #7 (crystallise only at ≥ N=2 distinct convergent trajectories); worker records qualifying candidates + wires `extractNestedTemplates`; eval hydrate/persist carries the index per-family. Smokes updated to run the crystalliser twice (convergence is the new behaviour). 268 tests pass. | observer gate + new index module |
 | 5 ✓ | parameterised fan-out authoring. **DONE** — commit pending. `renderFanOutSource` in author.ts: a pure tool fan-out template is authored as a per_entity-shaped helper with `toolBundle`/`toolNames`/`paramName` ALWAYS as input params (never frozen from the template's concrete primitives). Verified: body uses `df.tool[input.toolBundle]`, no frozen bundle. 269 tests pass. | observer author |
 | 6 ✓ | cross-shape transfer smoke. **DONE** — commit pending. `src/observer/__smoke__/cross-shape-transfer.ts`: a fan-out helper crystallised from tenant A's "widgets" data shape, transferred, invoked on tenant B's "gadgets" data shape (different bundle/tools/param) — 8/8, R9 proven. Wired into `pnpm test`. | transfer harness (test infra) |
-| 7 | instrumented full-126 against the learning-honest rubric R1-R9; gap analysis | none (measurement) |
+| R9 ✓ | cross-family transfer harness wired into the eval. **DONE** — commit `21ec6b46`. `__intent__/` shared pool: parameterised fan-out helpers promoted (deduped by `@intent-signature`), hydrated into every family. | eval harness |
+| 7 ← NEXT | instrumented full-126 against R1-R9; needs a `score-r1-r9.ts` join step (R6-R9 not yet in `analyze-results.ts`); gap analysis | measurement |
 | 8 | retire-the-seed stretch (learned fan-out without `per_entity` on ≥ 1 family) OR targeted fix per iter-7 gap | matches gap |
 
 Stop conditions: R1-R9 all hold simultaneously on the instrumented

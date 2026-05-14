@@ -8,27 +8,39 @@
 ## Current state (2026-05-14)
 
 **Goal 3 closed at 3/7 thresholds.** iter9-15 made the learning loop
-fire end-to-end on the new harness; full-126 = **88.9% pass** (after the
-normalizer false-negative fix), helpers crystallise, novel-tenant smoke
-passes 11/11 (Goal 3 part B done). The three unmet thresholds
-(`avgLearnedInterfacesAvailable warm ≥ 2.0`, `avgReuseRate warm ≥ 0.30`,
-`warm/train tokens ≤ 0.70`) were diagnosed as over-fitting to
-SkillCraft's per-entity-fan-out data shape — the observer keys
-crystallisation on a syntactic `shapeHash`.
+fire end-to-end; full-126 = **88.9% pass** (after the normalizer
+false-negative fix), helpers crystallise, novel-tenant smoke passes
+11/11 (Goal 3 part B done). The three unmet thresholds were diagnosed
+as over-fitting to SkillCraft's per-entity-fan-out data shape — the
+observer keyed crystallisation on a syntactic `shapeHash`.
 
-**Goal 4 planned, not started.** Intent-convergence crystallisation:
-replace `shapeHash` with a data-shape-agnostic `intentSignature`,
-crystallise on ≥2-trajectory convergence, add nested-call
-crystallisation, parameterise authoring over the converged cluster.
-The rubric is revised to a learning-honest R1-R9 (architect-reviewed).
-Full plan in [PLAN.md](./PLAN.md) § Goal 4; canonical condition in
-[goal.md](./goal.md). iters 1-2 are instrumentation + offline analysis
-(no substrate behaviour change) — the gate is not touched until an
-offline analyzer proves intent clusters are clean.
+**Goal 4 — iters 1-6 + the R9 transfer harness DONE; iter 7
+(instrumented full-126) is the next step.** See [PLAN.md](./PLAN.md)
+§ "⇨ HANDOFF" for the full pickup brief. Summary:
 
-Goal-3-era commits on `main`: `0d0ea4df` (iter9-13 substrate + 3
-bugfixes), `bfd8c847` (normalizer false-negative fix), `82cf6688`
-(iter15 EvalRecord entity-id contract), `506c009c` (Goal 4 planning).
+- iter 1 (`b3b2e18c`): artifact walker — rubric R6-R9 scoreable.
+- iter 2 (`16a6dea5`): offline intentSignature analyzer — de-risk
+  verdict PROCEED (146 traj → 55 clusters, 17 cross-family, 0 incoherent).
+- iter 3 (`c7d44f7b`): `intentSignature` on `CallTemplate` +
+  `extractNestedTemplates` — behaviour-preserving.
+- iter 4: `convergenceIndex.ts` + gate check #7 + worker rewrite + eval
+  hydrate/persist — convergence-gated crystallisation. Probe-verified.
+- iter 5 (`a5d06ffb`): `renderFanOutSource` — parameterised fan-out
+  authoring (toolBundle/toolNames/paramName always inputs). Probe-verified.
+- iter 6 (`d8c6bc8f`): cross-shape-transfer smoke — R9 proven 8/8.
+- R9 harness (`21ec6b46`): `__intent__/` shared pool wired into the eval
+  — parameterised fan-out helpers transfer across families.
+
+`pnpm test` = 269 vitest + 5 smokes green; typecheck clean. tvmaze
+probes hold at 5/6-6/6 pass — no regression from the convergence redesign.
+
+**Next: iter 7** — run the instrumented full-126, add a `score-r1-r9.ts`
+join step (R6-R9 are not yet computed by `analyze-results.ts`), score
+R1-R9, gap analysis. Then iter 8 (retire-the-seed stretch / gap fix).
+
+Goal-3-era commits: `0d0ea4df`, `bfd8c847`, `82cf6688`, `506c009c`.
+Goal-4 commits: `b3b2e18c`, `16a6dea5`, `c7d44f7b`, (iter4), `a5d06ffb`,
+`d8c6bc8f`, `66c779c6`, `21ec6b46`.
 
 ## What this project is
 
