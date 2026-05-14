@@ -21,34 +21,41 @@ rebuilds the crystallisation key around **intent** (data-shape-agnostic)
 and replaces the three shape-proxy thresholds with **loop-honesty**
 measurements.
 
-See [`PLAN.md`](./PLAN.md) § "Goal 4" for the full design (the five
-substrate changes, the offline de-risk step, the iteration schedule)
-and the architect review that shaped it. Paste-ready condition
-(≤ 4000 chars):
+**Progress (2026-05-14): iters 1-6 + the R9 transfer harness are DONE
+and committed (`b3b2e18c` → `09dfdc5d`). The next step is iter 7 — the
+instrumented full-126.** See [`PLAN.md`](./PLAN.md) § "⇨ HANDOFF" for
+the commit-by-commit status and the iter-7 commands. The condition
+below is the **resume prompt** for a fresh `/goal` session — it starts
+at iter 7 and tells the agent NOT to redo iters 1-6.
+
+Paste-ready resume condition:
 
 ```
-/goal Prove the substrate's learning loop learns generic INTENT (not data shape) by satisfying a learning-honest rubric R1-R9 on a single committed branch state, instrumented full-126 + smokes, claude driver, hooks-draft mode.
+/goal Continue Goal 4 (intent-convergence crystallisation + learning-honest rubric) from iter 7. Read experiments/PLAN.md § "⇨ HANDOFF" FIRST — it has the commit-by-commit build status, the exact iter-7 commands, and the gotchas. iters 1-6 + the R9 cross-family transfer harness are DONE and committed (b3b2e18c → 09dfdc5d on main); pnpm test = 269 vitest + 5 smokes green, typecheck clean. Do NOT redo them.
 
-KEPT honest gates: R1 arms["datafetch-learned"].passRate >= 0.92. R2 avgEffectiveTokens <= 8000. R3 runtimeErrorRate <= 0.05. R4 quarantine rate <= 0.03. R5 novel-tenant smoke src/observer/__smoke__/novel-tenant.ts passes with zero edits to substrate code (src/observer, src/hooks, src/snippet, src/sdk, src/adapter).
+Goal 4 holds when the learning-honest rubric R1-R9 all hold simultaneously on ONE instrumented full-126 run + the smokes:
+KEPT honest gates: R1 passRate >= 0.92. R2 avgEffectiveTokens <= 8000. R3 runtimeErrorRate <= 0.05. R4 quarantine rate <= 0.03. R5 novel-tenant smoke passes with zero substrate edits.
+REVISED loop-honesty: R6 convergence rate — of intent clusters with >=2 qualifying trajectories, >=80% crystallise exactly one callable helper. R7 conditional reuse — of warm episodes where a same-intent crystallised helper is available, >=60% call it (per_entity seed EXCLUDED from the numerator). R8 conditional cost-drop — episodes that reused a crystallised helper cost <=70% of the nearest earlier same-intent NON-reuse episode.
+ADDED generality proof: R9 cross-shape transfer — the same intentSignature crystallises a helper reused across >=2 families with different data shapes (the __intent__/ shared-pool harness is wired into the eval; verify it produces real R9 numbers on the full-126).
 
-REVISED loop-honesty thresholds: R6 convergence rate — of intent clusters observed with >=2 qualifying successful trajectories, >=80% crystallise exactly one callable helper (cluster-keyed, not family-keyed). R7 conditional reuse — of warm episodes where a same-intent crystallised helper is available, >=60% call it; the per_entity seed is EXCLUDED from the numerator (only learned-helper reuse counts). R8 conditional cost-drop — episodes that reused a crystallised helper cost <=70% of the nearest earlier same-intent NON-reuse episode (paired same-intent delta).
+Iteration plan from here:
+iter 7 (NEXT): (a) write eval/skillcraft/scripts/score-r1-r9.ts — joins helper-instrumentation.jsonl + intent-clusters.json + normalized.jsonl into the R1-R9 scorecard (R6-R9 are NOT computed by analyze-results.ts; the instrumentation fields all exist — see walk-artifacts.ts EpisodeInstrumentation). (b) run the instrumented full-126: ITER_TAG=goal4-iter7 bash scripts/goal2-full.sh, then per shard normalize, concat, analyze, walk-artifacts, intent-cluster-analysis, score-r1-r9. (c) gap analysis.
+iter 8: retire-the-seed stretch (demonstrate the substrate learns the fan-out interface WITHOUT shipping per_entity, on >=1 family) OR a targeted fix for whichever R-condition iter 7 surfaces as the gap.
 
-ADDED generality proof: R9 cross-shape transfer — the same intentSignature crystallises a helper reused across >=2 SkillCraft families with different data shapes (different db collections, different tool bundles), demonstrated via a deliberate transfer harness.
+Stop after R1-R9 all hold on the latest instrumented full-126 + smokes, OR 8 accepted iterations (6 are already done — so ~2 left), OR 24 hours.
 
-Substrate redesign (five changes, detail in PLAN.md): (1) intentSignature — data-shape-agnostic crystallisation key = primitive categories + data-flow DAG + fan-out detection, with capability slots for bundle/tool/param constants. (2) nested-call crystallisation grouped by scope.parentPrimitive. (3) per-tenant convergence index in the shared run cache; crystallise on >=2-trajectory intent convergence. (4) parameterised authoring over the converged cluster, scoped to the one proven fan-out signature first. (5) retire the per_entity seed (stretch).
+Cadence per iter: read EXPERIMENTS.md first (G4.1-G4.6 entries are the priors); state one hypothesis; implement against observer/hooks/snippet-runtime, never family-specific; probe single-family then validate {university-directory-builder, jikan-anime-analysis} for behaviour-changing iters; full-126 4-shard; pnpm typecheck clean + pnpm test green (269 vitest + 5 smokes) + working tree committed; append an EXPERIMENTS.md entry + EXPERIMENT_NOTES.md note.
 
-CRITICAL ordering: iters 1-2 ship NO substrate behaviour change. Iter 1 = metric instrumentation (artifact walker recording helper names/origins/intent-signatures — without it R6-R9 are unscoreable). Iter 2 = offline intentSignature analyzer over existing iter14/15 trajectories reporting cluster purity + dry-run helper schemas; the observer gate is NOT touched until iter 2 proves clusters are clean. If clusters are not stable, STOP and reconsider the signature spec.
+Gotchas: CWD is the repo root /Users/jayfarei/src/tries/2026-05-01-hackathon (not docs/). The convergence gate means crystallisation NO LONGER fires on a single trajectory — any new test/smoke that expects a helper must run the crystalliser twice. Persisted hook manifests have empty origin.trajectoryIds — the crystallised .ts headers (@shape-hash, @intent-signature, @origin-trajectory) are the only stable provenance. ALWAYS re-check the normalizer: a timed-out agent (agentExitCode=143) that still wrote a valid answer must not be demoted to infrastructure_error (fix is committed in bfd8c847, but verify the passRate vs score>=70 gap on every run). DATAFETCH_CONVERGENCE_N overrides the convergence threshold (default 2).
 
-Stop after 8 accepted iterations or 24 hours otherwise.
+NOT met if the transcript reveals: code pattern-matching on SkillCraft family/task/bundle/tool identifiers; pre-baked seeds under seeds/<tenantId>/ or <baseDir>/lib/<tenantId>/ before episode 1; prompt-template branches keyed on dataset/family/tier identity; hardcoded payload defaults in df.tool/df.lib proxies; bypassing the hook registry; new server-side LLM call paths substituting for the agent's composition. The per_entity seed under lib/__seed__/ is a permitted cold-start crutch until iter 8's Change 5 retires it.
 
-Working files: experiments/PLAN.md (Goal 4 plan + iteration schedule + architect review), experiments/EXPERIMENTS.md (curated log; read before each hypothesis; Goal 3 iter9-15 entries shape priors), experiments/EXPERIMENT_NOTES.md (chronological scratchpad), experiments/STATUS.md (snapshot), experiments/goal.md (this file). docs/architecture.md, docs/proof-skillcraft.md, docs/hook-registry-experiment.md are background; the last appends one headline row per iteration.
-
-Per-iteration cadence: (1) Read EXPERIMENTS.md first; state one hypothesis + lever; add [hypothesis] note to EXPERIMENT_NOTES.md. (2) Implement against observer / hook-registry / snippet-runtime — never family-specific. (3) From iter 4 onward: single-family probe, lib-cache on, DATAFETCH_AGENT=claude DATAFETCH_INTERFACE_MODE=hooks-draft. (4) Validate on {university-directory-builder, jikan-anime-analysis}. (5) Full-126, 4-shard parallel, family-sequential; commit headline row to docs/hook-registry-experiment.md. (6) pnpm typecheck clean, pnpm test green, novel-tenant smoke green, working tree committed.
-
-NOT met if the transcript reveals: code pattern-matching on SkillCraft family/task/bundle/tool identifiers; pre-baked seed helpers under seeds/<tenantId>/ or <baseDir>/lib/<tenantId>/ before episode 1; prompt-template branches keyed on dataset/family/tier identity; hardcoded payload defaults in df.tool/df.lib proxies; bypassing the hook registry; new server-side LLM call paths substituting for the agent's composition. The per_entity seed under <baseDir>/lib/__seed__/ remains a permitted cold-start crutch until Change 5 retires it.
-
-Before declaring met, surface in the same turn: instrumented analysis JSON path; the R1-R9 scorecard; pnpm test count; per-tier breakdown; the cross-shape transfer evidence (which intentSignature crystallised which helper, reused across which families); a note on whether per_entity could be retired; confirmation EXPERIMENTS.md has the final iteration's complete entry.
+Before declaring met, surface: the R1-R9 scorecard, the instrumented analysis JSON path, pnpm test count, the per-tier breakdown, the cross-shape transfer evidence (which intentSignature crystallised which helper, reused across which families), a note on whether per_entity can be retired, and confirmation EXPERIMENTS.md has the final iteration's entry.
 ```
+
+> The original pre-iter-1 Goal 4 condition (the full 8-iteration plan
+> from scratch) is preserved in git history at commit `506c009c` if a
+> from-scratch re-run is ever needed.
 
 ## Goal 3 (closed, partial): generic, code-mode-native, cost-effective learning loop
 
