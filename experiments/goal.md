@@ -22,40 +22,70 @@ and replaces the three shape-proxy thresholds with **loop-honesty**
 measurements.
 
 **Progress (2026-05-14): iters 1-6 + the R9 transfer harness are DONE
-and committed (`b3b2e18c` → `09dfdc5d`). The next step is iter 7 — the
-instrumented full-126.** See [`PLAN.md`](./PLAN.md) § "⇨ HANDOFF" for
-the commit-by-commit status and the iter-7 commands. The condition
-below is the **resume prompt** for a fresh `/goal` session — it starts
-at iter 7 and tells the agent NOT to redo iters 1-6.
+and committed (`b3b2e18c` → `09dfdc5d`). iter 7 step (a) is ALSO done
+and committed:**
+- `149d55f8` — pre-iter7 hygiene: sanitize non-finite floats in
+  `invoke-skillcraft-tool.py` output; gitignore probe scratch files.
+- `2b67a3d6` — `eval/skillcraft/scripts/score-r1-r9.ts`: the R1-R9
+  scorecard join step. Typecheck clean, 269 vitest + 5 smokes green,
+  plumbing dry-run-verified against the iter14 full-126.
 
-Paste-ready resume condition:
+Working tree is clean. **What remains is iter 7 step (b) the
+instrumented full-126 and step (c) gap analysis.** See
+[`PLAN.md`](./PLAN.md) § "⇨ HANDOFF" for the commit-by-commit status.
+
+The block below is the **resume prompt** for a fresh `/goal` session.
+Use a short `/goal` that points here, e.g.:
+`/goal Continue Goal 4 iter 7 — follow the resume instructions in experiments/goal.md § "Goal 4 (current)". score-r1-r9.ts is done + committed; pick up at the instrumented full-126.`
+
+Resume instructions (iter 7 step b + c):
 
 ```
-/goal Continue Goal 4 (intent-convergence crystallisation + learning-honest rubric) from iter 7. Read experiments/PLAN.md § "⇨ HANDOFF" FIRST — it has the commit-by-commit build status, the exact iter-7 commands, and the gotchas. iters 1-6 + the R9 cross-family transfer harness are DONE and committed (b3b2e18c → 09dfdc5d on main); pnpm test = 269 vitest + 5 smokes green, typecheck clean. Do NOT redo them.
+Continue Goal 4 iter 7. Repo root /Users/jayfarei/src/tries/2026-05-01-hackathon is the CWD for all commands (NOT docs/). Read experiments/PLAN.md § "⇨ HANDOFF" first. iters 1-6 + the R9 transfer harness + iter-7 step (a) score-r1-r9.ts are DONE and committed (b3b2e18c → 2b67a3d6 on main); pnpm test = 269 vitest + 5 smokes green, typecheck clean. Do NOT redo them.
 
-Goal 4 holds when the learning-honest rubric R1-R9 all hold simultaneously on ONE instrumented full-126 run + the smokes:
-KEPT honest gates: R1 passRate >= 0.92. R2 avgEffectiveTokens <= 8000. R3 runtimeErrorRate <= 0.05. R4 quarantine rate <= 0.03. R5 novel-tenant smoke passes with zero substrate edits.
-REVISED loop-honesty: R6 convergence rate — of intent clusters with >=2 qualifying trajectories, >=80% crystallise exactly one callable helper. R7 conditional reuse — of warm episodes where a same-intent crystallised helper is available, >=60% call it (per_entity seed EXCLUDED from the numerator). R8 conditional cost-drop — episodes that reused a crystallised helper cost <=70% of the nearest earlier same-intent NON-reuse episode.
-ADDED generality proof: R9 cross-shape transfer — the same intentSignature crystallises a helper reused across >=2 families with different data shapes (the __intent__/ shared-pool harness is wired into the eval; verify it produces real R9 numbers on the full-126).
+Goal 4 holds when R1-R9 all hold simultaneously on ONE instrumented full-126 run + the smokes:
+R1 passRate >= 0.92. R2 avgEffectiveTokens <= 8000. R3 runtimeErrorRate <= 0.05. R4 quarantine rate <= 0.03. R5 novel-tenant smoke passes with zero substrate edits.
+R6 convergence rate — of intent clusters with >=2 qualifying (successful) trajectories, >=80% crystallise exactly one callable helper. R7 conditional reuse — of warm episodes where a same-intent crystallised helper is available, >=60% call it (per_entity seed EXCLUDED from the numerator). R8 conditional cost-drop — episodes that reused a crystallised helper cost <=70% of the nearest earlier same-intent NON-reuse episode. R9 cross-shape transfer — the same intentSignature crystallises a helper reused across >=2 families with different data shapes.
 
-Iteration plan from here:
-iter 7 (NEXT): (a) write eval/skillcraft/scripts/score-r1-r9.ts — joins helper-instrumentation.jsonl + intent-clusters.json + normalized.jsonl into the R1-R9 scorecard (R6-R9 are NOT computed by analyze-results.ts; the instrumentation fields all exist — see walk-artifacts.ts EpisodeInstrumentation). (b) run the instrumented full-126: ITER_TAG=goal4-iter7 bash scripts/goal2-full.sh, then per shard normalize, concat, analyze, walk-artifacts, intent-cluster-analysis, score-r1-r9. (c) gap analysis.
-iter 8: retire-the-seed stretch (demonstrate the substrate learns the fan-out interface WITHOUT shipping per_entity, on >=1 family) OR a targeted fix for whichever R-condition iter 7 surfaces as the gap.
+BLOCKER CONTEXT: as of 13:15 BST 2026-05-14 Claude usage was 429-walled ("out of extra usage · resets 10pm Europe/London"). Two single-family probes confirmed it (cost ~$0 each — agentExitCode=1, tokens=0, api_error_status 429). The eval already runs on Sonnet (goal2-full.sh hardcodes claude-sonnet-4-6). DO NOT skip the probe guard.
 
-Stop after R1-R9 all hold on the latest instrumented full-126 + smokes, OR 8 accepted iterations (6 are already done — so ~2 left), OR 24 hours.
+STEP (b) — instrumented full-126:
+1. SANITY PROBE FIRST, before the 4-shard ~$30/~2.5h run:
+   PROBE_DIR="eval/skillcraft/results/datafetch/goal4-iter7-probe-university-$(date +%Y%m%d-%H%M%S)"; mkdir -p "$PROBE_DIR"
+   env DATAFETCH_AGENT=claude DATAFETCH_INTERFACE_MODE=hooks-draft ANTHROPIC_LOG_LEVEL=error pnpm eval:skillcraft --skillcraft-dir /tmp/skillcraft-official --out-dir "$PROBE_DIR" --families university-directory-builder --live --model claude-sonnet-4-6 --reasoning low
+   Inspect "$PROBE_DIR/episodes.jsonl": if agentExitCode=1 / totalTokens=0 / api_error_status 429, usage has NOT reset — STOP, report, do not run the full-126. Only proceed if episodes ran clean (real llmCalls, non-zero tokens).
+2. If healthy: ITER_TAG=goal4-iter7 bash scripts/goal2-full.sh (4 shards, run in background). Let <D> = the un-suffixed OUT_BASE it prints (shards are <D>-g1..-g4). Then:
+   for N in 1 2 3 4; do pnpm eval:skillcraft:normalize --datafetch-run <D>-g$N --out <D>-g$N/normalized.jsonl; done
+   cat <D>-g*/normalized.jsonl > <D>/normalized.jsonl
+   pnpm eval:skillcraft:analyze --input <D>/normalized.jsonl --out <D>/analysis.json
+   pnpm tsx eval/skillcraft/scripts/walk-artifacts.ts --run <D> --out <D>/helper-instrumentation.jsonl
+   pnpm tsx eval/skillcraft/scripts/intent-cluster-analysis.ts --run <D> --out <D>/intent-clusters.json
+   pnpm tsx eval/skillcraft/scripts/score-r1-r9.ts --run <D>
+   (score-r1-r9.ts auto-resolves the three inputs under <D> and writes <D>/r1-r9-scorecard.json.)
 
-Cadence per iter: read EXPERIMENTS.md first (G4.1-G4.6 entries are the priors); state one hypothesis; implement against observer/hooks/snippet-runtime, never family-specific; probe single-family then validate {university-directory-builder, jikan-anime-analysis} for behaviour-changing iters; full-126 4-shard; pnpm typecheck clean + pnpm test green (269 vitest + 5 smokes) + working tree committed; append an EXPERIMENTS.md entry + EXPERIMENT_NOTES.md note.
+STEP (c) — gap analysis. Read <D>/r1-r9-scorecard.json:
+- rubric R1-R9. R5 is marked met:null — it is external; run `pnpm test`, the novel-tenant smoke must be green, then fill R5 in.
+- signatureJoinDiagnostic — the offline cluster intentSignatures (whole-trajectory) may not fully intersect the @intent-signature stamped in crystallised .ts headers (a NESTED template's header sig is a sub-signature, e.g. FANOUT(tool,6+,cycle1), vs a cluster's db→FANOUT(tool,6+,cycle1)→lib). If intersection is near-zero, R6/R9 are unscoreable for a STRUCTURAL reason — that is the most likely iter-7 gap and the iter-8 fix target.
+- normalizerCrossCheck — rows scoring >=70 but not counted passed. Any with runtimeStatus "infrastructure_error" = the normalizer false-negative bug resurfacing (fix was bfd8c847); investigate before trusting passRate.
+- perTier — train/warm/hard breakdown.
+Then append an EXPERIMENTS.md entry (G4.7, follow the G4.x format) + a dated EXPERIMENT_NOTES.md entry. pnpm typecheck clean + pnpm test green (269 vitest + 5 smokes). Commit the iter-7 docs.
 
-Gotchas: CWD is the repo root /Users/jayfarei/src/tries/2026-05-01-hackathon (not docs/). The convergence gate means crystallisation NO LONGER fires on a single trajectory — any new test/smoke that expects a helper must run the crystalliser twice. Persisted hook manifests have empty origin.trajectoryIds — the crystallised .ts headers (@shape-hash, @intent-signature, @origin-trajectory) are the only stable provenance. ALWAYS re-check the normalizer: a timed-out agent (agentExitCode=143) that still wrote a valid answer must not be demoted to infrastructure_error (fix is committed in bfd8c847, but verify the passRate vs score>=70 gap on every run). DATAFETCH_CONVERGENCE_N overrides the convergence threshold (default 2).
+iter 8: retire-the-seed stretch (substrate learns the fan-out interface WITHOUT shipping per_entity, on >=1 family) OR a targeted fix for whichever R-condition iter 7 surfaces as the gap.
+
+Stop after R1-R9 all hold on the latest instrumented full-126 + smokes, OR 8 accepted iterations (6 done + iter-7 step (a) done — so ~1.x left), OR 24 hours.
+
+Cadence per iter: read EXPERIMENTS.md first (G4.1-G4.6 entries are the priors); state one hypothesis; implement against observer/hooks/snippet-runtime, never family-specific; probe single-family then validate {university-directory-builder, jikan-anime-analysis} for behaviour-changing iters; full-126 4-shard; pnpm typecheck clean + pnpm test green + working tree committed; append an EXPERIMENTS.md entry + EXPERIMENT_NOTES.md note.
+
+Gotchas: CWD is the repo root (not docs/). The convergence gate means crystallisation NO LONGER fires on a single trajectory — any new test/smoke that expects a helper must run the crystalliser twice. Persisted hook manifests have empty origin.trajectoryIds — the crystallised .ts headers (@shape-hash, @intent-signature, @origin-trajectory) are the only stable provenance. ALWAYS re-check the normalizer: a timed-out agent (agentExitCode=143) that still wrote a valid answer must not be demoted to infrastructure_error (fix committed in bfd8c847, but verify the passRate vs score>=70 gap every run). DATAFETCH_CONVERGENCE_N overrides the convergence threshold (default 2). eval/skillcraft/results/ is gitignored, so run artifacts don't pollute the working tree.
 
 NOT met if the transcript reveals: code pattern-matching on SkillCraft family/task/bundle/tool identifiers; pre-baked seeds under seeds/<tenantId>/ or <baseDir>/lib/<tenantId>/ before episode 1; prompt-template branches keyed on dataset/family/tier identity; hardcoded payload defaults in df.tool/df.lib proxies; bypassing the hook registry; new server-side LLM call paths substituting for the agent's composition. The per_entity seed under lib/__seed__/ is a permitted cold-start crutch until iter 8's Change 5 retires it.
 
-Before declaring met, surface: the R1-R9 scorecard, the instrumented analysis JSON path, pnpm test count, the per-tier breakdown, the cross-shape transfer evidence (which intentSignature crystallised which helper, reused across which families), a note on whether per_entity can be retired, and confirmation EXPERIMENTS.md has the final iteration's entry.
+Before declaring met, surface: the R1-R9 scorecard, the instrumented analysis JSON path (<D>/analysis.json), pnpm test count, the per-tier breakdown, the cross-shape transfer evidence (which intentSignature crystallised which helper, reused across which families — from the scorecard R9 detail), a note on whether per_entity can be retired, and confirmation EXPERIMENTS.md has the final iteration's entry.
 ```
 
-> The original pre-iter-1 Goal 4 condition (the full 8-iteration plan
-> from scratch) is preserved in git history at commit `506c009c` if a
-> from-scratch re-run is ever needed.
+> The pre-iter-1 Goal 4 condition (the full 8-iteration plan from
+> scratch) is preserved in git history at commit `506c009c`; the
+> iter-7-from-step-(a) resume prompt is preserved at `227cf6b7`.
 
 ## Goal 3 (closed, partial): generic, code-mode-native, cost-effective learning loop
 
