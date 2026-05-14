@@ -43,12 +43,12 @@ newer Codex models. The valid iter-7 run used
 
 The block below is the **resume prompt** for a fresh `/goal` session.
 Use a short `/goal` that points here, e.g.:
-`/goal Continue Goal 4 iter 8 — follow the resume instructions in experiments/goal.md § "Goal 4 (current)". Iter 7 full-126 is done; target the R6/R7 structural gap.`
+`/goal Continue Goal 4 iter 8 — follow the resume instructions in experiments/goal.md § "Goal 4 (current)". Iter 7 full-126 is done; iter-8 hooks-draft probe proved non-seed toolFanout reuse but did not clear pass/cost/R6/R7. Target compositional sub-intent coverage plus pass/cost improvement before any full-126.`
 
 Resume instructions (iter 8):
 
 ```
-Continue Goal 4 iter 8. Repo root /Users/jayfarei/src/tries/2026-05-01-hackathon is the CWD for all commands (NOT docs/). Read experiments/PLAN.md § "⇨ HANDOFF" first. Iters 1-7 are DONE; do NOT rerun iter 7 unless deliberately comparing a different model.
+Continue Goal 4 iter 8. Repo root /Users/jayfarei/src/tries/2026-05-01-hackathon is the CWD for all commands (NOT docs/). Read experiments/PLAN.md § "⇨ HANDOFF" first. Iters 1-7 are DONE; do NOT rerun iter 7 unless deliberately comparing a different model. Iter-8 has partial evidence, not an accepted small gate: `goal4-iter8-probe-tvmaze-hooksdraft-20260514` got 5/6 pass and actual non-seed `toolFanout6PlusCycle1` calls in m2/h1, but avg effective tokens stayed ~38k, one runtime error remained, and exact-signature R6/R7 failed/null.
 
 Goal 4 still holds only when R1-R9 all hold simultaneously on ONE instrumented full-126 run + the smokes:
 R1 passRate >= 0.92. R2 avgEffectiveTokens <= 8000. R3 runtimeErrorRate <= 0.05. R4 quarantine rate <= 0.03. R5 novel-tenant smoke passes with zero substrate edits.
@@ -62,9 +62,9 @@ Iter-7 evidence:
 - Clearest gap: the dominant cluster db→FANOUT(tool,6+,cycle1)→lib has 44 successful trajectories but no callable learned helper attached in R6.
 - Per-tier: train 20/21 pass, warm 70/84, hard 17/21; avg effective tokens 41.2k / 39.2k / 37.6k.
 
-Recommended iter-8 target: align nested/sub-signature helper provenance with whole-trajectory intent clusters and make same-intent learned helpers available/reused. Retire-the-seed stretch is premature until R6/R7 move. If comparing Codex models, set CODEX_BIN=/Users/jayfarei/.bun/bin/codex; the old Homebrew codex rejects gpt-5.4-mini.
+Recommended iter-8 target: decide and implement compositional sub-intent coverage for R6/R7 (the learned helper signature `FANOUT(tool,6+,cycle1)` sits inside `db→FANOUT...` / `FANOUT...→lib` trajectories), then prove pass + token improvement in hooks-draft small probes. Retire-the-seed stretch is premature until R6/R7 move. If comparing Codex models, set CODEX_BIN=/Users/jayfarei/.bun/bin/codex; the old Homebrew codex rejects gpt-5.4-mini.
 
-Cadence per iter: read EXPERIMENTS.md first (G4.1-G4.7 entries are the priors); state one hypothesis; implement against observer/hooks/snippet-runtime, never family-specific; probe single-family then validate {university-directory-builder, jikan-anime-analysis} for behaviour-changing iters; full-126 4-shard only after the probe/validate signal; pnpm typecheck clean + pnpm test green + working tree committed; append an EXPERIMENTS.md entry + EXPERIMENT_NOTES.md note.
+Cadence per iter: read EXPERIMENTS.md first (G4.1-G4.8 entries are the priors); state one hypothesis; implement against observer/hooks/snippet-runtime, never family-specific; probe single-family then validate {university-directory-builder, jikan-anime-analysis} for behaviour-changing iters; full-126 4-shard only after the probe/validate signal; pnpm typecheck clean + pnpm test green + working tree committed; append an EXPERIMENTS.md entry + EXPERIMENT_NOTES.md note.
 
 Gotchas: CWD is the repo root (not docs/). The convergence gate means crystallisation NO LONGER fires on a single trajectory — any new test/smoke that expects a helper must run the crystalliser twice. Persisted hook manifests have empty origin.trajectoryIds — the crystallised .ts headers (@shape-hash, @intent-signature, @origin-trajectory) are the only stable provenance. ALWAYS re-check the normalizer: a timed-out agent (agentExitCode=143) that still wrote a valid answer must not be demoted to infrastructure_error. DATAFETCH_CONVERGENCE_N overrides the convergence threshold (default 2). eval/skillcraft/results/ is gitignored, so run artifacts don't pollute the working tree.
 

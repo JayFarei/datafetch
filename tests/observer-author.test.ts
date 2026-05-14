@@ -242,6 +242,7 @@ describe("authorFunction", () => {
       fanoutTrajectory,
       "fanout",
     );
+    expect(template.name).toBe("toolFanout6PlusCycle1");
     const resolver: LibraryResolver = {
       resolve: async () => (() => Promise.resolve(null)) as never,
       list: async () => [],
@@ -255,6 +256,15 @@ describe("authorFunction", () => {
     });
     expect(authored.kind).toBe("authored");
     if (authored.kind !== "authored") return;
+    expect(authored.source).toContain("export const toolFanout6PlusCycle1");
+    const fmEnd = authored.source.indexOf("--- */");
+    const fm = fmEnd >= 0 ? authored.source.slice(0, fmEnd) : authored.source;
+    expect(fm).toContain("Transferable learned datafetch fan-out helper");
+    expect(fm).toContain(
+      "{ entityValues, toolBundle, toolNames, paramName, sharedInput? }",
+    );
+    expect(fm).not.toContain("tvmaze_api");
+    expect(fm).not.toContain("analyse these shows");
     // The capability slots are INPUT PARAMETERS, never frozen into the
     // body — this is what makes the learned helper data-shape-agnostic.
     expect(authored.source).toContain("toolBundle: string");
@@ -269,5 +279,63 @@ describe("authorFunction", () => {
     expect(authored.source).toContain('"paramName": "show_id"');
     // sharedInput captures the constant `lang: "en"` field.
     expect(authored.source).toContain('"sharedInput"');
+  });
+
+  it("authors record-backed fan-out helpers without wrapping the per_entity seed", async () => {
+    const fanoutTrajectory: TrajectoryRecord = {
+      id: "traj_record_fanout",
+      tenantId: "acme",
+      question: "analyse these shows",
+      mode: "novel",
+      createdAt: ISO,
+      calls: [
+        { index: 0, primitive: "db.records.findExact", input: { filter: {}, limit: 999 }, output: [{ id: 1 }, { id: 2 }, { id: 3 }], startedAt: ISO, durationMs: 1 },
+        { index: 1, primitive: "tool.tvmaze_api.local-get_info", input: { show_id: 1, lang: "en" }, output: { n: 1 }, startedAt: ISO, durationMs: 1 },
+        { index: 2, primitive: "tool.tvmaze_api.local-get_cast", input: { show_id: 1, lang: "en" }, output: { c: 1 }, startedAt: ISO, durationMs: 1 },
+        { index: 3, primitive: "tool.tvmaze_api.local-get_info", input: { show_id: 2, lang: "en" }, output: { n: 2 }, startedAt: ISO, durationMs: 1 },
+        { index: 4, primitive: "tool.tvmaze_api.local-get_cast", input: { show_id: 2, lang: "en" }, output: { c: 2 }, startedAt: ISO, durationMs: 1 },
+        { index: 5, primitive: "tool.tvmaze_api.local-get_info", input: { show_id: 3, lang: "en" }, output: { n: 3 }, startedAt: ISO, durationMs: 1 },
+        { index: 6, primitive: "tool.tvmaze_api.local-get_cast", input: { show_id: 3, lang: "en" }, output: { c: 3 }, startedAt: ISO, durationMs: 1 },
+        {
+          index: 7,
+          primitive: "lib.per_entity",
+          input: {
+            entityIds: [1, 2, 3],
+            toolBundle: "tvmaze_api",
+            toolNames: ["local-get_info", "local-get_cast"],
+            paramName: "show_id",
+          },
+          output: [],
+          startedAt: ISO,
+          durationMs: 1,
+        },
+      ],
+    };
+    const template = extractTemplate(fanoutTrajectory);
+    expect(template.name).toBe("recordToolFanout6PlusCycle1");
+    const resolver: LibraryResolver = {
+      resolve: async () => (() => Promise.resolve(null)) as never,
+      list: async () => [],
+    };
+    const authored = await authorFunction({
+      tenantId: "acme",
+      baseDir,
+      trajectory: fanoutTrajectory,
+      template,
+      libraryResolver: resolver,
+    });
+
+    expect(authored.kind).toBe("authored");
+    if (authored.kind !== "authored") return;
+    expect(authored.source).toContain("export const recordToolFanout6PlusCycle1");
+    expect(authored.source).toContain("@intent-signature: db→FANOUT(tool,6+,cycle1)→lib");
+    expect(authored.source).toContain("df.db.records.findExact");
+    expect(authored.source).toContain("df.tool[input.toolBundle]");
+    expect(authored.source).not.toContain("df.lib.per_entity(");
+    expect(authored.source).not.toContain("df.tool.tvmaze_api[");
+    const fmEnd = authored.source.indexOf("--- */");
+    const fm = fmEnd >= 0 ? authored.source.slice(0, fmEnd) : authored.source;
+    expect(fm).toContain("record-backed per-entity tool fan-out");
+    expect(fm).not.toContain("tvmaze_api");
   });
 });

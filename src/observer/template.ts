@@ -164,10 +164,14 @@ export function extractTemplateFromCalls(
   const finalOutputBinding = steps[steps.length - 1]!.outputName;
   const shapeHash = shapeHashHex(canonicalShape(steps));
   const intentSignature = computeIntentSignature(calls);
+  const pickedTopic =
+    pickRecordToolFanoutTopic(calls, intentSignature) ??
+    pickPureToolFanoutTopic(calls, intentSignature) ??
+    pickTopicForCalls(trajectory, calls);
   const baseTopic =
-    topicSuffix !== undefined
-      ? `${pickTopicForCalls(trajectory, calls)}_${topicSuffix}`
-      : pickTopicForCalls(trajectory, calls);
+    topicSuffix !== undefined && !isPureToolFanoutCalls(calls)
+      ? `${pickedTopic}_${topicSuffix}`
+      : pickedTopic;
   const name = semanticName(baseTopic);
 
   return {
@@ -501,6 +505,54 @@ function pickTopicForCalls(
     return sanitizeSlug(trajectory.question || "snippet");
   }
   return pickTopic(fakeTrajectory);
+}
+
+function isPureToolFanoutCalls(
+  calls: ReadonlyArray<PrimitiveCallRecord>,
+): boolean {
+  return calls.length >= 2 && calls.every((c) => c.primitive.startsWith("tool."));
+}
+
+function hasRecordToolFanoutShape(
+  calls: ReadonlyArray<PrimitiveCallRecord>,
+): boolean {
+  return (
+    calls.some((c) => c.primitive.startsWith("db.")) &&
+    calls.filter((c) => c.primitive.startsWith("tool.")).length >= 2 &&
+    calls.some((c) => c.primitive === "lib.per_entity")
+  );
+}
+
+function pickRecordToolFanoutTopic(
+  calls: ReadonlyArray<PrimitiveCallRecord>,
+  intentSignature: string,
+): string | null {
+  if (!hasRecordToolFanoutShape(calls)) return null;
+  const match = intentSignature.match(
+    /^db→FANOUT\(tool,([^,]+),cycle([0-9]+)\)→lib$/,
+  );
+  if (!match) return "record_tool_fanout";
+  return `record_tool_fanout_${fanoutDegreeSlug(match[1]!)}_cycle${match[2]!}`;
+}
+
+function pickPureToolFanoutTopic(
+  calls: ReadonlyArray<PrimitiveCallRecord>,
+  intentSignature: string,
+): string | null {
+  if (!isPureToolFanoutCalls(calls)) return null;
+  const match = intentSignature.match(
+    /^FANOUT\(tool,([^,]+),cycle([0-9]+)\)$/,
+  );
+  if (!match) return "tool_fanout";
+  return `tool_fanout_${fanoutDegreeSlug(match[1]!)}_cycle${match[2]!}`;
+}
+
+function fanoutDegreeSlug(degree: string): string {
+  return degree
+    .replace(/\+/g, "_plus")
+    .replace(/-/g, "_to_")
+    .replace(/[^A-Za-z0-9_]+/g, "_")
+    .replace(/^_+|_+$/g, "");
 }
 
 // --- bindInputs ------------------------------------------------------------

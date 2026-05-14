@@ -204,6 +204,60 @@ describe("extractTemplate", () => {
     expect(tpl.name).toBe("rangeTableMetric");
   });
 
+  it("names record-backed tool fan-out trajectories by the generic intent", () => {
+    const traj = buildTrajectory([
+      {
+        index: 0,
+        primitive: "db.records.findExact",
+        input: { filter: {}, limit: 999 },
+        output: [{ id: 1 }, { id: 2 }, { id: 3 }],
+        startedAt: ISO,
+        durationMs: 0,
+      },
+      {
+        index: 1,
+        primitive: "tool.api.getInfo",
+        input: { id: 1 },
+        output: { ok: 1 },
+        startedAt: ISO,
+        durationMs: 0,
+      },
+      {
+        index: 2,
+        primitive: "tool.api.getInfo",
+        input: { id: 2 },
+        output: { ok: 2 },
+        startedAt: ISO,
+        durationMs: 0,
+      },
+      {
+        index: 3,
+        primitive: "tool.api.getInfo",
+        input: { id: 3 },
+        output: { ok: 3 },
+        startedAt: ISO,
+        durationMs: 0,
+      },
+      {
+        index: 4,
+        primitive: "lib.per_entity",
+        input: {
+          entityIds: [1, 2, 3],
+          toolBundle: "api",
+          toolNames: ["getInfo"],
+          paramName: "id",
+        },
+        output: [],
+        startedAt: ISO,
+        durationMs: 0,
+      },
+    ]);
+    const tpl = extractTemplate(traj);
+    expect(tpl.intentSignature).toBe("db→FANOUT(tool,3-5,cycle1)→lib");
+    expect(tpl.topic).toBe("record_tool_fanout_3_to_5_cycle1");
+    expect(tpl.name).toBe("recordToolFanout3To5Cycle1");
+  });
+
   it("keeps selected search results internal instead of exposing filing as input", () => {
     const picked = {
       filename: "UNP/2016/page_52.pdf",
@@ -415,8 +469,12 @@ describe("extractSubGraphTemplates", () => {
     // minimum). Sub-graph B [tool#1, tool#2, tool#3] is 3 calls of the
     // same primitive, with a repeated primitive, so it should be emitted.
     expect(subs.length).toBeGreaterThanOrEqual(1);
-    const fanout = subs.find((t) => t.topic.endsWith("fanout"));
+    const fanout = subs.find(
+      (t) => t.intentSignature === "FANOUT(tool,3-5,cycle1)",
+    );
     expect(fanout).toBeDefined();
+    expect(fanout!.topic).toBe("tool_fanout_3_to_5_cycle1");
+    expect(fanout!.name).toBe("toolFanout3To5Cycle1");
     expect(fanout!.steps).toHaveLength(3);
     expect(fanout!.steps.every((s) => s.primitive === "tool.api.getDetails")).toBe(true);
   });
@@ -440,8 +498,12 @@ describe("extractSubGraphTemplates", () => {
       { index: 6, primitive: "tool.api.local-getRelated", input: { id: 9 }, output: { related: 9 }, startedAt: ISO, durationMs: 1 },
     ]);
     const subs = extractSubGraphTemplates(traj);
-    const fanout = subs.find((t) => t.topic.endsWith("fanout"));
+    const fanout = subs.find(
+      (t) => t.intentSignature === "FANOUT(tool,6+,cycle1)",
+    );
     expect(fanout).toBeDefined();
+    expect(fanout!.topic).toBe("tool_fanout_6_plus_cycle1");
+    expect(fanout!.name).toBe("toolFanout6PlusCycle1");
     expect(fanout!.steps).toHaveLength(6);
     expect(fanout!.steps.every((s) => s.primitive.startsWith("tool."))).toBe(true);
     // Single shared param `id` since all 6 calls bind `id` to the same param.
@@ -533,7 +595,8 @@ describe("extractNestedTemplates (Goal-4 Change 2)", () => {
     expect(nested[0]!.template.steps.every((s) => s.primitive === "tool.api.getInfo")).toBe(true);
     // The nested fan-out has its own intentSignature.
     expect(nested[0]!.template.intentSignature).toBe("FANOUT(tool,3-5,cycle1)");
-    expect(nested[0]!.template.topic).toContain("nested_per_entity");
+    expect(nested[0]!.template.topic).toBe("tool_fanout_3_to_5_cycle1");
+    expect(nested[0]!.template.name).toBe("toolFanout3To5Cycle1");
     // The slice is the group of nested calls.
     expect(nested[0]!.calls).toHaveLength(3);
   });

@@ -6,6 +6,7 @@ import { performance } from "node:perf_hooks";
 
 import { getMountRuntimeRegistry, type MountRuntime } from "../adapter/runtime.js";
 import { installObserver } from "../observer/install.js";
+import { readFrontmatterHead } from "../sdk/frontmatter.js";
 import { readTrajectory, type TrajectoryRecord } from "../sdk/index.js";
 import { installSnippetRuntime } from "../snippet/install.js";
 
@@ -1037,9 +1038,13 @@ async function prepareLiveWorkspace(input: {
     ...(input.seededLibFunctions ?? []),
     ...input.availableLibFunctions,
   ]));
+  const libFunctionDocs = await loadLiveLibFunctionDocs({
+    workspace: input.workspace,
+    names: allLibFunctions,
+  });
   await fsp.writeFile(
     path.join(input.workspace, "df.d.ts"),
-    renderLiveDfDts(toolCatalog, allLibFunctions, Boolean(input.mountedRecords)),
+    renderLiveDfDts(toolCatalog, libFunctionDocs, Boolean(input.mountedRecords)),
   );
   await fsp.writeFile(path.join(input.workspace, "AGENTS.md"), renderLiveAgentInstructions(input.task, toolCatalog));
   await writeLibAuthoringGuide({
@@ -1052,9 +1057,93 @@ async function prepareLiveWorkspace(input: {
   await fsp.writeFile(path.join(input.artifactDir, "task-summary.json"), `${JSON.stringify(taskSummary(input.task), null, 2)}\n`);
 }
 
+type LiveLibFunctionDoc = {
+  name: string;
+  description: string | null;
+  inputType: string;
+};
+
+async function loadLiveLibFunctionDocs(input: {
+  workspace: string;
+  names: string[];
+}): Promise<LiveLibFunctionDoc[]> {
+  const docs: LiveLibFunctionDoc[] = [];
+  for (const name of input.names) {
+    if (name === PER_ENTITY_SEED_NAME) {
+      docs.push({
+        name,
+        description:
+          "Cold-start seed helper for configurable per-entity tool fan-out. Use it only when no learned helper fits.",
+        inputType:
+          "{ entityIds: Array<string | number>; toolBundle: string; toolNames: string[]; paramName: string; extraInput?: Record<string, unknown> }",
+      });
+      continue;
+    }
+    const file = path.join(input.workspace, "lib", `${name}.ts`);
+    let source = "";
+    try {
+      source = await fsp.readFile(file, "utf8");
+    } catch {
+      // The resolver may expose a function without a workspace source file.
+    }
+    let description: string | null = null;
+    if (source) {
+      try {
+        description = (await readFrontmatterHead(file)).description;
+      } catch {
+        description = null;
+      }
+    }
+    docs.push({
+      name,
+      description,
+      inputType: inferLiveLibInputType(source),
+    });
+  }
+  return docs.sort(compareLiveLibDocs);
+}
+
+function inferLiveLibInputType(source: string): string {
+  if (
+    source.includes("recordFilter") &&
+    source.includes("entityValues") &&
+    source.includes("toolBundle") &&
+    source.includes("toolNames") &&
+    source.includes("paramName")
+  ) {
+    return "{ recordFilter?: Record<string, unknown>; recordLimit?: number; entityField?: string; entityValues?: Array<string | number>; toolBundle: string; toolNames: string[]; paramName: string; sharedInput?: Record<string, unknown> }";
+  }
+  if (
+    source.includes("entityValues") &&
+    source.includes("toolBundle") &&
+    source.includes("toolNames") &&
+    source.includes("paramName")
+  ) {
+    return "{ entityValues: Array<string | number>; toolBundle: string; toolNames: string[]; paramName: string; sharedInput?: Record<string, unknown> }";
+  }
+  return "any";
+}
+
+function compareLiveLibDocs(
+  left: LiveLibFunctionDoc,
+  right: LiveLibFunctionDoc,
+): number {
+  const leftSeed = left.name === PER_ENTITY_SEED_NAME;
+  const rightSeed = right.name === PER_ENTITY_SEED_NAME;
+  if (leftSeed !== rightSeed) return leftSeed ? 1 : -1;
+  const leftLearnedFanout = left.description?.includes("learned") === true &&
+    left.description.includes("fan-out");
+  const rightLearnedFanout = right.description?.includes("learned") === true &&
+    right.description.includes("fan-out");
+  if (leftLearnedFanout !== rightLearnedFanout) {
+    return leftLearnedFanout ? -1 : 1;
+  }
+  return left.name.localeCompare(right.name);
+}
+
 function renderLiveDfDts(
   toolCatalog: ToolCatalogEntry[],
-  availableLibFunctions: string[],
+  libFunctionDocs: LiveLibFunctionDoc[],
   recordsMounted: boolean,
 ): string {
   const bundleBlocks: string[] = [];
@@ -1066,8 +1155,8 @@ function renderLiveDfDts(
     bundleBlocks.push(`  ${entry.bundle}: {\n    [name: string]: (input: any) => Promise<any>;\n${fields}\n  };`);
   }
   const libResultType = "{ value: any; cost?: any; provenance?: any; escalations?: number }";
-  const libFields = availableLibFunctions
-    .map((name) => `    ${JSON.stringify(name)}(input: any): Promise<${libResultType}>;`)
+  const libFields = libFunctionDocs
+    .map((doc) => renderLiveLibDeclaration(doc, libResultType))
     .join("\n");
   const dbBlock = recordsMounted
     ? `  db: {
@@ -1090,7 +1179,6 @@ ${dbBlock}  tool: {
 ${bundleBlocks.join("\n")}
   };
   lib: {
-    [name: string]: (input: any) => Promise<${libResultType}>;
 ${libFields}
   };
   answer(input: {
@@ -1104,20 +1192,38 @@ ${libFields}
 `.trimStart();
 }
 
+function renderLiveLibDeclaration(
+  doc: LiveLibFunctionDoc,
+  libResultType: string,
+): string {
+  const lines: string[] = [];
+  if (doc.description) {
+    lines.push("    /**");
+    for (const line of doc.description.split("\n")) {
+      lines.push(`     * ${line.replace(/\*\//g, "* /")}`);
+    }
+    lines.push("     */");
+  }
+  lines.push(
+    `    ${JSON.stringify(doc.name)}(input: ${doc.inputType}): Promise<${libResultType}>;`,
+  );
+  return lines.join("\n");
+}
+
 function renderLiveAgentInstructions(task: SkillCraftTask, toolCatalog: ToolCatalogEntry[]): string {
   const exactToolNames = flattenToolCatalogNames(toolCatalog);
   const bundleNames = toolCatalog.map((entry) => entry.bundle);
   return [
     "# Datafetch x SkillCraft Workspace",
     "",
-    "Write `scripts/answer.ts`. You may also write reusable learned interfaces under `lib/*.ts`.",
+    "Write `scripts/answer.ts`. You may also write reusable learned interfaces under `lib/*.ts` for future episodes.",
     "Use the official task prompt in `task.md`, the exact tool list in `tool_manifest.json`, and the available tool types in `df.d.ts`.",
     "Call official SkillCraft tools through `df.tool.<bundle>[\"local-tool_name\"]({ ... })`.",
     `Available tool bundle(s): ${bundleNames.join(", ") || "none"}.`,
     `Available exact tool names: ${exactToolNames.join(", ") || "none"}.`,
     "Use only the exact available tool names above. Do not infer, invent, or abbreviate endpoint names from `task_config.json` metadata.",
     "Before making raw `df.tool` calls, inspect `lib/` and prefer `df.lib.<name>(...)` when a helper fits the task.",
-    "If the task repeats the same tool workflow across multiple entities, implement that workflow as a Datafetch `fn({...})` in `lib/<name>.ts` and call it through `df.lib.<name>(...)` from `scripts/answer.ts`.",
+    "Only call helpers that are already listed in `df.d.ts`. A helper you create during this episode is saved for later learning, but it is not callable from the current `scripts/answer.ts` unless `df.d.ts` already listed it.",
     "For reusable helpers, prefer accepting tool names and an argument object as input rather than hard-coding one level's exact endpoints.",
     "Keep helper schemas permissive enough for the exact caller shape you use in `scripts/answer.ts`; for nested entity objects, prefer `v.unknown()` or a loose object over a brittle field set.",
     "If `scripts/answer.ts` calls `df.lib.someHelper({ city: { name } })`, the helper input schema must accept `city.name`; do not require a different field like `city_name` unless the caller passes it.",
@@ -1455,7 +1561,8 @@ async function writeLibAuthoringGuide(input: {
       : "- none yet",
     "",
     "New helpers should be TypeScript files in this directory. The file name must match the exported function name.",
-    "Use `fn({...})` so the Datafetch runtime records a `df.lib.*` call and can reuse the helper in later tasks.",
+    "Use `fn({...})` so Datafetch can validate and reuse the helper in later tasks.",
+    "Do not rely on a newly authored helper from the current scripts/answer.ts unless it was already listed in ../df.d.ts at episode start.",
     `Available exact tool names for this task: ${tools.join(", ") || "see tool_manifest.json"}.`,
     "Use only these exact names when calling `df.tool`; metadata in `task_config.json` can mention higher-level tool concepts that are not callable endpoints.",
     "Prefer generic inputs like `{ arg, toolNames }` when that still lets the caller shape the output for the current task.",
@@ -1500,10 +1607,10 @@ function renderLivePrompt(task: SkillCraftTask): string {
     "Read task.md, AGENTS.md, df.d.ts, and any initial workspace files.",
     "Edit scripts/answer.ts so it completes the task.",
     "Stay inside the current episode workspace. Do not read or write repo-root files via absolute paths, and do not create output files outside this workspace. The required output JSON must be written in the current workspace only.",
-    "When df.d.ts declares df.db.records, the entities for this task are mounted as a substrate-rooted record store. Call `const entities = await df.db.records.findExact({}, 999)` first to get the entity list; each record carries `id` (the raw tool-callable identifier — e.g. \"Siamese\", 169, \"the-office\"), `recordKey` (the cross-family-unique key, NOT a tool argument), `entity` (same as `id`), `label`, and an `attributes` map. Then use `df.lib.per_entity({ entityIds, toolBundle, toolNames, paramName, extraInput? })` to fan out the required per-entity tool calls. Pass `entities.map(e => e.id)` (or `entities.map(e => e.attributes[<field>])` if the tool needs a specific attribute) as `entityIds` — never pass `e.recordKey` which carries a `<family>:` prefix tools don't recognise. The seed unwraps as `(await df.lib.per_entity({...})).value` and returns `[{ entityId, tools: { <toolName>: <response> } }, ...]`.",
+    "When df.d.ts declares df.db.records, the entities for this task are mounted as a substrate-rooted record store. Each record carries `id` (the raw, tool-callable identifier — e.g. \"Siamese\", 169, \"the-office\"), `recordKey` (the cross-family-unique key, NOT a tool argument), `entity` (same as `id`), `label`, and an `attributes` map. Prefer a learned record-backed or fan-out helper listed in df.d.ts when its description matches the task; those helpers usually accept `{ recordFilter?, recordLimit?, entityField?, entityValues?, toolBundle, toolNames, paramName, sharedInput? }` or `{ entityValues, toolBundle, toolNames, paramName, sharedInput? }` and return per-entity tool outputs. Use `df.lib.per_entity({ entityIds, toolBundle, toolNames, paramName, extraInput? })` only as the cold-start fallback when no learned helper fits. Never pass `recordKey` to tools because it carries a `<family>:` prefix tools don't recognise.",
     "REQUIRED when df.d.ts declares df.db.records: scripts/answer.ts MUST reach the answer through at least one df.db.* call AND/OR at least one df.lib.* call. A scripts/answer.ts that only fan-outs with raw df.tool.* will be auto-rewritten to `{status: \"unsupported\", reason: \"substrate-rooted chain absent\"}` and scored 0. Probes (scripts/probe.ts) are free to use any df.* surface; only the final scripts/answer.ts is gated.",
     "If a learned helper (anything other than `per_entity`) is listed in df.d.ts under df.lib, prefer it over recomposing the chain. Call it the same way: `const r = (await df.lib.<name>({...})).value`.",
-    "Use existing df.lib helpers when they fit. If no helper exists and the task has repeated entity-level tool calls, create one under lib/ and call it from scripts/answer.ts.",
+    "Use existing df.lib helpers when they fit. If no learned helper is listed for the current task, use the `per_entity` seed or raw df.tool calls to complete scripts/answer.ts; any new helper you write under lib/ is for later episodes, not the current call path.",
     "When creating or updating a helper, make it parameterized over the task's tool names where practical so later levels in this family can reuse it.",
     "Use df.tool calls for the official local tools. Use bracket notation for hyphenated tool names.",
     // Multi-turn probing affordance. Before committing to scripts/answer.ts, the agent can

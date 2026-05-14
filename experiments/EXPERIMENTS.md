@@ -651,3 +651,38 @@ Re-analyzed iter14 numbers with the fix:
   - `eval/skillcraft/results/datafetch/goal4-iter7-full-20260514-142538/helper-instrumentation.jsonl`
   - `eval/skillcraft/results/datafetch/goal4-iter7-full-20260514-142538/intent-clusters.json`
   - `eval/skillcraft/results/datafetch/goal4-iter7-full-20260514-142538/r1-r9-scorecard.json`
+
+### G4.8: learned fan-out discoverability + hooks-draft probe — helper reuse appears, but not enough
+- Date: 2026-05-14
+- Goal: Goal 4
+- Hypothesis: the iter-7 R6/R7 miss is partly substrate-facing: the transferable helper body exists, but the agent sees family-shaped names / weak `df.d.ts` declarations, and hydrated helpers are not callable unless the run uses `hooks-draft`. If pure fan-out helpers are generically named, documented in `df.d.ts`, and exposed under hooks-draft, small probes should show actual learned-helper calls before another full-126.
+- Lever: observer template + author metadata + SkillCraft live workspace manifest/prompt.
+- Change:
+  - Pure tool fan-outs now get generic names such as `toolFanout6PlusCycle1` instead of tool/family-shaped names.
+  - Added a record-backed fan-out author path (`recordToolFanout*`) that can learn the `db→FANOUT(tool,*)→lib.per_entity` shape without wrapping the `per_entity` seed.
+  - The SkillCraft live `df.d.ts` now includes frontmatter/JSDoc and stricter declarations for listed helpers, and the prompt says to call only helpers already listed in `df.d.ts`; newly authored helpers are for later episodes.
+- Probe sequence:
+  | run | mode | result |
+  |---|---|---|
+  | `goal4-iter8-probe-tvmaze-20260514` | default `hooks-candidate-only` | `4/6` pass; `R6=1.0`, but `R7=0`; `toolFanout6PlusCycle1` was available but the agent kept using the seed path. |
+  | `goal4-iter8-probe-tvmaze-recordfanout-20260514` | default `hooks-candidate-only` | `0/6` pass; agents called newly authored same-episode helpers that the registry correctly rejected as not callable. Diagnostic only. |
+  | `goal4-iter8-probe-tvmaze-listedonly-20260514` | default `hooks-candidate-only` | `2/6` pass; agent selected `toolFanout6PlusCycle1`, but the registry rejected it as observed-only. Diagnostic only; wrong interface mode. |
+  | `goal4-iter8-probe-tvmaze-hooksdraft-20260514` | `DATAFETCH_INTERFACE_MODE=hooks-draft` | `5/6` pass; `toolFanout6PlusCycle1` promoted and was actually called in `m2` and `h1` (`helpersCalled=["toolFanout6PlusCycle1"]`, seed not called). R1/R2/R3/R6 still fail on the probe; R7 remains unscored by the exact-signature scorer. |
+- Hooks-draft scorecard (`goal4-iter8-probe-tvmaze-hooksdraft-20260514/r1-r9-scorecard.json`):
+  - R1 `0.8333` — FAIL.
+  - R2 `37,990.8` avg effective tokens — FAIL.
+  - R3 `0.1667` runtime error rate — FAIL (`e2` syntax error).
+  - R4 `0` quarantine — PASS.
+  - R6 `0` — FAIL under exact-signature scoring.
+  - R7 `null` — no exact same-intent warm denominator, even though `m2` calls the learned pure fan-out helper.
+  - Signature join: `0/1` helper signatures intersect `3` cluster signatures. The helper signature is `FANOUT(tool,6+,cycle1)` while successful trajectories cluster as surrounding compositions (`db→FANOUT(tool,6+,cycle1)`, `FANOUT(tool,6+,cycle1)→lib`, `db→FANOUT(tool,6+,cycle1)→lib`).
+- Status: **PARTIAL / NOT ACCEPTED FOR FULL-126.** We proved one important behavioural step: under the correct `hooks-draft` mode, Codex does call the learned non-seed helper in later episodes. But the probe still misses pass, cost, runtime, and exact R6/R7 gates, so it does not satisfy the single-family precondition for a full run.
+- Lessons:
+  1. **Always set `DATAFETCH_INTERFACE_MODE=hooks-draft` for Goal 4 behavioural probes.** The default `hooks-candidate-only` is a deliberate non-callable baseline and creates misleading failures.
+  2. **Selection improved only after `df.d.ts` carried helper descriptions and the lib index signature was removed.** In hooks-draft, `m2` and `h1` called `toolFanout6PlusCycle1`; that is real learned-helper reuse, not seed-only reuse.
+  3. **The current R6/R7 scorer is exact-whole-signature only.** It misses real compositional reuse when the learned helper covers the fan-out sub-intent inside a larger trajectory. The next substrate/scoring iteration should explicitly decide whether R6/R7 measure whole-intent helpers only or compositional sub-intent coverage; if the latter, update the scorer and prove paired cost drops over small probes before any full-126.
+  4. **Pass/cost still need work.** The best valid probe is only `5/6`, avg effective tokens are still ~38k, and `m1` used 78k effective tokens. A scorer alignment alone would be insufficient.
+- Verification:
+  - `pnpm vitest run tests/observer-template.test.ts tests/observer-author.test.ts` — 29/29.
+  - `pnpm typecheck` — pass.
+  - `pnpm test` — smokes green, cross-shape-transfer `8/8`, novel-tenant `11/11`, Vitest `271/271`.

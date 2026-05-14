@@ -539,3 +539,36 @@ Normalizer cross-check is clean (`ge70ButNotPassed=0`). Signature join is the re
 Model conclusion: use `gpt-5.4-mini` for cheap Codex probes only after explicitly pointing `CODEX_BIN` at the Bun Codex CLI. Do not treat it as a drop-in replacement for the headline full-run backend until either the prompt/harness is tightened or a stronger Codex model is compared.
 
 Goal 4's canonical `/goal` condition is in goal.md. Planning complete; the user starts a fresh `/goal` for it.
+
+### 2026-05-14 18:10 [probe, Goal 4 iter 8, learned helper reuse]
+
+Hypothesis: iter-7's R6/R7 failure is partly caused by the learned fan-out helper being discoverability-poor and not visible as a generic callable. Implemented:
+
+- generic naming for pure tool fan-outs (`toolFanout6PlusCycle1` instead of family/tool-shaped names);
+- a record-backed author path for the full `db→FANOUT(tool,*)→lib.per_entity` shape that does not call the `per_entity` seed;
+- richer SkillCraft `df.d.ts` declarations from helper frontmatter, with no permissive `df.lib[name]` index signature;
+- prompt/docs that say to call only helpers already listed in `df.d.ts`; new same-episode helpers are for later learning.
+
+Important correction: the first three probes accidentally used the default `DATAFETCH_INTERFACE_MODE=hooks-candidate-only`, which intentionally makes learned helpers not callable. Treat them as diagnostics only:
+
+- `goal4-iter8-probe-tvmaze-20260514`: 4/6 pass; R6 1.0 but R7 0; `toolFanout6PlusCycle1` available, not called.
+- `goal4-iter8-probe-tvmaze-recordfanout-20260514`: 0/6; agent called newly authored same-episode helpers, rejected as observed-only.
+- `goal4-iter8-probe-tvmaze-listedonly-20260514`: 2/6; agent selected `toolFanout6PlusCycle1`, but candidate-only rejected it.
+
+Valid hooks-draft probe:
+
+```
+DATAFETCH_AGENT=codex \
+DATAFETCH_INTERFACE_MODE=hooks-draft \
+CODEX_BIN=/Users/jayfarei/.bun/bin/codex \
+CODEX_SANDBOX=workspace-write \
+pnpm eval:skillcraft -- --live --skillcraft-dir /tmp/skillcraft-official \
+  --families tvmaze-series-analyzer --model gpt-5.4-mini --reasoning low \
+  --out-dir eval/skillcraft/results/datafetch/goal4-iter8-probe-tvmaze-hooksdraft-20260514
+```
+
+Result: 5/6 pass, avg effective tokens 37,990.8, runtime error 1/6. `toolFanout6PlusCycle1` was promoted after m1 and called in `m2` and `h1` (`helpersCalled=["toolFanout6PlusCycle1"]`, seed not called). This is the first real non-seed learned-helper reuse signal in Goal 4 small evals.
+
+Still not enough: scorecard R6 remains 0 and R7 null because the scorer requires exact whole-trajectory signature matches. The called helper is `FANOUT(tool,6+,cycle1)`, while surrounding successful trajectories are `db→FANOUT(tool,6+,cycle1)`, `FANOUT(tool,6+,cycle1)→lib`, or `db→FANOUT(tool,6+,cycle1)→lib`. Next step should decide and implement compositional sub-intent coverage for R6/R7, then rerun hooks-draft probes and require pass + token improvement before any two-family validate.
+
+Verification after code changes: `pnpm test` green; novel-tenant 11/11; cross-shape-transfer 8/8; Vitest 271/271.

@@ -239,7 +239,7 @@ offline analyzer proves the signatures cluster cleanly.
 | 6 ✓ | cross-shape transfer smoke. **DONE** — commit pending. `src/observer/__smoke__/cross-shape-transfer.ts`: a fan-out helper crystallised from tenant A's "widgets" data shape, transferred, invoked on tenant B's "gadgets" data shape (different bundle/tools/param) — 8/8, R9 proven. Wired into `pnpm test`. | transfer harness (test infra) |
 | R9 ✓ | cross-family transfer harness wired into the eval. **DONE** — commit `21ec6b46`. `__intent__/` shared pool: parameterised fan-out helpers promoted (deduped by `@intent-signature`), hydrated into every family. | eval harness |
 | 7 ✓ | instrumented full-126 against R1-R9. **DONE** on Codex `gpt-5.4-mini`; run completed but Goal 4 failed: R1/R2/R3/R6/R7 miss, R8 unscored, R4/R5 pass, R9 weak/seed-mediated pass. | measurement |
-| 8 ← NEXT | targeted fix for iter-7 gap: align nested/sub-signature helper provenance with whole-trajectory clusters and make same-intent learned helpers available/reused; compare stronger Codex model only if needed. Retire-the-seed stretch is premature until R6/R7 move. | matches gap |
+| 8 ← IN PROGRESS | targeted fix for iter-7 gap. First hooks-draft probe proved actual non-seed `toolFanout6PlusCycle1` reuse in tvmaze `m2`/`h1`, but the run is not accepted: pass `5/6`, avg effective tokens `37,990.8`, one runtime error, and exact-signature R6/R7 still fail/null. Next lever: compositional sub-intent coverage + pass/cost improvement, not a full-126. | matches gap |
 
 Stop conditions: R1-R9 all hold simultaneously on the instrumented
 full-126 + smokes, OR 8 accepted iterations, OR 24 hours elapsed.

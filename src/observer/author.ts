@@ -91,7 +91,9 @@ export async function authorFunction(
   // concrete primitives — that freeze is exactly what would kill
   // cross-shape transfer (R9). Falls back to the pure-composition path
   // when the template is not a pure fan-out.
-  const fanOutSource = renderFanOutSource({ template, trajectory });
+  const fanOutSource =
+    renderRecordToolFanOutSource({ template, trajectory }) ??
+    renderFanOutSource({ template, trajectory });
   const pureSource = fanOutSource ?? generatePureSource({
     template,
     trajectory,
@@ -240,6 +242,15 @@ function isPureToolFanout(template: CallTemplate): boolean {
   return template.steps.every((s) => s.primitive.startsWith("tool."));
 }
 
+function isRecordToolFanout(template: CallTemplate): boolean {
+  return (
+    /^db→FANOUT\(tool,[^)]+\)→lib$/.test(template.intentSignature) &&
+    template.steps.some((s) => s.primitive.startsWith("db.")) &&
+    template.steps.filter((s) => s.primitive.startsWith("tool.")).length >= 2 &&
+    template.steps.some((s) => s.primitive === "lib.per_entity")
+  );
+}
+
 // Parse `tool.<bundle>.<toolName>` — toolName may contain dots/hyphens
 // (e.g. `tool.tvmaze_api.local-tvmaze_get_show_info`).
 function parseToolPrimitive(
@@ -267,9 +278,19 @@ function harvestFanOutShape(template: CallTemplate, trajectory: TrajectoryRecord
   entityValues: Array<string | number>;
   sharedInput: Record<string, unknown>;
 } | null {
+  return harvestToolFanOutShape(template.steps, trajectory);
+}
+
+function harvestToolFanOutShape(steps: ReadonlyArray<TemplateStep>, trajectory: TrajectoryRecord): {
+  toolBundle: string;
+  toolNames: string[];
+  paramName: string;
+  entityValues: Array<string | number>;
+  sharedInput: Record<string, unknown>;
+} | null {
   const bundles = new Set<string>();
   const toolNames: string[] = [];
-  for (const step of template.steps) {
+  for (const step of steps) {
     const parsed = parseToolPrimitive(step.primitive);
     if (!parsed) return null;
     bundles.add(parsed.bundle);
@@ -336,6 +357,125 @@ function harvestFanOutShape(template: CallTemplate, trajectory: TrajectoryRecord
   return { toolBundle, toolNames, paramName, entityValues, sharedInput };
 }
 
+function renderRecordToolFanOutSource(args: GenerateArgs): string | null {
+  const { template, trajectory } = args;
+  if (!isRecordToolFanout(template)) return null;
+  const toolSteps = template.steps.filter((s) => s.primitive.startsWith("tool."));
+  const shape = harvestToolFanOutShape(toolSteps, trajectory);
+  if (shape === null) return null;
+
+  const example = {
+    recordFilter: {},
+    recordLimit: shape.entityValues.length > 0 ? shape.entityValues.length : 999,
+    toolBundle: shape.toolBundle,
+    toolNames: shape.toolNames,
+    paramName: shape.paramName,
+    ...(Object.keys(shape.sharedInput).length > 0
+      ? { sharedInput: shape.sharedInput }
+      : {}),
+  };
+  const exampleOutputJson = safeJsonStringify({
+    entityValue: shape.entityValues[0] ?? null,
+    tools: {},
+  });
+
+  const sdkUrl = sdkIndexUrl();
+  const valibotUrl = valibotEntryUrl();
+  const fm = recordFanOutFrontmatter({
+    template,
+    trajectory,
+  });
+  const header = headerComment({ template, trajectory });
+  return [
+    fm,
+    header,
+    `import { fn } from "${sdkUrl}";`,
+    `import * as v from "${valibotUrl}";`,
+    "",
+    `// Goal-4 learned record-backed fan-out interface. This replaces the`,
+    `// seed-mediated db -> tool fan-out -> lib.per_entity shape with a`,
+    `// directly learned helper: it fetches records, extracts entity values,`,
+    `// and runs the requested tool calls without calling df.lib.per_entity.`,
+    `declare const df: {`,
+    `  db: {`,
+    `    records: {`,
+    `      findExact(filter: Record<string, unknown>, limit?: number): Promise<unknown[]>;`,
+    `    };`,
+    `  };`,
+    `  tool: Record<string, Record<string, (input: Record<string, unknown>) => Promise<unknown>>>;`,
+    `};`,
+    "",
+    `type Input = {`,
+    `  entityValues?: Array<string | number>;`,
+    `  recordFilter?: Record<string, unknown>;`,
+    `  recordLimit?: number;`,
+    `  entityField?: string;`,
+    `  toolBundle: string;`,
+    `  toolNames: string[];`,
+    `  paramName: string;`,
+    `  sharedInput?: Record<string, unknown>;`,
+    `};`,
+    "",
+    `export const ${template.name} = fn<Input, unknown>({`,
+    `  intent: ${JSON.stringify(recordFanOutIntentString())},`,
+    `  examples: [`,
+    `    {`,
+    `      input: ${safeJsonStringify(example)},`,
+    `      output: ${exampleOutputJson},`,
+    `    },`,
+    `  ],`,
+    `  input: v.object({`,
+    `    entityValues: v.optional(v.array(v.union([v.string(), v.number()]))),`,
+    `    recordFilter: v.optional(v.record(v.string(), v.unknown())),`,
+    `    recordLimit: v.optional(v.number()),`,
+    `    entityField: v.optional(v.string()),`,
+    `    toolBundle: v.string(),`,
+    `    toolNames: v.array(v.string()),`,
+    `    paramName: v.string(),`,
+    `    sharedInput: v.optional(v.record(v.string(), v.unknown())),`,
+    `  }),`,
+    `  output: v.unknown(),`,
+    `  body: async (input: Input): Promise<unknown> => {`,
+    `    const pickEntityValue = (record: unknown): string | number | null => {`,
+    `      if (!record || typeof record !== "object" || Array.isArray(record)) return null;`,
+    `      const rec = record as Record<string, unknown>;`,
+    `      const field = input.entityField;`,
+    `      const attrs = rec.attributes;`,
+    `      const candidate = field`,
+    `        ? rec[field] ?? (attrs && typeof attrs === "object" && !Array.isArray(attrs)`,
+    `            ? (attrs as Record<string, unknown>)[field]`,
+    `            : undefined)`,
+    `        : rec.id ?? rec.entity;`,
+    `      return typeof candidate === "string" || typeof candidate === "number"`,
+    `        ? candidate`,
+    `        : null;`,
+    `    };`,
+    `    let entityValues = input.entityValues ?? [];`,
+    `    if (entityValues.length === 0) {`,
+    `      const records = await df.db.records.findExact(input.recordFilter ?? {}, input.recordLimit ?? 999);`,
+    `      entityValues = records.map(pickEntityValue).filter((v): v is string | number => v !== null);`,
+    `    }`,
+    `    const bundle = df.tool[input.toolBundle];`,
+    `    if (!bundle) return { error: "unknown_bundle", toolBundle: input.toolBundle };`,
+    `    const results: Array<{ entityValue: string | number; tools: Record<string, unknown> }> = [];`,
+    `    for (const entityValue of entityValues) {`,
+    `      const perTool: Record<string, unknown> = {};`,
+    `      for (const toolName of input.toolNames) {`,
+    `        const tool = bundle[toolName];`,
+    `        if (!tool) { perTool[toolName] = { error: "unknown_tool", tool: toolName }; continue; }`,
+    `        const payload: Record<string, unknown> = { ...(input.sharedInput ?? {}), [input.paramName]: entityValue };`,
+    `        try { perTool[toolName] = await tool(payload); }`,
+    `        catch (err) { perTool[toolName] = { error: String(err) }; }`,
+    `      }`,
+    `      results.push({ entityValue, tools: perTool });`,
+    `    }`,
+    `    return results;`,
+    `  },`,
+    `});`,
+    "",
+  ].join("\n");
+}
+
 function renderFanOutSource(args: GenerateArgs): string | null {
   const { template, trajectory } = args;
   if (!isPureToolFanout(template)) return null;
@@ -361,11 +501,9 @@ function renderFanOutSource(args: GenerateArgs): string | null {
 
   const sdkUrl = sdkIndexUrl();
   const valibotUrl = valibotEntryUrl();
-  const fm = frontmatter({
+  const fm = fanOutFrontmatter({
     template,
     trajectory,
-    example,
-    externalParams: [],
   });
   const header = headerComment({ template, trajectory });
   return [
@@ -390,8 +528,8 @@ function renderFanOutSource(args: GenerateArgs): string | null {
     `  sharedInput?: Record<string, unknown>;`,
     `};`,
     "",
-    `export const ${template.name} = fn<Input, unknown>({`,
-    `  intent: ${JSON.stringify(intentString(template))},`,
+  `export const ${template.name} = fn<Input, unknown>({`,
+    `  intent: ${JSON.stringify(fanOutIntentString())},`,
     `  examples: [`,
     `    {`,
     `      input: ${safeJsonStringify(example)},`,
@@ -975,6 +1113,20 @@ function intentString(template: CallTemplate): string {
   return `reusable learned interface for the ${template.topic} intent shape; internally composes ${seq}`;
 }
 
+function fanOutIntentString(): string {
+  return [
+    "reusable learned fan-out interface for repeated per-entity tool calls",
+    "parameterized over tool bundle, tool names, entity values, and entity field",
+  ].join("; ");
+}
+
+function recordFanOutIntentString(): string {
+  return [
+    "reusable learned record-backed fan-out interface",
+    "fetches records and runs repeated per-entity tool calls without the seed helper",
+  ].join("; ");
+}
+
 function headerComment(args: {
   template: CallTemplate;
   trajectory: TrajectoryRecord;
@@ -1024,6 +1176,62 @@ function frontmatter(args: {
     `the entity, metric, period, or wording differs. Prefer this before`,
     `recomposing the primitive chain. Pass input as { ${inputKeys} };`,
     `the runtime returns the last call's output.`,
+  ];
+  const description = descLines.map((l) => `  ${l}`).join("\n");
+
+  return [
+    "/* ---",
+    `name: ${args.template.name}`,
+    `status: provisional`,
+    `description: |`,
+    description,
+    `trajectory: ${args.trajectory.id}`,
+    `shape-hash: ${args.template.shapeHash}`,
+    "--- */",
+    "",
+  ].join("\n");
+}
+
+function fanOutFrontmatter(args: {
+  template: CallTemplate;
+  trajectory: TrajectoryRecord;
+}): string {
+  const descLines = [
+    `Transferable learned datafetch fan-out helper for repeated per-entity tool calls.`,
+    `Use when the task has a list of entity ids or values and needs the same`,
+    `tool bundle plus one or more tool names called for each entity. The`,
+    `originating tenant, concrete tool names, and entity field are parameters,`,
+    `so prefer this before recomposing the fan-out loop. Pass input as`,
+    `{ entityValues, toolBundle, toolNames, paramName, sharedInput? };`,
+    `the runtime returns one result object per entity with per-tool outputs.`,
+  ];
+  const description = descLines.map((l) => `  ${l}`).join("\n");
+
+  return [
+    "/* ---",
+    `name: ${args.template.name}`,
+    `status: provisional`,
+    `description: |`,
+    description,
+    `trajectory: ${args.trajectory.id}`,
+    `shape-hash: ${args.template.shapeHash}`,
+    "--- */",
+    "",
+  ].join("\n");
+}
+
+function recordFanOutFrontmatter(args: {
+  template: CallTemplate;
+  trajectory: TrajectoryRecord;
+}): string {
+  const descLines = [
+    `Transferable learned datafetch helper for record-backed per-entity tool fan-out.`,
+    `Use when the task starts from mounted records and needs the same tool`,
+    `bundle plus one or more tool names called for each record/entity. This`,
+    `helper fetches records itself unless entityValues are supplied, then runs`,
+    `the tool fan-out directly without df.lib.per_entity. Pass input as`,
+    `{ recordFilter?, recordLimit?, entityField?, entityValues?, toolBundle, toolNames, paramName, sharedInput? };`,
+    `the runtime returns one result object per entity with per-tool outputs.`,
   ];
   const description = descLines.map((l) => `  ${l}`).join("\n");
 
