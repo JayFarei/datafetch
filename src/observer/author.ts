@@ -982,6 +982,10 @@ function headerComment(args: {
   return [
     `// Learned by datafetch observer from trajectory ${args.trajectory.id}.`,
     `// @shape-hash: ${args.template.shapeHash}`,
+    // Goal-4: the data-shape-agnostic intent key. The walk-artifacts
+    // instrumentation reads it; the eval's cross-family transfer harness
+    // dedups the shared __intent__ pool on it.
+    `// @intent-signature: ${args.template.intentSignature}`,
     `// @origin-trajectory: ${args.trajectory.id}`,
     `// @origin-question: ${JSON.stringify(args.trajectory.question)}`,
     `// @steps: ${args.template.steps.map((s) => s.primitive).join(" -> ")}`,

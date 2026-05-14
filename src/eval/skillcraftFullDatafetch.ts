@@ -1147,6 +1147,29 @@ function renderAnswerScaffold(task: SkillCraftTask): string {
 // e1..h1 run (hydrate at episode start, persist at episode end).
 const INTENT_INDEX_FILE = "intent-index.jsonl";
 
+// Goal-4 R9 — the cross-family transfer harness. A run-level shared
+// pool, sibling to the per-family lib-cache dirs. PARAMETERISED fan-out
+// helpers (their body reads `df.tool[input.toolBundle]` — so they are
+// data-shape-agnostic) crystallised by ANY family are copied here,
+// deduped by `@intent-signature`, and hydrated into EVERY family's
+// episodes. That is what lets a helper learned on family A genuinely
+// serve family B: the substrate "improving across use cases", not just
+// within one family. Non-parameterised helpers stay family-partitioned
+// (they reference concrete tools and would not transfer).
+const SHARED_INTENT_DIR = "__intent__";
+
+// A crystallised helper is transferable iff its body is parameterised
+// over the capability slots — i.e. it reads the tool bundle from input
+// rather than freezing a concrete bundle name. That is exactly what
+// `renderFanOutSource` (Goal-4 iter 5) emits.
+function isTransferableHelperSource(source: string): boolean {
+  return source.includes("df.tool[input.toolBundle]");
+}
+
+function intentSignatureOfSource(source: string): string | null {
+  return source.match(/@intent-signature:\s*(\S+)/)?.[1] ?? null;
+}
+
 async function hydrateFamilyLibCache(input: {
   family: string;
   libCacheDir: string;
@@ -1155,6 +1178,7 @@ async function hydrateFamilyLibCache(input: {
   tenantId: string;
 }): Promise<string[]> {
   const familyCacheDir = path.join(input.libCacheDir, input.family);
+  const sharedIntentDir = path.join(input.libCacheDir, SHARED_INTENT_DIR);
   const workspaceLibDir = path.join(input.workspace, "lib");
   const resolverLibDir = path.join(input.datafetchHome, "lib", input.tenantId);
   await fsp.mkdir(workspaceLibDir, { recursive: true });
@@ -1162,6 +1186,13 @@ async function hydrateFamilyLibCache(input: {
   if (await isDirectory(familyCacheDir)) {
     await copyTsFiles(familyCacheDir, workspaceLibDir);
     await copyTsFiles(familyCacheDir, resolverLibDir, { markLearned: true });
+  }
+  // Goal-4 R9: hydrate the cross-family shared-intent pool too — every
+  // family's episodes see the parameterised fan-out helpers any family
+  // has learned. This is the only place a helper crosses family lines.
+  if (await isDirectory(sharedIntentDir)) {
+    await copyTsFiles(sharedIntentDir, workspaceLibDir);
+    await copyTsFiles(sharedIntentDir, resolverLibDir, { markLearned: true });
   }
   // Goal-4 Change 3: hydrate the convergence index so the observer sees
   // intents recorded by earlier episodes of this family.
@@ -1264,6 +1295,52 @@ async function persistFamilyLibCache(input: {
   }
   if (workspaceNames.length > 0) {
     await copyTsFiles(workspaceLibDir, familyCacheDir, { markLearned: true });
+  }
+  // Goal-4 R9: promote PARAMETERISED fan-out helpers to the run-level
+  // shared-intent pool so other families can reuse them. Deduped by
+  // `@intent-signature` — first family to crystallise an intent owns
+  // the shared helper.
+  await transferParameterisedHelpers({
+    sourceDir: observerLibDir,
+    libCacheDir: input.libCacheDir,
+  });
+}
+
+// Goal-4 R9 — promote a family's parameterised fan-out helpers into the
+// run-level <libCacheDir>/__intent__/ shared pool. A helper is eligible
+// iff its body reads `df.tool[input.toolBundle]` (data-shape-agnostic).
+// Deduped by `@intent-signature`: the first family to crystallise an
+// intent owns the shared copy; later families' equivalents are skipped.
+async function transferParameterisedHelpers(input: {
+  sourceDir: string;
+  libCacheDir: string;
+}): Promise<void> {
+  if (!(await isDirectory(input.sourceDir))) return;
+  const sharedDir = path.join(input.libCacheDir, SHARED_INTENT_DIR);
+  await fsp.mkdir(sharedDir, { recursive: true });
+  // Intent signatures already present in the shared pool.
+  const present = new Set<string>();
+  for (const name of await listLibFunctionNames(sharedDir)) {
+    try {
+      const src = await fsp.readFile(path.join(sharedDir, `${name}.ts`), "utf8");
+      const sig = intentSignatureOfSource(src);
+      if (sig) present.add(sig);
+    } catch {
+      // skip unreadable
+    }
+  }
+  for (const name of await listLibFunctionNames(input.sourceDir)) {
+    let src: string;
+    try {
+      src = await fsp.readFile(path.join(input.sourceDir, `${name}.ts`), "utf8");
+    } catch {
+      continue;
+    }
+    if (!isTransferableHelperSource(src)) continue;
+    const sig = intentSignatureOfSource(src);
+    if (sig === null || present.has(sig)) continue;
+    present.add(sig);
+    await fsp.writeFile(path.join(sharedDir, `${name}.ts`), src, "utf8");
   }
 }
 
