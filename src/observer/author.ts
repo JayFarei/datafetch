@@ -82,8 +82,17 @@ export async function authorFunction(
     return { kind: "skipped", reason: `name already exists at ${file}` };
   }
 
-  // Try the pure-composition path first.
-  const pureSource = generatePureSource({
+  // Goal-4 iter 5: when the candidate is a PURE tool fan-out (every
+  // step is a tool.* call — the dominant cross-family intent from the
+  // iter-2 cluster analysis, and what every nested-template extraction
+  // produces), author it as a PARAMETERISED per_entity-shaped helper.
+  // The capability slots (toolBundle / toolNames / paramName) are ALWAYS
+  // function inputs, never frozen into the body from the template's
+  // concrete primitives — that freeze is exactly what would kill
+  // cross-shape transfer (R9). Falls back to the pure-composition path
+  // when the template is not a pure fan-out.
+  const fanOutSource = renderFanOutSource({ template, trajectory });
+  const pureSource = fanOutSource ?? generatePureSource({
     template,
     trajectory,
   });
@@ -205,6 +214,218 @@ export async function authorFunction(
   }
 
   return { kind: "authored", name: template.name, path: file, source };
+}
+
+// --- Parameterised fan-out authoring (Goal-4 iter 5) -----------------------
+//
+// A PURE tool fan-out template — every step is a `tool.<bundle>.<tool>`
+// call — is crystallised as a generic per_entity-shaped helper:
+//
+//   fn({
+//     input: { entityValues, toolBundle, toolNames, paramName, sharedInput? },
+//     body: loop entityValues × toolNames, calling
+//           df.tool[toolBundle][toolName]({ ...sharedInput, [paramName]: entityValue })
+//   })
+//
+// The bundle / tool names / param name are ALWAYS function inputs,
+// harvested from the trajectory only for the `examples` entry — never
+// frozen into the body. That is what makes the learned helper
+// data-shape-agnostic: a different tenant's fan-out over different
+// tools calls the same helper with different `toolBundle`/`toolNames`.
+// It is structurally the `per_entity` seed, but LEARNED from
+// convergence rather than shipped.
+
+function isPureToolFanout(template: CallTemplate): boolean {
+  if (template.steps.length < 2) return false;
+  return template.steps.every((s) => s.primitive.startsWith("tool."));
+}
+
+// Parse `tool.<bundle>.<toolName>` — toolName may contain dots/hyphens
+// (e.g. `tool.tvmaze_api.local-tvmaze_get_show_info`).
+function parseToolPrimitive(
+  primitive: string,
+): { bundle: string; toolName: string } | null {
+  const rest = primitive.slice("tool.".length);
+  const dot = rest.indexOf(".");
+  if (dot < 0) return null;
+  const bundle = rest.slice(0, dot);
+  const toolName = rest.slice(dot + 1);
+  if (!bundle || !toolName) return null;
+  return { bundle, toolName };
+}
+
+// Harvest the fan-out's capability slots from the originating
+// trajectory: the shared bundle, the distinct tool names, the varying
+// param name, the distinct entity values, and any constant shared
+// input fields. Returns null when the steps do not share one bundle or
+// no single varying field can be identified — in which case the caller
+// falls back to the generic pure-composition path.
+function harvestFanOutShape(template: CallTemplate, trajectory: TrajectoryRecord): {
+  toolBundle: string;
+  toolNames: string[];
+  paramName: string;
+  entityValues: Array<string | number>;
+  sharedInput: Record<string, unknown>;
+} | null {
+  const bundles = new Set<string>();
+  const toolNames: string[] = [];
+  for (const step of template.steps) {
+    const parsed = parseToolPrimitive(step.primitive);
+    if (!parsed) return null;
+    bundles.add(parsed.bundle);
+    if (!toolNames.includes(parsed.toolName)) toolNames.push(parsed.toolName);
+  }
+  // All steps must share one bundle for a single-bundle per_entity call.
+  if (bundles.size !== 1) return null;
+  const toolBundle = [...bundles][0]!;
+
+  // The trajectory's calls for these steps carry the literal inputs.
+  // Find: the field whose value VARIES across calls (the entity param),
+  // and fields that are CONSTANT (sharedInput).
+  const slice = trajectory.calls.filter((c) => c.primitive.startsWith("tool."));
+  const fieldValues = new Map<string, Set<string>>();
+  const fieldExample = new Map<string, unknown>();
+  for (const call of slice) {
+    const input = call.input;
+    if (input === null || typeof input !== "object" || Array.isArray(input)) {
+      continue;
+    }
+    for (const [k, val] of Object.entries(input as Record<string, unknown>)) {
+      const set = fieldValues.get(k) ?? new Set<string>();
+      try {
+        set.add(JSON.stringify(val));
+      } catch {
+        set.add(String(val));
+      }
+      fieldValues.set(k, set);
+      if (!fieldExample.has(k)) fieldExample.set(k, val);
+    }
+  }
+  // The varying field: the one with the most distinct values (and > 1).
+  let paramName: string | null = null;
+  let maxDistinct = 1;
+  for (const [k, vals] of fieldValues) {
+    if (vals.size > maxDistinct) {
+      maxDistinct = vals.size;
+      paramName = k;
+    }
+  }
+  if (paramName === null) return null;
+
+  // Distinct entity values for the varying field, in first-seen order.
+  const entityValues: Array<string | number> = [];
+  const seen = new Set<string>();
+  for (const call of slice) {
+    const input = call.input;
+    if (input === null || typeof input !== "object" || Array.isArray(input)) {
+      continue;
+    }
+    const v = (input as Record<string, unknown>)[paramName];
+    if (typeof v !== "string" && typeof v !== "number") continue;
+    const key = String(v);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    entityValues.push(v);
+  }
+  // Constant shared input: every other field whose value never varied.
+  const sharedInput: Record<string, unknown> = {};
+  for (const [k, vals] of fieldValues) {
+    if (k === paramName) continue;
+    if (vals.size === 1) sharedInput[k] = fieldExample.get(k);
+  }
+  return { toolBundle, toolNames, paramName, entityValues, sharedInput };
+}
+
+function renderFanOutSource(args: GenerateArgs): string | null {
+  const { template, trajectory } = args;
+  if (!isPureToolFanout(template)) return null;
+  const shape = harvestFanOutShape(template, trajectory);
+  if (shape === null) return null;
+
+  const example = {
+    entityValues: shape.entityValues,
+    toolBundle: shape.toolBundle,
+    toolNames: shape.toolNames,
+    paramName: shape.paramName,
+    ...(Object.keys(shape.sharedInput).length > 0
+      ? { sharedInput: shape.sharedInput }
+      : {}),
+  };
+  // Sample output: the last fan-out call's output, for the example.
+  const lastToolCall = [...trajectory.calls]
+    .reverse()
+    .find((c) => c.primitive.startsWith("tool."));
+  const exampleOutputJson = safeJsonStringify(
+    lastToolCall ? { entityValue: shape.entityValues[0] ?? null, tools: {} } : null,
+  );
+
+  const sdkUrl = sdkIndexUrl();
+  const valibotUrl = valibotEntryUrl();
+  const fm = frontmatter({
+    template,
+    trajectory,
+    example,
+    externalParams: [],
+  });
+  const header = headerComment({ template, trajectory });
+  return [
+    fm,
+    header,
+    `import { fn } from "${sdkUrl}";`,
+    `import * as v from "${valibotUrl}";`,
+    "",
+    `// Goal-4 learned fan-out interface. PARAMETERISED over the`,
+    `// capability slots — toolBundle / toolNames / paramName are inputs,`,
+    `// not frozen — so this helper transfers across data shapes. It is`,
+    `// structurally the per_entity seed, learned from intent convergence.`,
+    `declare const df: {`,
+    `  tool: Record<string, Record<string, (input: Record<string, unknown>) => Promise<unknown>>>;`,
+    `};`,
+    "",
+    `type Input = {`,
+    `  entityValues: Array<string | number>;`,
+    `  toolBundle: string;`,
+    `  toolNames: string[];`,
+    `  paramName: string;`,
+    `  sharedInput?: Record<string, unknown>;`,
+    `};`,
+    "",
+    `export const ${template.name} = fn<Input, unknown>({`,
+    `  intent: ${JSON.stringify(intentString(template))},`,
+    `  examples: [`,
+    `    {`,
+    `      input: ${safeJsonStringify(example)},`,
+    `      output: ${exampleOutputJson},`,
+    `    },`,
+    `  ],`,
+    `  input: v.object({`,
+    `    entityValues: v.array(v.union([v.string(), v.number()])),`,
+    `    toolBundle: v.string(),`,
+    `    toolNames: v.array(v.string()),`,
+    `    paramName: v.string(),`,
+    `    sharedInput: v.optional(v.record(v.string(), v.unknown())),`,
+    `  }),`,
+    `  output: v.unknown(),`,
+    `  body: async (input: Input): Promise<unknown> => {`,
+    `    const bundle = df.tool[input.toolBundle];`,
+    `    if (!bundle) return { error: "unknown_bundle", toolBundle: input.toolBundle };`,
+    `    const results: Array<{ entityValue: string | number; tools: Record<string, unknown> }> = [];`,
+    `    for (const entityValue of input.entityValues) {`,
+    `      const perTool: Record<string, unknown> = {};`,
+    `      for (const toolName of input.toolNames) {`,
+    `        const tool = bundle[toolName];`,
+    `        if (!tool) { perTool[toolName] = { error: "unknown_tool", tool: toolName }; continue; }`,
+    `        const payload: Record<string, unknown> = { ...(input.sharedInput ?? {}), [input.paramName]: entityValue };`,
+    `        try { perTool[toolName] = await tool(payload); }`,
+    `        catch (err) { perTool[toolName] = { error: String(err) }; }`,
+    `      }`,
+    `      results.push({ entityValue, tools: perTool });`,
+    `    }`,
+    `    return results;`,
+    `  },`,
+    `});`,
+    "",
+  ].join("\n");
 }
 
 // --- Pure-composition source generation ------------------------------------

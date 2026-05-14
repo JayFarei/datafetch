@@ -5,7 +5,7 @@ import path from "node:path";
 
 import type { TrajectoryRecord } from "../src/sdk/index.js";
 import { authorFunction } from "../src/observer/author.js";
-import { extractTemplate } from "../src/observer/template.js";
+import { extractTemplate, extractTemplateFromCalls } from "../src/observer/template.js";
 import type { LibraryResolver } from "../src/sdk/index.js";
 
 const ISO = new Date().toISOString();
@@ -218,5 +218,56 @@ describe("authorFunction", () => {
     );
     expect(authored.source).not.toContain("input.filter");
     expect(authored.source).not.toContain("input.candidates");
+  });
+
+  it("authors a PURE tool fan-out as a parameterised per_entity-shaped helper (Goal-4 iter 5)", async () => {
+    // Agent fanned out 2 tools over 3 entities — a pure tool fan-out.
+    const fanoutTrajectory: TrajectoryRecord = {
+      id: "traj_fanout",
+      tenantId: "acme",
+      question: "analyse these shows",
+      mode: "novel",
+      createdAt: ISO,
+      calls: [
+        { index: 0, primitive: "tool.tvmaze_api.local-get_info", input: { show_id: 1, lang: "en" }, output: { n: 1 }, startedAt: ISO, durationMs: 1 },
+        { index: 1, primitive: "tool.tvmaze_api.local-get_cast", input: { show_id: 1, lang: "en" }, output: { c: 1 }, startedAt: ISO, durationMs: 1 },
+        { index: 2, primitive: "tool.tvmaze_api.local-get_info", input: { show_id: 2, lang: "en" }, output: { n: 2 }, startedAt: ISO, durationMs: 1 },
+        { index: 3, primitive: "tool.tvmaze_api.local-get_cast", input: { show_id: 2, lang: "en" }, output: { c: 2 }, startedAt: ISO, durationMs: 1 },
+        { index: 4, primitive: "tool.tvmaze_api.local-get_info", input: { show_id: 3, lang: "en" }, output: { n: 3 }, startedAt: ISO, durationMs: 1 },
+        { index: 5, primitive: "tool.tvmaze_api.local-get_cast", input: { show_id: 3, lang: "en" }, output: { c: 3 }, startedAt: ISO, durationMs: 1 },
+      ],
+    };
+    const template = extractTemplateFromCalls(
+      fanoutTrajectory.calls,
+      fanoutTrajectory,
+      "fanout",
+    );
+    const resolver: LibraryResolver = {
+      resolve: async () => (() => Promise.resolve(null)) as never,
+      list: async () => [],
+    };
+    const authored = await authorFunction({
+      tenantId: "acme",
+      baseDir,
+      trajectory: fanoutTrajectory,
+      template,
+      libraryResolver: resolver,
+    });
+    expect(authored.kind).toBe("authored");
+    if (authored.kind !== "authored") return;
+    // The capability slots are INPUT PARAMETERS, never frozen into the
+    // body — this is what makes the learned helper data-shape-agnostic.
+    expect(authored.source).toContain("toolBundle: string");
+    expect(authored.source).toContain("toolNames: string[]");
+    expect(authored.source).toContain("paramName: string");
+    expect(authored.source).toContain("df.tool[input.toolBundle]");
+    // The concrete bundle name from the trajectory must NOT be frozen
+    // into the body as `df.tool.tvmaze_api[...]`.
+    expect(authored.source).not.toContain("df.tool.tvmaze_api[");
+    // The example carries the harvested capability slots.
+    expect(authored.source).toContain('"toolBundle": "tvmaze_api"');
+    expect(authored.source).toContain('"paramName": "show_id"');
+    // sharedInput captures the constant `lang: "en"` field.
+    expect(authored.source).toContain('"sharedInput"');
   });
 });
