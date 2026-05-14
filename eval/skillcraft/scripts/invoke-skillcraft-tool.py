@@ -198,8 +198,24 @@ def tool_descriptor(tool: FunctionTool) -> dict[str, Any]:
     }
 
 
+def _sanitize(obj: Any) -> Any:
+    """Replace non-finite floats so the output is valid JSON."""
+    if isinstance(obj, float):
+        if obj != obj:  # NaN
+            return None
+        if obj == float("inf"):
+            return None
+        if obj == float("-inf"):
+            return None
+    if isinstance(obj, dict):
+        return {k: _sanitize(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize(v) for v in obj]
+    return obj
+
+
 def output(value: Any) -> None:
-    print(json.dumps(value, indent=2, ensure_ascii=False, default=str))
+    print(json.dumps(_sanitize(value), indent=2, ensure_ascii=False, default=str))
 
 
 if __name__ == "__main__":

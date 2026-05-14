@@ -52,4 +52,10 @@ eval/skillcraft/results/
 /pokedex_entries.json
 /recipe_cookbook.json
 /rickmorty_analysis.json
+/test_*.json
+/test_*.txt
+/*_snapshot.json
+/*_activity.json
+/*_report.json
+/*_test.json
 /scripts/answer.ts
