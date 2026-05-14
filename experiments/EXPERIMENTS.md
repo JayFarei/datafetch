@@ -586,3 +586,25 @@ Re-analyzed iter14 numbers with the fix:
 - Artefacts:
   - Analyzer: `eval/skillcraft/scripts/intent-cluster-analysis.ts`
   - Cluster report: `eval/skillcraft/results/datafetch/goal4-iter2-intent-clusters.json`
+
+### G4.3-6: intentSignature in the observer + convergence gate + parameterised authoring + cross-shape smoke
+- Date: 2026-05-14
+- Goal: Goal 4
+- Hypothesis: porting the validated v2 intentSignature into the observer, gating crystallisation on >=2-trajectory convergence, authoring pure fan-outs as parameterised helpers, and proving cross-shape transfer in a smoke moves the substrate from "learn from one trajectory, syntactic key" to "learn from convergence, data-shape-agnostic key" — without an eval-cost regression on pass rate.
+- Lever: observer template + gate + new convergence index + author + transfer smoke
+- Change (commits `c7d44f7b`, `<iter4>`, `a5d06ffb`, `d8c6bc8f`):
+  - iter 3: `intentSignature` on `CallTemplate` (category skeleton + FANOUT collapse); `extractNestedTemplates` groups depth>=1 calls by `scope.parentPrimitive`. Behaviour-preserving.
+  - iter 4: `src/observer/convergenceIndex.ts` (append-only per-tenant JSONL); gate check #7 (crystallise only at >=N=2 distinct convergent trajectories); worker unified candidate loop wiring nested templates + recording qualifying intents; eval hydrate/persist carries the index per-family. Smokes updated to run the crystalliser twice.
+  - iter 5: `renderFanOutSource` — pure tool fan-out templates author as parameterised per_entity-shaped helpers (toolBundle/toolNames/paramName always input params, never frozen).
+  - iter 6: `cross-shape-transfer.ts` smoke — a fan-out helper learned from "widgets" runs on "gadgets" (8/8).
+- Probe (tvmaze, iter 4 convergence gate): helpers available per episode 0,0,1,1,2,3 — crystallisation correctly starts after e1 records and e2 converges. 6/6 pass. intent-index persisted `FANOUT(tool,6+,cycle1)` across 5 distinct trajectories.
+- Probe (tvmaze, iter 4+5 combined): helpers available 0,0,3,4,4,5; pass 5/6 (h1 failed — consistent with prior tvmaze probes, not a regression). The nested-template helpers (`tvmazeApiLocalTvmazeGetShowInfoNe`, `...GetShowCastNe`, `...GetShowSeasons`) are all PARAMETERISED (`df.tool[input.toolBundle]`, no frozen bundle).
+- Status: **PASSED — iters 3-6 land; convergence-gated, data-shape-agnostic crystallisation is live and probe-verified.** Pausing before iter 7 (instrumented full-126) per the user's cadence choice.
+- Lessons:
+  1. **Convergence gate behaves exactly as designed**: e1 records intents (count=1, not crystallised), e2 converges (count=2, crystallises), e3+ reuse. The intent-index travels with the per-family lib-cache.
+  2. **The smokes had to change with the behaviour.** Single-trajectory crystallisation is gone; the finqa + novel-tenant smokes now run the crystalliser twice and assert "first records, second crystallises." The demo pins `DATAFETCH_CONVERGENCE_N=1` to keep its 2-question narrative.
+  3. **Parameterised authoring targets pure tool fan-outs.** `...Ne` nested-template helpers (the internal fan-out of `lib.per_entity`-style bodies) are exactly that shape and author parameterised. Sub-graph `_fanout` templates whose steps are `lib.*` calls (not `tool.*`) correctly fall through to the generic path.
+  4. **R9 is proven in isolation** (cross-shape-transfer smoke 8/8) but the full-126's family-partitioned lib-cache means the headline R9 measurement still needs the deliberate transfer harness wired into the eval — a known iter-7+ item.
+- Artefacts:
+  - Probe dirs: `eval/skillcraft/results/datafetch/goal4-iter4-probe-tvmaze-*`, `goal4-iter56-probe-tvmaze-*`
+  - New substrate: `src/observer/convergenceIndex.ts`; new smoke: `src/observer/__smoke__/cross-shape-transfer.ts`
