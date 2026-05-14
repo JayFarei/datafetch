@@ -1499,6 +1499,7 @@ function renderLivePrompt(task: SkillCraftTask): string {
     "",
     "Read task.md, AGENTS.md, df.d.ts, and any initial workspace files.",
     "Edit scripts/answer.ts so it completes the task.",
+    "Stay inside the current episode workspace. Do not read or write repo-root files via absolute paths, and do not create output files outside this workspace. The required output JSON must be written in the current workspace only.",
     "When df.d.ts declares df.db.records, the entities for this task are mounted as a substrate-rooted record store. Call `const entities = await df.db.records.findExact({}, 999)` first to get the entity list; each record carries `id` (the raw tool-callable identifier — e.g. \"Siamese\", 169, \"the-office\"), `recordKey` (the cross-family-unique key, NOT a tool argument), `entity` (same as `id`), `label`, and an `attributes` map. Then use `df.lib.per_entity({ entityIds, toolBundle, toolNames, paramName, extraInput? })` to fan out the required per-entity tool calls. Pass `entities.map(e => e.id)` (or `entities.map(e => e.attributes[<field>])` if the tool needs a specific attribute) as `entityIds` — never pass `e.recordKey` which carries a `<family>:` prefix tools don't recognise. The seed unwraps as `(await df.lib.per_entity({...})).value` and returns `[{ entityId, tools: { <toolName>: <response> } }, ...]`.",
     "REQUIRED when df.d.ts declares df.db.records: scripts/answer.ts MUST reach the answer through at least one df.db.* call AND/OR at least one df.lib.* call. A scripts/answer.ts that only fan-outs with raw df.tool.* will be auto-rewritten to `{status: \"unsupported\", reason: \"substrate-rooted chain absent\"}` and scored 0. Probes (scripts/probe.ts) are free to use any df.* surface; only the final scripts/answer.ts is gated.",
     "If a learned helper (anything other than `per_entity`) is listed in df.d.ts under df.lib, prefer it over recomposing the chain. Call it the same way: `const r = (await df.lib.<name>({...})).value`.",
@@ -1510,7 +1511,7 @@ function renderLivePrompt(task: SkillCraftTask): string {
     // This lets it discover tool payload shapes empirically rather than guessing — the
     // #1 cause of crashes in prior eval runs was the agent assuming a field exists in a
     // tool response when it doesn't.
-    "You can probe tool responses live before committing. Write a small .ts file (e.g. `scripts/probe.ts`) that calls `await df.tool.<bundle>.<tool>({...})` (or `await df.lib.<name>({...})` to test a helper), then run `pnpm datafetch:run scripts/probe.ts` from the workspace. The script runs with the real df.* runtime and prints the result. Use this to verify tool shapes BEFORE writing scripts/answer.ts when the response shape is non-obvious. You can iterate: probe → adjust → probe again. The evaluator only scores scripts/answer.ts at the end, so probes are free except for their own token cost.",
+    "You can probe tool responses live before committing. Write a small .ts file (e.g. `scripts/probe.ts`) that calls `await df.tool.<bundle>.<tool>({...})` (or `await df.lib.<name>({...})` to test a helper), then run `pnpm datafetch:run \"$PWD/scripts/probe.ts\"` from the workspace. Use the absolute `$PWD/...` script path for probes so the Datafetch runner resolves the episode workspace correctly. The script runs with the real df.* runtime and prints the result. Use this to verify tool shapes BEFORE writing scripts/answer.ts when the response shape is non-obvious. You can iterate: probe → adjust → probe again. The evaluator only scores scripts/answer.ts at the end, so probes are free except for their own token cost.",
     // Defensive-coding guardrails. Even after probing, some failures still come from
     // unexpected payload variants. Belt-and-suspenders.
     "Tool responses can be missing fields or be shaped differently than you expect. Always guard nested property access with optional chaining (`resp?.foo?.bar`) or an explicit `if (resp && resp.foo)` check. If a field is missing, write a sensible default (empty string, 0, empty array) to the output file rather than throwing.",
@@ -1616,20 +1617,20 @@ async function runCodexAgent(args: {
   const reasoningEffort = resolveCodexReasoningEffort(args.reasoningEffort, "DF_SKILLCRAFT_FULL_REASONING_EFFORT");
   const lastMessagePath = path.join(args.workspaceDir, ".codex-last-message.txt");
   const started = performance.now();
-  const run = await spawnProcess("codex", [
+  const codexBin = process.env["CODEX_BIN"] ?? "codex";
+  const sandbox = process.env["CODEX_SANDBOX"] ?? "danger-full-access";
+  const run = await spawnProcess(codexBin, [
+    "--ask-for-approval",
+    "never",
+    "exec",
     "--model",
     model,
     "--sandbox",
-    "danger-full-access",
-    "--ask-for-approval",
-    "never",
+    sandbox,
     "--cd",
     args.workspaceDir,
     "-c",
     `model_reasoning_effort=${JSON.stringify(reasoningEffort)}`,
-    "exec",
-    "--ignore-user-config",
-    "--ignore-rules",
     "--json",
     "-o",
     lastMessagePath,

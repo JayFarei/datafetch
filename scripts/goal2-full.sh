@@ -18,6 +18,13 @@
 set -euo pipefail
 
 ITER_TAG="${ITER_TAG:-goal2-iter1}"
+DATAFETCH_AGENT="${DATAFETCH_AGENT:-claude}"
+if [[ "$DATAFETCH_AGENT" == "claude" ]]; then
+  DF_SKILLCRAFT_MODEL="${DF_SKILLCRAFT_FULL_MODEL:-claude-sonnet-4-6}"
+else
+  DF_SKILLCRAFT_MODEL="${DF_SKILLCRAFT_FULL_MODEL:-gpt-5.4-mini}"
+fi
+DF_SKILLCRAFT_REASONING="${DF_SKILLCRAFT_FULL_REASONING_EFFORT:-low}"
 OUT_BASE="eval/skillcraft/results/datafetch/${ITER_TAG}-full-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$OUT_BASE"
 
@@ -40,16 +47,17 @@ run_shard() {
   local fams_csv=$(IFS=,; echo "${fams[*]}")
   local out_dir="${OUT_BASE}-g${shard_id}"
   mkdir -p "$out_dir"
-  env DATAFETCH_AGENT=claude DATAFETCH_INTERFACE_MODE=hooks-draft ANTHROPIC_LOG_LEVEL=error \
+  env DATAFETCH_AGENT="$DATAFETCH_AGENT" DATAFETCH_INTERFACE_MODE=hooks-draft ANTHROPIC_LOG_LEVEL=error \
     pnpm eval:skillcraft \
       --skillcraft-dir /tmp/skillcraft-official \
       --out-dir "$out_dir" \
       --families "$fams_csv" \
-      --live --model claude-sonnet-4-6 --reasoning low \
+      --live --model "$DF_SKILLCRAFT_MODEL" --reasoning "$DF_SKILLCRAFT_REASONING" \
     > "$out_dir/run.log" 2>&1
 }
 
 echo "ITER_TAG=$ITER_TAG"
+echo "Agent: $DATAFETCH_AGENT model=$DF_SKILLCRAFT_MODEL reasoning=$DF_SKILLCRAFT_REASONING"
 echo "Shards (lib-cache ENABLED, per-family scoped inside harness):"
 echo "  g1: ${SHARD0[*]}"
 echo "  g2: ${SHARD1[*]}"

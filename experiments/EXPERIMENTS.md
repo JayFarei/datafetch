@@ -608,3 +608,46 @@ Re-analyzed iter14 numbers with the fix:
 - Artefacts:
   - Probe dirs: `eval/skillcraft/results/datafetch/goal4-iter4-probe-tvmaze-*`, `goal4-iter56-probe-tvmaze-*`
   - New substrate: `src/observer/convergenceIndex.ts`; new smoke: `src/observer/__smoke__/cross-shape-transfer.ts`
+
+### G4.7: Codex `gpt-5.4-mini` instrumented full-126 — operational, but fails the learning-honest gates
+- Date: 2026-05-14
+- Goal: Goal 4
+- Hypothesis: with Sonnet 429-walled, the Codex backend can run the instrumented full-126 on the newer/cheaper `gpt-5.4-mini`; if quality and cost hold, use it for the Goal 4 scorecard run.
+- Lever: eval harness configurability + measurement. The full runner now accepts `DATAFETCH_AGENT`, `DF_SKILLCRAFT_FULL_MODEL`, `DF_SKILLCRAFT_FULL_REASONING_EFFORT`; the Codex path accepts `CODEX_BIN` and `CODEX_SANDBOX`, uses the current `codex exec` flag order, and no longer passes stale unsupported flags.
+- Change:
+  - `scripts/goal2-full.sh` can run either Claude or Codex. Codex defaults to `gpt-5.4-mini`; Claude keeps `claude-sonnet-4-6`.
+  - `src/eval/skillcraftDatafetch.ts` and `src/eval/skillcraftFullDatafetch.ts` use `CODEX_BIN` because `/opt/homebrew/bin/codex` (`0.77.0`) rejects newer model names, while `/Users/jayfarei/.bun/bin/codex` (`0.130.0`) accepts `gpt-5.4-mini`.
+  - The live prompt now explicitly keeps agents inside the episode workspace, and probe commands use `pnpm datafetch:run "$PWD/scripts/probe.ts"` so the runner resolves the episode workspace correctly.
+- Probe:
+  - Sonnet guard probe confirmed the 429 condition: zero useful tokens / agent exit failures.
+  - Codex guard probe: `goal4-iter7-probe-university-codex54mini-20260514-135657`, `6/6` pass on `university-directory-builder`, but very high token use (`avgEffectiveTokens=68,271.5`).
+  - A first Codex full attempt was discarded because, before the workspace guard + `CODEX_SANDBOX=workspace-write`, agents wrote root-level scratch files. The valid run below used the fixed prompt and sandbox.
+- Full run:
+  - Command shape: `CODEX_BIN=/Users/jayfarei/.bun/bin/codex CODEX_SANDBOX=workspace-write DATAFETCH_AGENT=codex DF_SKILLCRAFT_FULL_MODEL=gpt-5.4-mini DF_SKILLCRAFT_FULL_REASONING_EFFORT=low ITER_TAG=goal4-iter7 bash scripts/goal2-full.sh`
+  - Run base: `eval/skillcraft/results/datafetch/goal4-iter7-full-20260514-142538`
+  - Scorecard: `eval/skillcraft/results/datafetch/goal4-iter7-full-20260514-142538/r1-r9-scorecard.json`
+- Result:
+  | gate | result |
+  |---|---|
+  | R1 passRate >= 0.92 | **FAIL** — `0.8492` |
+  | R2 avgEffectiveTokens <= 8,000 | **FAIL** — `39,240.4` |
+  | R3 runtimeErrorRate <= 0.05 | **FAIL** — `0.0952` |
+  | R4 quarantine <= 0.03 | **PASS** — `0.0263` |
+  | R5 novel-tenant smoke | **PASS** — `pnpm test` green; novel-tenant smoke `11/11` |
+  | R6 convergence >= 0.80 | **FAIL** — `0.1333` (`2/15` qualifying clusters converged) |
+  | R7 conditional reuse >= 0.60 | **FAIL** — `0` (`0/8` same-intent-helper-available warm episodes reused one; seed excluded) |
+  | R8 conditional cost-drop <= 0.70 | **UNSCORED** — no paired reuse episodes |
+  | R9 cross-shape transfer | **PASS in scorecard** — `db→FANOUT(tool,6+,cycle1)→lib` via `perEntity` across `tvmaze-series-analyzer` and `vocabulary-builder`; treat as weak/seed-mediated compared with the dedicated cross-shape smoke |
+- Per-tier breakdown:
+  - train: `21` episodes, pass `0.9524`, avgEffectiveTokens `41,241.6`, runtime errors `1`
+  - warm: `84` episodes, pass `0.8333`, avgEffectiveTokens `39,155.8`, runtime errors `10`
+  - hard: `21` episodes, pass `0.8095`, avgEffectiveTokens `37,577.4`, runtime errors `1`
+- Diagnostics:
+  - `normalizerCrossCheck.ge70ButNotPassed = 0`; the previous normalizer false-negative did not recur.
+  - `signatureJoinDiagnostic`: `2/5` crystallised helper signatures intersect the `45` cluster signatures; `23` crystallised helpers have no usable signature. The dominant cluster `db→FANOUT(tool,6+,cycle1)→lib` has `44` successful trajectories but no callable learned helper attached, which is the clearest R6 gap.
+- Status: **FAILED — useful measurement, not Goal 4 met.** `gpt-5.4-mini` is mechanically usable through the newer Codex CLI and is a reasonable cheap/probe backend, but this run shows it is not a drop-in headline backend for Goal 4: correctness misses R1 and token use misses R2 by ~5x. The next accepted iteration should target the R6/R7 structural gap (nested/helper signature join + learned-helper reuse) or deliberately compare a stronger Codex model; do not rerun this exact setup as the next step.
+- Artefacts:
+  - `eval/skillcraft/results/datafetch/goal4-iter7-full-20260514-142538/analysis.json`
+  - `eval/skillcraft/results/datafetch/goal4-iter7-full-20260514-142538/helper-instrumentation.jsonl`
+  - `eval/skillcraft/results/datafetch/goal4-iter7-full-20260514-142538/intent-clusters.json`
+  - `eval/skillcraft/results/datafetch/goal4-iter7-full-20260514-142538/r1-r9-scorecard.json`

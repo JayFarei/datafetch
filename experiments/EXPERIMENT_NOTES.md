@@ -495,4 +495,47 @@ Ran the rubric + the five substrate changes past a codex architect (read-only, a
 
 Recommended iteration order (adopted into PLAN.md's iter schedule): instrument metrics → offline analyzer → nested extraction as candidate-only → persistent convergence index → parameterised authoring for the one proven signature → cross-shape transfer smoke → instrumented full-126 → retire-seed stretch.
 
+### 2026-05-14 15:25 [full-126, Goal 4 iter 7, Codex fallback]
+
+Sonnet stayed unusable for the mandatory guard probe: the Claude path returned zero useful tokens / agent failures under the usage wall. The Codex question turned out to have two parts:
+
+1. `/opt/homebrew/bin/codex` is old (`codex-cli 0.77.0`) and rejects newer model names such as `gpt-5.4-mini`. `/Users/jayfarei/.bun/bin/codex` is current enough (`codex-cli 0.130.0`) and accepts `gpt-5.4-mini`.
+2. The harness's Codex invocation had stale flags / ordering. Fixed both eval runners to support `CODEX_BIN`, `CODEX_SANDBOX`, the current `codex --ask-for-approval never exec ...` order, and removed unsupported `--ignore-user-config` / `--ignore-rules`.
+
+The first valid Codex guard probe (`goal4-iter7-probe-university-codex54mini-20260514-135657`) passed `6/6`, but it was already expensive: `avgEffectiveTokens=68,271.5`. That answered the immediate "can we use the Codex flag?" question: yes, via the Bun Codex binary, but not cheaply under the current prompt.
+
+One first full run was discarded because the agent wrote scratch files into the repo root before the workspace guard was in place. Added a prompt line requiring all writes to stay inside the episode workspace, changed probe instructions to `pnpm datafetch:run "$PWD/scripts/probe.ts"`, and reran with `CODEX_SANDBOX=workspace-write`. A one-task verification confirmed the repo root stayed clean.
+
+Valid full run:
+
+```
+CODEX_BIN=/Users/jayfarei/.bun/bin/codex \
+CODEX_SANDBOX=workspace-write \
+DATAFETCH_AGENT=codex \
+DF_SKILLCRAFT_FULL_MODEL=gpt-5.4-mini \
+DF_SKILLCRAFT_FULL_REASONING_EFFORT=low \
+ITER_TAG=goal4-iter7 \
+bash scripts/goal2-full.sh
+```
+
+Run base: `eval/skillcraft/results/datafetch/goal4-iter7-full-20260514-142538`.
+
+R1-R9 scorecard:
+
+- R1 passRate: `0.8492` — FAIL.
+- R2 avgEffectiveTokens: `39,240.4` — FAIL.
+- R3 runtimeErrorRate: `0.0952` — FAIL.
+- R4 quarantineRate: `0.0263` — PASS.
+- R5 novel-tenant smoke: PASS via `pnpm test`; novel-tenant smoke `11/11`, vitest `269/269`.
+- R6 convergenceRate: `0.1333` (`2/15`) — FAIL.
+- R7 conditionalReuse: `0` (`0/8`) — FAIL.
+- R8 conditionalCostDrop: `null`, no paired reuse episodes.
+- R9 crossShapeTransfer: scorecard PASS via `perEntity` across `tvmaze-series-analyzer` and `vocabulary-builder`, but this is weak/seed-mediated; the dedicated cross-shape smoke remains the stronger proof.
+
+Per-tier: train `20/21` pass, warm `70/84`, hard `17/21`; avg effective tokens stay roughly flat and high (`41.2k`, `39.2k`, `37.6k`) instead of dropping with reuse. Runtime errors: `1`, `10`, `1`.
+
+Normalizer cross-check is clean (`ge70ButNotPassed=0`). Signature join is the real structural clue: only `2/5` helper signatures intersect the `45` whole-trajectory cluster signatures, and `23` crystallised helpers have no usable signature. The dominant successful cluster `db→FANOUT(tool,6+,cycle1)→lib` has `44` successful trajectories but no callable learned helper attached in R6. Iter 8 should probably target the nested/sub-signature join and learned-helper availability/reuse path, not the seed retirement stretch yet.
+
+Model conclusion: use `gpt-5.4-mini` for cheap Codex probes only after explicitly pointing `CODEX_BIN` at the Bun Codex CLI. Do not treat it as a drop-in replacement for the headline full-run backend until either the prompt/harness is tightened or a stronger Codex model is compared.
+
 Goal 4's canonical `/goal` condition is in goal.md. Planning complete; the user starts a fresh `/goal` for it.

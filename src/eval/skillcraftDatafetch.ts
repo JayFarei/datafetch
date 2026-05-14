@@ -1376,23 +1376,24 @@ async function runCodexAgent(args: {
   const timeoutMs = args.timeoutMs ?? Number(process.env["DF_SKILLCRAFT_LIVE_TIMEOUT_MS"] ?? 300_000);
   const lastMessagePath = path.join(args.workspaceDir, ".codex-last-message.txt");
   const started = performance.now();
+  const codexBin = process.env["CODEX_BIN"] ?? "codex";
+  const sandbox = process.env["CODEX_SANDBOX"] ?? "danger-full-access";
   const run = await spawnCodex({
     cwd: args.workspaceDir,
     timeoutMs,
+    bin: codexBin,
     argv: [
+      "--ask-for-approval",
+      "never",
+      "exec",
       "--model",
       model,
       "--sandbox",
-      "danger-full-access",
-      "--ask-for-approval",
-      "never",
+      sandbox,
       "--cd",
       args.workspaceDir,
       "-c",
       `model_reasoning_effort=${JSON.stringify(reasoningEffort)}`,
-      "exec",
-      "--ignore-user-config",
-      "--ignore-rules",
       "--json",
       "-o",
       lastMessagePath,
@@ -1428,12 +1429,13 @@ async function runCodexAgent(args: {
 }
 
 async function spawnCodex(args: {
+  bin?: string;
   cwd: string;
   argv: string[];
   timeoutMs: number;
 }): Promise<{ stdout: string; stderr: string; exitCode: number }> {
   return await new Promise((resolve) => {
-    const child = spawn("codex", args.argv, {
+    const child = spawn(args.bin ?? "codex", args.argv, {
       cwd: args.cwd,
       stdio: ["ignore", "pipe", "pipe"],
     });

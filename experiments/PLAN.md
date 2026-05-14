@@ -18,8 +18,10 @@
 
 ### ⇨ HANDOFF (2026-05-14) — read this first
 
-**Status: iters 1-6 + the R9 transfer harness are DONE, committed, and
-probe-verified. The next step is iter 7 — the instrumented full-126.**
+**Status: iters 1-7 are DONE. Goal 4 is NOT met.** The iter-7
+instrumented full-126 ran on Codex `gpt-5.4-mini` because Sonnet was
+429-walled; it completed cleanly but failed R1/R2/R3/R6/R7/R8. The next
+step is iter 8 — a targeted fix, not a rerun of the same full setup.
 A fresh-context agent picking this up should start here.
 
 **What is built and committed** (`b3b2e18c` → `21ec6b46` on `main`):
@@ -33,39 +35,31 @@ A fresh-context agent picking this up should start here.
 | 5 | `renderFanOutSource` in `author.ts` — parameterised fan-out authoring | `a5d06ffb` | tvmaze probe: `...Ne` helpers parameterised, 5/6 pass |
 | 6 | `src/observer/__smoke__/cross-shape-transfer.ts` — R9 proof | `d8c6bc8f` | 8/8 — widgets-learned helper runs on gadgets |
 | R9 harness | `__intent__/` shared pool wired into the eval hydrate/persist | `21ec6b46` | typecheck + 269 tests + 5 smokes |
+| 7 | Codex `gpt-5.4-mini` instrumented full-126 + R1-R9 scorecard | latest Goal 4 docs/harness commit | `126` episodes; R1 `0.8492`, R2 `39,240.4`, R3 `0.0952`, R4 pass, R5 test green, R6 `0.1333`, R7 `0`, R8 null, R9 weak/seed-mediated pass |
 
-`pnpm typecheck` clean. `pnpm test` = 269 vitest + 5 smokes (snippet,
-finqa, novel-tenant, cross-shape-transfer, bash) all green.
+`pnpm test` after iter 7 is green: smoke scripts pass, novel-tenant is
+`11/11`, and Vitest is `269/269`.
 
-**The NEXT STEP — iter 7, the instrumented full-126** (~$30, ~2.5h, 4 shards):
+**ITER 7 RESULT — instrumented full-126 on Codex `gpt-5.4-mini`:**
 
 ```
-ITER_TAG=goal4-iter7 bash scripts/goal2-full.sh        # 4-shard full-126
-# then, per shard dir <D>-g1..-g4:
-pnpm eval:skillcraft:normalize --datafetch-run <D>-g<N> --out <D>-g<N>/normalized.jsonl
-cat <D>-g*/normalized.jsonl > <D>/normalized.jsonl
-pnpm eval:skillcraft:analyze --input <D>/normalized.jsonl --out <D>/analysis.json
-pnpm tsx eval/skillcraft/scripts/walk-artifacts.ts --run <D> --out <D>/helper-instrumentation.jsonl
-pnpm tsx eval/skillcraft/scripts/intent-cluster-analysis.ts --run <D> --out <D>/intent-clusters.json
+Run base: eval/skillcraft/results/datafetch/goal4-iter7-full-20260514-142538
+Scorecard: eval/skillcraft/results/datafetch/goal4-iter7-full-20260514-142538/r1-r9-scorecard.json
 ```
 
-Then score R1-R9 (see "What proves Goal 4" below). **NOTE the normalizer
-false-negative fix is committed (`bfd8c847`) — but always re-check the
-gap between `passRate` and `score >= 70` counts; a timed-out agent that
-still wrote a valid answer must not be demoted.**
+The model-switch finding is important but not enough: the newer/cheaper
+model works mechanically only via `/Users/jayfarei/.bun/bin/codex`
+(`0.130.0`), not the old Homebrew `codex` (`0.77.0`), but the full run
+misses correctness and token gates badly.
 
-**R6-R9 are NOT yet computed by `analyze-results.ts`.** iter 7 needs a
-small scoring step that joins `helper-instrumentation.jsonl` +
-`intent-clusters.json` + `normalized.jsonl` and emits the R1-R9
-scorecard. The instrumentation fields are all there (see
-`walk-artifacts.ts`'s `EpisodeInstrumentation`); the join is
-straightforward. Consider adding it as `eval/skillcraft/scripts/score-r1-r9.ts`.
-
-**After iter 7 — iter 8**: either the retire-the-seed stretch (Change 5
-— demonstrate the substrate learns the fan-out interface WITHOUT
-shipping `per_entity`, on ≥1 family; the parameterised fan-out authoring
-+ convergence gate + transfer harness are the machinery for it) OR a
-targeted fix for whichever R-condition iter 7 surfaces as the gap.
+**The NEXT STEP — iter 8**: target the structural R6/R7 gap. The clearest
+diagnostic is that the dominant cluster
+`db→FANOUT(tool,6+,cycle1)→lib` has 44 successful trajectories but no
+callable learned helper attached in the scorecard. `signatureJoinDiagnostic`
+also shows only `2/5` helper signatures intersecting the `45` cluster
+signatures and `23` crystallised helpers with no usable signature. This
+points at nested/sub-signature joining and learned-helper availability/reuse
+before the seed-retirement stretch.
 
 **Things a fresh agent must know:**
 - The Stop hook is bound to `@../experiments/PLAN.md`. The CWD for
@@ -80,6 +74,10 @@ targeted fix for whichever R-condition iter 7 surfaces as the gap.
   are re-created on lib-cache hydration). The crystallised `.ts` file
   headers (`@shape-hash`, `@intent-signature`, `@origin-trajectory`) are
   the only stable provenance — `walk-artifacts.ts` reads the headers.
+- Codex backend details from iter 7: set
+  `CODEX_BIN=/Users/jayfarei/.bun/bin/codex` for newer models such as
+  `gpt-5.4-mini`; use `CODEX_SANDBOX=workspace-write` for eval runs.
+  The prompt now tells agents to stay inside the episode workspace.
 - mid-iteration probe bug-fixing is expected; budget for it.
 - Commit cadence: one commit per iter, `pnpm test` green + typecheck
   clean before each commit.
@@ -240,8 +238,8 @@ offline analyzer proves the signatures cluster cleanly.
 | 5 ✓ | parameterised fan-out authoring. **DONE** — commit pending. `renderFanOutSource` in author.ts: a pure tool fan-out template is authored as a per_entity-shaped helper with `toolBundle`/`toolNames`/`paramName` ALWAYS as input params (never frozen from the template's concrete primitives). Verified: body uses `df.tool[input.toolBundle]`, no frozen bundle. 269 tests pass. | observer author |
 | 6 ✓ | cross-shape transfer smoke. **DONE** — commit pending. `src/observer/__smoke__/cross-shape-transfer.ts`: a fan-out helper crystallised from tenant A's "widgets" data shape, transferred, invoked on tenant B's "gadgets" data shape (different bundle/tools/param) — 8/8, R9 proven. Wired into `pnpm test`. | transfer harness (test infra) |
 | R9 ✓ | cross-family transfer harness wired into the eval. **DONE** — commit `21ec6b46`. `__intent__/` shared pool: parameterised fan-out helpers promoted (deduped by `@intent-signature`), hydrated into every family. | eval harness |
-| 7 ← NEXT | instrumented full-126 against R1-R9; needs a `score-r1-r9.ts` join step (R6-R9 not yet in `analyze-results.ts`); gap analysis | measurement |
-| 8 | retire-the-seed stretch (learned fan-out without `per_entity` on ≥ 1 family) OR targeted fix per iter-7 gap | matches gap |
+| 7 ✓ | instrumented full-126 against R1-R9. **DONE** on Codex `gpt-5.4-mini`; run completed but Goal 4 failed: R1/R2/R3/R6/R7 miss, R8 unscored, R4/R5 pass, R9 weak/seed-mediated pass. | measurement |
+| 8 ← NEXT | targeted fix for iter-7 gap: align nested/sub-signature helper provenance with whole-trajectory clusters and make same-intent learned helpers available/reused; compare stronger Codex model only if needed. Retire-the-seed stretch is premature until R6/R7 move. | matches gap |
 
 Stop conditions: R1-R9 all hold simultaneously on the instrumented
 full-126 + smokes, OR 8 accepted iterations, OR 24 hours elapsed.
