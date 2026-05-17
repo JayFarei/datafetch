@@ -62,6 +62,11 @@ export type TemplateInputBinding =
 // One step in the learned composition.
 export type TemplateStep = {
   primitive: string;
+  // Original PrimitiveCallRecord.index when the step was extracted from
+  // a trajectory. Kept out of canonicalShape so identical call shapes
+  // still converge, but lets the author harvest examples from the exact
+  // slice instead of the first matching primitive sequence.
+  trajectoryCallIndex?: number;
   // Field name -> binding. The authoring step renders these as the call
   // expression at body-emit time.
   inputBindings: Record<string, TemplateInputBinding>;
@@ -96,8 +101,8 @@ export type CallTemplate = {
   shapeHash: string;
   // Goal-4: data-shape-agnostic crystallisation key. The category
   // skeleton (db/lib/tool, concrete names dropped) with consecutive
-  // same-category runs collapsed to `FANOUT(category,degreeBucket,
-  // cycle<distinctInputShapes>)`. Two trajectories doing structurally
+  // same-category runs collapsed to `FANOUT(category)`.
+  // Two trajectories doing structurally
   // identical work over DIFFERENT data shapes share an `intentSignature`
   // even when their `shapeHash` differs. The pinned spec v2 lives in
   // experiments/PLAN.md § Goal 4 Change 1; the offline reference impl
@@ -113,6 +118,7 @@ export type CallTemplate = {
 export type LibrarySnapshot = {
   shapeHashes: Set<string>;
   learnedNames: Set<string>;
+  intentSignatures?: Set<string>;
 };
 
 // --- extractTemplate -------------------------------------------------------
@@ -155,6 +161,7 @@ export function extractTemplateFromCalls(
     });
     steps.push({
       primitive: call.primitive,
+      trajectoryCallIndex: call.index,
       inputBindings: bindings,
       outputName,
       callShape,
@@ -168,8 +175,10 @@ export function extractTemplateFromCalls(
     pickRecordToolFanoutTopic(calls, intentSignature) ??
     pickPureToolFanoutTopic(calls, intentSignature) ??
     pickTopicForCalls(trajectory, calls);
+  const preservesCanonicalName =
+    isPureToolFanoutCalls(calls) || pickedTopic === "tool_fanout_enrichment";
   const baseTopic =
-    topicSuffix !== undefined && !isPureToolFanoutCalls(calls)
+    topicSuffix !== undefined && !preservesCanonicalName
       ? `${pickedTopic}_${topicSuffix}`
       : pickedTopic;
   const name = semanticName(baseTopic);
@@ -201,55 +210,117 @@ function categoryOf(primitive: string): PrimitiveCategory {
   return "other";
 }
 
-function intentInputFieldSet(input: unknown): string {
-  if (input === null || typeof input !== "object" || Array.isArray(input)) {
-    return "<atom>";
-  }
-  return Object.keys(input as Record<string, unknown>).sort().join(",");
-}
-
-function intentDegreeBucket(n: number): string {
-  if (n <= 2) return "2";
-  if (n <= 5) return "3-5";
-  return "6+";
-}
-
 // Compute the data-shape-agnostic intent signature for a call slice.
 // Map each call to a category; collapse a maximal run of >= 2
 // consecutive same-category calls into
-// `FANOUT(category,degreeBucket,cycle<distinctInputShapes>)`. Fan-out
+// `FANOUT(category)`. Fan-out
 // detection is on category ALONE — keying on input-field-set fragments
 // interleaved multi-tool fan-out (A,B,C,A,B,C). The signature is the
-// `→`-joined skeleton.
+// `→`-joined skeleton. Degree is deliberately excluded because the
+// learned fan-out helpers are parameterized over arbitrary entity and
+// tool counts; keeping degree in the key fragmented one transferable
+// intent into separate 3-5 and 6+ clusters.
 export function computeIntentSignature(
   calls: ReadonlyArray<PrimitiveCallRecord>,
 ): string {
+  const helperOnlySignature = helperOnlyIntentSignature(calls);
+  if (helperOnlySignature) return helperOnlySignature;
+  const wrappedHelperSignature = wrappedHelperIntentSignature(calls);
+  if (wrappedHelperSignature) return wrappedHelperSignature;
+  const intentCalls = callsForIntentSignature(calls);
   const skeleton: string[] = [];
   let i = 0;
-  while (i < calls.length) {
-    const cat = categoryOf(calls[i]!.primitive);
+  while (i < intentCalls.length) {
+    const cat = categoryOf(intentCalls[i]!.primitive);
     if (cat === "other") {
       i += 1;
       continue;
     }
     let j = i + 1;
-    while (j < calls.length && categoryOf(calls[j]!.primitive) === cat) {
+    while (j < intentCalls.length && categoryOf(intentCalls[j]!.primitive) === cat) {
       j += 1;
     }
     const runLen = j - i;
     if (runLen >= 2) {
-      const distinctShapes = new Set(
-        calls.slice(i, j).map((c) => intentInputFieldSet(c.input)),
-      ).size;
-      skeleton.push(
-        `FANOUT(${cat},${intentDegreeBucket(runLen)},cycle${distinctShapes})`,
-      );
+      skeleton.push(`FANOUT(${cat})`);
     } else {
       skeleton.push(cat);
     }
     i = j;
   }
   return skeleton.join("→");
+}
+
+function callsForIntentSignature(
+  calls: ReadonlyArray<PrimitiveCallRecord>,
+): ReadonlyArray<PrimitiveCallRecord> {
+  if (calls.length < 2) return calls;
+  const last = calls[calls.length - 1]!;
+  const isRecordEnrichment = last.primitive === "lib.recordToolEnrichment";
+  const isToolEnrichment = last.primitive === "lib.toolFanoutEnrichment";
+  const isToolFanout = last.primitive === "lib.toolFanout";
+  if (isToolFanout) {
+    const prior = calls.slice(0, -1);
+    const wrappedToolCalls = prior.filter((call) =>
+      call.primitive.startsWith("tool.") &&
+      (call.scope?.parentPrimitive === "lib.toolFanout" ||
+        call.scope?.callPath?.includes("lib.toolFanout")),
+    );
+    return wrappedToolCalls.length >= 2 ? prior : calls;
+  }
+  if (!isRecordEnrichment && !isToolEnrichment) return calls;
+  const prior = calls.slice(0, -1);
+  const baseLibIdx = prior.findIndex((call) =>
+    isRecordEnrichment
+      ? call.primitive === "lib.recordToolFanout" || call.primitive === "lib.per_entity"
+      : call.primitive === "lib.toolFanout",
+  );
+  if (baseLibIdx < 0) return calls;
+  const dependentToolCalls = prior
+    .slice(baseLibIdx + 1)
+    .filter((call) => call.primitive.startsWith("tool."));
+  return dependentToolCalls.length >= 2 ? prior : calls;
+}
+
+function helperOnlyIntentSignature(
+  calls: ReadonlyArray<PrimitiveCallRecord>,
+): string | null {
+  if (calls.length !== 1) return null;
+  return knownLearnedHelperIntentSignature(calls[0]!.primitive);
+}
+
+function wrappedHelperIntentSignature(
+  calls: ReadonlyArray<PrimitiveCallRecord>,
+): string | null {
+  if (calls.length < 2) return null;
+  const last = calls[calls.length - 1]!;
+  const signature = knownLearnedHelperIntentSignature(last.primitive);
+  if (signature === null) return null;
+  const prior = calls.slice(0, -1);
+  const allPriorCallsAreWrapperInternals = prior.every((call) =>
+    (call.scope?.depth ?? 0) > 0 &&
+    (call.scope?.rootPrimitive === last.primitive ||
+      call.scope?.parentPrimitive === last.primitive ||
+      call.scope?.callPath?.includes(last.primitive)),
+  );
+  return allPriorCallsAreWrapperInternals ? signature : null;
+}
+
+function knownLearnedHelperIntentSignature(primitive: string): string | null {
+  switch (primitive) {
+    case "lib.toolFanout":
+      return "FANOUT(tool)";
+    case "lib.recordToolLookup":
+      return "FANOUT(db)→FANOUT(tool)";
+    case "lib.recordToolFanout":
+      return "db→FANOUT(tool)→lib";
+    case "lib.recordToolEnrichment":
+      return "db→FANOUT(tool)→lib→FANOUT(tool)";
+    case "lib.toolFanoutEnrichment":
+      return "FANOUT(tool)→lib→FANOUT(tool)";
+    default:
+      return null;
+  }
 }
 
 // --- nested-call extraction (Goal-4 Change 2) ----------------------------
@@ -271,6 +342,9 @@ export function computeIntentSignature(
 export function extractNestedTemplates(
   trajectory: TrajectoryRecord,
 ): Array<{ template: CallTemplate; calls: PrimitiveCallRecord[] }> {
+  if (isRecordToolFanoutIntent(computeIntentSignature(trajectory.calls))) {
+    return [];
+  }
   const byParent = new Map<string, PrimitiveCallRecord[]>();
   for (const call of trajectory.calls) {
     const scope = call.scope;
@@ -282,6 +356,12 @@ export function extractNestedTemplates(
   }
   const out: Array<{ template: CallTemplate; calls: PrimitiveCallRecord[] }> = [];
   for (const [parent, group] of byParent) {
+    if (
+      parent === "lib.recordToolFanout" &&
+      group.some((call) => call.primitive.startsWith("db."))
+    ) {
+      continue;
+    }
     // Need >= 2 calls for a template (extractTemplateFromCalls requires
     // non-empty; a 1-call nested group is not a reusable pattern).
     if (group.length < 2) continue;
@@ -360,6 +440,33 @@ export function extractSubGraphTemplates(
     extractTemplateFromCalls(calls, trajectory).steps,
   ));
 
+  // Record-backed `per_entity` calls record their internal tool calls
+  // before the parent `lib.per_entity` call. If answer code then performs
+  // dependent follow-up tools, the whole trajectory becomes
+  // `db->FANOUT(tool)->lib->...` and the generic consumer heuristic below
+  // starts at the first nested tool. Preserve the clean record-rooted
+  // prefix as its own exact `recordToolFanout` candidate.
+  const firstRecordFanoutLibIdx = calls.findIndex(
+    (c, i) => i > firstDbIdx && isRecordFanoutLibraryCall(c.primitive),
+  );
+  let hasRecordFanoutPrefixCandidate = false;
+  if (
+    firstRecordFanoutLibIdx > firstDbIdx &&
+    firstRecordFanoutLibIdx < calls.length - 1
+  ) {
+    const slice = calls.slice(firstDbIdx, firstRecordFanoutLibIdx + 1);
+    if (slice.length >= 3) {
+      const template = extractTemplateFromCalls(slice, trajectory);
+      if (
+        isCanonicalRecordToolFanoutIntent(template.intentSignature) &&
+        template.shapeHash !== wholeShape
+      ) {
+        candidates.push(template);
+        hasRecordFanoutPrefixCandidate = true;
+      }
+    }
+  }
+
   // Sub-graph A: [db .. first consumer] inclusive. Skip when it equals the
   // whole trajectory or is too short to be a meaningful pattern. The
   // ≥ 3-call minimum keeps the demo's 4-call FinQA trajectory from
@@ -370,7 +477,15 @@ export function extractSubGraphTemplates(
     const slice = calls.slice(firstDbIdx, consumerIdx + 1);
     if (slice.length >= 3) {
       const template = extractTemplateFromCalls(slice, trajectory, "lookup_consumer");
-      if (template.shapeHash !== wholeShape) candidates.push(template);
+      if (
+        template.shapeHash !== wholeShape &&
+        !(
+          hasRecordFanoutPrefixCandidate &&
+          isCanonicalRecordToolFanoutIntent(template.intentSignature)
+        )
+      ) {
+        candidates.push(template);
+      }
     }
   }
 
@@ -400,6 +515,9 @@ export function extractCandidateTemplates(
 ): CallTemplate[] {
   if (trajectory.calls.length === 0) return [];
   const whole = extractTemplate(trajectory);
+  if (isRecordToolFanoutIntent(whole.intentSignature)) {
+    return [whole];
+  }
   const subs = extractSubGraphTemplates(trajectory);
   const seenHashes = new Set<string>([whole.shapeHash]);
   const out: CallTemplate[] = [whole];
@@ -433,6 +551,15 @@ function collectOutputSignatures(output: unknown): string[] {
       signatures.push(raw);
     }
   };
+  const addRecordIdentifierSignature = (value: unknown): void => {
+    if (typeof value === "string" && value.length >= 1) {
+      addSignature(JSON.stringify(value));
+    } else if (typeof value === "number" && Number.isFinite(value)) {
+      const s = String(value);
+      addSignature(s);
+      addSignature(JSON.stringify(s));
+    }
+  };
   for (const item of output) {
     if (item === null || typeof item !== "object" || Array.isArray(item)) {
       if (typeof item === "string" && item.length >= 3) {
@@ -448,6 +575,21 @@ function collectOutputSignatures(output: unknown): string[] {
       continue;
     }
     const rec = item as Record<string, unknown>;
+    if (isRecordRow(rec)) {
+      addRecordIdentifierSignature(rec["id"]);
+      addRecordIdentifierSignature(rec["entity"]);
+      const attributes = rec["attributes"];
+      if (
+        attributes !== null &&
+        typeof attributes === "object" &&
+        !Array.isArray(attributes)
+      ) {
+        const attrs = attributes as Record<string, unknown>;
+        addRecordIdentifierSignature(attrs["id"]);
+        addRecordIdentifierSignature(attrs["entity"]);
+      }
+      if (signatures.length >= 64) return signatures;
+    }
     for (const value of Object.values(rec)) {
       if (typeof value === "string" && value.length >= 4) {
         addSignature(JSON.stringify(value));
@@ -474,6 +616,16 @@ function collectOutputSignatures(output: unknown): string[] {
     }
   }
   return signatures;
+}
+
+function isRecordRow(rec: Record<string, unknown>): boolean {
+  return (
+    typeof rec["recordKey"] === "string" ||
+    (typeof rec["family"] === "string" &&
+      rec["attributes"] !== null &&
+      typeof rec["attributes"] === "object" &&
+      !Array.isArray(rec["attributes"]))
+  );
 }
 
 function pickTopicForCalls(
@@ -518,9 +670,20 @@ function hasRecordToolFanoutShape(
 ): boolean {
   return (
     calls.some((c) => c.primitive.startsWith("db.")) &&
-    calls.filter((c) => c.primitive.startsWith("tool.")).length >= 2 &&
-    calls.some((c) => c.primitive === "lib.per_entity")
+    calls.filter((c) => c.primitive.startsWith("tool.")).length >= 2
   );
+}
+
+function isRecordFanoutLibraryCall(primitive: string): boolean {
+  return primitive === "lib.per_entity" || primitive === "lib.recordToolFanout";
+}
+
+function isRecordToolFanoutIntent(intentSignature: string): boolean {
+  return /^(?:db|FANOUT\(db\))→FANOUT\(tool\)(?:→lib)?$/.test(intentSignature);
+}
+
+function isCanonicalRecordToolFanoutIntent(intentSignature: string): boolean {
+  return /^db→FANOUT\(tool\)→lib$/.test(intentSignature);
 }
 
 function pickRecordToolFanoutTopic(
@@ -528,31 +691,33 @@ function pickRecordToolFanoutTopic(
   intentSignature: string,
 ): string | null {
   if (!hasRecordToolFanoutShape(calls)) return null;
-  const match = intentSignature.match(
-    /^db→FANOUT\(tool,([^,]+),cycle([0-9]+)\)→lib$/,
-  );
-  if (!match) return "record_tool_fanout";
-  return `record_tool_fanout_${fanoutDegreeSlug(match[1]!)}_cycle${match[2]!}`;
+  if (/^db→FANOUT\(tool\)→lib$/.test(intentSignature)) {
+    return "record_tool_fanout";
+  }
+  if (/^FANOUT\(db\)→FANOUT\(tool\)$/.test(intentSignature)) {
+    return "record_tool_lookup";
+  }
+  if (/^db→FANOUT\(tool\)→lib→FANOUT\(tool\)$/.test(intentSignature)) {
+    return "record_tool_enrichment";
+  }
+  if (/^db→FANOUT\(tool\)$/.test(intentSignature)) {
+    return "record_tool_lookup";
+  }
+  return null;
 }
 
 function pickPureToolFanoutTopic(
   calls: ReadonlyArray<PrimitiveCallRecord>,
   intentSignature: string,
 ): string | null {
+  if (
+    /^FANOUT\(tool\)→lib→FANOUT\(tool\)$/.test(intentSignature) &&
+    calls.some((call) => call.primitive === "lib.toolFanout")
+  ) {
+    return "tool_fanout_enrichment";
+  }
   if (!isPureToolFanoutCalls(calls)) return null;
-  const match = intentSignature.match(
-    /^FANOUT\(tool,([^,]+),cycle([0-9]+)\)$/,
-  );
-  if (!match) return "tool_fanout";
-  return `tool_fanout_${fanoutDegreeSlug(match[1]!)}_cycle${match[2]!}`;
-}
-
-function fanoutDegreeSlug(degree: string): string {
-  return degree
-    .replace(/\+/g, "_plus")
-    .replace(/-/g, "_to_")
-    .replace(/[^A-Za-z0-9_]+/g, "_")
-    .replace(/^_+|_+$/g, "");
+  return /^FANOUT\(tool\)$/.test(intentSignature) ? "tool_fanout" : null;
 }
 
 // --- bindInputs ------------------------------------------------------------
@@ -969,7 +1134,9 @@ function upperFirst(input: string): string {
 
 // Build a LibrarySnapshot by scanning `<baseDir>/lib/<tenantId>/*.ts`
 // for the `@shape-hash:` marker. Files without the marker (e.g. the agent's
-// hand-authored functions) are not learned interfaces.
+// hand-authored functions) are not learned interfaces. Learned helpers also
+// carry `@intent-signature:` so the observer can avoid authoring two exact
+// helper names for one converged intent.
 export async function readLibrarySnapshot(args: {
   baseDir: string;
   tenantId: string;
@@ -977,11 +1144,12 @@ export async function readLibrarySnapshot(args: {
   const dir = path.join(args.baseDir, "lib", args.tenantId);
   const hashes = new Set<string>();
   const names = new Set<string>();
+  const intentSignatures = new Set<string>();
   let entries: import("node:fs").Dirent[];
   try {
     entries = await fsp.readdir(dir, { withFileTypes: true });
   } catch {
-    return { shapeHashes: hashes, learnedNames: names };
+    return { shapeHashes: hashes, learnedNames: names, intentSignatures };
   }
   for (const entry of entries) {
     if (!entry.isFile() || !entry.name.endsWith(".ts")) continue;
@@ -996,7 +1164,9 @@ export async function readLibrarySnapshot(args: {
     if (m && m[1]) {
       hashes.add(m[1]);
       names.add(entry.name.slice(0, -3));
+      const sig = content.match(/@intent-signature:\s*(\S+)/)?.[1];
+      if (sig) intentSignatures.add(sig);
     }
   }
-  return { shapeHashes: hashes, learnedNames: names };
+  return { shapeHashes: hashes, learnedNames: names, intentSignatures };
 }
