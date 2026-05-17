@@ -10,6 +10,7 @@ import {
   extractNestedTemplates,
   extractSubGraphTemplates,
   extractTemplate,
+  extractTemplateFromCalls,
   readLibrarySnapshot,
 } from "../src/observer/template.js";
 
@@ -253,9 +254,106 @@ describe("extractTemplate", () => {
       },
     ]);
     const tpl = extractTemplate(traj);
-    expect(tpl.intentSignature).toBe("db→FANOUT(tool,3-5,cycle1)→lib");
-    expect(tpl.topic).toBe("record_tool_fanout_3_to_5_cycle1");
-    expect(tpl.name).toBe("recordToolFanout3To5Cycle1");
+    expect(tpl.intentSignature).toBe("db→FANOUT(tool)→lib");
+    expect(tpl.topic).toBe("record_tool_fanout");
+    expect(tpl.name).toBe("recordToolFanout");
+  });
+
+  it("names direct record-backed tool fan-out separately from seed-mediated fan-out", () => {
+    const traj = buildTrajectory([
+      {
+        index: 0,
+        primitive: "db.records.findExact",
+        input: { filter: {}, limit: 3 },
+        output: [{ id: "US" }, { id: "GB" }, { id: "DE" }],
+        startedAt: ISO,
+        durationMs: 0,
+      },
+      {
+        index: 1,
+        primitive: "tool.api.lookup",
+        input: { nationality: "US", count: 5 },
+        output: { ok: 1 },
+        startedAt: ISO,
+        durationMs: 0,
+      },
+      {
+        index: 2,
+        primitive: "tool.api.lookup",
+        input: { nationality: "GB", count: 5 },
+        output: { ok: 2 },
+        startedAt: ISO,
+        durationMs: 0,
+      },
+      {
+        index: 3,
+        primitive: "tool.api.lookup",
+        input: { nationality: "DE", count: 5 },
+        output: { ok: 3 },
+        startedAt: ISO,
+        durationMs: 0,
+      },
+    ]);
+    const tpl = extractTemplate(traj);
+    expect(tpl.intentSignature).toBe("db→FANOUT(tool)");
+    expect(tpl.topic).toBe("record_tool_lookup");
+    expect(tpl.name).toBe("recordToolLookup");
+  });
+
+  it("keeps repeated-db record-backed fan-out on the generic lookup interface", () => {
+    const records = [
+      {
+        id: "Tokyo",
+        entity: "Tokyo",
+        attributes: { latitude: 35.6895, longitude: 139.6917 },
+      },
+      {
+        id: "Los Angeles",
+        entity: "Los Angeles",
+        attributes: { latitude: 34.0522, longitude: -118.2437 },
+      },
+    ];
+    const traj = buildTrajectory([
+      {
+        index: 0,
+        primitive: "db.records.findExact",
+        input: { filter: { family: "geo" }, limit: 2 },
+        output: records,
+        startedAt: ISO,
+        durationMs: 0,
+      },
+      {
+        index: 1,
+        primitive: "db.records.findExact",
+        input: { filter: { family: "geo" }, limit: 4 },
+        output: records,
+        startedAt: ISO,
+        durationMs: 0,
+      },
+      {
+        index: 2,
+        primitive: "tool.geo_api.local-get_region_stats",
+        input: { latitude: 35.6895, longitude: 139.6917, radius_km: 500 },
+        output: { ok: 1 },
+        startedAt: ISO,
+        durationMs: 0,
+      },
+      {
+        index: 3,
+        primitive: "tool.geo_api.local-get_region_stats",
+        input: { latitude: 34.0522, longitude: -118.2437, radius_km: 500 },
+        output: { ok: 2 },
+        startedAt: ISO,
+        durationMs: 0,
+      },
+    ]);
+    const tpl = extractTemplate(traj);
+    expect(tpl.intentSignature).toBe("FANOUT(db)→FANOUT(tool)");
+    expect(tpl.topic).toBe("record_tool_lookup");
+    expect(tpl.name).toBe("recordToolLookup");
+    expect(extractCandidateTemplates(traj).map((t) => t.name)).toEqual([
+      "recordToolLookup",
+    ]);
   });
 
   it("keeps selected search results internal instead of exposing filing as input", () => {
@@ -398,6 +496,7 @@ describe("readLibrarySnapshot", () => {
     const snap = await readLibrarySnapshot({ baseDir, tenantId: "absent" });
     expect(snap.shapeHashes.size).toBe(0);
     expect(snap.learnedNames.size).toBe(0);
+    expect(snap.intentSignatures?.size).toBe(0);
   });
 
   it("collects every learned-interface marker in the tenant overlay", async () => {
@@ -405,7 +504,7 @@ describe("readLibrarySnapshot", () => {
     await mkdir(tenantDir, { recursive: true });
     await writeFile(
       path.join(tenantDir, "first.ts"),
-      "// Learned\n// @shape-hash: aaaaaaaa\nexport const first = () => null;\n",
+      "// Learned\n// @shape-hash: aaaaaaaa\n// @intent-signature: FANOUT(tool)\nexport const first = () => null;\n",
       "utf8",
     );
     await writeFile(
@@ -416,6 +515,7 @@ describe("readLibrarySnapshot", () => {
     const snap = await readLibrarySnapshot({ baseDir, tenantId: "acme" });
     expect(Array.from(snap.shapeHashes).sort()).toEqual(["aaaaaaaa", "bbbbbbbb"]);
     expect(Array.from(snap.learnedNames).sort()).toEqual(["first", "second"]);
+    expect(Array.from(snap.intentSignatures ?? []).sort()).toEqual(["FANOUT(tool)"]);
   });
 
   it("skips files without a @shape-hash: marker", async () => {
@@ -470,11 +570,11 @@ describe("extractSubGraphTemplates", () => {
     // same primitive, with a repeated primitive, so it should be emitted.
     expect(subs.length).toBeGreaterThanOrEqual(1);
     const fanout = subs.find(
-      (t) => t.intentSignature === "FANOUT(tool,3-5,cycle1)",
+      (t) => t.intentSignature === "FANOUT(tool)",
     );
     expect(fanout).toBeDefined();
-    expect(fanout!.topic).toBe("tool_fanout_3_to_5_cycle1");
-    expect(fanout!.name).toBe("toolFanout3To5Cycle1");
+    expect(fanout!.topic).toBe("tool_fanout");
+    expect(fanout!.name).toBe("toolFanout");
     expect(fanout!.steps).toHaveLength(3);
     expect(fanout!.steps.every((s) => s.primitive === "tool.api.getDetails")).toBe(true);
   });
@@ -499,18 +599,18 @@ describe("extractSubGraphTemplates", () => {
     ]);
     const subs = extractSubGraphTemplates(traj);
     const fanout = subs.find(
-      (t) => t.intentSignature === "FANOUT(tool,6+,cycle1)",
+      (t) => t.intentSignature === "FANOUT(tool)",
     );
     expect(fanout).toBeDefined();
-    expect(fanout!.topic).toBe("tool_fanout_6_plus_cycle1");
-    expect(fanout!.name).toBe("toolFanout6PlusCycle1");
+    expect(fanout!.topic).toBe("tool_fanout");
+    expect(fanout!.name).toBe("toolFanout");
     expect(fanout!.steps).toHaveLength(6);
     expect(fanout!.steps.every((s) => s.primitive.startsWith("tool."))).toBe(true);
     // Single shared param `id` since all 6 calls bind `id` to the same param.
     expect(fanout!.parameters.map((p) => p.name)).toEqual(["id"]);
   });
 
-  it("extractCandidateTemplates returns the whole template followed by sub-graphs", () => {
+  it("does not expose overlapping sub-graph helpers for a direct record-backed fan-out", () => {
     const records = [{ id: 1 }, { id: 2 }, { id: 3 }];
     const traj = buildTrajectory([
       { index: 0, primitive: "db.records.findExact", input: { filter: {} }, output: records, startedAt: ISO, durationMs: 1 },
@@ -519,11 +619,237 @@ describe("extractSubGraphTemplates", () => {
       { index: 3, primitive: "tool.api.getDetails", input: { id: 3 }, output: { name: "z" }, startedAt: ISO, durationMs: 1 },
     ]);
     const candidates = extractCandidateTemplates(traj);
-    expect(candidates.length).toBeGreaterThanOrEqual(2);
+    expect(candidates).toHaveLength(1);
     expect(candidates[0]!.steps).toHaveLength(4);
-    // All candidates have distinct shape hashes.
-    const hashes = new Set(candidates.map((c) => c.shapeHash));
-    expect(hashes.size).toBe(candidates.length);
+    expect(candidates[0]!.intentSignature).toBe("db→FANOUT(tool)");
+    expect(candidates[0]!.name).toBe("recordToolLookup");
+  });
+
+  it("does not expose overlapping sub-graph helpers for a record-backed whole fan-out", () => {
+    const records = [{ id: 1 }, { id: 2 }, { id: 3 }];
+    const traj = buildTrajectory([
+      { index: 0, primitive: "db.records.findExact", input: { filter: {} }, output: records, startedAt: ISO, durationMs: 1 },
+      { index: 1, primitive: "tool.api.getDetails", input: { id: 1 }, output: { name: "x" }, startedAt: ISO, durationMs: 1 },
+      { index: 2, primitive: "tool.api.getDetails", input: { id: 2 }, output: { name: "y" }, startedAt: ISO, durationMs: 1 },
+      { index: 3, primitive: "tool.api.getDetails", input: { id: 3 }, output: { name: "z" }, startedAt: ISO, durationMs: 1 },
+      { index: 4, primitive: "lib.per_entity", input: { entityIds: [1, 2, 3] }, output: { value: [] }, startedAt: ISO, durationMs: 1 },
+    ]);
+    const candidates = extractCandidateTemplates(traj);
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0]!.intentSignature).toBe("db→FANOUT(tool)→lib");
+    expect(candidates[0]!.name).toBe("recordToolFanout");
+  });
+
+  it("keeps a record-backed fan-out candidate when dependent tails follow per_entity", () => {
+    const records = [{ id: 1, name: "Rick" }, { id: 2, name: "Morty" }, { id: 3, name: "Summer" }];
+    const traj = buildTrajectory([
+      { index: 0, primitive: "db.records.findExact", input: { filter: {} }, output: records, startedAt: ISO, durationMs: 1 },
+      { index: 1, primitive: "tool.api.getCharacter", input: { character_id: 1 }, output: { name: "Rick" }, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.per_entity"], parentPrimitive: "lib.per_entity" } },
+      { index: 2, primitive: "tool.api.getEpisodes", input: { character_id: 1 }, output: { total: 51 }, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.per_entity"], parentPrimitive: "lib.per_entity" } },
+      { index: 3, primitive: "tool.api.getCharacter", input: { character_id: 2 }, output: { name: "Morty" }, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.per_entity"], parentPrimitive: "lib.per_entity" } },
+      { index: 4, primitive: "tool.api.getEpisodes", input: { character_id: 2 }, output: { total: 51 }, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.per_entity"], parentPrimitive: "lib.per_entity" } },
+      { index: 5, primitive: "tool.api.getCharacter", input: { character_id: 3 }, output: { name: "Summer" }, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.per_entity"], parentPrimitive: "lib.per_entity" } },
+      { index: 6, primitive: "tool.api.getEpisodes", input: { character_id: 3 }, output: { total: 42 }, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.per_entity"], parentPrimitive: "lib.per_entity" } },
+      { index: 7, primitive: "lib.per_entity", input: { entityIds: [1, 2, 3] }, output: { value: [] }, startedAt: ISO, durationMs: 1 },
+      { index: 8, primitive: "tool.api.searchCharacter", input: { name: "Rick" }, output: { count: 1 }, startedAt: ISO, durationMs: 1 },
+      { index: 9, primitive: "tool.api.searchCharacter", input: { name: "Morty" }, output: { count: 1 }, startedAt: ISO, durationMs: 1 },
+    ]);
+    const candidates = extractCandidateTemplates(traj);
+    expect(candidates[0]!.intentSignature).toBe("db→FANOUT(tool)→lib→FANOUT(tool)");
+    const recordPrefix = candidates.find((t) => t.intentSignature === "db→FANOUT(tool)→lib");
+    expect(recordPrefix).toBeDefined();
+    expect(recordPrefix!.name).toBe("recordToolFanout");
+    expect(recordPrefix!.steps.map((s) => s.primitive)).toEqual([
+      "db.records.findExact",
+      "tool.api.getCharacter",
+      "tool.api.getEpisodes",
+      "tool.api.getCharacter",
+      "tool.api.getEpisodes",
+      "tool.api.getCharacter",
+      "tool.api.getEpisodes",
+      "lib.per_entity",
+    ]);
+  });
+
+  it("does not expose a lookup-consumer sibling for recordToolFanout-mediated enrichment", () => {
+    const records = [
+      {
+        id: "United States",
+        recordKey: "world-bank-economic-snapshot:United States",
+        family: "world-bank-economic-snapshot",
+        entity: "United States",
+        label: "US",
+        attributes: { name: "United States", code: "US" },
+      },
+      {
+        id: "China",
+        recordKey: "world-bank-economic-snapshot:China",
+        family: "world-bank-economic-snapshot",
+        entity: "China",
+        label: "CHN",
+        attributes: { name: "China", code: "CHN" },
+      },
+      {
+        id: "Japan",
+        recordKey: "world-bank-economic-snapshot:Japan",
+        family: "world-bank-economic-snapshot",
+        entity: "Japan",
+        label: "JPN",
+        attributes: { name: "Japan", code: "JPN" },
+      },
+    ];
+    const traj = buildTrajectory([
+      { index: 0, primitive: "db.records.findExact", input: { filter: { family: "world-bank-economic-snapshot" }, limit: 3 }, output: records, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.recordToolFanout"], parentPrimitive: "lib.recordToolFanout" } },
+      { index: 1, primitive: "tool.worldbank_api.local-worldbank_gdp", input: { country_code: "US" }, output: { value: 1 }, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.recordToolFanout"], parentPrimitive: "lib.recordToolFanout" } },
+      { index: 2, primitive: "tool.worldbank_api.local-worldbank_population", input: { country_code: "US" }, output: { value: 2 }, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.recordToolFanout"], parentPrimitive: "lib.recordToolFanout" } },
+      { index: 3, primitive: "tool.worldbank_api.local-worldbank_gdp", input: { country_code: "CHN" }, output: { value: 3 }, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.recordToolFanout"], parentPrimitive: "lib.recordToolFanout" } },
+      { index: 4, primitive: "tool.worldbank_api.local-worldbank_population", input: { country_code: "CHN" }, output: { value: 4 }, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.recordToolFanout"], parentPrimitive: "lib.recordToolFanout" } },
+      { index: 5, primitive: "tool.worldbank_api.local-worldbank_gdp", input: { country_code: "JPN" }, output: { value: 5 }, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.recordToolFanout"], parentPrimitive: "lib.recordToolFanout" } },
+      { index: 6, primitive: "tool.worldbank_api.local-worldbank_population", input: { country_code: "JPN" }, output: { value: 6 }, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.recordToolFanout"], parentPrimitive: "lib.recordToolFanout" } },
+      {
+        index: 7,
+        primitive: "lib.recordToolFanout",
+        input: {
+          entityField: "code",
+          toolBundle: "worldbank_api",
+          toolNames: ["local-worldbank_gdp", "local-worldbank_population"],
+          paramName: "country_code",
+          recordFilter: { family: "world-bank-economic-snapshot" },
+          recordLimit: 3,
+        },
+        output: [],
+        startedAt: ISO,
+        durationMs: 1,
+      },
+      { index: 8, primitive: "tool.worldbank_api.local-worldbank_indicator", input: { country_code: "US" }, output: {}, startedAt: ISO, durationMs: 1 },
+      { index: 9, primitive: "tool.worldbank_api.local-worldbank_indicator", input: { country_code: "CHN" }, output: {}, startedAt: ISO, durationMs: 1 },
+      { index: 10, primitive: "tool.worldbank_api.local-worldbank_indicator", input: { country_code: "JPN" }, output: {}, startedAt: ISO, durationMs: 1 },
+    ]);
+
+    const candidates = extractCandidateTemplates(traj);
+    expect(candidates[0]!.intentSignature).toBe("db→FANOUT(tool)→lib→FANOUT(tool)");
+    expect(candidates.some((t) => t.name === "recordToolFanout")).toBe(true);
+    expect(candidates.some((t) => t.topic.endsWith("_lookup_consumer"))).toBe(false);
+    expect(candidates.some((t) => t.name === "recordToolFanoutLookupConsumer")).toBe(false);
+  });
+
+  it("names record-backed fan-out plus dependent enrichment by a distinct generic intent", () => {
+    const records = [{ id: 1 }, { id: 2 }, { id: 3 }];
+    const traj = buildTrajectory([
+      { index: 0, primitive: "db.records.findExact", input: { filter: {} }, output: records, startedAt: ISO, durationMs: 1 },
+      { index: 1, primitive: "tool.api.getBase", input: { id: 1 }, output: { id: 1 }, startedAt: ISO, durationMs: 1 },
+      { index: 2, primitive: "tool.api.getBase", input: { id: 2 }, output: { id: 2 }, startedAt: ISO, durationMs: 1 },
+      { index: 3, primitive: "tool.api.getBase", input: { id: 3 }, output: { id: 3 }, startedAt: ISO, durationMs: 1 },
+      { index: 4, primitive: "lib.recordToolFanout", input: { recordFilter: {}, toolNames: ["getBase"] }, output: { value: [] }, startedAt: ISO, durationMs: 1 },
+      { index: 5, primitive: "tool.api.getDependent", input: { id: 1 }, output: {}, startedAt: ISO, durationMs: 1 },
+      { index: 6, primitive: "tool.api.getDependent", input: { id: 2 }, output: {}, startedAt: ISO, durationMs: 1 },
+      { index: 7, primitive: "tool.api.getDependent", input: { id: 3 }, output: {}, startedAt: ISO, durationMs: 1 },
+    ]);
+    const candidates = extractCandidateTemplates(traj);
+    expect(candidates[0]!.intentSignature).toBe("db→FANOUT(tool)→lib→FANOUT(tool)");
+    expect(candidates[0]!.topic).toBe("record_tool_enrichment");
+    expect(candidates[0]!.name).toBe("recordToolEnrichment");
+  });
+
+  it("keeps recordToolEnrichment wrapper calls out of the learned intent skeleton", () => {
+    const traj = buildTrajectory([
+      { index: 0, primitive: "db.records.findExact", input: { filter: {} }, output: [{ id: 1 }, { id: 2 }, { id: 3 }], startedAt: ISO, durationMs: 1 },
+      { index: 1, primitive: "tool.api.getBase", input: { id: 1 }, output: { id: 1 }, startedAt: ISO, durationMs: 1 },
+      { index: 2, primitive: "tool.api.getBase", input: { id: 2 }, output: { id: 2 }, startedAt: ISO, durationMs: 1 },
+      { index: 3, primitive: "tool.api.getBase", input: { id: 3 }, output: { id: 3 }, startedAt: ISO, durationMs: 1 },
+      { index: 4, primitive: "lib.recordToolFanout", input: { recordFilter: {}, toolNames: ["getBase"] }, output: { value: [] }, startedAt: ISO, durationMs: 1 },
+      { index: 5, primitive: "tool.api.getDependent", input: { id: 1 }, output: {}, startedAt: ISO, durationMs: 1 },
+      { index: 6, primitive: "tool.api.getDependent", input: { id: 2 }, output: {}, startedAt: ISO, durationMs: 1 },
+      { index: 7, primitive: "tool.api.getDependent", input: { id: 3 }, output: {}, startedAt: ISO, durationMs: 1 },
+      { index: 8, primitive: "lib.recordToolEnrichment", input: { intent: "record-backed dependent enrichment" }, output: { value: [] }, startedAt: ISO, durationMs: 1 },
+    ]);
+    expect(computeIntentSignature(traj.calls)).toBe("db→FANOUT(tool)→lib→FANOUT(tool)");
+  });
+
+  it("names pure tool fanout plus dependent enrichment by a distinct generic intent", () => {
+    const traj = buildTrajectory([
+      { index: 0, primitive: "tool.pokemon_tools.local-pokemon_get_species", input: { pokemon_id: 25 }, output: { species: { evolution_chain_id: 10 } }, startedAt: ISO, durationMs: 1 },
+      { index: 1, primitive: "tool.pokemon_tools.local-pokemon_get_species", input: { pokemon_id: 6 }, output: { species: { evolution_chain_id: 2 } }, startedAt: ISO, durationMs: 1 },
+      { index: 2, primitive: "tool.pokemon_tools.local-pokemon_get_species", input: { pokemon_id: 445 }, output: { species: { evolution_chain_id: 230 } }, startedAt: ISO, durationMs: 1 },
+      { index: 3, primitive: "lib.toolFanout", input: { intent: "repeated tool fan-out" }, output: { value: [] }, startedAt: ISO, durationMs: 1 },
+      { index: 4, primitive: "tool.pokemon_tools.local-pokemon_get_evolution", input: { chain_id: 10 }, output: { evolution_chain: { id: 10 } }, startedAt: ISO, durationMs: 1 },
+      { index: 5, primitive: "tool.pokemon_tools.local-pokemon_get_evolution", input: { chain_id: 2 }, output: { evolution_chain: { id: 2 } }, startedAt: ISO, durationMs: 1 },
+      { index: 6, primitive: "tool.pokemon_tools.local-pokemon_get_evolution", input: { chain_id: 230 }, output: { evolution_chain: { id: 230 } }, startedAt: ISO, durationMs: 1 },
+    ]);
+    const template = extractTemplate(traj);
+    expect(template.intentSignature).toBe("FANOUT(tool)→lib→FANOUT(tool)");
+    expect(template.topic).toBe("tool_fanout_enrichment");
+    expect(template.name).toBe("toolFanoutEnrichment");
+  });
+
+  it("keeps toolFanoutEnrichment wrapper calls out of the learned intent skeleton", () => {
+    const traj = buildTrajectory([
+      { index: 0, primitive: "tool.pokemon_tools.local-pokemon_get_species", input: { pokemon_id: 25 }, output: { species: { evolution_chain_id: 10 } }, startedAt: ISO, durationMs: 1 },
+      { index: 1, primitive: "tool.pokemon_tools.local-pokemon_get_species", input: { pokemon_id: 6 }, output: { species: { evolution_chain_id: 2 } }, startedAt: ISO, durationMs: 1 },
+      { index: 2, primitive: "tool.pokemon_tools.local-pokemon_get_species", input: { pokemon_id: 445 }, output: { species: { evolution_chain_id: 230 } }, startedAt: ISO, durationMs: 1 },
+      { index: 3, primitive: "lib.toolFanout", input: { intent: "repeated tool fan-out" }, output: { value: [] }, startedAt: ISO, durationMs: 1 },
+      { index: 4, primitive: "tool.pokemon_tools.local-pokemon_get_evolution", input: { chain_id: 10 }, output: { evolution_chain: { id: 10 } }, startedAt: ISO, durationMs: 1 },
+      { index: 5, primitive: "tool.pokemon_tools.local-pokemon_get_evolution", input: { chain_id: 2 }, output: { evolution_chain: { id: 2 } }, startedAt: ISO, durationMs: 1 },
+      { index: 6, primitive: "tool.pokemon_tools.local-pokemon_get_evolution", input: { chain_id: 230 }, output: { evolution_chain: { id: 230 } }, startedAt: ISO, durationMs: 1 },
+      { index: 7, primitive: "lib.toolFanoutEnrichment", input: { intent: "repeated tool fan-out dependent enrichment" }, output: { value: [] }, startedAt: ISO, durationMs: 1 },
+    ]);
+    expect(computeIntentSignature(traj.calls)).toBe("FANOUT(tool)→lib→FANOUT(tool)");
+  });
+
+  it("keeps pure tool enrichment subgraph helpers on the canonical name", () => {
+    const traj = buildTrajectory([
+      { index: 0, primitive: "tool.pokemon_tools.local-pokemon_get_species", input: { pokemon_id: 25 }, output: { species: { evolution_chain_id: 10 } }, startedAt: ISO, durationMs: 1 },
+      { index: 1, primitive: "tool.pokemon_tools.local-pokemon_get_species", input: { pokemon_id: 6 }, output: { species: { evolution_chain_id: 2 } }, startedAt: ISO, durationMs: 1 },
+      { index: 2, primitive: "tool.pokemon_tools.local-pokemon_get_species", input: { pokemon_id: 445 }, output: { species: { evolution_chain_id: 230 } }, startedAt: ISO, durationMs: 1 },
+      { index: 3, primitive: "lib.toolFanout", input: { intent: "repeated tool fan-out" }, output: { value: [] }, startedAt: ISO, durationMs: 1 },
+      { index: 4, primitive: "tool.pokemon_tools.local-pokemon_get_evolution", input: { chain_id: 10 }, output: { evolution_chain: { id: 10 } }, startedAt: ISO, durationMs: 1 },
+      { index: 5, primitive: "tool.pokemon_tools.local-pokemon_get_evolution", input: { chain_id: 2 }, output: { evolution_chain: { id: 2 } }, startedAt: ISO, durationMs: 1 },
+      { index: 6, primitive: "tool.pokemon_tools.local-pokemon_get_evolution", input: { chain_id: 230 }, output: { evolution_chain: { id: 230 } }, startedAt: ISO, durationMs: 1 },
+    ]);
+    const template = extractTemplateFromCalls(traj.calls, traj, "fanout");
+    expect(template.topic).toBe("tool_fanout_enrichment");
+    expect(template.name).toBe("toolFanoutEnrichment");
+  });
+
+  it("maps fully wrapped learned helper internals to the helper intent skeleton", () => {
+    const traj = buildTrajectory([
+      { index: 0, primitive: "tool.randomuser_api.local-randomuser_by_nationality", input: { nationality: "US" }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 2, callPath: ["lib.toolFanoutEnrichment", "lib.toolFanout"], rootPrimitive: "lib.toolFanoutEnrichment", parentPrimitive: "lib.toolFanout" } },
+      { index: 1, primitive: "tool.randomuser_api.local-randomuser_get_users", input: { nationality: "US" }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 2, callPath: ["lib.toolFanoutEnrichment", "lib.toolFanout"], rootPrimitive: "lib.toolFanoutEnrichment", parentPrimitive: "lib.toolFanout" } },
+      { index: 2, primitive: "tool.randomuser_api.local-randomuser_by_nationality", input: { nationality: "GB" }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 2, callPath: ["lib.toolFanoutEnrichment", "lib.toolFanout"], rootPrimitive: "lib.toolFanoutEnrichment", parentPrimitive: "lib.toolFanout" } },
+      { index: 3, primitive: "tool.randomuser_api.local-randomuser_get_users", input: { nationality: "GB" }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 2, callPath: ["lib.toolFanoutEnrichment", "lib.toolFanout"], rootPrimitive: "lib.toolFanoutEnrichment", parentPrimitive: "lib.toolFanout" } },
+      { index: 4, primitive: "lib.toolFanout", input: {}, output: { value: [] }, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.toolFanoutEnrichment"], rootPrimitive: "lib.toolFanoutEnrichment", parentPrimitive: "lib.toolFanoutEnrichment" } },
+      { index: 5, primitive: "lib.toolFanoutEnrichment", input: {}, output: { value: [] }, startedAt: ISO, durationMs: 1 },
+    ]);
+    expect(computeIntentSignature(traj.calls)).toBe("FANOUT(tool)→lib→FANOUT(tool)");
+  });
+
+  it("keeps toolFanout wrapper calls out of pure learned fan-out skeletons", () => {
+    const traj = buildTrajectory([
+      { index: 0, primitive: "tool.worldbank_api.local-worldbank_gdp", input: { country_code: "US" }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.toolFanout"], parentPrimitive: "lib.toolFanout" } },
+      { index: 1, primitive: "tool.worldbank_api.local-worldbank_country_info", input: { country_code: "US" }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.toolFanout"], parentPrimitive: "lib.toolFanout" } },
+      { index: 2, primitive: "tool.worldbank_api.local-worldbank_gdp", input: { country_code: "JP" }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.toolFanout"], parentPrimitive: "lib.toolFanout" } },
+      { index: 3, primitive: "tool.worldbank_api.local-worldbank_country_info", input: { country_code: "JP" }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.toolFanout"], parentPrimitive: "lib.toolFanout" } },
+      { index: 4, primitive: "lib.toolFanout", input: { intent: "repeated tool fan-out" }, output: { value: [] }, startedAt: ISO, durationMs: 1 },
+    ]);
+    expect(computeIntentSignature(traj.calls)).toBe("FANOUT(tool)");
+  });
+
+  it("maps single learned generic helper calls to their declared intent skeletons", () => {
+    expect(computeIntentSignature(buildTrajectory([
+      { index: 0, primitive: "lib.toolFanout", input: {}, output: {}, startedAt: ISO, durationMs: 1 },
+    ]).calls)).toBe("FANOUT(tool)");
+    expect(computeIntentSignature(buildTrajectory([
+      { index: 0, primitive: "lib.recordToolLookup", input: {}, output: {}, startedAt: ISO, durationMs: 1 },
+    ]).calls)).toBe("FANOUT(db)→FANOUT(tool)");
+    expect(computeIntentSignature(buildTrajectory([
+      { index: 0, primitive: "lib.recordToolFanout", input: {}, output: {}, startedAt: ISO, durationMs: 1 },
+    ]).calls)).toBe("db→FANOUT(tool)→lib");
+    expect(computeIntentSignature(buildTrajectory([
+      { index: 0, primitive: "lib.recordToolEnrichment", input: {}, output: {}, startedAt: ISO, durationMs: 1 },
+    ]).calls)).toBe("db→FANOUT(tool)→lib→FANOUT(tool)");
+    expect(computeIntentSignature(buildTrajectory([
+      { index: 0, primitive: "lib.toolFanoutEnrichment", input: {}, output: {}, startedAt: ISO, durationMs: 1 },
+    ]).calls)).toBe("FANOUT(tool)→lib→FANOUT(tool)");
   });
 });
 
@@ -547,7 +873,7 @@ describe("computeIntentSignature (Goal-4 Change 1)", () => {
     ]);
     const tvmazeSig = computeIntentSignature(tvmaze.calls);
     const finqaSig = computeIntentSignature(finqa.calls);
-    expect(tvmazeSig).toBe("db→FANOUT(tool,3-5,cycle1)→lib");
+    expect(tvmazeSig).toBe("db→FANOUT(tool)→lib");
     // Cross-shape transfer property: identical structure over different
     // data shapes hashes to the SAME intentSignature.
     expect(finqaSig).toBe(tvmazeSig);
@@ -563,9 +889,10 @@ describe("computeIntentSignature (Goal-4 Change 1)", () => {
       { index: 5, primitive: "tool.api.B", input: { y: 2 }, output: {}, startedAt: ISO, durationMs: 1 },
       { index: 6, primitive: "tool.api.C", input: { z: 2 }, output: {}, startedAt: ISO, durationMs: 1 },
     ]);
-    // 6 consecutive tool calls collapse to one FANOUT node; the cycle
-    // width (3 distinct input shapes: {x},{y},{z}) is captured.
-    expect(computeIntentSignature(traj.calls)).toBe("db→FANOUT(tool,6+,cycle3)");
+    // 6 consecutive tool calls collapse to one FANOUT node. The
+    // convergence key keeps category and deliberately ignores
+    // cycle width so parameterized fan-out helpers can transfer.
+    expect(computeIntentSignature(traj.calls)).toBe("db→FANOUT(tool)");
   });
 
   it("a single call of a category does not become a FANOUT node", () => {
@@ -583,22 +910,45 @@ describe("extractNestedTemplates (Goal-4 Change 2)", () => {
     // The flat calls array: the nested tool calls (depth 1) are recorded
     // BEFORE the parent lib.* call (depth 0).
     const traj = buildTrajectory([
-      { index: 0, primitive: "db.records.findExact", input: {}, output: [{ id: 1 }], startedAt: ISO, durationMs: 1 },
-      { index: 1, primitive: "tool.api.getInfo", input: { id: 1 }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.per_entity"], parentPrimitive: "lib.per_entity" } },
-      { index: 2, primitive: "tool.api.getInfo", input: { id: 2 }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.per_entity"], parentPrimitive: "lib.per_entity" } },
-      { index: 3, primitive: "tool.api.getInfo", input: { id: 3 }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.per_entity"], parentPrimitive: "lib.per_entity" } },
-      { index: 4, primitive: "lib.per_entity", input: {}, output: { value: [] }, startedAt: ISO, durationMs: 1 },
+      { index: 0, primitive: "tool.api.getInfo", input: { id: 1 }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.per_entity"], parentPrimitive: "lib.per_entity" } },
+      { index: 1, primitive: "tool.api.getInfo", input: { id: 2 }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.per_entity"], parentPrimitive: "lib.per_entity" } },
+      { index: 2, primitive: "tool.api.getInfo", input: { id: 3 }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.per_entity"], parentPrimitive: "lib.per_entity" } },
+      { index: 3, primitive: "lib.per_entity", input: {}, output: { value: [] }, startedAt: ISO, durationMs: 1 },
     ]);
     const nested = extractNestedTemplates(traj);
     expect(nested).toHaveLength(1);
     expect(nested[0]!.template.steps).toHaveLength(3);
     expect(nested[0]!.template.steps.every((s) => s.primitive === "tool.api.getInfo")).toBe(true);
     // The nested fan-out has its own intentSignature.
-    expect(nested[0]!.template.intentSignature).toBe("FANOUT(tool,3-5,cycle1)");
-    expect(nested[0]!.template.topic).toBe("tool_fanout_3_to_5_cycle1");
-    expect(nested[0]!.template.name).toBe("toolFanout3To5Cycle1");
+    expect(nested[0]!.template.intentSignature).toBe("FANOUT(tool)");
+    expect(nested[0]!.template.topic).toBe("tool_fanout");
+    expect(nested[0]!.template.name).toBe("toolFanout");
     // The slice is the group of nested calls.
     expect(nested[0]!.calls).toHaveLength(3);
+  });
+
+  it("suppresses nested fan-out candidates when an exact record-backed helper covers the whole trajectory", () => {
+    const traj = buildTrajectory([
+      { index: 0, primitive: "db.records.findExact", input: {}, output: [{ id: 1 }, { id: 2 }, { id: 3 }], startedAt: ISO, durationMs: 1 },
+      { index: 1, primitive: "tool.api.getInfo", input: { id: 1 }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.per_entity"], parentPrimitive: "lib.per_entity" } },
+      { index: 2, primitive: "tool.api.getInfo", input: { id: 2 }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.per_entity"], parentPrimitive: "lib.per_entity" } },
+      { index: 3, primitive: "tool.api.getInfo", input: { id: 3 }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.per_entity"], parentPrimitive: "lib.per_entity" } },
+      { index: 4, primitive: "lib.per_entity", input: {}, output: { value: [] }, startedAt: ISO, durationMs: 1 },
+    ]);
+    expect(extractNestedTemplates(traj)).toEqual([]);
+  });
+
+  it("does not extract nested record replay helpers from recordToolFanout internals", () => {
+    const traj = buildTrajectory([
+      { index: 0, primitive: "db.records.findExact", input: {}, output: [{ id: 1 }, { id: 2 }, { id: 3 }], startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.recordToolFanout"], parentPrimitive: "lib.recordToolFanout" } },
+      { index: 1, primitive: "tool.api.getInfo", input: { id: 1 }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.recordToolFanout"], parentPrimitive: "lib.recordToolFanout" } },
+      { index: 2, primitive: "tool.api.getInfo", input: { id: 2 }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.recordToolFanout"], parentPrimitive: "lib.recordToolFanout" } },
+      { index: 3, primitive: "tool.api.getInfo", input: { id: 3 }, output: {}, startedAt: ISO, durationMs: 1, scope: { depth: 1, callPath: ["lib.recordToolFanout"], parentPrimitive: "lib.recordToolFanout" } },
+      { index: 4, primitive: "lib.recordToolFanout", input: {}, output: { value: [] }, startedAt: ISO, durationMs: 1 },
+      { index: 5, primitive: "tool.api.getDependent", input: { id: 1 }, output: {}, startedAt: ISO, durationMs: 1 },
+      { index: 6, primitive: "tool.api.getDependent", input: { id: 2 }, output: {}, startedAt: ISO, durationMs: 1 },
+    ]);
+    expect(extractNestedTemplates(traj)).toEqual([]);
   });
 
   it("ignores nested groups with fewer than 2 calls", () => {

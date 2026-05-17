@@ -92,6 +92,8 @@ export async function authorFunction(
   // cross-shape transfer (R9). Falls back to the pure-composition path
   // when the template is not a pure fan-out.
   const fanOutSource =
+    renderToolFanoutEnrichmentSource({ template, trajectory }) ??
+    renderRecordToolEnrichmentSource({ template, trajectory }) ??
     renderRecordToolFanOutSource({ template, trajectory }) ??
     renderFanOutSource({ template, trajectory });
   const pureSource = fanOutSource ?? generatePureSource({
@@ -125,6 +127,56 @@ export async function authorFunction(
     source = codified;
     pathTaken = "codifier";
   }
+
+  // V1: ReGAL-style cost-effective-promotion gate.
+  //
+  // ReGAL (arXiv:2401.16467) only adds a refactored helper to its code
+  // bank after verifying the refactored program preserves outputs. We
+  // approximate that with a structural cost-coverage check: a helper
+  // earns promotion only if the slice it replaces is "substantial"
+  // enough that calling the helper measurably saves agent output
+  // tokens. The metric is `coverageDensity = min(steps, 6) * distinctTools / 6`.
+  // - Single-tool fan-outs (1 tool, many entities) get density ~0.5-1
+  //   and barely save anything vs an inline loop with one `df.tool` call.
+  // - Multi-tool fan-outs (2+ tools, same entity) get density >= 2 and
+  //   actually save 2+ inline `df.tool` calls per entity.
+  // - Composite signatures (db→FANOUT(tool)→lib→FANOUT(tool)) always
+  //   have density well above 2.
+  //
+  // When REGAL_PROMOTION_GATE=1, helpers with density < 2 are tagged
+  // as `narrow` and SKIPPED (not written to lib/) so they don't
+  // contaminate the learned-reuse prompt or count toward R6/R7/R8.
+  // When the env is unset, the tag is still stamped into the header
+  // for diagnostic visibility but no skip happens — backwards-compat.
+  const distinctToolPrimitives = new Set<string>();
+  for (const step of template.steps) {
+    if (step.primitive.startsWith("tool.")) {
+      distinctToolPrimitives.add(step.primitive);
+    }
+  }
+  const stepCount = template.steps.length;
+  const distinctTools = distinctToolPrimitives.size;
+  const coverageDensity = Math.min(stepCount, 6) * distinctTools / 6;
+  const promotionState: "verified" | "narrow" =
+    coverageDensity >= 2 ? "verified" : "narrow";
+  const gateActive = (process.env["REGAL_PROMOTION_GATE"] ?? "") === "1";
+  if (gateActive && promotionState === "narrow") {
+    return {
+      kind: "skipped",
+      reason: `REGAL gate: coverage-density=${coverageDensity.toFixed(2)} below 2.0 (steps=${stepCount}, distinctTools=${distinctTools})`,
+    };
+  }
+  // Stamp the gate decision into the helper header for downstream
+  // visibility. The frontmatter is between the leading `/* ---` and
+  // `--- */` markers; we insert `promotion-state` + `coverage-density`
+  // lines just before the closing marker.
+  source = stampPromotionMetadata(source, {
+    promotionState,
+    coverageDensity,
+    stepCount,
+    distinctTools,
+    gateActive,
+  });
 
   await fsp.mkdir(dir, { recursive: true });
   await fsp.writeFile(file, source, "utf8");
@@ -224,9 +276,9 @@ export async function authorFunction(
 // call — is crystallised as a generic per_entity-shaped helper:
 //
 //   fn({
-//     input: { entityValues, toolBundle, toolNames, paramName, sharedInput? },
+//     input: { entityValues, toolBundle, toolNames, paramName, paramByTool?, sharedInput? },
 //     body: loop entityValues × toolNames, calling
-//           df.tool[toolBundle][toolName]({ ...sharedInput, [paramName]: entityValue })
+//           df.tool[toolBundle][toolName]({ ...sharedInput, [paramForTool]: entityValue })
 //   })
 //
 // The bundle / tool names / param name are ALWAYS function inputs,
@@ -242,13 +294,63 @@ function isPureToolFanout(template: CallTemplate): boolean {
   return template.steps.every((s) => s.primitive.startsWith("tool."));
 }
 
-function isRecordToolFanout(template: CallTemplate): boolean {
-  return (
-    /^db→FANOUT\(tool,[^)]+\)→lib$/.test(template.intentSignature) &&
-    template.steps.some((s) => s.primitive.startsWith("db.")) &&
-    template.steps.filter((s) => s.primitive.startsWith("tool.")).length >= 2 &&
-    template.steps.some((s) => s.primitive === "lib.per_entity")
-  );
+function isRecordToolFanout(
+  template: CallTemplate,
+  trajectory: TrajectoryRecord,
+): boolean {
+  if (!/^(?:db|FANOUT\(db\))→FANOUT\(tool\)(?:→lib)?$/.test(template.intentSignature)) {
+    return false;
+  }
+  return selectRecordBackedToolSteps({ template, trajectory }) !== null;
+}
+
+function selectRecordBackedToolSteps(args: {
+  template: CallTemplate;
+  trajectory: TrajectoryRecord;
+  upperBound?: number;
+}): TemplateStep[] | null {
+  const { template, trajectory } = args;
+  const dbIndex = template.steps.findIndex((s) => s.primitive.startsWith("db."));
+  const firstLibIndex = template.steps.findIndex((s) => s.primitive.startsWith("lib."));
+  if (dbIndex < 0) return null;
+  if (/^(?:db|FANOUT\(db\))→FANOUT\(tool\)→lib$/.test(template.intentSignature) && firstLibIndex < 0) {
+    return null;
+  }
+  if (firstLibIndex >= 0 && dbIndex >= firstLibIndex) return null;
+  const upperBound =
+    args.upperBound ?? (firstLibIndex >= 0 ? firstLibIndex : template.steps.length);
+  if (upperBound <= dbIndex + 1) return null;
+
+  const calls = callsForSteps(template.steps, trajectory);
+  if (calls.length !== template.steps.length) return null;
+  const dbCall = calls[dbIndex];
+  if (!dbCall) return null;
+  const recordSigs = collectRecordValueSignatures(dbCall.output);
+  if (recordSigs.length === 0) return null;
+  const candidates: TemplateStep[] = [];
+  const erroredPrimitives = new Set<string>();
+  for (let i = dbIndex + 1; i < upperBound; i += 1) {
+    const step = template.steps[i]!;
+    if (!step.primitive.startsWith("tool.")) continue;
+    const call = calls[i];
+    if (!call) continue;
+    const inputJson = jsonString(call.input);
+    if (inputJson !== null && recordSigs.some((sig) => inputJson.includes(sig))) {
+      if (looksLikeToolErrorOutput(call.output)) {
+        erroredPrimitives.add(step.primitive);
+      } else {
+        candidates.push(step);
+      }
+    }
+  }
+  const selected = candidates.filter((step) => !erroredPrimitives.has(step.primitive));
+  return selected.length >= 2 ? selected : null;
+}
+
+function looksLikeToolErrorOutput(output: unknown): boolean {
+  if (!output || typeof output !== "object" || Array.isArray(output)) return false;
+  const rec = output as Record<string, unknown>;
+  return rec.success === false || typeof rec.error === "string";
 }
 
 // Parse `tool.<bundle>.<toolName>` — toolName may contain dots/hyphens
@@ -303,7 +405,8 @@ function harvestToolFanOutShape(steps: ReadonlyArray<TemplateStep>, trajectory: 
   // The trajectory's calls for these steps carry the literal inputs.
   // Find: the field whose value VARIES across calls (the entity param),
   // and fields that are CONSTANT (sharedInput).
-  const slice = trajectory.calls.filter((c) => c.primitive.startsWith("tool."));
+  const slice = callsForSteps(steps, trajectory);
+  if (slice.length !== steps.length) return null;
   const fieldValues = new Map<string, Set<string>>();
   const fieldExample = new Map<string, unknown>();
   for (const call of slice) {
@@ -357,25 +460,201 @@ function harvestToolFanOutShape(steps: ReadonlyArray<TemplateStep>, trajectory: 
   return { toolBundle, toolNames, paramName, entityValues, sharedInput };
 }
 
+function harvestToolParamByTool(
+  steps: ReadonlyArray<TemplateStep>,
+  trajectory: TrajectoryRecord,
+): Record<string, string> | null {
+  const slice = callsForSteps(steps, trajectory);
+  if (slice.length !== steps.length) return null;
+  const fieldsByTool = new Map<string, Map<string, Set<string>>>();
+  for (const [index, step] of steps.entries()) {
+    const parsed = parseToolPrimitive(step.primitive);
+    if (!parsed) return null;
+    const call = slice[index];
+    if (!call || call.input === null || typeof call.input !== "object" || Array.isArray(call.input)) {
+      return null;
+    }
+    const fieldValues = fieldsByTool.get(parsed.toolName) ?? new Map<string, Set<string>>();
+    for (const [field, value] of Object.entries(call.input as Record<string, unknown>)) {
+      const values = fieldValues.get(field) ?? new Set<string>();
+      try {
+        values.add(JSON.stringify(value));
+      } catch {
+        values.add(String(value));
+      }
+      fieldValues.set(field, values);
+    }
+    fieldsByTool.set(parsed.toolName, fieldValues);
+  }
+  const out: Record<string, string> = {};
+  for (const [toolName, fieldValues] of fieldsByTool) {
+    const ranked = [...fieldValues.entries()].sort((a, b) => b[1].size - a[1].size);
+    const best = ranked[0];
+    if (!best) return null;
+    out[toolName] = best[0];
+  }
+  return out;
+}
+
+function callsForSteps(
+  steps: ReadonlyArray<TemplateStep>,
+  trajectory: TrajectoryRecord,
+): TrajectoryRecord["calls"] {
+  const stepCallIndexes = steps.map((s) => s.trajectoryCallIndex);
+  if (stepCallIndexes.every((i): i is number => typeof i === "number")) {
+    const byIndex = new Map(trajectory.calls.map((call) => [call.index, call]));
+    const indexedCalls = stepCallIndexes.map((index) => byIndex.get(index));
+    if (
+      indexedCalls.every(
+        (call, i) => call !== undefined && call.primitive === steps[i]!.primitive,
+      )
+    ) {
+      return indexedCalls as TrajectoryRecord["calls"];
+    }
+  }
+
+  const primitives = steps.map((s) => s.primitive);
+  if (primitives.length === 0) return [];
+  for (let start = 0; start + primitives.length <= trajectory.calls.length; start += 1) {
+    let matched = true;
+    for (let i = 0; i < primitives.length; i += 1) {
+      if (trajectory.calls[start + i]!.primitive !== primitives[i]) {
+        matched = false;
+        break;
+      }
+    }
+    if (matched) return trajectory.calls.slice(start, start + primitives.length);
+  }
+  return [];
+}
+
+function collectRecordValueSignatures(output: unknown): string[] {
+  if (!Array.isArray(output) || output.length === 0) return [];
+  const signatures: string[] = [];
+  const seen = new Set<string>();
+  const addRawString = (raw: string): void => {
+    const sig = JSON.stringify(raw);
+    if (!seen.has(sig)) {
+      seen.add(sig);
+      signatures.push(sig);
+    }
+  };
+  const add = (value: unknown, options?: { allowShortString?: boolean }): void => {
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (trimmed.length < 3 && options?.allowShortString !== true) return;
+      addRawString(trimmed);
+      const lower = trimmed.toLowerCase();
+      addRawString(lower);
+      const slug = lower.replace(/\s+/g, "-");
+      addRawString(slug);
+      const title = lower.replace(/\b[a-z]/g, (ch) => ch.toUpperCase());
+      addRawString(title);
+      if (signatures.length >= 64) {
+        signatures.length = 64;
+      }
+      return;
+    }
+    if (typeof value === "number" && Number.isFinite(value)) {
+      const bare = String(value);
+      const quoted = JSON.stringify(bare);
+      for (const sig of [bare, quoted]) {
+        if (!seen.has(sig)) {
+          seen.add(sig);
+          signatures.push(sig);
+        }
+      }
+    }
+  };
+  const addRecordIdentifiers = (value: unknown): void => {
+    if (value === null || typeof value !== "object" || Array.isArray(value)) return;
+    const row = value as Record<string, unknown>;
+    if (!isRecordLikeRow(row)) return;
+    add(row.id, { allowShortString: true });
+    add(row.entity, { allowShortString: true });
+    const attributes = row.attributes;
+    if (
+      attributes !== null &&
+      typeof attributes === "object" &&
+      !Array.isArray(attributes)
+    ) {
+      const attrs = attributes as Record<string, unknown>;
+      add(attrs.id, { allowShortString: true });
+      add(attrs.entity, { allowShortString: true });
+      add(attrs.code, { allowShortString: true });
+      add(attrs.country_code, { allowShortString: true });
+      add(attrs.nationality_code, { allowShortString: true });
+    }
+  };
+  const walk = (value: unknown, depth: number): void => {
+    if (signatures.length >= 64 || depth > 2) return;
+    if (value === null || typeof value !== "object") {
+      add(value);
+      return;
+    }
+    if (Array.isArray(value)) {
+      for (const item of value) walk(item, depth + 1);
+      return;
+    }
+    for (const inner of Object.values(value as Record<string, unknown>)) {
+      walk(inner, depth + 1);
+    }
+  };
+  for (const item of output) {
+    addRecordIdentifiers(item);
+    walk(item, 0);
+    if (signatures.length >= 64) break;
+  }
+  return signatures;
+}
+
+function isRecordLikeRow(row: Record<string, unknown>): boolean {
+  if ("id" in row || "entity" in row) return true;
+  const attributes = row.attributes;
+  if (
+    attributes !== null &&
+    typeof attributes === "object" &&
+    !Array.isArray(attributes)
+  ) {
+    const attrs = attributes as Record<string, unknown>;
+    return (
+      "id" in attrs ||
+      "entity" in attrs ||
+      "code" in attrs ||
+      "country_code" in attrs ||
+      "nationality_code" in attrs
+    );
+  }
+  return false;
+}
+
+function jsonString(value: unknown): string | null {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return null;
+  }
+}
+
 function renderRecordToolFanOutSource(args: GenerateArgs): string | null {
   const { template, trajectory } = args;
-  if (!isRecordToolFanout(template)) return null;
-  const toolSteps = template.steps.filter((s) => s.primitive.startsWith("tool."));
+  if (!isRecordToolFanout(template, trajectory)) return null;
+  const toolSteps = selectRecordBackedToolSteps({ template, trajectory });
+  if (toolSteps === null) return null;
   const shape = harvestToolFanOutShape(toolSteps, trajectory);
   if (shape === null) return null;
 
   const example = {
+    intent: "record-backed repeated fan-out",
     recordFilter: {},
     recordLimit: shape.entityValues.length > 0 ? shape.entityValues.length : 999,
-    toolBundle: shape.toolBundle,
-    toolNames: shape.toolNames,
-    paramName: shape.paramName,
-    ...(Object.keys(shape.sharedInput).length > 0
-      ? { sharedInput: shape.sharedInput }
-      : {}),
   };
   const exampleOutputJson = safeJsonStringify({
+    entityId: shape.entityValues[0] ?? null,
     entityValue: shape.entityValues[0] ?? null,
+    label: null,
+    record: {},
+    attributes: {},
     tools: {},
   });
 
@@ -392,10 +671,9 @@ function renderRecordToolFanOutSource(args: GenerateArgs): string | null {
     `import { fn } from "${sdkUrl}";`,
     `import * as v from "${valibotUrl}";`,
     "",
-    `// Goal-4 learned record-backed fan-out interface. This replaces the`,
-    `// seed-mediated db -> tool fan-out -> lib.per_entity shape with a`,
-    `// directly learned helper: it fetches records, extracts entity values,`,
-    `// and runs the requested tool calls without calling df.lib.per_entity.`,
+    `// Goal-4 learned record-backed fan-out interface. The public surface is`,
+    `// intent-shaped; planner/executor internals provide the data-shaped tool`,
+    `// plan through loose, non-public fields.`,
     `declare const df: {`,
     `  db: {`,
     `    records: {`,
@@ -406,13 +684,18 @@ function renderRecordToolFanOutSource(args: GenerateArgs): string | null {
     `};`,
     "",
     `type Input = {`,
-    `  entityValues?: Array<string | number>;`,
+    `  intent?: "record-backed repeated fan-out";`,
     `  recordFilter?: Record<string, unknown>;`,
     `  recordLimit?: number;`,
+    `};`,
+    "",
+    `type InternalRecordFanoutPlan = {`,
     `  entityField?: string;`,
-    `  toolBundle: string;`,
-    `  toolNames: string[];`,
-    `  paramName: string;`,
+    `  toolBundle?: string;`,
+    `  toolNames?: string[];`,
+    `  paramName?: string;`,
+    `  paramByTool?: Record<string, string>;`,
+    `  recordParamMapByTool?: Record<string, Record<string, string>>;`,
     `  sharedInput?: Record<string, unknown>;`,
     `};`,
     "",
@@ -424,22 +707,18 @@ function renderRecordToolFanOutSource(args: GenerateArgs): string | null {
     `      output: ${exampleOutputJson},`,
     `    },`,
     `  ],`,
-    `  input: v.object({`,
-    `    entityValues: v.optional(v.array(v.union([v.string(), v.number()]))),`,
+    `  input: v.looseObject({`,
+    `    intent: v.optional(v.literal("record-backed repeated fan-out")),`,
     `    recordFilter: v.optional(v.record(v.string(), v.unknown())),`,
     `    recordLimit: v.optional(v.number()),`,
-    `    entityField: v.optional(v.string()),`,
-    `    toolBundle: v.string(),`,
-    `    toolNames: v.array(v.string()),`,
-    `    paramName: v.string(),`,
-    `    sharedInput: v.optional(v.record(v.string(), v.unknown())),`,
-    `  }),`,
+  `  }),`,
     `  output: v.unknown(),`,
     `  body: async (input: Input): Promise<unknown> => {`,
+    `    const plan = input as Input & InternalRecordFanoutPlan;`,
     `    const pickEntityValue = (record: unknown): string | number | null => {`,
     `      if (!record || typeof record !== "object" || Array.isArray(record)) return null;`,
     `      const rec = record as Record<string, unknown>;`,
-    `      const field = input.entityField;`,
+    `      const field = plan.entityField;`,
     `      const attrs = rec.attributes;`,
     `      const candidate = field`,
     `        ? rec[field] ?? (attrs && typeof attrs === "object" && !Array.isArray(attrs)`,
@@ -450,26 +729,504 @@ function renderRecordToolFanOutSource(args: GenerateArgs): string | null {
     `        ? candidate`,
     `        : null;`,
     `    };`,
-    `    let entityValues = input.entityValues ?? [];`,
-    `    if (entityValues.length === 0) {`,
-    `      const records = await df.db.records.findExact(input.recordFilter ?? {}, input.recordLimit ?? 999);`,
-    `      entityValues = records.map(pickEntityValue).filter((v): v is string | number => v !== null);`,
-    `    }`,
-    `    const bundle = df.tool[input.toolBundle];`,
-    `    if (!bundle) return { error: "unknown_bundle", toolBundle: input.toolBundle };`,
-    `    const results: Array<{ entityValue: string | number; tools: Record<string, unknown> }> = [];`,
-    `    for (const entityValue of entityValues) {`,
-    `      const perTool: Record<string, unknown> = {};`,
-    `      for (const toolName of input.toolNames) {`,
-    `        const tool = bundle[toolName];`,
-    `        if (!tool) { perTool[toolName] = { error: "unknown_tool", tool: toolName }; continue; }`,
-    `        const payload: Record<string, unknown> = { ...(input.sharedInput ?? {}), [input.paramName]: entityValue };`,
-    `        try { perTool[toolName] = await tool(payload); }`,
-    `        catch (err) { perTool[toolName] = { error: String(err) }; }`,
+    `    const readRecordField = (record: Record<string, unknown>, field: string): unknown => {`,
+    `      if (record[field] !== undefined) return record[field];`,
+    `      const attrs = record.attributes;`,
+    `      if (attrs && typeof attrs === "object" && !Array.isArray(attrs)) {`,
+    `        const value = (attrs as Record<string, unknown>)[field];`,
+    `        if (value !== undefined) return value;`,
     `      }`,
-    `      results.push({ entityValue, tools: perTool });`,
+    `      if (field === "id") return record.id;`,
+    `      if (field === "entity") return record.entity;`,
+    `      return undefined;`,
+    `    };`,
+    `    const normalizeId = (value: string | number): string | number =>`,
+    `      typeof value === "string" && /^-?\\d+(?:\\.\\d+)?$/.test(value) ? Number(value) : value;`,
+    `    const envelopeKeys = ["value", "data", "result", "record", "entity", "item", "payload"];`,
+    `    const envelopeMetaKeys = new Set(["success", "ok", "status", "error", "message", "code", "errors", "warnings", "elapsedMs", "elapsed_ms", "took"]);`,
+    `    const isPlainObject = (value: unknown): value is Record<string, unknown> => value != null && typeof value === "object" && !Array.isArray(value);`,
+    `    const isErrorLike = (value: unknown): boolean => isPlainObject(value) && value.success === false && (typeof value.error === "string" || typeof value.message === "string");`,
+    `    const unwrapToolPayload = (value: unknown): unknown => {`,
+    `      if (!isPlainObject(value) || isErrorLike(value)) return value;`,
+    `      if (typeof value.success === "boolean" || typeof value.ok === "boolean") {`,
+    `        const payloadKeys = Object.keys(value).filter((k) => !envelopeMetaKeys.has(k) && value[k] !== undefined && value[k] !== null);`,
+    `        if (payloadKeys.length === 1) return value[payloadKeys[0]];`,
+    `      }`,
+    `      for (const key of envelopeKeys) if (value[key] !== undefined && value[key] !== null) return value[key];`,
+    `      return value;`,
+    `    };`,
+    `    const records = await df.db.records.findExact(input.recordFilter ?? {}, input.recordLimit ?? 999);`,
+    `    const toolBundle = typeof plan.toolBundle === "string" ? plan.toolBundle : "";`,
+    `    const toolNames = Array.isArray(plan.toolNames) ? plan.toolNames : [];`,
+    `    const defaultParamName = typeof plan.paramName === "string" ? plan.paramName : "";`,
+    `    if (!toolBundle || toolNames.length === 0 || !defaultParamName) return { error: "missing_internal_plan" };`,
+    `    const bundle = df.tool[toolBundle];`,
+    `    if (!bundle) return { error: "unknown_bundle", toolBundle };`,
+    `    const results: Array<Record<string, unknown>> = [];`,
+    `    for (const record of records) {`,
+    `      const entityValue = pickEntityValue(record);`,
+    `      if (entityValue === null) continue;`,
+    `      const entityId = normalizeId(entityValue);`,
+    `      const rec = record && typeof record === "object" && !Array.isArray(record) ? (record as Record<string, unknown>) : {};`,
+    `      const label = typeof rec.label === "string" || typeof rec.label === "number" ? rec.label : undefined;`,
+    `      const attributes = rec.attributes && typeof rec.attributes === "object" && !Array.isArray(rec.attributes) ? rec.attributes : undefined;`,
+    `      const perTool: Record<string, unknown> = {};`,
+    `      const rawTools: Record<string, unknown> = {};`,
+    `      for (const toolName of toolNames) {`,
+    `        const tool = bundle[toolName];`,
+    `        if (!tool) { perTool[toolName] = { error: "unknown_tool", tool: toolName }; rawTools[toolName] = perTool[toolName]; continue; }`,
+    `        const paramName = plan.paramByTool?.[toolName] ?? defaultParamName;`,
+    `        const payload: Record<string, unknown> = { ...(plan.sharedInput ?? {}) };`,
+    `        const recordParamMap = plan.recordParamMapByTool?.[toolName];`,
+    `        if (recordParamMap) {`,
+    `          for (const [toolParam, recordField] of Object.entries(recordParamMap)) {`,
+    `            const value = readRecordField(rec, recordField);`,
+    `            if (value !== undefined) payload[toolParam] = value;`,
+    `          }`,
+    `        }`,
+    `        if (payload[paramName] === undefined) payload[paramName] = entityValue;`,
+    `        try { const raw = await tool(payload); rawTools[toolName] = raw; perTool[toolName] = unwrapToolPayload(raw); }`,
+    `        catch (err) { perTool[toolName] = { error: String(err) }; rawTools[toolName] = perTool[toolName]; }`,
+    `      }`,
+    `      results.push({ id: entityId, entity: entityValue, entityId, entityValue, record: rec, label, attributes, ...perTool, tools: perTool, rawTools });`,
     `    }`,
     `    return results;`,
+    `  },`,
+    `});`,
+    "",
+  ].join("\n");
+}
+
+function renderRecordToolEnrichmentSource(args: GenerateArgs): string | null {
+  const { template, trajectory } = args;
+  if (!/^db→FANOUT\(tool\)→lib→FANOUT\(tool\)$/.test(template.intentSignature)) {
+    return null;
+  }
+  const libIndex = template.steps.findIndex((s) => s.primitive.startsWith("lib."));
+  if (libIndex < 0) return null;
+  const baseToolSteps = selectRecordBackedToolSteps({
+    template,
+    trajectory,
+    upperBound: libIndex,
+  });
+  if (baseToolSteps === null) return null;
+  const baseShape = harvestToolFanOutShape(baseToolSteps, trajectory);
+  if (baseShape === null) return null;
+  const dependentToolSteps = template.steps
+    .slice(libIndex + 1)
+    .filter((s) => s.primitive.startsWith("tool."));
+  if (dependentToolSteps.length < 2) return null;
+  const dependentShape = harvestToolFanOutShape(dependentToolSteps, trajectory);
+  if (dependentShape === null) return null;
+
+  const example = {
+    intent: "record-backed dependent enrichment",
+    recordFilter: {},
+    recordLimit: baseShape.entityValues.length > 0 ? baseShape.entityValues.length : 999,
+  };
+  const exampleOutputJson = safeJsonStringify({
+    entityId: baseShape.entityValues[0] ?? null,
+    entityValue: baseShape.entityValues[0] ?? null,
+    tools: {},
+    dependentTools: {},
+  });
+
+  const sdkUrl = sdkIndexUrl();
+  const valibotUrl = valibotEntryUrl();
+  const fm = recordEnrichmentFrontmatter({ template, trajectory });
+  const header = headerComment({ template, trajectory });
+  return [
+    fm,
+    header,
+    `import { fn } from "${sdkUrl}";`,
+    `import * as v from "${valibotUrl}";`,
+    "",
+    `// Goal-4 learned record-backed dependent enrichment interface. The public`,
+    `// surface is intent-shaped; planner/executor internals provide the base`,
+    `// fan-out and dependent-tool plan through loose, non-public fields.`,
+    `declare const df: {`,
+    `  db: {`,
+    `    records: {`,
+    `      findExact(filter: Record<string, unknown>, limit?: number): Promise<unknown[]>;`,
+    `    };`,
+    `  };`,
+    `  lib: {`,
+    `    recordToolFanout?: (input: Record<string, unknown>) => Promise<{ value?: unknown } | unknown[]>;`,
+    `  };`,
+    `  tool: Record<string, Record<string, (input: Record<string, unknown>) => Promise<unknown>>>;`,
+    `};`,
+    "",
+    `type Input = {`,
+    `  intent?: "record-backed dependent enrichment";`,
+    `  recordFilter?: Record<string, unknown>;`,
+    `  recordLimit?: number;`,
+    `};`,
+    "",
+    `type InternalRecordEnrichmentPlan = {`,
+    `  entityField?: string;`,
+    `  toolBundle?: string;`,
+    `  toolNames?: string[];`,
+    `  paramName?: string;`,
+    `  paramByTool?: Record<string, string>;`,
+    `  recordParamMapByTool?: Record<string, Record<string, string>>;`,
+    `  sharedInput?: Record<string, unknown>;`,
+    `  dependentToolBundle?: string;`,
+    `  dependentToolNames?: string[];`,
+    `  dependentParamName?: string;`,
+    `  dependentParamByTool?: Record<string, string>;`,
+    `  dependentValuePaths?: string[];`,
+    `  dependentSharedInput?: Record<string, unknown>;`,
+    `};`,
+    "",
+    `export const ${template.name} = fn<Input, unknown>({`,
+    `  intent: ${JSON.stringify(recordEnrichmentIntentString())},`,
+    `  examples: [`,
+    `    {`,
+    `      input: ${safeJsonStringify(example)},`,
+    `      output: ${exampleOutputJson},`,
+    `    },`,
+    `  ],`,
+    `  input: v.looseObject({`,
+    `    intent: v.optional(v.literal("record-backed dependent enrichment")),`,
+    `    recordFilter: v.optional(v.record(v.string(), v.unknown())),`,
+    `    recordLimit: v.optional(v.number()),`,
+    `  }),`,
+    `  output: v.unknown(),`,
+    `  body: async (input: Input): Promise<unknown> => {`,
+    `    const plan = input as Input & InternalRecordEnrichmentPlan;`,
+    `    const fanoutInput = {`,
+    `      intent: "record-backed repeated fan-out",`,
+    `      recordFilter: input.recordFilter,`,
+    `      recordLimit: input.recordLimit,`,
+    `      entityField: plan.entityField,`,
+    `      toolBundle: plan.toolBundle,`,
+    `      toolNames: plan.toolNames,`,
+    `      paramName: plan.paramName,`,
+    `      paramByTool: plan.paramByTool,`,
+    `      recordParamMapByTool: plan.recordParamMapByTool,`,
+    `      sharedInput: plan.sharedInput,`,
+    `    };`,
+    `    const pickEntityValue = (record: unknown): string | number | null => {`,
+    `      if (!record || typeof record !== "object" || Array.isArray(record)) return null;`,
+    `      const rec = record as Record<string, unknown>;`,
+    `      const field = plan.entityField;`,
+    `      const attrs = rec.attributes;`,
+    `      const candidate = field`,
+    `        ? rec[field] ?? (attrs && typeof attrs === "object" && !Array.isArray(attrs)`,
+    `            ? (attrs as Record<string, unknown>)[field]`,
+    `            : undefined)`,
+    `        : rec.id ?? rec.entity;`,
+    `      return typeof candidate === "string" || typeof candidate === "number" ? candidate : null;`,
+    `    };`,
+    `    const readRecordField = (record: Record<string, unknown>, field: string): unknown => {`,
+    `      if (record[field] !== undefined) return record[field];`,
+    `      const attrs = record.attributes;`,
+    `      if (attrs && typeof attrs === "object" && !Array.isArray(attrs)) {`,
+    `        const value = (attrs as Record<string, unknown>)[field];`,
+    `        if (value !== undefined) return value;`,
+    `      }`,
+    `      if (field === "id") return record.id;`,
+    `      if (field === "entity") return record.entity;`,
+    `      return undefined;`,
+    `    };`,
+    `    const normalizeId = (value: string | number): string | number =>`,
+    `      typeof value === "string" && /^-?\\d+(?:\\.\\d+)?$/.test(value) ? Number(value) : value;`,
+    `    const envelopeKeys = ["value", "data", "result", "record", "entity", "item", "payload"];`,
+    `    const envelopeMetaKeys = new Set(["success", "ok", "status", "error", "message", "code", "errors", "warnings", "elapsedMs", "elapsed_ms", "took"]);`,
+    `    const isPlainObject = (value: unknown): value is Record<string, unknown> => value != null && typeof value === "object" && !Array.isArray(value);`,
+    `    const isErrorLike = (value: unknown): boolean => isPlainObject(value) && value.success === false && (typeof value.error === "string" || typeof value.message === "string");`,
+    `    const unwrapToolPayload = (value: unknown): unknown => {`,
+    `      if (!isPlainObject(value) || isErrorLike(value)) return value;`,
+    `      if (typeof value.success === "boolean" || typeof value.ok === "boolean") {`,
+    `        const payloadKeys = Object.keys(value).filter((k) => !envelopeMetaKeys.has(k) && value[k] !== undefined && value[k] !== null);`,
+    `        if (payloadKeys.length === 1) return value[payloadKeys[0]];`,
+    `      }`,
+    `      for (const key of envelopeKeys) if (value[key] !== undefined && value[key] !== null) return value[key];`,
+    `      return value;`,
+    `    };`,
+    `    const runInlineRecordToolFanout = async (): Promise<Array<Record<string, unknown>>> => {`,
+    `      const records = await df.db.records.findExact(input.recordFilter ?? {}, input.recordLimit ?? 999);`,
+    `      const toolBundle = typeof plan.toolBundle === "string" ? plan.toolBundle : "";`,
+    `      const toolNames = Array.isArray(plan.toolNames) ? plan.toolNames : [];`,
+    `      const defaultParamName = typeof plan.paramName === "string" ? plan.paramName : "";`,
+    `      if (!toolBundle || toolNames.length === 0 || !defaultParamName) return [];`,
+    `      const bundle = df.tool[toolBundle];`,
+    `      if (!bundle) return [];`,
+    `      const results: Array<Record<string, unknown>> = [];`,
+    `      for (const record of records) {`,
+    `        const entityValue = pickEntityValue(record);`,
+    `        if (entityValue === null) continue;`,
+    `        const entityId = normalizeId(entityValue);`,
+    `        const rec = record && typeof record === "object" && !Array.isArray(record) ? (record as Record<string, unknown>) : {};`,
+    `        const label = typeof rec.label === "string" || typeof rec.label === "number" ? rec.label : undefined;`,
+    `        const attributes = rec.attributes && typeof rec.attributes === "object" && !Array.isArray(rec.attributes) ? rec.attributes : undefined;`,
+    `        const perTool: Record<string, unknown> = {};`,
+    `        const rawTools: Record<string, unknown> = {};`,
+    `        for (const toolName of toolNames) {`,
+    `          const tool = bundle[toolName];`,
+    `          if (!tool) { perTool[toolName] = { error: "unknown_tool", tool: toolName }; rawTools[toolName] = perTool[toolName]; continue; }`,
+    `          const paramName = plan.paramByTool?.[toolName] ?? defaultParamName;`,
+    `          const payload: Record<string, unknown> = { ...(plan.sharedInput ?? {}) };`,
+    `          const recordParamMap = plan.recordParamMapByTool?.[toolName];`,
+    `          if (recordParamMap) {`,
+    `            for (const [toolParam, recordField] of Object.entries(recordParamMap)) {`,
+    `              const value = readRecordField(rec, recordField);`,
+    `              if (value !== undefined) payload[toolParam] = value;`,
+    `            }`,
+    `          }`,
+    `          if (payload[paramName] === undefined) payload[paramName] = entityValue;`,
+    `          try { const raw = await tool(payload); rawTools[toolName] = raw; perTool[toolName] = unwrapToolPayload(raw); }`,
+    `          catch (err) { perTool[toolName] = { error: String(err) }; rawTools[toolName] = perTool[toolName]; }`,
+    `        }`,
+    `        results.push({ id: entityId, entity: entityValue, entityId, entityValue, record: rec, label, attributes, ...perTool, tools: perTool, rawTools });`,
+    `      }`,
+    `      return results;`,
+    `    };`,
+    `    let rows: Array<Record<string, unknown>> = [];`,
+    `    try {`,
+    `      const base = typeof df.lib.recordToolFanout === "function" ? await df.lib.recordToolFanout(fanoutInput) : null;`,
+    `      rows = Array.isArray((base as { value?: unknown } | null)?.value)`,
+    `        ? (base as { value: Array<Record<string, unknown>> }).value`,
+    `        : Array.isArray(base) ? base as Array<Record<string, unknown>> : [];`,
+    `    } catch {`,
+    `      rows = [];`,
+    `    }`,
+    `    if (rows.length === 0) rows = await runInlineRecordToolFanout();`,
+    `    const getPath = (value: unknown, path: string): unknown => {`,
+    `      let cur: unknown = value;`,
+    `      for (const part of path.split(".")) {`,
+    `        if (!cur || typeof cur !== "object" || Array.isArray(cur)) return undefined;`,
+    `        cur = (cur as Record<string, unknown>)[part];`,
+    `      }`,
+    `      return cur;`,
+    `    };`,
+    `    const pickDependentValue = (row: Record<string, unknown>): string | number | null => {`,
+    `      for (const path of plan.dependentValuePaths ?? []) {`,
+    `        const value = getPath(row, path);`,
+    `        if (typeof value === "string" || typeof value === "number") return value;`,
+    `      }`,
+    `      const fallback = row.entityId ?? row.entityValue ?? row.entity ?? row.id;`,
+    `      return typeof fallback === "string" || typeof fallback === "number" ? fallback : null;`,
+    `    };`,
+    `    const dependentNames = plan.dependentToolNames ?? [];`,
+    `    if (dependentNames.length === 0) return rows;`,
+    `    const bundle = df.tool[plan.dependentToolBundle ?? plan.toolBundle ?? ""];`,
+    `    if (!bundle) return rows.map((row) => ({ ...row, dependentTools: { error: "unknown_bundle" } }));`,
+    `    const enriched: Array<Record<string, unknown>> = [];`,
+    `    for (const row of rows) {`,
+    `      const dependentTools: Record<string, unknown> = {};`,
+    `      const entityValue = pickDependentValue(row);`,
+    `      for (const toolName of dependentNames) {`,
+    `        const tool = bundle[toolName];`,
+    `        if (!tool) { dependentTools[toolName] = { error: "unknown_tool", tool: toolName }; continue; }`,
+    `        const paramName = plan.dependentParamByTool?.[toolName] ?? plan.dependentParamName ?? plan.paramName ?? "entity";`,
+    `        const payload: Record<string, unknown> = { ...(plan.dependentSharedInput ?? {}) };`,
+    `        if (entityValue !== null) payload[paramName] = entityValue;`,
+    `        try { dependentTools[toolName] = await tool(payload); }`,
+    `        catch (err) { dependentTools[toolName] = { error: String(err) }; }`,
+    `      }`,
+    `      enriched.push({ ...row, dependentTools, tools: { ...((row.tools as Record<string, unknown> | undefined) ?? {}), ...dependentTools } });`,
+    `    }`,
+    `    return enriched;`,
+    `  },`,
+    `});`,
+    "",
+  ].join("\n");
+}
+
+function renderToolFanoutEnrichmentSource(args: GenerateArgs): string | null {
+  const { template, trajectory } = args;
+  if (!/^FANOUT\(tool\)→lib→FANOUT\(tool\)$/.test(template.intentSignature)) {
+    return null;
+  }
+  const libIndex = template.steps.findIndex((step) => step.primitive === "lib.toolFanout");
+  if (libIndex < 0) return null;
+  const baseToolSteps = template.steps.slice(0, libIndex).filter((step) => step.primitive.startsWith("tool."));
+  if (baseToolSteps.length < 1) return null;
+  const baseShape = harvestToolFanOutShape(baseToolSteps, trajectory);
+  if (baseShape === null) return null;
+  const dependentToolSteps = template.steps
+    .slice(libIndex + 1)
+    .filter((step) => step.primitive.startsWith("tool."));
+  if (dependentToolSteps.length < 2) return null;
+  const dependentBundles = new Set<string>();
+  const dependentToolNames: string[] = [];
+  for (const step of dependentToolSteps) {
+    const parsed = parseToolPrimitive(step.primitive);
+    if (!parsed) return null;
+    dependentBundles.add(parsed.bundle);
+    if (!dependentToolNames.includes(parsed.toolName)) dependentToolNames.push(parsed.toolName);
+  }
+  if (dependentBundles.size !== 1) return null;
+  const dependentParamByTool = harvestToolParamByTool(dependentToolSteps, trajectory);
+  if (dependentParamByTool === null) return null;
+
+  const example = {
+    intent: "repeated tool fan-out dependent enrichment",
+    limit: baseShape.entityValues.length > 0 ? baseShape.entityValues.length : undefined,
+  };
+  const exampleOutputJson = safeJsonStringify({
+    entityId: baseShape.entityValues[0] ?? null,
+    entityValue: baseShape.entityValues[0] ?? null,
+    tools: {},
+    dependentTools: {},
+  });
+
+  const sdkUrl = sdkIndexUrl();
+  const valibotUrl = valibotEntryUrl();
+  const fm = toolEnrichmentFrontmatter({ template, trajectory });
+  const header = headerComment({ template, trajectory });
+  return [
+    fm,
+    header,
+    `import { fn } from "${sdkUrl}";`,
+    `import * as v from "${valibotUrl}";`,
+    "",
+    `// Goal-4 learned pure fan-out dependent enrichment interface. The public`,
+    `// surface is intent-shaped; planner/executor internals provide the base`,
+    `// fan-out and dependent-tool plan through loose, non-public fields.`,
+    `declare const df: {`,
+    `  lib: {`,
+    `    toolFanout(input: Record<string, unknown>): Promise<{ value?: unknown }>;`,
+    `  };`,
+    `  tool: Record<string, Record<string, (input: Record<string, unknown>) => Promise<unknown>>>;`,
+    `};`,
+    "",
+    `type Input = {`,
+    `  intent?: "repeated tool fan-out dependent enrichment";`,
+    `  limit?: number;`,
+    `};`,
+    "",
+    `type InternalToolEnrichmentPlan = {`,
+    `  entityValues?: Array<string | number>;`,
+    `  toolBundle?: string;`,
+    `  toolNames?: string[];`,
+    `  paramName?: string;`,
+    `  paramByTool?: Record<string, string>;`,
+    `  sharedInput?: Record<string, unknown>;`,
+    `  dependentToolBundle?: string;`,
+    `  dependentToolNames?: string[];`,
+    `  dependentParamName?: string;`,
+    `  dependentParamByTool?: Record<string, string>;`,
+    `  dependentValuePaths?: string[];`,
+    `  dependentValuePathsByTool?: Record<string, string[]>;`,
+    `  dependentSharedInput?: Record<string, unknown>;`,
+    `};`,
+    "",
+    `export const ${template.name} = fn<Input, unknown>({`,
+    `  intent: ${JSON.stringify(toolEnrichmentIntentString())},`,
+    `  examples: [`,
+    `    {`,
+    `      input: ${safeJsonStringify(example)},`,
+    `      output: ${exampleOutputJson},`,
+    `    },`,
+    `  ],`,
+    `  input: v.looseObject({`,
+    `    intent: v.optional(v.string()),`,
+    `    limit: v.optional(v.number()),`,
+    `  }),`,
+    `  output: v.unknown(),`,
+    `  body: async (input: Input): Promise<unknown> => {`,
+    `    const plan = input as Input & InternalToolEnrichmentPlan;`,
+    `    const base = await df.lib.toolFanout({`,
+    `      intent: "repeated tool fan-out",`,
+    `      limit: input.limit,`,
+    `      entityValues: plan.entityValues,`,
+    `      toolBundle: plan.toolBundle,`,
+    `      toolNames: plan.toolNames,`,
+    `      paramName: plan.paramName,`,
+    `      paramByTool: plan.paramByTool,`,
+    `      sharedInput: plan.sharedInput,`,
+    `    });`,
+    `    const rows = Array.isArray(base?.value) ? base.value as Array<Record<string, unknown>> : [];`,
+    `    const envelopeKeys = ["value", "data", "result", "record", "entity", "item", "payload"];`,
+    `    const envelopeMetaKeys = new Set(["success", "ok", "status", "error", "message", "code", "errors", "warnings", "elapsedMs", "elapsed_ms", "took"]);`,
+    `    const isPlainObject = (value: unknown): value is Record<string, unknown> => value != null && typeof value === "object" && !Array.isArray(value);`,
+    `    const isErrorLike = (value: unknown): boolean => isPlainObject(value) && value.success === false && (typeof value.error === "string" || typeof value.message === "string");`,
+    `    const unwrapToolPayload = (value: unknown): unknown => {`,
+    `      if (!isPlainObject(value) || isErrorLike(value)) return value;`,
+    `      if (typeof value.success === "boolean" || typeof value.ok === "boolean") {`,
+    `        const payloadKeys = Object.keys(value).filter((k) => !envelopeMetaKeys.has(k) && value[k] !== undefined && value[k] !== null);`,
+    `        if (payloadKeys.length === 1) return value[payloadKeys[0]];`,
+    `      }`,
+    `      for (const key of envelopeKeys) if (value[key] !== undefined && value[key] !== null) return value[key];`,
+    `      return value;`,
+    `    };`,
+    `    const getPath = (value: unknown, path: string): unknown => {`,
+    `      let cur: unknown = value;`,
+    `      for (const part of path.split(".")) {`,
+    `        if (!cur || typeof cur !== "object" || Array.isArray(cur)) return undefined;`,
+    `        cur = (cur as Record<string, unknown>)[part];`,
+    `      }`,
+    `      return cur;`,
+    `    };`,
+    `    const norm = (value: string): string => value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");`,
+    `    const singular = (value: string): string => value.endsWith("ies") ? value.slice(0, -3) + "y" : value.endsWith("s") ? value.slice(0, -1) : value;`,
+    `    const normalizeParamValue = (value: unknown, paramName: string): unknown => {`,
+    `      const normalized = norm(paramName);`,
+    `      if (normalized.endsWith("_names") && Array.isArray(value)) {`,
+    `        const names = value.map((item) => isPlainObject(item) ? item.name : item).filter((item): item is string | number => typeof item === "string" || typeof item === "number").map(String);`,
+    `        return names.length > 0 ? names : undefined;`,
+    `      }`,
+    `      if (Array.isArray(value) && value.length === 1) return normalizeParamValue(value[0], paramName);`,
+    `      return value;`,
+    `    };`,
+    `    const keyMatchesParam = (key: string, paramName: string): boolean => {`,
+    `      const keyNorm = norm(key);`,
+    `      const paramNorm = norm(paramName);`,
+    `      if (keyNorm === paramNorm || keyNorm.endsWith("_" + paramNorm)) return true;`,
+    `      if (paramNorm.endsWith("_names")) {`,
+    `        const stem = singular(paramNorm.slice(0, -"names".length).replace(/_$/, ""));`,
+    `        const keyStem = singular(keyNorm);`,
+    `        return keyStem === stem || keyStem.endsWith("_" + stem);`,
+    `      }`,
+    `      return false;`,
+    `    };`,
+    `    const findValueForParam = (value: unknown, paramName: string, depth = 0): unknown => {`,
+    `      if (depth > 6 || !isPlainObject(value)) return undefined;`,
+    `      for (const [key, candidate] of Object.entries(value)) {`,
+    `        if (keyMatchesParam(key, paramName)) {`,
+    `          const normalized = normalizeParamValue(candidate, paramName);`,
+    `          if (normalized !== undefined && normalized !== null) return normalized;`,
+    `        }`,
+    `      }`,
+    `      for (const candidate of Object.values(value)) {`,
+    `        const found = findValueForParam(candidate, paramName, depth + 1);`,
+    `        if (found !== undefined && found !== null) return found;`,
+    `      }`,
+    `      return undefined;`,
+    `    };`,
+    `    const pickDependentValue = (row: Record<string, unknown>, toolName: string, paramName: string): unknown => {`,
+    `      const paths = plan.dependentValuePathsByTool?.[toolName] ?? plan.dependentValuePaths ?? [];`,
+    `      for (const path of paths) {`,
+    `        const value = normalizeParamValue(getPath(row, path), paramName);`,
+    `        if (value !== undefined && value !== null) return value;`,
+    `      }`,
+    `      const inferred = findValueForParam(row, paramName);`,
+    `      if (inferred !== undefined && inferred !== null) return inferred;`,
+    `      return row.entityId ?? row.entityValue ?? row.entity ?? row.id;`,
+    `    };`,
+    `    const dependentNames = plan.dependentToolNames ?? [];`,
+    `    if (dependentNames.length === 0) return rows;`,
+    `    const bundle = df.tool[plan.dependentToolBundle ?? plan.toolBundle ?? ""];`,
+    `    if (!bundle) return rows.map((row) => ({ ...row, dependentTools: { error: "unknown_bundle" } }));`,
+    `    const enriched: Array<Record<string, unknown>> = [];`,
+    `    for (const row of rows) {`,
+    `      const dependentTools: Record<string, unknown> = {};`,
+    `      const rawDependentTools: Record<string, unknown> = {};`,
+    `      for (const toolName of dependentNames) {`,
+    `        const tool = bundle[toolName];`,
+    `        if (!tool) { dependentTools[toolName] = { error: "unknown_tool", tool: toolName }; rawDependentTools[toolName] = dependentTools[toolName]; continue; }`,
+    `        const paramName = plan.dependentParamByTool?.[toolName] ?? plan.dependentParamName ?? plan.paramName ?? "entity";`,
+    `        const value = pickDependentValue(row, toolName, paramName);`,
+    `        const payload: Record<string, unknown> = { ...(plan.dependentSharedInput ?? {}) };`,
+    `        if (value !== undefined && value !== null) payload[paramName] = value;`,
+    `        try { const raw = await tool(payload); rawDependentTools[toolName] = raw; dependentTools[toolName] = unwrapToolPayload(raw); }`,
+    `        catch (err) { dependentTools[toolName] = { error: String(err) }; rawDependentTools[toolName] = dependentTools[toolName]; }`,
+    `      }`,
+    `      enriched.push({ ...row, dependentTools, rawDependentTools, tools: { ...((row.tools as Record<string, unknown> | undefined) ?? {}), ...dependentTools }, rawTools: { ...((row.rawTools as Record<string, unknown> | undefined) ?? {}), ...rawDependentTools } });`,
+    `    }`,
+    `    return enriched;`,
     `  },`,
     `});`,
     "",
@@ -483,20 +1240,21 @@ function renderFanOutSource(args: GenerateArgs): string | null {
   if (shape === null) return null;
 
   const example = {
-    entityValues: shape.entityValues,
-    toolBundle: shape.toolBundle,
-    toolNames: shape.toolNames,
-    paramName: shape.paramName,
-    ...(Object.keys(shape.sharedInput).length > 0
-      ? { sharedInput: shape.sharedInput }
-      : {}),
+    intent: "repeated tool fan-out",
+    limit: shape.entityValues.length,
   };
   // Sample output: the last fan-out call's output, for the example.
   const lastToolCall = [...trajectory.calls]
     .reverse()
     .find((c) => c.primitive.startsWith("tool."));
   const exampleOutputJson = safeJsonStringify(
-    lastToolCall ? { entityValue: shape.entityValues[0] ?? null, tools: {} } : null,
+    lastToolCall
+      ? {
+          entityId: shape.entityValues[0] ?? null,
+          entityValue: shape.entityValues[0] ?? null,
+          tools: {},
+        }
+      : null,
   );
 
   const sdkUrl = sdkIndexUrl();
@@ -512,19 +1270,26 @@ function renderFanOutSource(args: GenerateArgs): string | null {
     `import { fn } from "${sdkUrl}";`,
     `import * as v from "${valibotUrl}";`,
     "",
-    `// Goal-4 learned fan-out interface. PARAMETERISED over the`,
-    `// capability slots — toolBundle / toolNames / paramName are inputs,`,
-    `// not frozen — so this helper transfers across data shapes. It is`,
-    `// structurally the per_entity seed, learned from intent convergence.`,
+    `// Goal-4 learned tool fan-out interface. The public surface is`,
+    `// intent-shaped; planner/executor internals provide entity values and`,
+    `// tool slots through loose, non-public fields.`,
+    `// Results include entityId/entityValue, top-level per-tool keys, and`,
+    `// a nested tools map for compatibility with different answer styles.`,
     `declare const df: {`,
     `  tool: Record<string, Record<string, (input: Record<string, unknown>) => Promise<unknown>>>;`,
     `};`,
     "",
     `type Input = {`,
-    `  entityValues: Array<string | number>;`,
-    `  toolBundle: string;`,
-    `  toolNames: string[];`,
-    `  paramName: string;`,
+    `  intent?: "repeated tool fan-out";`,
+    `  limit?: number;`,
+    `};`,
+    "",
+    `type InternalToolFanoutPlan = {`,
+    `  entityValues?: Array<string | number>;`,
+    `  toolBundle?: string;`,
+    `  toolNames?: string[];`,
+    `  paramName?: string;`,
+    `  paramByTool?: Record<string, string>;`,
     `  sharedInput?: Record<string, unknown>;`,
     `};`,
     "",
@@ -536,28 +1301,52 @@ function renderFanOutSource(args: GenerateArgs): string | null {
     `      output: ${exampleOutputJson},`,
     `    },`,
     `  ],`,
-    `  input: v.object({`,
-    `    entityValues: v.array(v.union([v.string(), v.number()])),`,
-    `    toolBundle: v.string(),`,
-    `    toolNames: v.array(v.string()),`,
-    `    paramName: v.string(),`,
+    `  input: v.looseObject({`,
+    `    intent: v.optional(v.string()),`,
+    `    limit: v.optional(v.number()),`,
+    `    entityValues: v.optional(v.array(v.union([v.string(), v.number()]))),`,
+    `    toolBundle: v.optional(v.string()),`,
+    `    toolNames: v.optional(v.array(v.string())),`,
+    `    paramName: v.optional(v.string()),`,
+    `    paramByTool: v.optional(v.record(v.string(), v.string())),`,
     `    sharedInput: v.optional(v.record(v.string(), v.unknown())),`,
     `  }),`,
     `  output: v.unknown(),`,
     `  body: async (input: Input): Promise<unknown> => {`,
-    `    const bundle = df.tool[input.toolBundle];`,
-    `    if (!bundle) return { error: "unknown_bundle", toolBundle: input.toolBundle };`,
-    `    const results: Array<{ entityValue: string | number; tools: Record<string, unknown> }> = [];`,
-    `    for (const entityValue of input.entityValues) {`,
-    `      const perTool: Record<string, unknown> = {};`,
-    `      for (const toolName of input.toolNames) {`,
-    `        const tool = bundle[toolName];`,
-    `        if (!tool) { perTool[toolName] = { error: "unknown_tool", tool: toolName }; continue; }`,
-    `        const payload: Record<string, unknown> = { ...(input.sharedInput ?? {}), [input.paramName]: entityValue };`,
-    `        try { perTool[toolName] = await tool(payload); }`,
-    `        catch (err) { perTool[toolName] = { error: String(err) }; }`,
+    `    const plan = input as Input & InternalToolFanoutPlan;`,
+    `    const entityValues = Array.isArray(plan.entityValues) ? plan.entityValues : [];`,
+    `    const toolBundle = typeof plan.toolBundle === "string" ? plan.toolBundle : "";`,
+    `    const toolNames = Array.isArray(plan.toolNames) ? plan.toolNames : [];`,
+    `    const defaultParamName = typeof plan.paramName === "string" ? plan.paramName : "";`,
+    `    if (!toolBundle || toolNames.length === 0 || !defaultParamName) return { error: "missing_internal_plan" };`,
+    `    const bundle = df.tool[toolBundle];`,
+    `    if (!bundle) return { error: "unknown_bundle", toolBundle };`,
+    `    const envelopeKeys = ["value", "data", "result", "record", "entity", "item", "payload"];`,
+    `    const envelopeMetaKeys = new Set(["success", "ok", "status", "error", "message", "code", "errors", "warnings", "elapsedMs", "elapsed_ms", "took"]);`,
+    `    const isPlainObject = (value: unknown): value is Record<string, unknown> => value != null && typeof value === "object" && !Array.isArray(value);`,
+    `    const isErrorLike = (value: unknown): boolean => isPlainObject(value) && value.success === false && (typeof value.error === "string" || typeof value.message === "string");`,
+    `    const unwrapToolPayload = (value: unknown): unknown => {`,
+    `      if (!isPlainObject(value) || isErrorLike(value)) return value;`,
+    `      if (typeof value.success === "boolean" || typeof value.ok === "boolean") {`,
+    `        const payloadKeys = Object.keys(value).filter((k) => !envelopeMetaKeys.has(k) && value[k] !== undefined && value[k] !== null);`,
+    `        if (payloadKeys.length === 1) return value[payloadKeys[0]];`,
     `      }`,
-    `      results.push({ entityValue, tools: perTool });`,
+    `      for (const key of envelopeKeys) if (value[key] !== undefined && value[key] !== null) return value[key];`,
+    `      return value;`,
+    `    };`,
+    `    const results: Array<Record<string, unknown>> = [];`,
+    `    for (const entityValue of entityValues.slice(0, input.limit ?? entityValues.length)) {`,
+    `      const perTool: Record<string, unknown> = {};`,
+    `      const rawTools: Record<string, unknown> = {};`,
+    `      for (const toolName of toolNames) {`,
+    `        const tool = bundle[toolName];`,
+    `        if (!tool) { perTool[toolName] = { error: "unknown_tool", tool: toolName }; rawTools[toolName] = perTool[toolName]; continue; }`,
+    `        const paramName = plan.paramByTool?.[toolName] ?? defaultParamName;`,
+    `        const payload: Record<string, unknown> = { ...(plan.sharedInput ?? {}), [paramName]: entityValue };`,
+    `        try { const raw = await tool(payload); rawTools[toolName] = raw; perTool[toolName] = unwrapToolPayload(raw); }`,
+    `        catch (err) { perTool[toolName] = { error: String(err) }; rawTools[toolName] = perTool[toolName]; }`,
+    `      }`,
+    `      results.push({ id: entityValue, entity: entityValue, entityId: entityValue, entityValue, ...perTool, tools: perTool, rawTools });`,
     `    }`,
     `    return results;`,
     `  },`,
@@ -587,7 +1376,8 @@ function generatePureSource(args: GenerateArgs): string | null {
   // shapes and skip pruning.
   const isSubGraph =
     baseTemplate.topic.endsWith("_fanout") ||
-    baseTemplate.topic.endsWith("_lookup_consumer");
+    baseTemplate.topic.endsWith("_lookup_consumer") ||
+    baseTemplate.topic === "record_tool_enrichment";
   const template =
     baseTemplate.name === "rangeTableMetric" || isSubGraph
       ? baseTemplate
@@ -1116,7 +1906,7 @@ function intentString(template: CallTemplate): string {
 function fanOutIntentString(): string {
   return [
     "reusable learned fan-out interface for repeated per-entity tool calls",
-    "parameterized over tool bundle, tool names, entity values, and entity field",
+    "caller-facing input is intent-shaped while planner/executor internals provide tool and entity slots",
   ].join("; ");
 }
 
@@ -1124,6 +1914,20 @@ function recordFanOutIntentString(): string {
   return [
     "reusable learned record-backed fan-out interface",
     "fetches records and runs repeated per-entity tool calls without the seed helper",
+  ].join("; ");
+}
+
+function recordEnrichmentIntentString(): string {
+  return [
+    "reusable learned record-backed dependent enrichment interface",
+    "fetches records, runs verified record fan-out, then runs dependent follow-up tools",
+  ].join("; ");
+}
+
+function toolEnrichmentIntentString(): string {
+  return [
+    "reusable learned pure fan-out dependent enrichment interface",
+    "runs a repeated tool fan-out, then uses those rows for dependent follow-up tools",
   ].join("; ");
 }
 
@@ -1198,12 +2002,13 @@ function fanOutFrontmatter(args: {
 }): string {
   const descLines = [
     `Transferable learned datafetch fan-out helper for repeated per-entity tool calls.`,
-    `Use when the task has a list of entity ids or values and needs the same`,
-    `tool bundle plus one or more tool names called for each entity. The`,
-    `originating tenant, concrete tool names, and entity field are parameters,`,
-    `so prefer this before recomposing the fan-out loop. Pass input as`,
-    `{ entityValues, toolBundle, toolNames, paramName, sharedInput? };`,
-    `the runtime returns one result object per entity with per-tool outputs.`,
+    `Use when the task has an entity set and needs the same tool bundle plus`,
+    `one or more tool names called for each entity. The caller-facing input is`,
+    `intent-shaped: { intent?: "repeated tool fan-out"; limit? }.`,
+    `Planner/executor internals infer entity values, tool names, and tool params`,
+    `before invoking the runtime implementation.`,
+    `the runtime returns one result object per entity with entityId, entityValue,`,
+    `top-level per-tool keys, and a nested tools map keyed by tool name.`,
   ];
   const description = descLines.map((l) => `  ${l}`).join("\n");
 
@@ -1226,14 +2031,75 @@ function recordFanOutFrontmatter(args: {
 }): string {
   const descLines = [
     `Transferable learned datafetch helper for record-backed per-entity tool fan-out.`,
-    `Use when the task starts from mounted records and needs the same tool`,
-    `bundle plus one or more tool names called for each record/entity. This`,
-    `helper fetches records itself unless entityValues are supplied, then runs`,
-    `the tool fan-out directly without df.lib.per_entity. Pass input as`,
-    `{ recordFilter?, recordLimit?, entityField?, entityValues?, toolBundle, toolNames, paramName, sharedInput? };`,
-    `the runtime returns one result object per entity with per-tool outputs.`,
+    `Use when the task starts from mounted records and needs repeated`,
+    `per-record enrichment. The caller-facing input is intent-shaped:`,
+    `{ intent?: "record-backed repeated fan-out", recordFilter?, recordLimit? }.`,
+    `Planner/executor internals infer record fields, tool parameters, and`,
+    `tool selection before invoking the runtime implementation.`,
+    `the runtime returns one result object per entity with entityId, entityValue,`,
+    `record, label, attributes, top-level per-tool keys, and a nested tools map keyed by tool name.`,
   ];
   const description = descLines.map((l) => `  ${l}`).join("\n");
+
+  return [
+    "/* ---",
+    `name: ${args.template.name}`,
+    `status: provisional`,
+    `description: |`,
+    description,
+    `trajectory: ${args.trajectory.id}`,
+    `shape-hash: ${args.template.shapeHash}`,
+    "--- */",
+    "",
+  ].join("\n");
+}
+
+function recordEnrichmentFrontmatter(args: {
+  template: CallTemplate;
+  trajectory: TrajectoryRecord;
+}): string {
+  const descLines = [
+    `Transferable learned datafetch helper for record-backed dependent enrichment.`,
+    `Use when the task starts from mounted records, first needs a verified`,
+    `record-backed fan-out, then needs dependent follow-up tool calls over`,
+    `the resulting rows. The caller-facing input is intent-shaped:`,
+    `{ intent?: "record-backed dependent enrichment", recordFilter?, recordLimit? }.`,
+    `Planner/executor internals infer same-entity and dependent tool mapping`,
+    `before invoking the runtime implementation.`,
+    `the runtime returns the record fan-out rows enriched with dependentTools`,
+    `and a combined tools map.`,
+  ];
+  const description = descLines.map((l) => `  ${l}`).join("\n");
+
+  return [
+    "/* ---",
+    `name: ${args.template.name}`,
+    `status: provisional`,
+    `description: |`,
+    description,
+    `trajectory: ${args.trajectory.id}`,
+    `shape-hash: ${args.template.shapeHash}`,
+    "--- */",
+    "",
+  ].join("\n");
+}
+
+function toolEnrichmentFrontmatter(args: {
+  template: CallTemplate;
+  trajectory: TrajectoryRecord;
+}): string {
+  const descLines = [
+    `Transferable learned datafetch helper for pure tool fan-out dependent enrichment.`,
+    `Use when the task first needs repeated same-entity tool calls and then`,
+    `needs dependent follow-up tool calls using fields from those rows.`,
+    `The caller-facing input is intent-shaped:`,
+    `{ intent?: "repeated tool fan-out dependent enrichment", limit? }.`,
+    `Planner/executor internals infer entity values, base tools, dependent`,
+    `tools, and dependent input extraction before invoking the runtime implementation.`,
+    `the runtime returns base fan-out rows enriched with dependentTools`,
+    `and a combined tools map.`,
+  ];
+  const description = descLines.map((line) => `  ${line}`).join("\n");
 
   return [
     "/* ---",
@@ -1304,6 +2170,35 @@ function sdkIndexUrl(): string {
 // embed the absolute URL in the generated source instead. Node 20.6+
 // gives us this resolution synchronously via `import.meta.resolve`,
 // honouring the package's exports field.
+// V1 ReGAL gate: inject `promotion-state`, `coverage-density`, etc. into
+// the YAML frontmatter at the head of the authored helper. The frontmatter
+// is a `/* --- ... --- */` block; we splice the new keys in just before
+// the closing `--- */` marker. Idempotent in the sense that re-stamping
+// would create duplicates — but each `authorFunction` invocation builds
+// a fresh `source` so the helper file always has exactly one stamp.
+function stampPromotionMetadata(
+  source: string,
+  info: {
+    promotionState: "verified" | "narrow";
+    coverageDensity: number;
+    stepCount: number;
+    distinctTools: number;
+    gateActive: boolean;
+  },
+): string {
+  const closeIdx = source.indexOf("--- */");
+  if (closeIdx < 0) return source;
+  const lines = [
+    `promotion-state: ${info.promotionState}`,
+    `coverage-density: ${info.coverageDensity.toFixed(2)}`,
+    `step-count: ${info.stepCount}`,
+    `distinct-tools: ${info.distinctTools}`,
+    `regal-gate-active: ${info.gateActive}`,
+    "",
+  ].join("\n");
+  return source.slice(0, closeIdx) + lines + source.slice(closeIdx);
+}
+
 function valibotEntryUrl(): string {
   // `import.meta.resolve` is sync since Node 20.6; not yet in the
   // default lib types in some configs, so cast through `unknown`.
