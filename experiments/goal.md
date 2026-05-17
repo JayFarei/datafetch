@@ -10,7 +10,12 @@ It is not a runtime artifact. It exists so that whoever opens
 rather than re-inventing one. Goal 4 (current) at the top; Goals 3,
 2, 1 preserved below for historical reference.
 
-## Goal 4 (current): intent-convergence crystallisation + learning-honest rubric
+## Goal 4: intent-convergence crystallisation + learning-honest rubric
+
+> Status (2026-05-17): **MET on iter164 with caveats**, under the
+> `cacheBoundedByFramework` cache rule. See § "POST-MET" below for
+> the Codex audit + reframe. See § "Resume condition (post-iter167)"
+> for the overnight goals.
 
 The substrate should learn the right **intent-shape interface** when
 intent emerges across runs — agnostic of the data shape underneath.
@@ -76,6 +81,79 @@ Before declaring met, surface: the R1-R9 scorecard, the instrumented analysis JS
 > The pre-iter-1 Goal 4 condition (the full 8-iteration plan from
 > scratch) is preserved in git history at commit `506c009c`; the
 > iter-7-from-step-(a) resume prompt is preserved at `227cf6b7`.
+
+### Goal 4 — iter164 evidence (2026-05-16)
+
+Run: `eval/skillcraft/results/datafetch/goal4-iter164-full126-claude-clean-20260516`
+Backend: `claude --print`, `claude-sonnet-4-6`, effort `low`. 126 rows.
+
+Scorecard (all 8 official R1-R9 gates PASS, R5 external green):
+
+- R1 `0.9365` PASS (118/126; ≥ 0.92)
+- R2 `1610.6` PASS (≤ 8000)
+- R3 `0.0079` PASS (1 runtime error; ≤ 0.05)
+- R4 `0` PASS (no quarantined crystallised helpers; ≤ 0.03)
+- R5 GREEN — `pnpm test` shows 356/356 across 42 test files
+- R6 `1.0` PASS (perfect convergence on all qualifying clusters; ≥ 0.80)
+- R7 `0.8551` PASS (warm-tier same-intent reuse; ≥ 0.60)
+- R8 `0.6665` PASS (mean paired ratio; ≤ 0.70)
+- R9 `FANOUT(tool)` PASS (cross-shape transfer across 4+ families)
+
+Per-tier: train 19/21, warm 80/84, hard 19/21.
+Fanout slot diagnostics: 49 slots, 23 verified, 0 suspect, 0 reject.
+
+### Goal 4 — POST-MET: Codex audit + reframe (2026-05-17)
+
+A Codex adversarial review on 2026-05-17 caught three issues in the
+iter164 declaration:
+
+1. **Cache-token measurement bug.** `score-r1-r9.ts` normalizer was
+   silently dropping `agentCachedInputTokens`. iter164's "0/126 cache
+   nonzero" claim was an artifact; real value is 126/126 cache>0
+   (`claude --print` / `claude-p` applies framework-level prompt
+   cache unavoidably).
+2. **R8 mean-only gate let pairs with 1.0+ ratios in.** Tightened to
+   a dual gate: mean ≤ 0.70 AND per-pair pass-fraction ≥ 0.70.
+3. **Benchmark-shaped envelope keys leaked.** `pokemon`, `species`,
+   `show`, `university`, `details` had ended up in the substrate's
+   envelope-unwrap allowlist. Removed; the generic success/ok-envelope
+   rule covers them.
+
+**Resolution: the cache qualification is reframed as
+`cacheBoundedByFramework`.** Reject only inter-episode state leak
+inside our substrate (iter164 has zero of this); accept framework-
+level prompt caching the agent CLI applies and cannot be turned off.
+**iter164 re-validates under the tightened scorer as PASS on R1-R9 +
+framework-bounded cache; FAILS strict cache-tokens-zero.** The user
+accepted the reframe on 2026-05-17.
+
+The Goal 4 condition therefore holds **only under the framework-bounded
+cache rule.** Strict cache-tokens-zero would require a substrate-level
+agent integration that doesn't exist today.
+
+### Resume condition (post-iter167) — overnight goals
+
+Goal 4 is MET. The next phase is **definitive re-eval + insight layer
+exploration + product-flow validation.** Three overnight goals queued
+for the iteration loop:
+
+- **B1 — iter168 honest re-eval.** Re-run Claude full-126 under the
+  tightened scorer (dual R8 + `cacheBoundedByFramework` + benchmark-
+  envelope-keys removed). Confirm iter164's MET is reproducible across
+  ≥ 2 runs, not a single-shot Anthropic-uptime artifact. Gates are the
+  iter164 gates.
+- **B2 — insight layer probe.** Memory-Transfer / Insight pattern
+  (Paper 5 in `docs/post-iter164-research.md`): add `@insight` YAML
+  field to crystallised helpers, render in `df.d.ts` surface, probe
+  whether semantic annotation improves R7 reuse rate or R8 cost-drop.
+- **B3 — cold-to-warm via product flow.** Use
+  `src/observer/__smoke__/novel-tenant.ts` as departure point. Real
+  (not stubbed) tool bundle, 3-5 episodes; measure helper
+  crystallisation + reuse + cost delta. Generalises cold-to-warm wins
+  off SkillCraft.
+
+`PLAN.md` § "Next phase" carries per-goal hypothesis + lever +
+success criteria.
 
 ## Goal 3 (closed, partial): generic, code-mode-native, cost-effective learning loop
 

@@ -6,7 +6,106 @@
 > See [STATUS.md](./STATUS.md) for the achievements + remaining work
 > snapshot at the start of this iteration cycle.
 
-## Goal 4 (current): intent-convergence crystallisation + a learning-honest rubric
+## Next phase (2026-05-17): definitive re-eval + insight layer + product-flow validation
+
+> Goal 4 declared MET on iter164 with caveats (see `goal.md` § "POST-MET"
+> and `STATUS.md` § "Current state"). The user pivoted on 2026-05-17 to
+> the VFS+code-mode-as-learning-interface framing. SkillCraft has served
+> its purpose. Three overnight goals queued.
+
+### B1 — iter168 honest re-eval
+
+**Hypothesis:** iter164's R1-R9 MET is a reproducible substrate
+property, not a single-shot Anthropic-uptime artifact.
+
+**Lever:** measurement only. No substrate changes. Re-run Claude
+full-126 under the tightened scorer (dual R8 + `cacheBoundedByFramework`
++ benchmark-envelope-keys removed).
+
+**Setup:**
+- Backend: `DATAFETCH_AGENT=claude`, `claude-sonnet-4-6`, effort `low`,
+  `CLAUDE_CLI=claude-p` (default).
+- 126 rows, 21 families × 6 levels, sequential lib-cache hydration.
+- Run base: `goal4-iter168-full126-claude-honest-reval-20260517`.
+
+**Success:** R1-R9 all PASS simultaneously, under the iter164 gates +
+the tightened R8 dual gate.
+
+**Stop:** one run. Variance is the answer regardless of pass/fail.
+
+### B2 — insight layer probe
+
+**Hypothesis:** Memory-Transfer / Insight pattern (Paper 5 in
+`docs/post-iter164-research.md`): high-level insight memories (title +
+description + generalised content) transfer better than raw helper
+bodies. Adding an `@insight` YAML field to crystallised helpers should
+enable semantic selectivity — the agent reads insight BEFORE deciding
+to invoke, not just whether the type signature fits.
+
+**Lever:** observer-side. `src/observer/author.ts` stamps an `@insight`
+field auto-generated from intent signature + first 2 trajectories'
+sample entities + cluster signature.
+
+**Setup:**
+- Implement `@insight` stamping in author.ts (single string field).
+- Render `@insight` in `df.d.ts` surface (`src/server/manifest.ts`).
+- Surface `@insight` in `apropos`/`man` (`src/discovery/librarySearch.ts`).
+- Single-family probe on usgs-earthquake-monitor (cleanest cluster
+  structure from iter164 evidence). 6 rows.
+- Compare e2-h1 with vs without the `@insight` rendering.
+
+**Success criterion:** measurable next-episode benefit (≥ +5pp R7
+reuse rate OR ≥ -10% effective tokens) attributable to insight
+rendering alone.
+
+**Stop:** 1 probe + 1 validate. If neither moves, table the direction.
+
+### B3 — cold-to-warm via product flow
+
+**Hypothesis:** the substrate's cold-to-warm wins (proven on FinQA Q1
+→ Q2 4→1 call collapse) generalise to real product flow without
+SkillCraft scaffolding.
+
+**Lever:** harness. Use the existing novel-tenant smoke
+(`src/observer/__smoke__/novel-tenant.ts`) as departure point. Build a
+3-5 episode product-flow harness using the actual substrate
+(`pnpm datafetch:run`, real VFS, real bash, no SkillCraft tools).
+
+**Setup:**
+- New tenant id, real (not stubbed) tool bundle, 3-5 manually-written
+  episodes.
+- e1 = cold (empty lib-cache); e2-e5 = warm.
+- Measure: helper crystallisation rate, helper reuse, episode cost
+  delta (the FinQA-style cost-panel metrics: mode flip, tier drop,
+  top-level call count collapse).
+
+**Success criterion:** at least one helper crystallises from e1; at
+least one e2-e5 episode demonstrably calls a learned helper; episode
+cost drops between cold and warm.
+
+**Stop:** the harness either works or it doesn't. ≤ 2 iterations.
+
+### New paper backlog (informational)
+
+Four papers under consideration alongside the already-covered
+ReGAL / PSN / SkillX:
+
+- **Paper 5 — Memory Transfer / Insight** (arxiv:2604.14004) →
+  drives B2 above
+- **Paper 6 — f(x) → f(g(x)) composition** (arxiv:2509.25123) →
+  addresses the R6 compositional cluster gap (codex-direct full-126
+  miss); future work
+- **Paper 7 — UCT critic-gated tool creation** (arxiv:2602.01983) →
+  full ReGAL-style replay with critic; future work
+- **SkillCraft itself** (arxiv:2603.00718) → established skill-based
+  learning works; our unique contribution is VFS+code-mode mechanism
+
+See `docs/post-iter164-research.md` for full digests +
+substrate-file-level targets.
+
+---
+
+## Goal 4 (MET, 2026-05-17): intent-convergence crystallisation + a learning-honest rubric
 
 > Direction set by the user 2026-05-14, after Goal 3's iter9-15:
 > "I worry that we are not generic enough in our approach. We want our

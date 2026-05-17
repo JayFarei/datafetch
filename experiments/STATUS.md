@@ -1,46 +1,163 @@
 # Project status: SkillCraft learning-loop iterations
 
-> Snapshot refreshed 2026-05-14 at the close of Goal 3 and the start of
-> Goal 4's planning. Updated when a goal cycle closes; intermediate
-> progress lives in [EXPERIMENTS.md](./EXPERIMENTS.md) and
-> [EXPERIMENT_NOTES.md](./EXPERIMENT_NOTES.md).
+> Snapshot refreshed 2026-05-17 after the post-iter164 Codex audit
+> and the rubric reframe. Updated when a goal cycle closes;
+> intermediate progress lives in [EXPERIMENTS.md](./EXPERIMENTS.md)
+> and [EXPERIMENT_NOTES.md](./EXPERIMENT_NOTES.md). Full chronological
+> arc in [`../docs/experiment-history.md`](../docs/experiment-history.md).
 
-## Current state (2026-05-14)
+## Current state (2026-05-17)
 
-**Goal 3 closed at 3/7 thresholds.** iter9-15 made the learning loop
-fire end-to-end; full-126 = **88.9% pass** (after the normalizer
-false-negative fix), helpers crystallise, novel-tenant smoke passes
-11/11 (Goal 3 part B done). The three unmet thresholds were diagnosed
-as over-fitting to SkillCraft's per-entity-fan-out data shape — the
-observer keyed crystallisation on a syntactic `shapeHash`.
+**Goal 4 declared MET on iter164** (Claude full-126, all R1-R9 + the
+qualifications) under the `cacheBoundedByFramework` rule. iter164
+satisfies the user's "R1-R9 all hold simultaneously on ONE
+instrumented full-126 run + the smokes" formulation. See
+EXPERIMENT_NOTES lines 2152-2238 for the iter164 scorecard.
 
-**Goal 4 — iters 1-6 + the R9 transfer harness DONE; iter 7
-(instrumented full-126) is the next step.** See [PLAN.md](./PLAN.md)
-§ "⇨ HANDOFF" for the full pickup brief. Summary:
+**MET comes with caveats.** A Codex adversarial review on 2026-05-17
+caught:
 
-- iter 1 (`b3b2e18c`): artifact walker — rubric R6-R9 scoreable.
-- iter 2 (`16a6dea5`): offline intentSignature analyzer — de-risk
-  verdict PROCEED (146 traj → 55 clusters, 17 cross-family, 0 incoherent).
-- iter 3 (`c7d44f7b`): `intentSignature` on `CallTemplate` +
-  `extractNestedTemplates` — behaviour-preserving.
-- iter 4: `convergenceIndex.ts` + gate check #7 + worker rewrite + eval
-  hydrate/persist — convergence-gated crystallisation. Probe-verified.
-- iter 5 (`a5d06ffb`): `renderFanOutSource` — parameterised fan-out
-  authoring (toolBundle/toolNames/paramName always inputs). Probe-verified.
-- iter 6 (`d8c6bc8f`): cross-shape-transfer smoke — R9 proven 8/8.
-- R9 harness (`21ec6b46`): `__intent__/` shared pool wired into the eval
-  — parameterised fan-out helpers transfer across families.
+- The normalizer was silently dropping `agentCachedInputTokens` —
+  iter164's "0/126 cache nonzero" headline was a measurement artifact.
+  Real value is 126/126 cache>0 (Anthropic prompt cache is on by
+  default for `claude --print` and cannot be disabled).
+- R8's mean-only gate accepted pairs with 1.0+ ratios. Tightened to a
+  dual gate: mean ≤ 0.70 AND per-pair pass-fraction ≥ 0.70.
+- Benchmark-shaped envelope keys (`pokemon`, `species`, `show`,
+  `university`, `details`) had leaked into the substrate's
+  envelope-unwrap allowlist — SkillCraft shape bleeding into generic
+  code. Removed; the generic success/ok-envelope rule covers them.
 
-`pnpm test` = 269 vitest + 5 smokes green; typecheck clean. tvmaze
-probes hold at 5/6-6/6 pass — no regression from the convergence redesign.
+The cache qualification was reframed as `cacheBoundedByFramework`:
+reject only inter-episode state leak inside our substrate, not the
+framework-level prompt caching that `claude --print` / `claude-p`
+applies unavoidably. **Under the tightened scorer iter164
+re-validates as PASS on R1-R9 + framework-bounded cache, and FAILs
+the strict cache-tokens-zero reading.** The user accepted the reframe
+on 2026-05-17.
 
-**Next: iter 7** — run the instrumented full-126, add a `score-r1-r9.ts`
-join step (R6-R9 are not yet computed by `analyze-results.ts`), score
-R1-R9, gap analysis. Then iter 8 (retire-the-seed stretch / gap fix).
+**The user has pivoted framing.** SkillCraft has served its purpose
+(it proved skill-based learning works; arxiv:2603.00718). Next focus
+is the VFS + code-mode-as-learning-interface story: how the substrate
+behaves on real product flows rather than benchmark slices, with the
+agent as both consumer and implicit developer of its own interface.
 
-Goal-3-era commits: `0d0ea4df`, `bfd8c847`, `82cf6688`, `506c009c`.
-Goal-4 commits: `b3b2e18c`, `16a6dea5`, `c7d44f7b`, (iter4), `a5d06ffb`,
-`d8c6bc8f`, `66c779c6`, `21ec6b46`.
+## Recent iterations (iter150-167) — headline
+
+| iter | scale | backend | R1 | R6 | R8 | gates PASS |
+|---|---|---|---|---|---|---|
+| 153 | 36 | codex-direct | 0.97 | 0.80 | 0.71 | 6/8 |
+| 156 | 36 | codex-direct | 1.00 | 1.00 | 0.74 | 7/8 |
+| 158 | 36 | codex-direct | 0.97 | 1.00 | 0.66 | **8/8** |
+| 159 | 126 | codex-direct | 0.95 | 0.71 | 0.73 | 6/8 |
+| 160 | 36 | claude | 0.97 | 1.00 | 0.79 | 7/8 |
+| 161 | 126 | claude | 0.48 | 1.00 | 0.55 | 5/8 (Anthropic 500s; invalidated) |
+| 164 | 126 | claude | 0.94 | 1.00 | 0.67 | **8/8** (MET; caveats above) |
+| 165-167 | probe | claude | — | — | — | V1 ReGAL / V2 PSN gate experiments, inert at probe scale |
+
+Iter158 was the first crossing of all 8 gates simultaneously, on the
+small-suite codex-direct slice. iter164 is the only full-126 crossing.
+Both depend on classifier luck — iter156 and iter160 sit just outside
+the gate with identical substrate.
+
+## What is now committed vs uncommitted
+
+Just-completed tidying landed 10 commits (`ca8a2707` → `cd7450e1`):
+
+- The four generic substrate patches (success/ok-envelope unwrap,
+  multi-line `??`/`||` rewriter, generic `rowsOf`, String() coercion).
+- V1 ReGAL gate + V2 PSN maturity scaffolds in `src/observer/gate.ts`
+  + `src/observer/template.ts`, behind env flags. INERT at small
+  scale: the 5 helper templates pass the V1 gate by construction;
+  V2 demotion needs more data than the 36-row probe gives.
+- `score-r1-r9.ts` tightened: dual R8 gate + cache-tokens normalizer
+  fix + `cacheBoundedByFramework` qualification.
+- `eval/skillcraft/scripts/fanout-slot-diagnostics.ts` — the
+  iter150-era slot verifier, productionised.
+- `tests/skillcraft-full-datafetch-planner.test.ts` — 125+ tests
+  guarding the four substrate patches.
+- `docs/goal4-academic-design-directions.md`,
+  `docs/goal4-battle-of-ideas-goal.md` — research direction notes
+  for the next phase.
+- This narrative-sync commit + four new docs:
+  `intent-shape-interface.md`, `eval-rubric.md`,
+  `post-iter164-research.md`, `experiment-history.md`.
+
+EXPERIMENT_NOTES.md still ends at iter164 (line 2238). iter165-167 +
+the 2026-05-17 Codex audit + the reframe entries need to be appended
+before the next overnight run. The history doc has the canonical
+narrative covering them.
+
+## The four substrate patches (landed iter153 → iter164)
+
+All generic, no benchmark identifiers, all test-covered:
+
+1. **Success/ok-envelope unwrap** — `src/observer/author.ts` (4
+   templates) + `src/eval/skillcraftFullDatafetch.ts` runtime
+   answer-kit. If a wrapper has `success`/`ok` boolean + exactly
+   one non-metadata payload key, unwrap. Replaces the legacy
+   `envelopeKeys` allowlist for the common REST shape.
+2. **Multi-line `??`/`||` rewriter** —
+   `src/eval/skillcraftFullDatafetch.ts` `rewriteMixedNullishLogicalExpressions`.
+   Paren-depth segmentation + iterated parenthesisation. Fixes
+   prettier-wrapped const RHS the per-line rewriter missed.
+3. **Generic `rowsOf`** — `renderAnswerKitSource()` traverses
+   `value/data/results/items/records/rows/entries/list` + one
+   unwrap chain. Lets the agent read lists out of tool responses
+   without local `getList`-style helpers.
+4. **String() coercion** — `rewriteUnsafeStringCoercionCalls`.
+   Wraps `(expr-with-??).toLowerCase()` / `.toUpperCase()` /
+   `.includes()` etc. in `String()`. Fixes
+   `entity.toLowerCase is not a function` when nullish-fallback
+   short-circuits on a number/boolean.
+
+Scorer fixes landed alongside:
+
+- Dual R8 gate (mean + per-pair pass-fraction).
+- Cache-tokens normalizer now reads `agentCachedInputTokens`
+  correctly; cache qualification is `cacheBoundedByFramework`,
+  not strict zero.
+- Benchmark-shaped envelope keys removed from the unwrap allowlist.
+
+## Open caveats
+
+- **iter164 MET was fragile.** Anthropic API health is the dominant
+  variable: iter161 (same substrate, ~24h earlier) had 114/126
+  500-errors and scored R1=0.48 / R3=0.29. iter164 ran clean.
+  Single-shot MET; not yet replicated. iter168 (overnight B1) tests
+  reproducibility.
+- **V1 ReGAL + V2 PSN are inert at this scale.** All 5 current helper
+  templates pass V1 by construction; V2 maturity demotion needs more
+  data than the small probe collects. Iter167a/b parallel experiment
+  confirmed neither gate moves the rubric.
+- **Per-helper R8 cost drop is structurally bounded by Claude's
+  already-compact output.** ~1600-token baselines leave little
+  helper-saving room before hitting LLM-call overhead floors.
+  Cross-family pairs always weak; same-family pairs (usgs) carry
+  the mean.
+- **codex-direct full-126 (iter159) on the same substrate is 6/8.**
+  R6 (compositional clusters) and R8 (cross-family per-row complexity)
+  fail. Goal 4 MET is Claude-specific.
+- **Strict cache-tokens-zero is unachievable with `claude --print`.**
+  The reframe is honest about why; future qualification language must
+  distinguish substrate-level state leak from framework-level caching.
+
+## Next phase — overnight goals B1/B2/B3
+
+Pointer to PLAN.md § "Next phase":
+
+- **B1 — iter168 honest re-eval.** Re-run Claude full-126 under the
+  tightened scorer (dual R8 + `cacheBoundedByFramework` + benchmark-
+  keys-removed substrate). Confirm iter164's MET is reproducible
+  across ≥ 2 runs, not a single-run Anthropic-uptime artifact.
+- **B2 — insight layer probe.** Memory-Transfer / Insight pattern
+  (Paper 5): add `@insight` YAML field to crystallised helpers
+  (auto-generated title + description + generalised content). Probe
+  whether the richer annotation surfaces enable semantic selectivity.
+- **B3 — cold-to-warm via product flow.** Use the existing
+  novel-tenant smoke (`src/observer/__smoke__/novel-tenant.ts`) as
+  departure point. Validate the substrate's cold-to-warm wins
+  generalise off SkillCraft.
 
 ## What this project is
 
@@ -51,116 +168,28 @@ captured into a trajectory; an observer crystallises common
 compositions into typed callable helpers (`df.lib.<name>`) that
 subsequent agent episodes see and reuse.
 
-SkillCraft is the public benchmark we use to measure substrate
-behaviour. It contains 21 task families × 6 difficulty levels = 126
-tasks. The harness lives in [`eval/skillcraft/`](../eval/skillcraft/).
+SkillCraft (21 task families × 6 difficulty levels = 126 tasks) was
+the measurement surface for Goal 1-4. Harness lives in
+[`eval/skillcraft/`](../eval/skillcraft/). The kb/ docs describe the
+older FinQA cold-to-warm flow (Q1 chemicals → Q2 coal, 4 calls → 1
+call); SkillCraft is a parallel evaluation track that has dominated
+iter9+. Both share the same substrate primitives (observer, snippet
+runtime, hook registry, intent signatures).
 
-## Goal 1 — pass-rate hill climb (DONE)
+## Goal history (one line each)
 
-Headline: **94.4% pass on the full 126, 3,027 effective tokens/task,
-0.8% runtime errors.** Closed 28.5pp of the 30.1pp pass-rate gap to
-the official SkillCraft-base ceiling at 172× lower token cost per
-task. Four iterations:
-
-1. Hook registry replaces direct lib resolution. Quarantine works,
-   structured-unsupported envelopes replace raw runtime crashes.
-2. Claude backend + bash-native multi-turn probing via
-   `pnpm datafetch:run`. 84.1% pass, 80% token cut vs codex.
-3. Snippet runtime auto-invokes uninvoked `main()` / `run()` /
-   `solve()`. 91.3% pass, +7.2pp via forensic walk of failed
-   trajectories.
-4. Snippet timeout 180s → 300s. 94.4% pass, +3.1pp.
-
-Full headline rows in [`../docs/hook-registry-experiment.md`](../docs/hook-registry-experiment.md).
-
-Goal 1 cleared its three thresholds (pass ≥ 0.92, tokens ≤ 8,000,
-runtime error rate ≤ 0.05). All four iterations ran with `--no-lib-cache`,
-so the substrate's learning loop was deliberately disabled.
-
-## Goal 2 — prove the learning loop fires (PARTIAL, 6 of 7)
-
-Headline: **the substrate's learning loop fires end-to-end on the
-new harness.** Six of seven goal thresholds clear on a six-family
-pilot (run via the older harness) and on the new harness's tvmaze
-probe with the iter5-8 substrate changes. The seventh threshold
-(`avgLearnedInterfacesAvailable ≥ 2.0` on warm) is structurally
-unreachable with today's observer.
-
-Eight iterations across E0.5 → E5/6/7/8:
-
-| iter | finding |
-|---|---|
-| E0.5 | Per-tier rollups added to analyze-results so the seven thresholds are computable from a single analyze JSON. |
-| E1 | Lib-cache flag flip alone produces zero learning-loop metrics. The new harness has no `df.db.records` mount and no seed. |
-| E1.5 | Observer wired into full harness. persist extended to read from `<datafetchHome>/lib/<tenantId>/`. Still zero — the gate's heuristic #5 requires a `db.*` first call. SkillCraft trajectories were pure-tool. |
-| E2 | Older `skillcraftDatafetch.ts` harness on country family with `hooks-draft` mode: **100% correctness, -85% warm tokens vs baseline, 100% reuse rate, one observer-authored helper crystallised.** |
-| E3 | Same setup across all six old-harness pilot families: **36 episodes, 100% correctness, -79% warm tokens, 83% reuse, 0 regressions, 0 quarantines.** 6 of 7 goal thresholds clear on this pilot. |
-| E4 (iter5) | Port `df.db.records` mount + generic `sc_per_entity` seed into new harness via `src/eval/evalRecords.ts`. Claude with the wiring ignores the new primitives and writes pure `df.tool` fan-out. Scaffold-push variant regresses pass rate. |
-| E5 (iter6) | Codex on the new harness DID use the new primitives. Observer's `consumesEarlierOutput` data-flow check rejects because numeric entity IDs aren't in the signature heuristic. |
-| E6/E7 (iter7) | Extended `pickSignatures` to emit numeric values + recurse one level. Observer crystallises `scPerEntity.ts` from e2's trajectory. e1 snippet errored, blocking promotion. |
-| E8 (iter8) | Broadened `LEARN_FROM_LEVELS` to `{e1, e2, e3, m1, m2}`. **lib-cache populates same-run, m2 and h1 see `libFunctionsAvailable = 1`.** Loop fires end-to-end on the new harness. |
-
-Full E0.5-E8 entries in [`EXPERIMENTS.md`](./EXPERIMENTS.md); raw notes in
-[`EXPERIMENT_NOTES.md`](./EXPERIMENT_NOTES.md).
-
-## What's committed on `main`
-
-| commit | scope |
-|---|---|
-| `aaa3b1f4` | canonical Goal 2 condition added to `experiments/goal.md` |
-| `219c0925` | `installObserver` wired into new harness + `persistFamilyLibCache` extended + analyze-results per-tier rollups + goal2-full.sh runner |
-| `5d566365` | Track A: `src/eval/evalRecords.ts` (records mount + generic `sc_per_entity` seed) wired into `skillcraftFullDatafetch.ts` + `runScript.ts`. Loop now reaches the observer; gate still rejects. |
-| `151f269a` | Gate accepts numeric signatures + nested object values. `LEARN_FROM_LEVELS` broadened. Loop fires end-to-end. |
-
-Test count: 242 / 242. Typecheck: clean.
-
-## What's NOT yet achieved (the 7-of-7 gap)
-
-| threshold | observed (probe) | gap |
-|---|---|---|
-| passRate ≥ 0.92 | codex 3/6 = 0.50 on iter8 probe | -0.42 with codex; would pass with claude but claude doesn't use the new primitives |
-| avgEffectiveTokens ≤ 8,000 | codex 60-130k / episode | far over; needs claude |
-| runtimeErrorRate ≤ 0.05 | not yet measured at scale | likely ok |
-| avgLearnedInterfacesAvailable warm ≥ 2.0 | 1.0 max per family today | the substrate change required is sub-graph crystallisation or multi-seed |
-| avgReuseRate warm ≥ 0.30 | codex 0.05 on probe | gated on more-helpers + agent actually using them |
-| warm/train token ratio ≤ 0.70 | not yet measured at scale | likely ok once reuse climbs |
-| quarantine rate ≤ 0.03 | not yet measured at scale | likely ok |
-
-No full-126 run has been executed under the iter5-8 substrate state.
-The remaining work is captured in [`PLAN.md`](./PLAN.md) § Goal 3.
-
-## Goal 3 framing (user-set, 2026-05-13)
-
-The substrate is meant to be a **generic, code-mode-native, cost-effective**
-learning interface. Spirit:
-
-- VFS + bash + `df.*` snippets are the only interaction surface.
-- Substrate ships zero tenant-specific code or knowledge.
-- The interface **improves per tenant from what we learn from the agent's
-  usage on that tenant** (per-tenant adaptation accrues from observed
-  usage, not from pre-shipped seeds).
-- Claude-cheap tokens, not codex-expensive.
-- Code mode is the core primitive for dynamic + adaptive interfaces.
-
-Goal 3 holds when **both**:
-
-- (A) SkillCraft 7-of-7 thresholds on a full-126 run (the public-benchmark
-  proof).
-- (B) A novel-tenant smoke test (`src/observer/__smoke__/novel-tenant.ts`)
-  runs end-to-end with zero substrate edits and shows: a helper
-  crystallises into `<baseDir>/lib/<new-tenant-id>/` from the first
-  passing episode, and a second episode on the same tenant sees and
-  calls that helper (the "works out of the box" proof).
-
-## The path forward in three lines
-
-1. Commit-phase substrate-rooted validator (force Claude to use `df.lib` / `df.db` when they're mounted).
-2. Observer sub-graph extractor (so a trajectory can crystallise multiple distinct helpers).
-3. df.d.ts discovery re-ranking (so the agent's eye lands on validated learned helpers first).
-
-Iterations 9-14 in [`PLAN.md`](./PLAN.md) lay out the sequence. After
-iter14 a full-126 dry run identifies any remaining gap; iters 15-16
-target the remaining gap directly.
+- **Goal 1 (DONE).** 94.4% pass on full-126, 3,027 effective
+  tokens/task, 0.8% runtime errors. Learning loop deliberately
+  disabled.
+- **Goal 2 (PARTIAL, 6 of 7).** Learning loop fires end-to-end on the
+  pilot families. `avgLearnedInterfacesAvailable ≥ 2.0` structurally
+  unreachable with the single-helper-per-family observer.
+- **Goal 3 (closed at 3/7).** Full-126 = 88.9% pass; three thresholds
+  unmet because observer keyed on syntactic `shapeHash`. Goal 4
+  superseded with a learning-honest rubric.
+- **Goal 4 (MET on iter164 with caveats; 2026-05-17).** R1-R9 all
+  hold simultaneously on Claude full-126 + the smokes, under the
+  `cacheBoundedByFramework` cache rule. See "Current state" above.
 
 ## Working files
 
@@ -171,7 +200,9 @@ target the remaining gap directly.
 | [`EXPERIMENT_NOTES.md`](./EXPERIMENT_NOTES.md) | chronological scratchpad |
 | [`goal.md`](./goal.md) | canonical `/goal` condition strings |
 | [`STATUS.md`](./STATUS.md) | this file |
-| [`../docs/hook-registry-experiment.md`](../docs/hook-registry-experiment.md) | public-facing committed headline rows |
-| [`../docs/architecture.md`](../docs/architecture.md) | substrate architecture overview |
-| [`../docs/proof-skillcraft.md`](../docs/proof-skillcraft.md) | website-facing eval proof |
-| [`../docs/release-plan.md`](../docs/release-plan.md) | OSS + client release plan |
+| [`../docs/experiment-history.md`](../docs/experiment-history.md) | future-readable narrative of every meaningful iteration |
+| [`../docs/intent-shape-interface.md`](../docs/intent-shape-interface.md) | the data-shape → intent-shape interface pivot |
+| [`../docs/eval-rubric.md`](../docs/eval-rubric.md) | honest R1-R9 + qualifications description |
+| [`../docs/post-iter164-research.md`](../docs/post-iter164-research.md) | 3 new paper digests (Memory Transfer / f(g(x)) composition / UCT critic) |
+| [`../docs/goal4-academic-design-directions.md`](../docs/goal4-academic-design-directions.md) | ReGAL / PSN / SkillX translations |
+| [`../docs/goal4-battle-of-ideas-goal.md`](../docs/goal4-battle-of-ideas-goal.md) | candidate framings for goal 5 |
