@@ -42,6 +42,19 @@ is the VFS + code-mode-as-learning-interface story: how the substrate
 behaves on real product flows rather than benchmark slices, with the
 agent as both consumer and implicit developer of its own interface.
 
+**Goal 4 P2 closed 2026-05-17, NEUTRAL verdict.** Non-SkillCraft
+cross-eval against jsonplaceholder.typicode.com archived at
+`eval/productFlow/results/p2-defensive-evidence-20260517/`. 5-claim
+scorecard: crystallisation PASS (`toolFanout.ts` learned from e2),
+discovery PASS (warm prompts contain 0 occurrences of the learned
+helper name, harness validator enforces), reuse PASS (e3 substrate-on
+trajectory contains `lib.toolFanout` — agent discovered the helper via
+`cat df.d.ts` and called it from `scripts/answer.ts`), correctness PASS
+both arms 3/3, cost REGRESSION substrate-on warm 6749 effective tokens
+vs off 1448 (-4.7×). Mechanically transfers off SkillCraft; cost
+crossover is past this 3-episode micro-scale. Branch:
+`goal4-p2-product-flow-cross-eval`.
+
 ## Recent iterations (iter150-167) — headline
 
 | iter | scale | backend | R1 | R6 | R8 | gates PASS |

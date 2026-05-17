@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260517190655_n6jsk9",
+  "cost": {
+    "tier": 2,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 412.26445700007025
+    },
+    "llmCalls": 0
+  },
+  "answer": null
+}

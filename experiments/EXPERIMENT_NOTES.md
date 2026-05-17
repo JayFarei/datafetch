@@ -2237,3 +2237,81 @@ was a flaked run, not a real measurement.
 
 Closing the autonomous loop. Final EXPERIMENT_NOTES entry recorded.
 The substrate is ready for whatever follows Goal 4.
+
+## 2026-05-17, Goal 4 P2: non-SkillCraft product-flow proof
+
+### 2026-05-17 19:30 [meta]
+
+P2 was Codex's "single strongest defensive-evidence move": prove the
+substrate's cold-to-warm learning transfers off SkillCraft to a real
+HTTP tool bundle, with a matched no-substrate control. Branch:
+`goal4-p2-product-flow-cross-eval`. Tool bundle: jsonplaceholder.typicode.com
+(5 methods: getUsers, getUser, getPosts, getPostsByUser, getCommentsByPost),
+wired in via a Python runner spawned through the existing
+skillcraftToolBridge interface — zero substrate edits, harness-only.
+
+### 2026-05-17 19:35 [analyze]
+
+Final results bundle archived at
+`eval/productFlow/results/p2-defensive-evidence-20260517/`.
+
+5-claim verdict:
+
+| claim | status | evidence |
+| --- | --- | --- |
+| 1. crystallisation | PASS | `lib/productflow-jsonplaceholder/toolFanout.ts` crystallised after e2 |
+| 2. discovery (no name leak) | PASS | warm prompts have 0 occurrences of `toolFanout`/`per_entity`; harness validator gates on this before every Claude call |
+| 3. reuse (warm `df.lib.*` call) | PASS | e3 substrate-on trajectory contains `lib.toolFanout`; e2 also contains `lib.per_entity` (seed) |
+| 4. cost (on < off) | REGRESSION (-4.7×) | substrate-on warm 6749 effective tokens vs off 1448; 2.4kB prompt overhead + agent-side file reads dominate at N=3 entities |
+| 5. correctness | PASS | both arms 3/3 |
+
+This is the spec's **NEUTRAL** outcome: substrate works mechanically
+and transfers off SkillCraft, but doesn't save cost at this micro-scale.
+Cost crossover would happen at larger N where per-call substrate
+saving exceeds the discovery prompt overhead. Three episodes is too
+small to measure that.
+
+### 2026-05-17 19:40 [meta]
+
+Key implementation findings worth recording:
+
+1. **Convergence threshold.** Substrate default is N=2 (intent must
+   repeat across ≥2 distinct trajectories before crystallisation).
+   For a 3-episode micro-eval that's too high — e1 would never
+   crystallise alone, and e2's crystallisation would be too late
+   for warm reuse. P2 sets `DATAFETCH_CONVERGENCE_N=1` so the first
+   gate-clearing trajectory crystallises immediately. **Set this env
+   var BEFORE importing the observer** — `convergenceThreshold()` is
+   read once at install time.
+
+2. **Gate step-count threshold.** `src/observer/gate.ts` rejects
+   trajectories with `slice.length < 2`. e1's single `getUser` call
+   never crystallises. The crystallisation event in our run happened
+   after e2 (3-call fan-out), not after e1.
+
+3. **The IIFE bug.** The substrate's snippet runtime wraps the source
+   as `export const __df_done = (async () => { <body> })()` and the
+   host `await`s `__df_done`. An agent-written `(async () => {
+   await ... })();` IIFE is fire-and-forget — its inner awaits don't
+   block `__df_done`, so the host returns BEFORE any `df.tool.*` /
+   `df.lib.*` call runs. We got empty trajectories on our first two
+   live arms. Fix: (a) warn against IIFEs in the prompt, (b) the
+   harness defensively unwraps fire-and-forget IIFEs in
+   `unwrapFireAndForgetIife()` before handing source to the runtime.
+
+4. **Discovery prompt strength matters.** With a soft "discover via
+   df.d.ts" hint, e3 substrate-on read df.d.ts but didn't reuse
+   toolFanout (intent mismatch in its head, even though e3 was
+   already designed to be fan-out shape). With an explicit "you MUST
+   `cat $DATAFETCH_HOME/df.d.ts` first, AND inspect the helper's
+   source for output shape" instruction, the agent both reused
+   toolFanout AND unwrapped its output correctly. Discovery is real
+   but the agent needs steering at this scale.
+
+5. **per_entity vs toolFanout.** e2 substrate-on used the substrate's
+   `per_entity` seed (via df.d.ts discovery). That trajectory
+   (3 raw `tool.*` calls preceding `lib.per_entity`) was what the
+   observer crystallised into `toolFanout` — the seed call counts as
+   the trajectory's terminal step but the observer extracts the
+   pure-tool fan-out sub-graph and authors a parameterised helper.
+
