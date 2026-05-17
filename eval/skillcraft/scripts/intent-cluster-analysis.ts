@@ -50,13 +50,13 @@ interface AnalyzedTrajectory {
   family: string;
   level: string;
   intentSignature: string;
-  // The category skeleton, e.g. ["db", "FANOUT(tool,3)", "lib"].
+  // The category skeleton, e.g. ["db", "FANOUT(tool)", "lib"].
   skeleton: string[];
   // Per-step: the input field names (the "capability slots" candidate
   // parameters), and which fields' values vary vs are constant across
   // the fan-out runs.
   callShapes: Array<{
-    label: string; // e.g. "db.findExact", "FANOUT(tool,3)", "lib"
+    label: string; // e.g. "db.findExact", "FANOUT(tool)", "lib"
     inputFields: string[];
   }>;
 }
@@ -128,25 +128,24 @@ async function resolveRunDirs(runArg: string): Promise<string[]> {
 //   1. Map each call to a CATEGORY: db / lib / tool. Concrete names
 //      dropped — data-shape-agnostic.
 //   2. Collapse a maximal run of >= 2 consecutive SAME-CATEGORY calls
-//      into FANOUT(category, degreeBucket). No input-field-set
+//      into FANOUT(category). No input-field-set
 //      constraint — so interleaved A,B,C,A,B,C collapses too (fix B).
-//   3. The signature carries STRUCTURE, not names: per FANOUT node,
-//      `distinctShapes` (how many distinct input-field-sets appear in
-//      the run = the "tool cycle width") and, across the run,
-//      `varyingFieldCount` / `sharedFieldCount` (fix A). Concrete field
-//      names are kept only as `exampleFields` for the human report,
-//      never in the signature key.
+//   3. The signature carries STRUCTURE, not names: per FANOUT node the
+//      key keeps category only. The report still records
+//      `distinctShapes` (tool cycle width) and varying/shared field
+//      counts for human audit, but cycle width and degree are deliberately
+//      not part of the convergence key because the learned helper is
+//      parameterized over tool names, input fields, and entity count.
 //   4. signature = "→"-joined skeleton, where a FANOUT node is
-//      `FANOUT(cat,degreeBucket,cycle<distinctShapes>)`.
+//      `FANOUT(cat)`.
 //
 // Example: db.records.findExact → tool.A(name)×1 tool.B(class)×1
 //   tool.C(race)×1 repeated 3× (9 tool calls) → lib
-//   skeleton = ["db", "FANOUT(tool,6+,cycle3)", "lib"]
+//   skeleton = ["db", "FANOUT(tool)", "lib"]
 // A different tenant: db.cases.search → tool.X(case_id)×5 → lib
-//   skeleton = ["db", "FANOUT(tool,3-5,cycle1)", "lib"]
-// They differ only in degree/cycle buckets — both are recognisably
-// "retrieve-then-fan-out-then-aggregate", and the cross-family report
-// shows how widely each skeleton spreads.
+//   skeleton = ["db", "FANOUT(tool)", "lib"]
+// Both are recognisably "retrieve-then-fan-out-then-aggregate", and the
+// cross-family report shows how widely each skeleton spreads.
 
 function categoryOf(primitive: string): "db" | "lib" | "tool" | "other" {
   if (primitive.startsWith("db.")) return "db";
@@ -160,12 +159,6 @@ function inputFieldSet(input: unknown): string {
     return "<atom>";
   }
   return Object.keys(input as Record<string, unknown>).sort().join(",");
-}
-
-function bucketDegree(n: number): string {
-  if (n <= 2) return "2";
-  if (n <= 5) return "3-5";
-  return "6+";
 }
 
 // Within a fan-out run, partition input fields into VARYING (value
@@ -216,11 +209,20 @@ function computeIntentSignature(calls: TrajectoryCall[]): {
   skeleton: string[];
   callShapes: AnalyzedTrajectory["callShapes"];
 } {
+  const helperOnlySignature = helperOnlyIntentSignature(calls);
+  if (helperOnlySignature) {
+    return intentSignatureResult(helperOnlySignature);
+  }
+  const wrappedHelperSignature = wrappedHelperIntentSignature(calls);
+  if (wrappedHelperSignature) {
+    return intentSignatureResult(wrappedHelperSignature);
+  }
+  const intentCalls = callsForIntentSignature(calls);
   const skeleton: string[] = [];
   const callShapes: AnalyzedTrajectory["callShapes"] = [];
   let i = 0;
-  while (i < calls.length) {
-    const call = calls[i]!;
+  while (i < intentCalls.length) {
+    const call = intentCalls[i]!;
     const cat = categoryOf(call.primitive ?? "");
     if (cat === "other") {
       i += 1;
@@ -229,18 +231,18 @@ function computeIntentSignature(calls: TrajectoryCall[]): {
     // Extend a fan-out run: maximal run of >= 2 consecutive SAME-CATEGORY
     // calls (no input-field-set constraint — fix B).
     let j = i + 1;
-    while (j < calls.length && categoryOf(calls[j]!.primitive ?? "") === cat) {
+    while (j < intentCalls.length && categoryOf(intentCalls[j]!.primitive ?? "") === cat) {
       j += 1;
     }
     const runLen = j - i;
     if (runLen >= 2) {
-      const run = calls.slice(i, j);
+      const run = intentCalls.slice(i, j);
       const fields = analyzeFanoutFields(run);
-      const node = `FANOUT(${cat},${bucketDegree(runLen)},cycle${fields.distinctShapes})`;
+      const node = `FANOUT(${cat})`;
       skeleton.push(node);
       callShapes.push({
         label:
-          `${node} varying=${fields.varyingFieldCount} shared=${fields.sharedFieldCount}` +
+          `${node} cycle=${fields.distinctShapes} varying=${fields.varyingFieldCount} shared=${fields.sharedFieldCount}` +
           ` [${fields.exampleVaryingFields.join("/")}|${fields.exampleSharedFields.join("/")}]`,
         // Structural: the count of varying + shared fields, NOT the
         // union of concrete names. exampleFields stay in the label only.
@@ -261,6 +263,85 @@ function computeIntentSignature(calls: TrajectoryCall[]): {
     i = j;
   }
   return { signature: skeleton.join("→"), skeleton, callShapes };
+}
+
+function intentSignatureResult(signature: string): {
+  signature: string;
+  skeleton: string[];
+  callShapes: AnalyzedTrajectory["callShapes"];
+} {
+  const skeleton = signature.split("→");
+  return {
+    signature,
+    skeleton,
+    callShapes: skeleton.map((node) => ({ label: node, inputFields: [] })),
+  };
+}
+
+function callsForIntentSignature(calls: TrajectoryCall[]): TrajectoryCall[] {
+  if (calls.length < 2) return calls;
+  const last = calls[calls.length - 1]!;
+  const isRecordEnrichment = last.primitive === "lib.recordToolEnrichment";
+  const isToolEnrichment = last.primitive === "lib.toolFanoutEnrichment";
+  const isToolFanout = last.primitive === "lib.toolFanout";
+  if (isToolFanout) {
+    const prior = calls.slice(0, -1);
+    const wrappedToolCalls = prior.filter((call) =>
+      (call.primitive ?? "").startsWith("tool.") &&
+      (call.scope?.parentPrimitive === "lib.toolFanout" ||
+        call.scope?.callPath?.includes("lib.toolFanout")),
+    );
+    return wrappedToolCalls.length >= 2 ? prior : calls;
+  }
+  if (!isRecordEnrichment && !isToolEnrichment) return calls;
+  const prior = calls.slice(0, -1);
+  const baseLibIdx = prior.findIndex((call) =>
+    isRecordEnrichment
+      ? call.primitive === "lib.recordToolFanout" || call.primitive === "lib.per_entity"
+      : call.primitive === "lib.toolFanout",
+  );
+  if (baseLibIdx < 0) return calls;
+  const dependentToolCalls = prior
+    .slice(baseLibIdx + 1)
+    .filter((call) => (call.primitive ?? "").startsWith("tool."));
+  return dependentToolCalls.length >= 2 ? prior : calls;
+}
+
+function helperOnlyIntentSignature(calls: TrajectoryCall[]): string | null {
+  if (calls.length !== 1) return null;
+  return knownLearnedHelperIntentSignature(calls[0]!.primitive ?? "");
+}
+
+function wrappedHelperIntentSignature(calls: TrajectoryCall[]): string | null {
+  if (calls.length < 2) return null;
+  const last = calls[calls.length - 1]!;
+  const signature = knownLearnedHelperIntentSignature(last.primitive ?? "");
+  if (signature === null) return null;
+  const prior = calls.slice(0, -1);
+  const allPriorCallsAreWrapperInternals = prior.every((call) =>
+    (call.scope?.depth ?? 0) > 0 &&
+    (call.scope?.rootPrimitive === last.primitive ||
+      call.scope?.parentPrimitive === last.primitive ||
+      call.scope?.callPath?.includes(last.primitive ?? "")),
+  );
+  return allPriorCallsAreWrapperInternals ? signature : null;
+}
+
+function knownLearnedHelperIntentSignature(primitive: string): string | null {
+  switch (primitive) {
+    case "lib.toolFanout":
+      return "FANOUT(tool)";
+    case "lib.recordToolLookup":
+      return "FANOUT(db)→FANOUT(tool)";
+    case "lib.recordToolFanout":
+      return "db→FANOUT(tool)→lib";
+    case "lib.recordToolEnrichment":
+      return "db→FANOUT(tool)→lib→FANOUT(tool)";
+    case "lib.toolFanoutEnrichment":
+      return "FANOUT(tool)→lib→FANOUT(tool)";
+    default:
+      return null;
+  }
 }
 
 // --- walk + cluster --------------------------------------------------------

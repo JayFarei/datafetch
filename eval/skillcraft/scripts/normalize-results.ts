@@ -29,6 +29,8 @@ interface NormalizedRow {
   effectiveTokens: number | null;
   inputTokens: number | null;
   outputTokens: number | null;
+  agentCachedInputTokens: number | null;
+  agentUncachedInputTokens: number | null;
   costUsd: number | null;
   latencyMs: number | null;
   llmRequests: number | null;
@@ -132,6 +134,8 @@ function fromNativeMode(parsed: { taskKey: string; family: string; level: string
     effectiveTokens: numberOrNull(stats.total_tokens),
     inputTokens: numberOrNull(stats.input_tokens),
     outputTokens: numberOrNull(stats.output_tokens),
+    agentCachedInputTokens: null,
+    agentUncachedInputTokens: null,
     costUsd: numberOrNull(cost.total_cost),
     latencyMs: null,
     llmRequests: numberOrNull(stats.agent_llm_requests),
@@ -222,6 +226,8 @@ async function normalizeDatafetchRun(runDir: string): Promise<NormalizedRow[]> {
         effectiveTokens: numberOrNull(episode.effectiveTokens),
         inputTokens: numberOrNull(episode.agentInputTokens),
         outputTokens: numberOrNull(episode.agentOutputTokens),
+        agentCachedInputTokens: numberOrNull(episode.agentCachedInputTokens),
+        agentUncachedInputTokens: numberOrNull(episode.agentUncachedInputTokens),
         costUsd: null,
         latencyMs: numberOrNull(episode.elapsedMs),
         llmRequests: numberOrNull(episode.llmCalls),
