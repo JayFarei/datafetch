@@ -12,7 +12,7 @@
 // top-level key that is not `output_file`. The seed body is one
 // generic function that loops a configurable bundle/tool combination
 // over a list of entity ids; the agent supplies the bundle, tool, and
-// param-name at call time.
+// parameter mapping at call time.
 
 import { promises as fsp } from "node:fs";
 import path from "node:path";
@@ -274,7 +274,7 @@ function pickLabelValue(
 // bundle/tool combination over a list of entity ids and aggregates
 // the results. Generic: no tenant-, dataset-, or family-specific
 // knowledge; the agent supplies `toolBundle`, `toolNames`, and
-// `paramName` at call time. Name has no SkillCraft prefix because
+// parameter names at call time. Name has no SkillCraft prefix because
 // this helper is substrate-level, not benchmark-level.
 export function renderPerEntitySeed(): string {
   const body = `import { fn } from "@datafetch/sdk";
@@ -291,6 +291,7 @@ type Input = {
   toolBundle: string;
   toolNames: string[];
   paramName: string;
+  paramByTool?: Record<string, string>;
   extraInput?: Record<string, unknown>;
 };
 
@@ -302,6 +303,7 @@ export const per_entity = fn({
     toolBundle: v.string(),
     toolNames: v.array(v.string()),
     paramName: v.string(),
+    paramByTool: v.optional(v.record(v.string(), v.string())),
     extraInput: v.optional(v.record(v.string(), v.unknown())),
   }),
   output: v.unknown(),
@@ -320,9 +322,10 @@ export const per_entity = fn({
           perTool[toolName] = { error: "unknown_tool", tool: toolName };
           continue;
         }
+        const paramName = i.paramByTool?.[toolName] ?? i.paramName;
         const payload: Record<string, unknown> = {
           ...(i.extraInput ?? {}),
-          [i.paramName]: entityId,
+          [paramName]: entityId,
         };
         try {
           perTool[toolName] = await tool(payload);
@@ -330,7 +333,7 @@ export const per_entity = fn({
           perTool[toolName] = { error: String(err) };
         }
       }
-      results.push({ entityId, tools: perTool });
+      results.push({ id: entityId, entity: entityId, entityId, entityValue: entityId, tools: perTool });
     }
     return results;
   },
