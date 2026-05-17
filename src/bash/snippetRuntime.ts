@@ -30,8 +30,10 @@ export type SessionCtx = {
   trajectoryId?: string;
   snippetTimeoutMs?: number;
   // When true, the snippet runtime enforces that the recorded trajectory
-  // contains at least one df.db.* or df.lib.* call. If neither appears and
-  // the snippet otherwise succeeded, the answer envelope is rewritten to
+  // contains at least one df.db.* or df.lib.* call. For SkillCraft tool-backed
+  // sessions, db-only placeholder contact is also rejected: a trajectory must
+  // contain a df.lib.* or df.tool.* call. If the gate fails and the snippet
+  // otherwise succeeded, the answer envelope is rewritten to
   // `{status: "unsupported", reason: "substrate-rooted chain absent"}` and
   // the snippet's exit code is forced to 1. Callers (typically the eval)
   // set this when a tenant mount is present so the agent must reach the

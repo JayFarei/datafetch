@@ -486,6 +486,67 @@ describe("DiskSnippetRuntime phase artifacts", () => {
     });
   });
 
+  it("rejects db-only placeholder contact for SkillCraft tool-backed sessions", async () => {
+    const baseDir = await tempBaseDir("df-runtime-chain-gate-db-only-");
+    dirs.push(baseDir);
+
+    const adapter: MountAdapter & { close: () => Promise<void> } = {
+      id: "chain-adapter",
+      capabilities: () => ({ vector: false, lex: true, stream: false, compile: false }),
+      probe: async () => ({ collections: [] }),
+      sample: async () => [],
+      collection: <T>(): CollectionHandle<T> => ({
+        findExact: async () => [{ id: "row-1" }] as T[],
+        search: async () => [{ id: "row-1" }] as T[],
+        findSimilar: async () => [],
+        hybrid: async () => [],
+      }),
+      close: async () => {},
+    };
+    const reg = new InMemoryMountRuntimeRegistry();
+    setMountRuntimeRegistry(reg);
+    reg.register(
+      "records",
+      makeMountRuntime({
+        mountId: "records",
+        adapter,
+        identMap: [{ ident: "entities", name: "entities" }],
+      }),
+    );
+
+    const runtime = new DiskSnippetRuntime();
+    const result = await runtime.run({
+      source: [
+        "await df.db.entities.findExact({}, 5);",
+        "return df.answer({",
+        '  status: "answered",',
+        "  value: 42,",
+        '  evidence: [],',
+        '  derivation: [],',
+        "});",
+      ].join("\n"),
+      sessionCtx: {
+        sessionId: "sess_chain_gate_rejects_db_only",
+        tenantId: "tenant-a",
+        mountIds: ["records"],
+        baseDir,
+        requireSubstrateRootedChain: true,
+        skillcraftToolBridge: {
+          skillcraftDir: baseDir,
+          bundles: ["demo"],
+        },
+      },
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.answer).toMatchObject({
+      status: "unsupported",
+    });
+    expect((result.answer as { reason?: string } | undefined)?.reason).toContain(
+      "tool-backed chain absent",
+    );
+  });
+
   it("records nested implementation work separately from the outer lib call", async () => {
     const baseDir = await tempBaseDir("df-runtime-call-scope-");
     dirs.push(baseDir);

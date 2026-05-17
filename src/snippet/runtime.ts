@@ -139,10 +139,11 @@ export class DiskSnippetRuntime implements SnippetRuntime {
       sessionCtx.requireSubstrateRootedChain === true &&
       error === undefined
     ) {
-      const hasSubstrateCall = recorder.snapshot.calls.some(
-        (c) =>
-          c.primitive.startsWith("db.") || c.primitive.startsWith("lib."),
-      );
+      const calls = recorder.snapshot.calls;
+      const hasDbCall = calls.some((c) => c.primitive.startsWith("db."));
+      const hasLibCall = calls.some((c) => c.primitive.startsWith("lib."));
+      const hasToolCall = calls.some((c) => c.primitive.startsWith("tool."));
+      const hasSubstrateCall = hasDbCall || hasLibCall;
       if (!hasSubstrateCall) {
         const rewritten: AnswerEnvelope = makeAnswerEnvelope({
           status: "unsupported",
@@ -151,6 +152,16 @@ export class DiskSnippetRuntime implements SnippetRuntime {
             "When df.db.records is mounted for this episode, scripts/answer.ts must reach the answer through " +
             "df.db.records.* (entity lookup) and/or df.lib.<helper> (substrate-crystallised or seed helper); " +
             "pure df.tool.* fan-out without a substrate-rooted entry point is rejected.",
+        });
+        effectiveReturnValue = rewritten;
+        substrateChainRewriteApplied = true;
+      } else if (sessionCtx.skillcraftToolBridge && !hasLibCall && !hasToolCall) {
+        const rewritten: AnswerEnvelope = makeAnswerEnvelope({
+          status: "unsupported",
+          reason:
+            "tool-backed chain absent: trajectory touched df.db.* but contained neither df.lib.* nor df.tool.* calls. " +
+            "SkillCraft tool-backed episodes must derive outputs through a learned/seed helper or official tool call; " +
+            "db-only placeholder contact is rejected.",
         });
         effectiveReturnValue = rewritten;
         substrateChainRewriteApplied = true;

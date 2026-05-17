@@ -73,6 +73,7 @@ const PLAN_RESULT_LIMIT = 10;
 
 export function buildDf(opts: BuildDfOpts): DfBinding {
   const { sessionCtx, dispatchCtx } = opts;
+  const toolMemo = new Map<string, Promise<unknown>>();
 
   // Per-snippet ident map: ident -> {mountId, collection-name}. Single-mount
   // is the common MVP case; we still walk every mount to support future
@@ -226,7 +227,7 @@ export function buildDf(opts: BuildDfOpts): DfBinding {
   return {
     db: dbProxy,
     lib: libProxy,
-    tool: makeToolProxy({ sessionCtx, dispatchCtx }),
+    tool: makeToolProxy({ sessionCtx, dispatchCtx, toolMemo }),
     answer(input: AnswerInput): AnswerEnvelope {
       return makeAnswerEnvelope(input);
     },
@@ -272,6 +273,7 @@ export function buildDf(opts: BuildDfOpts): DfBinding {
 function makeToolProxy(args: {
   sessionCtx: SessionCtx;
   dispatchCtx: DispatchContext;
+  toolMemo: Map<string, Promise<unknown>>;
 }): Record<string, Record<string, (input: unknown) => Promise<unknown>>> {
   const { sessionCtx, dispatchCtx } = args;
   const bridge = sessionCtx.skillcraftToolBridge;
@@ -286,7 +288,12 @@ function makeToolProxy(args: {
           `df.tool.${prop}: bundle not configured; available bundles: ${bridge.bundles.join(", ")}`,
         );
       }
-      return makeToolBundleProxy({ bundle: prop, sessionCtx, dispatchCtx });
+      return makeToolBundleProxy({
+        bundle: prop,
+        sessionCtx,
+        dispatchCtx,
+        toolMemo: args.toolMemo,
+      });
     },
   });
 }
@@ -295,12 +302,18 @@ function makeToolBundleProxy(args: {
   bundle: string;
   sessionCtx: SessionCtx;
   dispatchCtx: DispatchContext;
+  toolMemo: Map<string, Promise<unknown>>;
 }): Record<string, (input: unknown) => Promise<unknown>> {
   return new Proxy({} as Record<string, (input: unknown) => Promise<unknown>>, {
     get(_target, prop): ((input: unknown) => Promise<unknown>) | undefined {
       if (typeof prop !== "string") return undefined;
       return async (input: unknown): Promise<unknown> => {
         const toolName = normalizeToolName(prop);
+        const cacheKey = stableToolCallKey(args.bundle, toolName, input);
+        const cached = args.toolMemo.get(cacheKey);
+        if (cached !== undefined) {
+          return cloneToolOutput(await cached);
+        }
         const primitive = `tool.${args.bundle}.${toolName}`;
         const startedMs = performance.now();
         const exec = async (): Promise<unknown> => invokeSkillcraftTool({
@@ -309,22 +322,60 @@ function makeToolBundleProxy(args: {
           toolName,
           input,
         });
-        let output: unknown;
-        if (args.dispatchCtx.trajectory) {
-          output = await args.dispatchCtx.trajectory.call(
-            primitive,
-            input,
-            exec,
-            scopeForStack(args.dispatchCtx.callStack ?? []),
-          );
-        } else {
-          output = await exec();
-        }
+        const run = (async (): Promise<unknown> => {
+          if (args.dispatchCtx.trajectory) {
+            return args.dispatchCtx.trajectory.call(
+              primitive,
+              input,
+              exec,
+              scopeForStack(args.dispatchCtx.callStack ?? []),
+            );
+          }
+          return exec();
+        })();
+        args.toolMemo.set(
+          cacheKey,
+          run.catch((error) => {
+            args.toolMemo.delete(cacheKey);
+            throw error;
+          }),
+        );
+        const output = await run;
         chargeSubstrate(args.dispatchCtx, performance.now() - startedMs);
-        return output;
+        return cloneToolOutput(output);
       };
     },
   });
+}
+
+function stableToolCallKey(bundle: string, toolName: string, input: unknown): string {
+  return `${bundle}\u0000${toolName}\u0000${stableJson(input)}`;
+}
+
+function stableJson(value: unknown): string {
+  return JSON.stringify(stableJsonValue(value)) ?? "undefined";
+}
+
+function stableJsonValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map((item) => stableJsonValue(item));
+  if (value !== null && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    return Object.fromEntries(
+      Object.keys(record)
+        .sort()
+        .map((key) => [key, stableJsonValue(record[key])]),
+    );
+  }
+  return value;
+}
+
+function cloneToolOutput(value: unknown): unknown {
+  if (value === null || typeof value !== "object") return value;
+  try {
+    return structuredClone(value);
+  } catch {
+    return JSON.parse(JSON.stringify(value)) as unknown;
+  }
 }
 
 async function invokeSkillcraftTool(args: {
@@ -354,7 +405,12 @@ async function invokeSkillcraftTool(args: {
     timeoutMs,
   });
   if (proc.exitCode !== 0) {
-    throw new Error(`SkillCraft tool ${args.toolName} failed: ${proc.stderr || proc.stdout}`);
+    return {
+      success: false,
+      error: `SkillCraft tool ${args.toolName} failed: ${proc.stderr || proc.stdout}`,
+      tool: args.toolName,
+      input: args.input ?? {},
+    };
   }
   const payload = JSON.parse(proc.stdout) as { result?: unknown };
   return payload.result;
@@ -370,12 +426,13 @@ function spawnJson(args: {
     const stdout: Buffer[] = [];
     const stderr: Buffer[] = [];
     let timedOut = false;
+    let closed = false;
     const timer = args.timeoutMs
       ? setTimeout(() => {
           timedOut = true;
           child.kill("SIGTERM");
           setTimeout(() => {
-            if (!child.killed) child.kill("SIGKILL");
+            if (!closed) child.kill("SIGKILL");
           }, 2_000).unref();
         }, args.timeoutMs)
       : undefined;
@@ -390,6 +447,7 @@ function spawnJson(args: {
       });
     });
     child.on("close", (code, signal) => {
+      closed = true;
       if (timer) clearTimeout(timer);
       const stderrText = Buffer.concat(stderr).toString("utf8");
       resolve({
