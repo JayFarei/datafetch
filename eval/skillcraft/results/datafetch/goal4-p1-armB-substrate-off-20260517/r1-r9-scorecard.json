@@ -1,0 +1,352 @@
+{
+  "generatedAt": "2026-05-17T20:14:39.687Z",
+  "inputs": {
+    "normalized": "/Users/jayfarei/src/tries/2026-05-01-hackathon-p1/eval/skillcraft/results/datafetch/goal4-p1-armB-substrate-off-20260517/normalized.jsonl",
+    "instrumentation": "/Users/jayfarei/src/tries/2026-05-01-hackathon-p1/eval/skillcraft/results/datafetch/goal4-p1-armB-substrate-off-20260517/helper-instrumentation.jsonl",
+    "clusters": "/Users/jayfarei/src/tries/2026-05-01-hackathon-p1/eval/skillcraft/results/datafetch/goal4-p1-armB-substrate-off-20260517/intent-clusters.json"
+  },
+  "episodeCount": 0,
+  "instrumentationRowCount": 126,
+  "clusterCount": 10,
+  "gatingMode": "off",
+  "allMet": false,
+  "allMetExceptR5": false,
+  "allQualificationsMet": false,
+  "qualifications": {
+    "cacheBoundedByFramework": {
+      "name": "agentCachedInputTokens <= 250000 on every row",
+      "met": null,
+      "detail": {
+        "ceiling": 250000,
+        "rowsWithFieldReported": 0,
+        "rowsOverCeiling": 0,
+        "sample": []
+      }
+    },
+    "cacheTokensZero": {
+      "name": "agentCachedInputTokens == 0 on every row (strict; framework caching expected with CLI backends)",
+      "met": null,
+      "gating": false,
+      "detail": {
+        "rowsWithFieldReported": 0,
+        "rowsWithNonZero": 0,
+        "sample": []
+      }
+    }
+  },
+  "rubric": {
+    "R1": {
+      "name": "passRate",
+      "description": "fraction of episodes officially passed",
+      "value": 0,
+      "threshold": ">= 0.92",
+      "met": false
+    },
+    "R2": {
+      "name": "avgEffectiveTokens",
+      "description": "mean effective tokens per episode",
+      "value": 0,
+      "threshold": "<= 8000",
+      "met": true
+    },
+    "R3": {
+      "name": "runtimeErrorRate",
+      "description": "fraction of episodes with a snippet runtime error",
+      "value": 0,
+      "threshold": "<= 0.05",
+      "met": true
+    },
+    "R4": {
+      "name": "quarantineRate",
+      "description": "distinct quarantined crystallised helpers / distinct crystallised helpers",
+      "value": 0,
+      "threshold": "<= 0.03",
+      "met": true,
+      "detail": {
+        "crystallisedHelpers": 0,
+        "quarantinedCrystallised": []
+      }
+    },
+    "R5": {
+      "name": "novelTenantSmoke",
+      "description": "novel-tenant smoke passes with zero substrate edits — EXTERNAL, run `pnpm test`",
+      "value": null,
+      "threshold": "smoke green",
+      "met": null
+    },
+    "R6": {
+      "name": "convergenceRate",
+      "description": "of intent clusters with >= 2 successful trajectories, fraction that crystallise exactly one callable helper",
+      "value": null,
+      "threshold": ">= 0.80",
+      "met": null,
+      "detail": {
+        "qualifyingClusters": 0,
+        "convergedQualifying": 0,
+        "clusters": [
+          {
+            "intentSignature": "db→FANOUT(tool)→lib",
+            "trajectories": 72,
+            "successfulTrajectories": 0,
+            "familyCount": 15,
+            "callableHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "FANOUT(tool)",
+            "trajectories": 30,
+            "successfulTrajectories": 0,
+            "familyCount": 5,
+            "callableHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+            "trajectories": 9,
+            "successfulTrajectories": 0,
+            "familyCount": 5,
+            "callableHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "FANOUT(db)→FANOUT(tool)",
+            "trajectories": 5,
+            "successfulTrajectories": 0,
+            "familyCount": 1,
+            "callableHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→db→FANOUT(tool)",
+            "trajectories": 4,
+            "successfulTrajectories": 0,
+            "familyCount": 2,
+            "callableHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)→lib",
+            "trajectories": 2,
+            "successfulTrajectories": 0,
+            "familyCount": 2,
+            "callableHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)→db",
+            "trajectories": 1,
+            "successfulTrajectories": 0,
+            "familyCount": 1,
+            "callableHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→tool",
+            "trajectories": 1,
+            "successfulTrajectories": 0,
+            "familyCount": 1,
+            "callableHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→db",
+            "trajectories": 1,
+            "successfulTrajectories": 0,
+            "familyCount": 1,
+            "callableHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)",
+            "trajectories": 1,
+            "successfulTrajectories": 0,
+            "familyCount": 1,
+            "callableHelpers": [],
+            "converged": false
+          }
+        ]
+      }
+    },
+    "R7": {
+      "name": "conditionalReuse",
+      "description": "of warm episodes where a same-intent crystallised helper is available, fraction that call it (seed excluded)",
+      "value": null,
+      "threshold": ">= 0.60",
+      "met": null,
+      "detail": {
+        "warmEpisodesWithSameIntentHelperAvailable": 0,
+        "reused": 0,
+        "episodes": []
+      }
+    },
+    "R8": {
+      "name": "conditionalCostDrop",
+      "description": "reuse episode cost vs nearest earlier same-intent non-reuse episode (paired same-intent delta); mean ratio AND per-pair pass fraction gates",
+      "value": null,
+      "threshold": "mean paired ratio <= 0.70 AND per-pair pass fraction >= 0.70",
+      "met": null,
+      "detail": {
+        "pairedReuseEpisodes": 0,
+        "meanRatio": null,
+        "medianRatio": null,
+        "aggregateRatio": null,
+        "perPairPassFraction": null,
+        "perPairPassFractionThreshold": 0.7,
+        "meanRatioThreshold": 0.7,
+        "pairs": []
+      }
+    },
+    "R9": {
+      "name": "crossShapeTransfer",
+      "description": "an intentSignature whose crystallised helper is called across >= 2 families with different data shapes",
+      "value": null,
+      "threshold": ">= 1 intentSignature reused across >= 2 families",
+      "met": false,
+      "detail": {
+        "crossShapeSignatures": [],
+        "allCalledHelperSignatures": []
+      }
+    }
+  },
+  "perTier": {},
+  "normalizerCrossCheck": {
+    "ge70ButNotPassed": 0,
+    "byRuntimeStatus": {},
+    "rows": []
+  },
+  "signatureJoinDiagnostic": {
+    "clusterSignatures": 10,
+    "crystallisedHelperSignatures": 0,
+    "intersection": 0,
+    "crystallisedHelpersWithNoSignature": 0,
+    "headerSignaturesNotInAnyCluster": []
+  },
+  "compositionalDiagnostics": {
+    "policy": "diagnostic only; official R6-R8 remain exact whole-trajectory gates. Sub-intent coverage requires a contiguous signature match and rejects broad single-token helpers except FANOUT templates.",
+    "R6": {
+      "name": "compositionalConvergenceRate",
+      "value": null,
+      "threshold": "diagnostic only",
+      "detail": {
+        "qualifyingClusters": 0,
+        "convergedQualifying": 0,
+        "clusters": [
+          {
+            "intentSignature": "db→FANOUT(tool)→lib",
+            "trajectories": 72,
+            "successfulTrajectories": 0,
+            "familyCount": 15,
+            "coveringHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "FANOUT(tool)",
+            "trajectories": 30,
+            "successfulTrajectories": 0,
+            "familyCount": 5,
+            "coveringHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+            "trajectories": 9,
+            "successfulTrajectories": 0,
+            "familyCount": 5,
+            "coveringHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "FANOUT(db)→FANOUT(tool)",
+            "trajectories": 5,
+            "successfulTrajectories": 0,
+            "familyCount": 1,
+            "coveringHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→db→FANOUT(tool)",
+            "trajectories": 4,
+            "successfulTrajectories": 0,
+            "familyCount": 2,
+            "coveringHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)→lib",
+            "trajectories": 2,
+            "successfulTrajectories": 0,
+            "familyCount": 2,
+            "coveringHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)→db",
+            "trajectories": 1,
+            "successfulTrajectories": 0,
+            "familyCount": 1,
+            "coveringHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→tool",
+            "trajectories": 1,
+            "successfulTrajectories": 0,
+            "familyCount": 1,
+            "coveringHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→db",
+            "trajectories": 1,
+            "successfulTrajectories": 0,
+            "familyCount": 1,
+            "coveringHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)",
+            "trajectories": 1,
+            "successfulTrajectories": 0,
+            "familyCount": 1,
+            "coveringHelpers": [],
+            "converged": false
+          }
+        ]
+      }
+    },
+    "R7": {
+      "name": "compositionalConditionalReuse",
+      "value": null,
+      "threshold": "diagnostic only",
+      "detail": {
+        "warmEpisodesWithCoveringHelperAvailable": 0,
+        "reused": 0,
+        "episodes": []
+      }
+    },
+    "R8": {
+      "name": "compositionalConditionalCostDrop",
+      "value": null,
+      "threshold": "diagnostic only",
+      "detail": {
+        "pairedReuseEpisodes": 0,
+        "meanRatio": null,
+        "medianRatio": null,
+        "aggregateRatio": null,
+        "perPairPassFraction": null,
+        "pairs": []
+      }
+    }
+  },
+  "helperMaturity": {
+    "byHelper": {},
+    "stateCounts": {
+      "candidate": 0,
+      "verified": 0,
+      "preferred": 0,
+      "suspect": 0,
+      "quarantined": 0
+    },
+    "preferredHelperNames": []
+  }
+}

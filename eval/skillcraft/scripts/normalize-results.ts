@@ -1,7 +1,7 @@
 import { promises as fsp } from "node:fs";
 import path from "node:path";
 
-type Arm = "skillcraft-base" | "skillcraft-skill" | "skillcraft-static-reuse" | "datafetch-learned";
+type Arm = "skillcraft-base" | "skillcraft-skill" | "skillcraft-static-reuse" | "datafetch-learned" | "datafetch-control";
 
 interface Args {
   nativeRun?: string;
@@ -33,6 +33,7 @@ interface NormalizedRow {
   agentUncachedInputTokens: number | null;
   costUsd: number | null;
   latencyMs: number | null;
+  wallClockMs: number | null;
   llmRequests: number | null;
   toolCalls: number | null;
   skillSaveCalls: number | null;
@@ -138,6 +139,7 @@ function fromNativeMode(parsed: { taskKey: string; family: string; level: string
     agentUncachedInputTokens: null,
     costUsd: numberOrNull(cost.total_cost),
     latencyMs: null,
+    wallClockMs: null,
     llmRequests: numberOrNull(stats.agent_llm_requests),
     toolCalls: numberOrNull(stats.tool_calls),
     skillSaveCalls: numberOrNull(mode.save_skill_calls),
@@ -165,6 +167,10 @@ async function normalizeDatafetchRun(runDir: string): Promise<NormalizedRow[]> {
   const sourceProtocol = typeof payload.sourceProtocol === "string"
     ? payload.sourceProtocol
     : "datafetch-episodes";
+  // run-info armId disambiguates substrate-ON vs substrate-OFF runs of
+  // the same datafetch harness. Default to datafetch-learned to preserve
+  // pre-P1 behaviour for older runs that never wrote this field.
+  const runArmId = payload.armId === "datafetch-control" ? "datafetch-control" : "datafetch-learned";
   return episodes
     .filter((episode: any) => episode.mode === "datafetch")
     .map((episode: any) => {
@@ -212,7 +218,7 @@ async function normalizeDatafetchRun(runDir: string): Promise<NormalizedRow[]> {
         family: String(episode.family ?? episode.taskFamily),
         level,
         phase: episode.phase ?? phaseForLevel(level),
-        arm: "datafetch-learned" as Arm,
+        arm: (episode.armId === "datafetch-control" ? "datafetch-control" : runArmId) as Arm,
         officialPassed,
         passedGe70: officialPassed,
         statusPassGe90: runtimeStatus === null && (officialStatus === "pass" || score >= 90),
@@ -230,6 +236,10 @@ async function normalizeDatafetchRun(runDir: string): Promise<NormalizedRow[]> {
         agentUncachedInputTokens: numberOrNull(episode.agentUncachedInputTokens),
         costUsd: null,
         latencyMs: numberOrNull(episode.elapsedMs),
+        // wallClockMs is the agent-only wall time (excludes the
+        // Python evaluator), surfaced from AdapterEpisode.agentElapsedMs.
+        // Needed for the P1 paired-arm wall-clock contrast.
+        wallClockMs: numberOrNull(episode.agentElapsedMs),
         llmRequests: numberOrNull(episode.llmCalls),
         toolCalls: numberOrNull(episode.toolCalls),
         skillSaveCalls: null,

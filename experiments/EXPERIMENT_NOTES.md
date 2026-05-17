@@ -2378,3 +2378,60 @@ Files in the corrected bundle:
   result: rich helper alone, no CLAUDE.md, agent still ignores)
 - `eval/productFlow/preseed-rich-helper/userPostSummary.ts` —
   hand-authored rich helper used in the experiments
+
+---
+
+## 2026-05-17, Goal 4 P1 matched-arm proof
+
+### 2026-05-17 19:00 [hypothesis]
+
+Codex's 2026-05-17 audit identified the missing "graduation" experiment: iter164 was scored against a fixed rubric, but never paired against a matched control. Pass rate, tokens, wall, variance, all interpreted in absolute terms. The right shape: hold agent + prompt + harness fixed, toggle ONLY the learning loop, run the same 126 tasks, paired-by-task t-tests on token + wall, McNemar on pass. If the substrate doesn't measurably advantage the agent, the iter164 numbers are real but the substrate's contribution to them is not. P1 is that experiment.
+
+### 2026-05-17 18:43 [implement]
+
+`DATAFETCH_DISABLE_LEARNING=1` env flag. Surgical edits in `src/eval/skillcraftFullDatafetch.ts`:
+
+- Force `libCacheDir=undefined` when disableLearning → skips `hydrateFamilyLibCache` + `persistFamilyLibCache`.
+- Skip `installObserver` call inside `runLiveExperimental`, stub with empty `observerPromise` Map.
+- Pass `armId` through to `AdapterEpisode` + `runInfo`.
+
+Plus `armId: 'datafetch-control' | 'datafetch-learned'` added to `Arm` union in `eval/skillcraft/scripts/normalize-results.ts`, with `wallClockMs` field surfacing `agentElapsedMs` separately from `latencyMs` (which is agent + evaluator combined). `arms.yaml` gets a `datafetch-control` entry documenting the toggle.
+
+per_entity seed STAYS in both arms, it's a substrate primitive, not a learned helper. `df.tool`, `df.db.records` mount, snippet runtime, `requireSubstrateRootedChain` all unchanged. The brief prompt's "if df.lib lists X, prefer it" guidance naturally elides because no learned helpers exist in the control arm's `df.d.ts`.
+
+Smoke 1×1 on cat-facts/e1 under each arm: same score (60), Arm A 37770ms / 1102tok with 0 libFunctionsAvailable (no warm helpers yet for first episode), Arm B 37677ms / 1071tok with 0 libFunctionsAvailable (toggle confirmed). normalize-results emits `arm: datafetch-control` for B, `wallClockMs: 37677` from `agentElapsedMs`.
+
+### 2026-05-17 18:43-20:57 [full-126]
+
+Launched both arms in parallel, un-sharded (preserves cross-family `__intent__` pool for substrate R9). Arm A took 2h14m (45.6s/ep avg), Arm B took 2h21m (55.1s/ep avg). Total wall ~2.4 hours, well inside the 4-hour budget. Both arms tracked identical task ordering (alphabetical by family, then e1→e2→e3→m1→m2→h1).
+
+Early visible signal: on dnd-campaign-builder/e2, Arm B took 97s/5132tok vs Arm A's 48s/1917tok with 1 learned helper available. The substrate's per-family acceleration was apparent within the first 20 episodes.
+
+### 2026-05-17 21:00 [analyze]
+
+Per-family table: 17 of 21 families pass 100% on both arms with Arm A using 10-57% fewer tokens. Three regress by 1 episode each on Arm A (pokeapi-pokedex, random-user-database, recipe-cookbook-builder). cat-facts-collector fails 0/6 on both (task-design ceiling).
+
+Headline 4-vector:
+
+- pass rate: NEUTRAL. A=92.9% (117/126), B=95.2% (120/126), Δ=-2.4pp, McNemar p=0.25 on (b=0, c=3) discordant pairs.
+- effective tokens: STRONG PASS. A=1951, B=3324, A/B=0.587, paired t=-13.70 over n=126, p≈0.
+- wall-clock: STRONG PASS. A=45.6s, B=55.1s, A/B=0.827, paired t=-6.63, p<0.0001.
+- σ effective tokens: NEUTRAL but lower. σA=828, σB=1038, -20%, no formal test.
+
+Arm A scorecard reproduces iter164: R1=0.9286, R2=1951.1, R3=0.0159, R4=0, R6=0.8333, R7=0.8462, R8=0.6427, R9=FANOUT(tool) PASS. All 8 official gates PASS, qualification cacheBoundedByFramework met (126/126 framework cache). Arm B's r1-r9 scorecard is null on R4-R9 by design (`score-r1-r9.ts:431` filters to `arm === 'datafetch-learned'`); R1/R2/R3 we compute independently from `normalized.jsonl` in `p1-paired-analysis.py`.
+
+### 2026-05-17 21:00 [analyze, honest reading]
+
+Substrate's contribution under a strong agent backend is **cost efficiency, not correctness**. On Claude sonnet-4-6 + low effort the un-substrated pass rate is already 95.2%, there isn't 10pp of headroom for the substrate to recover. What it does instead is consolidate fan-outs: 17/21 families drop ~40% on tokens and ~17% on wall, biggest wins on jsonplaceholder / tvmaze / usgs / rickmorty (-50 to -57% tokens), exactly the families with heaviest per-entity fan-outs.
+
+The 3 anti-pattern families warrant investigation but each is a single-episode delta on 6, well inside per-task stochasticity. The likely failure modes (covered too narrowly by a crystallised helper, agent prefers a near-but-not-exact match over the cold-start path) are real failure modes for any reuse-driven system; they're not surprising and the aggregate hit is 3/252 episodes against a -41% cost win on the same families.
+
+4-vector `{NEUTRAL, PASS, PASS, NEUTRAL}` clears P1's "respectable graduation" bar (2 PASS, 0 REGRESSION) but falls short of the strong claim (4 PASS). Pass-rate and variance dimensions need a benchmark with more headroom or a multi-seed replication to move off NEUTRAL.
+
+### 2026-05-17 21:00 [commit]
+
+Report: `eval/skillcraft/results/datafetch/goal4-p1-paired-comparison-20260517.md`.
+Analysis script: `eval/skillcraft/scripts/p1-paired-analysis.py` (reusable for future paired comparisons; pure Python, reads only `normalized.jsonl`).
+Substrate change: 7 surgical edits to `src/eval/skillcraftFullDatafetch.ts` + 4 to `normalize-results.ts` + arms.yaml entry. No rubric changes, no benchmark identifiers, no observer/gate/template/author/snippet/hook changes, measurement-only as the spec required.
+
+Branch: `goal4-p1-matched-arm-skillcraft`. Worktree: `/Users/jayfarei/src/tries/2026-05-01-hackathon-p1`. Commit is local-only per the goal directive (no push).

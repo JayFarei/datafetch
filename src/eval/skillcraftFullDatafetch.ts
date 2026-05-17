@@ -68,7 +68,21 @@ interface Args {
   snippetTimeoutMs: number;
   libCacheDir?: string;
   noLibCache: boolean;
+  disableLearning: boolean;
   resume: boolean;
+}
+
+// P1 matched-arm control: when DATAFETCH_DISABLE_LEARNING=1 the harness
+// runs the agent with substrate primitives still active (snippet runtime,
+// df.tool, df.db.records mount, per_entity seed) but with the learning
+// loop fully off: no hydrateFamilyLibCache, no installObserver, no
+// persistFamilyLibCache. df.d.ts contains the per_entity seed only;
+// the brief prompt naturally degrades to its cold-start path because no
+// learned helpers are present. Episodes are tagged armId so the
+// normalizer can produce paired-arm rows.
+function resolveDisableLearning(): boolean {
+  const raw = (process.env["DATAFETCH_DISABLE_LEARNING"] ?? "").trim().toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes";
 }
 
 interface SkillCraftTask {
@@ -130,6 +144,7 @@ interface AdapterEpisode {
   agentOutputTokens?: number;
   agentReasoningTokens?: number;
   agentElapsedMs?: number;
+  armId?: "datafetch-control" | "datafetch-learned";
 }
 
 interface ToolDescriptor {
@@ -174,6 +189,7 @@ function parseArgs(argv: string[]): Args {
     timeoutMs: Number(process.env["DF_SKILLCRAFT_FULL_TIMEOUT_MS"] ?? 600_000),
     snippetTimeoutMs: Number(process.env["DF_SKILLCRAFT_SNIPPET_TIMEOUT_MS"] ?? 300_000),
     noLibCache: false,
+    disableLearning: resolveDisableLearning(),
     resume: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -215,10 +231,14 @@ async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
   const tasks = await selectTasks(args);
   await fsp.mkdir(args.outDir, { recursive: true });
-  const libCacheDir = args.noLibCache
+  // P1 control arm forces learning-loop OFF: no cross-episode lib cache.
+  const libCacheDir = (args.noLibCache || args.disableLearning)
     ? undefined
     : args.libCacheDir ?? path.join(args.outDir, "lib-cache");
   if (libCacheDir) await fsp.mkdir(libCacheDir, { recursive: true });
+  const armId: "datafetch-control" | "datafetch-learned" = args.disableLearning
+    ? "datafetch-control"
+    : "datafetch-learned";
 
   const agentBackend = resolveAgentBackend();
   const resolvedModel =
@@ -244,6 +264,8 @@ async function main(): Promise<void> {
     model: resolvedModel,
     reasoningEffort: resolvedEffort,
     snippetTimeoutMs: args.snippetTimeoutMs,
+    armId,
+    disableLearning: args.disableLearning,
   };
   await fsp.writeFile(path.join(args.outDir, "run-info.json"), `${JSON.stringify(runInfo, null, 2)}\n`);
   await fsp.writeFile(
@@ -279,6 +301,7 @@ async function main(): Promise<void> {
       task,
       args,
       libCacheDir,
+      armId,
     });
     episodes.push(episode);
     await fsp.appendFile(episodesJsonlPath, `${JSON.stringify(episode)}\n`);
@@ -324,9 +347,10 @@ async function runEpisodeSafely(input: {
   task: SkillCraftTask;
   args: Args;
   libCacheDir?: string;
+  armId: "datafetch-control" | "datafetch-learned";
 }): Promise<AdapterEpisode> {
   try {
-    return input.args.live
+    const episode = input.args.live
       ? await runLiveExperimental({
           task: input.task,
           skillcraftDir: input.args.skillcraftDir,
@@ -336,14 +360,17 @@ async function runEpisodeSafely(input: {
           timeoutMs: input.args.timeoutMs,
           snippetTimeoutMs: input.args.snippetTimeoutMs,
           libCacheDir: input.libCacheDir,
+          disableLearning: input.args.disableLearning,
         })
       : await runFixtureSmoke({ task: input.task, skillcraftDir: input.args.skillcraftDir, outDir: input.args.outDir });
+    return { ...episode, armId: input.armId };
   } catch (error) {
     return writeHarnessErrorEpisode({
       task: input.task,
       outDir: input.args.outDir,
       error,
       bridgeStatus: input.args.live ? "live-agent-experimental" : "fixture-evaluator-smoke",
+      armId: input.armId,
     });
   }
 }
@@ -367,12 +394,14 @@ async function writeHarnessErrorEpisode(input: {
   outDir: string;
   error: unknown;
   bridgeStatus: AdapterEpisode["bridgeStatus"];
+  armId?: "datafetch-control" | "datafetch-learned";
 }): Promise<AdapterEpisode> {
   const artifactDir = path.join(input.outDir, "episodes", input.task.family, input.task.level);
   await fsp.mkdir(artifactDir, { recursive: true });
   const message = input.error instanceof Error ? input.error.stack ?? input.error.message : String(input.error);
   await fsp.writeFile(path.join(artifactDir, "harness-error.txt"), `${message}\n`);
   return {
+    armId: input.armId,
     taskKey: input.task.taskKey,
     taskFamily: input.task.family,
     family: input.task.family,
@@ -542,6 +571,7 @@ async function runLiveExperimental(input: {
   timeoutMs: number;
   snippetTimeoutMs: number;
   libCacheDir?: string;
+  disableLearning?: boolean;
 }): Promise<AdapterEpisode> {
   const artifactDir = path.join(input.outDir, "episodes", input.task.family, input.task.level);
   const workspace = path.join(artifactDir, "workspace");
@@ -641,7 +671,13 @@ async function runLiveExperimental(input: {
       baseDir: datafetchHome,
       skipSeedMirror: true,
     });
-    const { observer } = installObserver({ baseDir: datafetchHome, tenantId, snippetRuntime });
+    // P1 control arm: with learning disabled the observer never attaches,
+    // so no helpers are authored from the current trajectory. The snippet
+    // runtime still records the trajectory for diagnostics but nothing
+    // crystallises into df.lib for later episodes.
+    const observer = input.disableLearning
+      ? { observerPromise: new Map<string, Promise<unknown>>() }
+      : installObserver({ baseDir: datafetchHome, tenantId, snippetRuntime }).observer;
     const run = await snippetRuntime.run({
       source,
       sourcePath: answerPath,

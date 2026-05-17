@@ -1,0 +1,4972 @@
+{
+  "generatedAt": "2026-05-17T20:14:34.740Z",
+  "inputs": {
+    "normalized": "/Users/jayfarei/src/tries/2026-05-01-hackathon-p1/eval/skillcraft/results/datafetch/goal4-p1-armA-substrate-on-20260517/normalized.jsonl",
+    "instrumentation": "/Users/jayfarei/src/tries/2026-05-01-hackathon-p1/eval/skillcraft/results/datafetch/goal4-p1-armA-substrate-on-20260517/helper-instrumentation.jsonl",
+    "clusters": "/Users/jayfarei/src/tries/2026-05-01-hackathon-p1/eval/skillcraft/results/datafetch/goal4-p1-armA-substrate-on-20260517/intent-clusters.json"
+  },
+  "episodeCount": 126,
+  "instrumentationRowCount": 126,
+  "clusterCount": 7,
+  "gatingMode": "off",
+  "allMet": false,
+  "allMetExceptR5": true,
+  "allQualificationsMet": true,
+  "qualifications": {
+    "cacheBoundedByFramework": {
+      "name": "agentCachedInputTokens <= 250000 on every row",
+      "met": true,
+      "detail": {
+        "ceiling": 250000,
+        "rowsWithFieldReported": 126,
+        "rowsOverCeiling": 0,
+        "sample": []
+      }
+    },
+    "cacheTokensZero": {
+      "name": "agentCachedInputTokens == 0 on every row (strict; framework caching expected with CLI backends)",
+      "met": false,
+      "gating": false,
+      "detail": {
+        "rowsWithFieldReported": 126,
+        "rowsWithNonZero": 126,
+        "sample": [
+          {
+            "taskKey": "scaled_tasks/cat-facts-collector/e1",
+            "cachedInputTokens": 122722
+          },
+          {
+            "taskKey": "scaled_tasks/cat-facts-collector/e2",
+            "cachedInputTokens": 122867
+          },
+          {
+            "taskKey": "scaled_tasks/cat-facts-collector/e3",
+            "cachedInputTokens": 123393
+          },
+          {
+            "taskKey": "scaled_tasks/cat-facts-collector/m1",
+            "cachedInputTokens": 123569
+          },
+          {
+            "taskKey": "scaled_tasks/cat-facts-collector/m2",
+            "cachedInputTokens": 190139
+          }
+        ]
+      }
+    }
+  },
+  "rubric": {
+    "R1": {
+      "name": "passRate",
+      "description": "fraction of episodes officially passed",
+      "value": 0.9286,
+      "threshold": ">= 0.92",
+      "met": true
+    },
+    "R2": {
+      "name": "avgEffectiveTokens",
+      "description": "mean effective tokens per episode",
+      "value": 1951.1,
+      "threshold": "<= 8000",
+      "met": true
+    },
+    "R3": {
+      "name": "runtimeErrorRate",
+      "description": "fraction of episodes with a snippet runtime error",
+      "value": 0.0159,
+      "threshold": "<= 0.05",
+      "met": true
+    },
+    "R4": {
+      "name": "quarantineRate",
+      "description": "distinct quarantined crystallised helpers / distinct crystallised helpers",
+      "value": 0,
+      "threshold": "<= 0.03",
+      "met": true,
+      "detail": {
+        "crystallisedHelpers": 6,
+        "quarantinedCrystallised": []
+      }
+    },
+    "R5": {
+      "name": "novelTenantSmoke",
+      "description": "novel-tenant smoke passes with zero substrate edits — EXTERNAL, run `pnpm test`",
+      "value": null,
+      "threshold": "smoke green",
+      "met": null
+    },
+    "R6": {
+      "name": "convergenceRate",
+      "description": "of intent clusters with >= 2 successful trajectories, fraction that crystallise exactly one callable helper",
+      "value": 0.8333,
+      "threshold": ">= 0.80",
+      "met": true,
+      "detail": {
+        "qualifyingClusters": 6,
+        "convergedQualifying": 5,
+        "clusters": [
+          {
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "trajectories": 51,
+            "successfulTrajectories": 50,
+            "familyCount": 16,
+            "callableHelpers": [
+              "toolFanoutEnrichment"
+            ],
+            "converged": true
+          },
+          {
+            "intentSignature": "FANOUT(tool)",
+            "trajectories": 45,
+            "successfulTrajectories": 45,
+            "familyCount": 12,
+            "callableHelpers": [
+              "toolFanout"
+            ],
+            "converged": true
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib",
+            "trajectories": 13,
+            "successfulTrajectories": 7,
+            "familyCount": 3,
+            "callableHelpers": [
+              "recordToolFanout"
+            ],
+            "converged": true
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+            "trajectories": 6,
+            "successfulTrajectories": 6,
+            "familyCount": 2,
+            "callableHelpers": [
+              "recordToolEnrichment"
+            ],
+            "converged": true
+          },
+          {
+            "intentSignature": "FANOUT(db)→FANOUT(tool)",
+            "trajectories": 6,
+            "successfulTrajectories": 6,
+            "familyCount": 1,
+            "callableHelpers": [
+              "recordToolLookup"
+            ],
+            "converged": true
+          },
+          {
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)→lib→FANOUT(tool)→lib",
+            "trajectories": 2,
+            "successfulTrajectories": 2,
+            "familyCount": 1,
+            "callableHelpers": [],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)→lib→FANOUT(tool)",
+            "trajectories": 1,
+            "successfulTrajectories": 1,
+            "familyCount": 1,
+            "callableHelpers": [],
+            "converged": false
+          }
+        ]
+      }
+    },
+    "R7": {
+      "name": "conditionalReuse",
+      "description": "of warm episodes where a same-intent crystallised helper is available, fraction that call it (seed excluded)",
+      "value": 0.8462,
+      "threshold": ">= 0.60",
+      "met": true,
+      "detail": {
+        "warmEpisodesWithSameIntentHelperAvailable": 65,
+        "reused": 55,
+        "episodes": [
+          {
+            "taskKey": "scaled_tasks/cocktail-menu-generator/m1",
+            "intentSignature": "db→FANOUT(tool)→lib",
+            "availableSameIntent": [
+              "recordToolFanout"
+            ],
+            "calledSameIntent": [
+              "recordToolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/cocktail-menu-generator/m2",
+            "intentSignature": "db→FANOUT(tool)→lib",
+            "availableSameIntent": [
+              "recordToolFanout"
+            ],
+            "calledSameIntent": [
+              "recordToolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/countries-encyclopedia/m1",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [],
+            "reused": false
+          },
+          {
+            "taskKey": "scaled_tasks/countries-encyclopedia/m2",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [],
+            "reused": false
+          },
+          {
+            "taskKey": "scaled_tasks/dnd-campaign-builder/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dnd-monster-compendium/e2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dnd-monster-compendium/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dnd-monster-compendium/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dnd-monster-compendium/m2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dog-breeds-encyclopedia/e2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dog-breeds-encyclopedia/e3",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dog-breeds-encyclopedia/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dog-breeds-encyclopedia/m2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/gitlab-deep-analysis/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/gitlab-deep-analysis/e3",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/gitlab-deep-analysis/m1",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/gitlab-deep-analysis/m2",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/jikan-anime-analysis/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/jikan-anime-analysis/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [],
+            "reused": false
+          },
+          {
+            "taskKey": "scaled_tasks/jikan-anime-analysis/m1",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/jikan-anime-analysis/m2",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/jsonplaceholder-blog-analyzer/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/jsonplaceholder-blog-analyzer/e3",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/jsonplaceholder-blog-analyzer/m1",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/jsonplaceholder-blog-analyzer/m2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [],
+            "reused": false
+          },
+          {
+            "taskKey": "scaled_tasks/local-dna-analysis/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/local-dna-analysis/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/local-dna-analysis/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/local-dna-analysis/m2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/name-demographics-analyzer/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/name-demographics-analyzer/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [],
+            "reused": false
+          },
+          {
+            "taskKey": "scaled_tasks/name-demographics-analyzer/m1",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/name-demographics-analyzer/m2",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/openmeteo-weather/e2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/openmeteo-weather/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/openmeteo-weather/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/openmeteo-weather/m2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/pokeapi-pokedex/e2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/pokeapi-pokedex/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/random-user-database/e2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [],
+            "reused": false
+          },
+          {
+            "taskKey": "scaled_tasks/random-user-database/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [],
+            "reused": false
+          },
+          {
+            "taskKey": "scaled_tasks/recipe-cookbook-builder/e2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/recipe-cookbook-builder/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/recipe-cookbook-builder/m2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/rickmorty-multiverse-explorer/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/rickmorty-multiverse-explorer/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/rickmorty-multiverse-explorer/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [],
+            "reused": false
+          },
+          {
+            "taskKey": "scaled_tasks/rickmorty-multiverse-explorer/m2",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/tvmaze-series-analyzer/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/tvmaze-series-analyzer/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [],
+            "reused": false
+          },
+          {
+            "taskKey": "scaled_tasks/tvmaze-series-analyzer/m1",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/tvmaze-series-analyzer/m2",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/university-directory-builder/e2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [],
+            "reused": false
+          },
+          {
+            "taskKey": "scaled_tasks/university-directory-builder/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/usgs-earthquake-monitor/e3",
+            "intentSignature": "FANOUT(db)→FANOUT(tool)",
+            "availableSameIntent": [
+              "recordToolLookup"
+            ],
+            "calledSameIntent": [
+              "recordToolLookup"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/usgs-earthquake-monitor/m1",
+            "intentSignature": "FANOUT(db)→FANOUT(tool)",
+            "availableSameIntent": [
+              "recordToolLookup"
+            ],
+            "calledSameIntent": [
+              "recordToolLookup"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/usgs-earthquake-monitor/m2",
+            "intentSignature": "FANOUT(db)→FANOUT(tool)",
+            "availableSameIntent": [
+              "recordToolLookup"
+            ],
+            "calledSameIntent": [
+              "recordToolLookup"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/vocabulary-builder/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/vocabulary-builder/e3",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/vocabulary-builder/m1",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/vocabulary-builder/m2",
+            "intentSignature": "FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanout"
+            ],
+            "calledSameIntent": [
+              "toolFanout"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/world-bank-economic-snapshot/e2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/world-bank-economic-snapshot/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/world-bank-economic-snapshot/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/world-bank-economic-snapshot/m2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "calledSameIntent": [
+              "toolFanoutEnrichment"
+            ],
+            "reused": true
+          }
+        ]
+      }
+    },
+    "R8": {
+      "name": "conditionalCostDrop",
+      "description": "reuse episode cost vs nearest earlier same-intent non-reuse episode (paired same-intent delta); mean ratio AND per-pair pass fraction gates",
+      "value": 0.6427,
+      "threshold": "mean paired ratio <= 0.70 AND per-pair pass fraction >= 0.70",
+      "met": true,
+      "detail": {
+        "pairedReuseEpisodes": 47,
+        "meanRatio": 0.6427,
+        "medianRatio": 0.5475,
+        "aggregateRatio": 0.6373,
+        "perPairPassFraction": 0.7021,
+        "perPairPassFractionThreshold": 0.7,
+        "meanRatioThreshold": 0.7,
+        "pairs": [
+          {
+            "reuseEpisode": "cocktail-menu-generator/m1",
+            "baselineEpisode": "cocktail-menu-generator/e3",
+            "intentSignature": "db→FANOUT(tool)→lib",
+            "reuseCost": 1169,
+            "baselineCost": 2514,
+            "ratio": 0.465
+          },
+          {
+            "reuseEpisode": "cocktail-menu-generator/m2",
+            "baselineEpisode": "cocktail-menu-generator/e3",
+            "intentSignature": "db→FANOUT(tool)→lib",
+            "reuseCost": 1123,
+            "baselineCost": 2514,
+            "ratio": 0.4467
+          },
+          {
+            "reuseEpisode": "cocktail-menu-generator/h1",
+            "baselineEpisode": "cocktail-menu-generator/e3",
+            "intentSignature": "db→FANOUT(tool)→lib",
+            "reuseCost": 1196,
+            "baselineCost": 2514,
+            "ratio": 0.4757
+          },
+          {
+            "reuseEpisode": "dnd-campaign-builder/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1917,
+            "baselineCost": 2687,
+            "ratio": 0.7134
+          },
+          {
+            "reuseEpisode": "dog-breeds-encyclopedia/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1307,
+            "baselineCost": 2687,
+            "ratio": 0.4864
+          },
+          {
+            "reuseEpisode": "dog-breeds-encyclopedia/e3",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1419,
+            "baselineCost": 2687,
+            "ratio": 0.5281
+          },
+          {
+            "reuseEpisode": "gitlab-deep-analysis/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1768,
+            "baselineCost": 2687,
+            "ratio": 0.658
+          },
+          {
+            "reuseEpisode": "gitlab-deep-analysis/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1749,
+            "baselineCost": 2687,
+            "ratio": 0.6509
+          },
+          {
+            "reuseEpisode": "gitlab-deep-analysis/e3",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 3774,
+            "baselineCost": 2687,
+            "ratio": 1.4045
+          },
+          {
+            "reuseEpisode": "gitlab-deep-analysis/m1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1987,
+            "baselineCost": 2687,
+            "ratio": 0.7395
+          },
+          {
+            "reuseEpisode": "gitlab-deep-analysis/m2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1932,
+            "baselineCost": 2687,
+            "ratio": 0.719
+          },
+          {
+            "reuseEpisode": "gitlab-deep-analysis/h1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 2178,
+            "baselineCost": 2687,
+            "ratio": 0.8106
+          },
+          {
+            "reuseEpisode": "jikan-anime-analysis/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1751,
+            "baselineCost": 2687,
+            "ratio": 0.6517
+          },
+          {
+            "reuseEpisode": "jikan-anime-analysis/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 2047,
+            "baselineCost": 2687,
+            "ratio": 0.7618
+          },
+          {
+            "reuseEpisode": "jikan-anime-analysis/m1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1889,
+            "baselineCost": 2687,
+            "ratio": 0.703
+          },
+          {
+            "reuseEpisode": "jikan-anime-analysis/m2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 2054,
+            "baselineCost": 2687,
+            "ratio": 0.7644
+          },
+          {
+            "reuseEpisode": "jikan-anime-analysis/h1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 2108,
+            "baselineCost": 2687,
+            "ratio": 0.7845
+          },
+          {
+            "reuseEpisode": "jsonplaceholder-blog-analyzer/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1286,
+            "baselineCost": 2687,
+            "ratio": 0.4786
+          },
+          {
+            "reuseEpisode": "jsonplaceholder-blog-analyzer/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1235,
+            "baselineCost": 2687,
+            "ratio": 0.4596
+          },
+          {
+            "reuseEpisode": "jsonplaceholder-blog-analyzer/e3",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1425,
+            "baselineCost": 2687,
+            "ratio": 0.5303
+          },
+          {
+            "reuseEpisode": "jsonplaceholder-blog-analyzer/m1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1448,
+            "baselineCost": 2687,
+            "ratio": 0.5389
+          },
+          {
+            "reuseEpisode": "jsonplaceholder-blog-analyzer/h1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1461,
+            "baselineCost": 2687,
+            "ratio": 0.5437
+          },
+          {
+            "reuseEpisode": "local-dna-analysis/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1448,
+            "baselineCost": 2687,
+            "ratio": 0.5389
+          },
+          {
+            "reuseEpisode": "name-demographics-analyzer/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1349,
+            "baselineCost": 2687,
+            "ratio": 0.502
+          },
+          {
+            "reuseEpisode": "name-demographics-analyzer/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1268,
+            "baselineCost": 2687,
+            "ratio": 0.4719
+          },
+          {
+            "reuseEpisode": "name-demographics-analyzer/m1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1369,
+            "baselineCost": 2687,
+            "ratio": 0.5095
+          },
+          {
+            "reuseEpisode": "name-demographics-analyzer/m2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 3763,
+            "baselineCost": 2687,
+            "ratio": 1.4004
+          },
+          {
+            "reuseEpisode": "name-demographics-analyzer/h1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1514,
+            "baselineCost": 2687,
+            "ratio": 0.5635
+          },
+          {
+            "reuseEpisode": "rickmorty-multiverse-explorer/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1471,
+            "baselineCost": 2687,
+            "ratio": 0.5475
+          },
+          {
+            "reuseEpisode": "rickmorty-multiverse-explorer/m2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1458,
+            "baselineCost": 2687,
+            "ratio": 0.5426
+          },
+          {
+            "reuseEpisode": "rickmorty-multiverse-explorer/h1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1420,
+            "baselineCost": 2687,
+            "ratio": 0.5285
+          },
+          {
+            "reuseEpisode": "tvmaze-series-analyzer/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1780,
+            "baselineCost": 2687,
+            "ratio": 0.6624
+          },
+          {
+            "reuseEpisode": "tvmaze-series-analyzer/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1879,
+            "baselineCost": 2687,
+            "ratio": 0.6993
+          },
+          {
+            "reuseEpisode": "tvmaze-series-analyzer/m1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1927,
+            "baselineCost": 2687,
+            "ratio": 0.7172
+          },
+          {
+            "reuseEpisode": "tvmaze-series-analyzer/m2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1939,
+            "baselineCost": 2687,
+            "ratio": 0.7216
+          },
+          {
+            "reuseEpisode": "tvmaze-series-analyzer/h1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 2142,
+            "baselineCost": 2687,
+            "ratio": 0.7972
+          },
+          {
+            "reuseEpisode": "usgs-earthquake-monitor/e3",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "intentSignature": "FANOUT(db)→FANOUT(tool)",
+            "reuseCost": 1630,
+            "baselineCost": 3757,
+            "ratio": 0.4339
+          },
+          {
+            "reuseEpisode": "usgs-earthquake-monitor/m1",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "intentSignature": "FANOUT(db)→FANOUT(tool)",
+            "reuseCost": 1579,
+            "baselineCost": 3757,
+            "ratio": 0.4203
+          },
+          {
+            "reuseEpisode": "usgs-earthquake-monitor/m2",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "intentSignature": "FANOUT(db)→FANOUT(tool)",
+            "reuseCost": 2146,
+            "baselineCost": 3757,
+            "ratio": 0.5712
+          },
+          {
+            "reuseEpisode": "usgs-earthquake-monitor/h1",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "intentSignature": "FANOUT(db)→FANOUT(tool)",
+            "reuseCost": 1520,
+            "baselineCost": 3757,
+            "ratio": 0.4046
+          },
+          {
+            "reuseEpisode": "vocabulary-builder/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1443,
+            "baselineCost": 2687,
+            "ratio": 0.537
+          },
+          {
+            "reuseEpisode": "vocabulary-builder/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1276,
+            "baselineCost": 2687,
+            "ratio": 0.4749
+          },
+          {
+            "reuseEpisode": "vocabulary-builder/e3",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1484,
+            "baselineCost": 2687,
+            "ratio": 0.5523
+          },
+          {
+            "reuseEpisode": "vocabulary-builder/m1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1373,
+            "baselineCost": 2687,
+            "ratio": 0.511
+          },
+          {
+            "reuseEpisode": "vocabulary-builder/m2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1431,
+            "baselineCost": 2687,
+            "ratio": 0.5326
+          },
+          {
+            "reuseEpisode": "vocabulary-builder/h1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 1777,
+            "baselineCost": 2687,
+            "ratio": 0.6613
+          },
+          {
+            "reuseEpisode": "world-bank-economic-snapshot/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "intentSignature": "FANOUT(tool)",
+            "reuseCost": 4272,
+            "baselineCost": 2687,
+            "ratio": 1.5899
+          }
+        ]
+      }
+    },
+    "R9": {
+      "name": "crossShapeTransfer",
+      "description": "an intentSignature whose crystallised helper is called across >= 2 families with different data shapes",
+      "value": "FANOUT(tool)",
+      "threshold": ">= 1 intentSignature reused across >= 2 families",
+      "met": true,
+      "detail": {
+        "crossShapeSignatures": [
+          {
+            "intentSignature": "FANOUT(tool)",
+            "helpers": [
+              "toolFanout"
+            ],
+            "families": [
+              "countries-encyclopedia",
+              "dnd-campaign-builder",
+              "dnd-monster-compendium",
+              "dog-breeds-encyclopedia",
+              "gitlab-deep-analysis",
+              "jikan-anime-analysis",
+              "jsonplaceholder-blog-analyzer",
+              "local-dna-analysis",
+              "name-demographics-analyzer",
+              "openmeteo-weather",
+              "pokeapi-pokedex",
+              "random-user-database",
+              "recipe-cookbook-builder",
+              "rickmorty-multiverse-explorer",
+              "tvmaze-series-analyzer",
+              "university-directory-builder",
+              "vocabulary-builder",
+              "world-bank-economic-snapshot"
+            ],
+            "familyCount": 18,
+            "episodes": [
+              "countries-encyclopedia/e3",
+              "dnd-campaign-builder/e1",
+              "dnd-campaign-builder/e2",
+              "dnd-campaign-builder/e3",
+              "dnd-campaign-builder/m1",
+              "dnd-campaign-builder/m2",
+              "dnd-monster-compendium/e1",
+              "dnd-monster-compendium/e2",
+              "dnd-monster-compendium/e3",
+              "dnd-monster-compendium/h1",
+              "dnd-monster-compendium/m1",
+              "dnd-monster-compendium/m2",
+              "dog-breeds-encyclopedia/e1",
+              "dog-breeds-encyclopedia/e2",
+              "dog-breeds-encyclopedia/e3",
+              "dog-breeds-encyclopedia/h1",
+              "dog-breeds-encyclopedia/m1",
+              "dog-breeds-encyclopedia/m2",
+              "gitlab-deep-analysis/e1",
+              "gitlab-deep-analysis/e2",
+              "gitlab-deep-analysis/e3",
+              "gitlab-deep-analysis/h1",
+              "gitlab-deep-analysis/m1",
+              "gitlab-deep-analysis/m2",
+              "jikan-anime-analysis/e1",
+              "jikan-anime-analysis/e2",
+              "jikan-anime-analysis/e3",
+              "jikan-anime-analysis/h1",
+              "jikan-anime-analysis/m1",
+              "jikan-anime-analysis/m2",
+              "jsonplaceholder-blog-analyzer/e1",
+              "jsonplaceholder-blog-analyzer/e2",
+              "jsonplaceholder-blog-analyzer/e3",
+              "jsonplaceholder-blog-analyzer/h1",
+              "jsonplaceholder-blog-analyzer/m1",
+              "jsonplaceholder-blog-analyzer/m2",
+              "local-dna-analysis/e1",
+              "local-dna-analysis/e2",
+              "local-dna-analysis/e3",
+              "local-dna-analysis/h1",
+              "local-dna-analysis/m1",
+              "local-dna-analysis/m2",
+              "name-demographics-analyzer/e1",
+              "name-demographics-analyzer/e2",
+              "name-demographics-analyzer/e3",
+              "name-demographics-analyzer/h1",
+              "name-demographics-analyzer/m1",
+              "name-demographics-analyzer/m2",
+              "openmeteo-weather/e1",
+              "openmeteo-weather/e2",
+              "openmeteo-weather/e3",
+              "openmeteo-weather/h1",
+              "openmeteo-weather/m1",
+              "openmeteo-weather/m2",
+              "pokeapi-pokedex/e1",
+              "pokeapi-pokedex/e2",
+              "pokeapi-pokedex/e3",
+              "pokeapi-pokedex/h1",
+              "pokeapi-pokedex/m1",
+              "pokeapi-pokedex/m2",
+              "random-user-database/e1",
+              "random-user-database/e2",
+              "random-user-database/h1",
+              "random-user-database/m1",
+              "recipe-cookbook-builder/e1",
+              "recipe-cookbook-builder/e2",
+              "recipe-cookbook-builder/h1",
+              "recipe-cookbook-builder/m1",
+              "recipe-cookbook-builder/m2",
+              "rickmorty-multiverse-explorer/e1",
+              "rickmorty-multiverse-explorer/e2",
+              "rickmorty-multiverse-explorer/e3",
+              "rickmorty-multiverse-explorer/h1",
+              "rickmorty-multiverse-explorer/m1",
+              "rickmorty-multiverse-explorer/m2",
+              "tvmaze-series-analyzer/e1",
+              "tvmaze-series-analyzer/e2",
+              "tvmaze-series-analyzer/e3",
+              "tvmaze-series-analyzer/h1",
+              "tvmaze-series-analyzer/m1",
+              "tvmaze-series-analyzer/m2",
+              "university-directory-builder/e1",
+              "university-directory-builder/e2",
+              "university-directory-builder/e3",
+              "university-directory-builder/m1",
+              "university-directory-builder/m2",
+              "vocabulary-builder/e1",
+              "vocabulary-builder/e2",
+              "vocabulary-builder/e3",
+              "vocabulary-builder/h1",
+              "vocabulary-builder/m1",
+              "vocabulary-builder/m2",
+              "world-bank-economic-snapshot/e1",
+              "world-bank-economic-snapshot/e2",
+              "world-bank-economic-snapshot/e3",
+              "world-bank-economic-snapshot/h1",
+              "world-bank-economic-snapshot/m1",
+              "world-bank-economic-snapshot/m2"
+            ]
+          },
+          {
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "helpers": [
+              "toolFanoutEnrichment"
+            ],
+            "families": [
+              "dnd-monster-compendium",
+              "dog-breeds-encyclopedia",
+              "local-dna-analysis",
+              "openmeteo-weather",
+              "pokeapi-pokedex",
+              "recipe-cookbook-builder",
+              "rickmorty-multiverse-explorer",
+              "university-directory-builder",
+              "world-bank-economic-snapshot"
+            ],
+            "familyCount": 9,
+            "episodes": [
+              "dnd-monster-compendium/e1",
+              "dnd-monster-compendium/e2",
+              "dnd-monster-compendium/e3",
+              "dnd-monster-compendium/h1",
+              "dnd-monster-compendium/m1",
+              "dnd-monster-compendium/m2",
+              "dog-breeds-encyclopedia/e2",
+              "dog-breeds-encyclopedia/h1",
+              "dog-breeds-encyclopedia/m1",
+              "dog-breeds-encyclopedia/m2",
+              "local-dna-analysis/e1",
+              "local-dna-analysis/e3",
+              "local-dna-analysis/h1",
+              "local-dna-analysis/m1",
+              "local-dna-analysis/m2",
+              "openmeteo-weather/e1",
+              "openmeteo-weather/e2",
+              "openmeteo-weather/e3",
+              "openmeteo-weather/h1",
+              "openmeteo-weather/m1",
+              "openmeteo-weather/m2",
+              "pokeapi-pokedex/e1",
+              "pokeapi-pokedex/e2",
+              "pokeapi-pokedex/e3",
+              "pokeapi-pokedex/h1",
+              "pokeapi-pokedex/m1",
+              "pokeapi-pokedex/m2",
+              "recipe-cookbook-builder/e1",
+              "recipe-cookbook-builder/e2",
+              "recipe-cookbook-builder/h1",
+              "recipe-cookbook-builder/m1",
+              "recipe-cookbook-builder/m2",
+              "rickmorty-multiverse-explorer/e3",
+              "university-directory-builder/e1",
+              "university-directory-builder/m1",
+              "world-bank-economic-snapshot/e2",
+              "world-bank-economic-snapshot/e3",
+              "world-bank-economic-snapshot/h1",
+              "world-bank-economic-snapshot/m1",
+              "world-bank-economic-snapshot/m2"
+            ]
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+            "helpers": [
+              "recordToolEnrichment"
+            ],
+            "families": [
+              "dnd-campaign-builder",
+              "university-directory-builder"
+            ],
+            "familyCount": 2,
+            "episodes": [
+              "dnd-campaign-builder/h1",
+              "university-directory-builder/h1"
+            ]
+          }
+        ],
+        "allCalledHelperSignatures": [
+          {
+            "intentSignature": "FANOUT(tool)",
+            "helpers": [
+              "toolFanout"
+            ],
+            "families": [
+              "countries-encyclopedia",
+              "dnd-campaign-builder",
+              "dnd-monster-compendium",
+              "dog-breeds-encyclopedia",
+              "gitlab-deep-analysis",
+              "jikan-anime-analysis",
+              "jsonplaceholder-blog-analyzer",
+              "local-dna-analysis",
+              "name-demographics-analyzer",
+              "openmeteo-weather",
+              "pokeapi-pokedex",
+              "random-user-database",
+              "recipe-cookbook-builder",
+              "rickmorty-multiverse-explorer",
+              "tvmaze-series-analyzer",
+              "university-directory-builder",
+              "vocabulary-builder",
+              "world-bank-economic-snapshot"
+            ],
+            "familyCount": 18,
+            "episodes": [
+              "countries-encyclopedia/e3",
+              "dnd-campaign-builder/e1",
+              "dnd-campaign-builder/e2",
+              "dnd-campaign-builder/e3",
+              "dnd-campaign-builder/m1",
+              "dnd-campaign-builder/m2",
+              "dnd-monster-compendium/e1",
+              "dnd-monster-compendium/e2",
+              "dnd-monster-compendium/e3",
+              "dnd-monster-compendium/h1",
+              "dnd-monster-compendium/m1",
+              "dnd-monster-compendium/m2",
+              "dog-breeds-encyclopedia/e1",
+              "dog-breeds-encyclopedia/e2",
+              "dog-breeds-encyclopedia/e3",
+              "dog-breeds-encyclopedia/h1",
+              "dog-breeds-encyclopedia/m1",
+              "dog-breeds-encyclopedia/m2",
+              "gitlab-deep-analysis/e1",
+              "gitlab-deep-analysis/e2",
+              "gitlab-deep-analysis/e3",
+              "gitlab-deep-analysis/h1",
+              "gitlab-deep-analysis/m1",
+              "gitlab-deep-analysis/m2",
+              "jikan-anime-analysis/e1",
+              "jikan-anime-analysis/e2",
+              "jikan-anime-analysis/e3",
+              "jikan-anime-analysis/h1",
+              "jikan-anime-analysis/m1",
+              "jikan-anime-analysis/m2",
+              "jsonplaceholder-blog-analyzer/e1",
+              "jsonplaceholder-blog-analyzer/e2",
+              "jsonplaceholder-blog-analyzer/e3",
+              "jsonplaceholder-blog-analyzer/h1",
+              "jsonplaceholder-blog-analyzer/m1",
+              "jsonplaceholder-blog-analyzer/m2",
+              "local-dna-analysis/e1",
+              "local-dna-analysis/e2",
+              "local-dna-analysis/e3",
+              "local-dna-analysis/h1",
+              "local-dna-analysis/m1",
+              "local-dna-analysis/m2",
+              "name-demographics-analyzer/e1",
+              "name-demographics-analyzer/e2",
+              "name-demographics-analyzer/e3",
+              "name-demographics-analyzer/h1",
+              "name-demographics-analyzer/m1",
+              "name-demographics-analyzer/m2",
+              "openmeteo-weather/e1",
+              "openmeteo-weather/e2",
+              "openmeteo-weather/e3",
+              "openmeteo-weather/h1",
+              "openmeteo-weather/m1",
+              "openmeteo-weather/m2",
+              "pokeapi-pokedex/e1",
+              "pokeapi-pokedex/e2",
+              "pokeapi-pokedex/e3",
+              "pokeapi-pokedex/h1",
+              "pokeapi-pokedex/m1",
+              "pokeapi-pokedex/m2",
+              "random-user-database/e1",
+              "random-user-database/e2",
+              "random-user-database/h1",
+              "random-user-database/m1",
+              "recipe-cookbook-builder/e1",
+              "recipe-cookbook-builder/e2",
+              "recipe-cookbook-builder/h1",
+              "recipe-cookbook-builder/m1",
+              "recipe-cookbook-builder/m2",
+              "rickmorty-multiverse-explorer/e1",
+              "rickmorty-multiverse-explorer/e2",
+              "rickmorty-multiverse-explorer/e3",
+              "rickmorty-multiverse-explorer/h1",
+              "rickmorty-multiverse-explorer/m1",
+              "rickmorty-multiverse-explorer/m2",
+              "tvmaze-series-analyzer/e1",
+              "tvmaze-series-analyzer/e2",
+              "tvmaze-series-analyzer/e3",
+              "tvmaze-series-analyzer/h1",
+              "tvmaze-series-analyzer/m1",
+              "tvmaze-series-analyzer/m2",
+              "university-directory-builder/e1",
+              "university-directory-builder/e2",
+              "university-directory-builder/e3",
+              "university-directory-builder/m1",
+              "university-directory-builder/m2",
+              "vocabulary-builder/e1",
+              "vocabulary-builder/e2",
+              "vocabulary-builder/e3",
+              "vocabulary-builder/h1",
+              "vocabulary-builder/m1",
+              "vocabulary-builder/m2",
+              "world-bank-economic-snapshot/e1",
+              "world-bank-economic-snapshot/e2",
+              "world-bank-economic-snapshot/e3",
+              "world-bank-economic-snapshot/h1",
+              "world-bank-economic-snapshot/m1",
+              "world-bank-economic-snapshot/m2"
+            ]
+          },
+          {
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "helpers": [
+              "toolFanoutEnrichment"
+            ],
+            "families": [
+              "dnd-monster-compendium",
+              "dog-breeds-encyclopedia",
+              "local-dna-analysis",
+              "openmeteo-weather",
+              "pokeapi-pokedex",
+              "recipe-cookbook-builder",
+              "rickmorty-multiverse-explorer",
+              "university-directory-builder",
+              "world-bank-economic-snapshot"
+            ],
+            "familyCount": 9,
+            "episodes": [
+              "dnd-monster-compendium/e1",
+              "dnd-monster-compendium/e2",
+              "dnd-monster-compendium/e3",
+              "dnd-monster-compendium/h1",
+              "dnd-monster-compendium/m1",
+              "dnd-monster-compendium/m2",
+              "dog-breeds-encyclopedia/e2",
+              "dog-breeds-encyclopedia/h1",
+              "dog-breeds-encyclopedia/m1",
+              "dog-breeds-encyclopedia/m2",
+              "local-dna-analysis/e1",
+              "local-dna-analysis/e3",
+              "local-dna-analysis/h1",
+              "local-dna-analysis/m1",
+              "local-dna-analysis/m2",
+              "openmeteo-weather/e1",
+              "openmeteo-weather/e2",
+              "openmeteo-weather/e3",
+              "openmeteo-weather/h1",
+              "openmeteo-weather/m1",
+              "openmeteo-weather/m2",
+              "pokeapi-pokedex/e1",
+              "pokeapi-pokedex/e2",
+              "pokeapi-pokedex/e3",
+              "pokeapi-pokedex/h1",
+              "pokeapi-pokedex/m1",
+              "pokeapi-pokedex/m2",
+              "recipe-cookbook-builder/e1",
+              "recipe-cookbook-builder/e2",
+              "recipe-cookbook-builder/h1",
+              "recipe-cookbook-builder/m1",
+              "recipe-cookbook-builder/m2",
+              "rickmorty-multiverse-explorer/e3",
+              "university-directory-builder/e1",
+              "university-directory-builder/m1",
+              "world-bank-economic-snapshot/e2",
+              "world-bank-economic-snapshot/e3",
+              "world-bank-economic-snapshot/h1",
+              "world-bank-economic-snapshot/m1",
+              "world-bank-economic-snapshot/m2"
+            ]
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+            "helpers": [
+              "recordToolEnrichment"
+            ],
+            "families": [
+              "dnd-campaign-builder",
+              "university-directory-builder"
+            ],
+            "familyCount": 2,
+            "episodes": [
+              "dnd-campaign-builder/h1",
+              "university-directory-builder/h1"
+            ]
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib",
+            "helpers": [
+              "recordToolFanout"
+            ],
+            "families": [
+              "cocktail-menu-generator"
+            ],
+            "familyCount": 1,
+            "episodes": [
+              "cocktail-menu-generator/h1",
+              "cocktail-menu-generator/m1",
+              "cocktail-menu-generator/m2"
+            ]
+          },
+          {
+            "intentSignature": "FANOUT(db)→FANOUT(tool)",
+            "helpers": [
+              "recordToolLookup"
+            ],
+            "families": [
+              "usgs-earthquake-monitor"
+            ],
+            "familyCount": 1,
+            "episodes": [
+              "usgs-earthquake-monitor/e3",
+              "usgs-earthquake-monitor/h1",
+              "usgs-earthquake-monitor/m1",
+              "usgs-earthquake-monitor/m2"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "perTier": {
+    "train": {
+      "count": 21,
+      "passRate": 0.9524,
+      "passed": 20,
+      "avgEffectiveTokens": 1893.1,
+      "runtimeErrors": 0
+    },
+    "warm": {
+      "count": 84,
+      "passRate": 0.9167,
+      "passed": 77,
+      "avgEffectiveTokens": 1980.5,
+      "runtimeErrors": 2
+    },
+    "hard": {
+      "count": 21,
+      "passRate": 0.9524,
+      "passed": 20,
+      "avgEffectiveTokens": 1891.6,
+      "runtimeErrors": 0
+    }
+  },
+  "normalizerCrossCheck": {
+    "ge70ButNotPassed": 0,
+    "byRuntimeStatus": {},
+    "rows": []
+  },
+  "signatureJoinDiagnostic": {
+    "clusterSignatures": 7,
+    "crystallisedHelperSignatures": 6,
+    "intersection": 5,
+    "crystallisedHelpersWithNoSignature": 0,
+    "headerSignaturesNotInAnyCluster": [
+      "lib→FANOUT(tool)"
+    ]
+  },
+  "compositionalDiagnostics": {
+    "policy": "diagnostic only; official R6-R8 remain exact whole-trajectory gates. Sub-intent coverage requires a contiguous signature match and rejects broad single-token helpers except FANOUT templates.",
+    "R6": {
+      "name": "compositionalConvergenceRate",
+      "value": 0.1667,
+      "threshold": "diagnostic only",
+      "detail": {
+        "qualifyingClusters": 6,
+        "convergedQualifying": 1,
+        "clusters": [
+          {
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "trajectories": 51,
+            "successfulTrajectories": 50,
+            "familyCount": 16,
+            "coveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              },
+              {
+                "name": "toolfanoutNestedToolfanoutenrichment",
+                "intentSignature": "lib→FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "converged": false
+          },
+          {
+            "intentSignature": "FANOUT(tool)",
+            "trajectories": 45,
+            "successfulTrajectories": 45,
+            "familyCount": 12,
+            "coveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "converged": true
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib",
+            "trajectories": 13,
+            "successfulTrajectories": 7,
+            "familyCount": 3,
+            "coveringHelpers": [
+              {
+                "name": "recordToolFanout",
+                "intentSignature": "db→FANOUT(tool)→lib",
+                "relation": "exact"
+              },
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+            "trajectories": 6,
+            "successfulTrajectories": 6,
+            "familyCount": 2,
+            "coveringHelpers": [
+              {
+                "name": "recordToolEnrichment",
+                "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              },
+              {
+                "name": "recordToolFanout",
+                "intentSignature": "db→FANOUT(tool)→lib",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolfanoutNestedToolfanoutenrichment",
+                "intentSignature": "lib→FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "converged": false
+          },
+          {
+            "intentSignature": "FANOUT(db)→FANOUT(tool)",
+            "trajectories": 6,
+            "successfulTrajectories": 6,
+            "familyCount": 1,
+            "coveringHelpers": [
+              {
+                "name": "recordToolLookup",
+                "intentSignature": "FANOUT(db)→FANOUT(tool)",
+                "relation": "exact"
+              },
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "converged": false
+          },
+          {
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)→lib→FANOUT(tool)→lib",
+            "trajectories": 2,
+            "successfulTrajectories": 2,
+            "familyCount": 1,
+            "coveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolfanoutNestedToolfanoutenrichment",
+                "intentSignature": "lib→FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "converged": false
+          },
+          {
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)→lib→FANOUT(tool)",
+            "trajectories": 1,
+            "successfulTrajectories": 1,
+            "familyCount": 1,
+            "coveringHelpers": [
+              {
+                "name": "recordToolEnrichment",
+                "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "recordToolFanout",
+                "intentSignature": "db→FANOUT(tool)→lib",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolfanoutNestedToolfanoutenrichment",
+                "intentSignature": "lib→FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "converged": false
+          }
+        ]
+      }
+    },
+    "R7": {
+      "name": "compositionalConditionalReuse",
+      "value": 0.9467,
+      "threshold": "diagnostic only",
+      "detail": {
+        "warmEpisodesWithCoveringHelperAvailable": 75,
+        "reused": 71,
+        "episodes": [
+          {
+            "taskKey": "scaled_tasks/cocktail-menu-generator/m1",
+            "intentSignature": "db→FANOUT(tool)→lib",
+            "availableCoveringHelpers": [
+              {
+                "name": "recordToolFanout",
+                "intentSignature": "db→FANOUT(tool)→lib",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "recordToolFanout",
+                "intentSignature": "db→FANOUT(tool)→lib",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/cocktail-menu-generator/m2",
+            "intentSignature": "db→FANOUT(tool)→lib",
+            "availableCoveringHelpers": [
+              {
+                "name": "recordToolFanout",
+                "intentSignature": "db→FANOUT(tool)→lib",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "recordToolFanout",
+                "intentSignature": "db→FANOUT(tool)→lib",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/countries-encyclopedia/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/countries-encyclopedia/m1",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [],
+            "reused": false
+          },
+          {
+            "taskKey": "scaled_tasks/countries-encyclopedia/m2",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [],
+            "reused": false
+          },
+          {
+            "taskKey": "scaled_tasks/dnd-campaign-builder/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dnd-campaign-builder/e3",
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dnd-campaign-builder/m1",
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dnd-campaign-builder/m2",
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dnd-monster-compendium/e2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dnd-monster-compendium/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dnd-monster-compendium/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dnd-monster-compendium/m2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dog-breeds-encyclopedia/e2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dog-breeds-encyclopedia/e3",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dog-breeds-encyclopedia/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/dog-breeds-encyclopedia/m2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/gitlab-deep-analysis/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/gitlab-deep-analysis/e3",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/gitlab-deep-analysis/m1",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/gitlab-deep-analysis/m2",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/jikan-anime-analysis/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/jikan-anime-analysis/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/jikan-anime-analysis/m1",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/jikan-anime-analysis/m2",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/jsonplaceholder-blog-analyzer/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/jsonplaceholder-blog-analyzer/e3",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/jsonplaceholder-blog-analyzer/m1",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/jsonplaceholder-blog-analyzer/m2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/local-dna-analysis/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/local-dna-analysis/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/local-dna-analysis/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              },
+              {
+                "name": "toolfanoutNestedToolfanoutenrichment",
+                "intentSignature": "lib→FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/local-dna-analysis/m2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              },
+              {
+                "name": "toolfanoutNestedToolfanoutenrichment",
+                "intentSignature": "lib→FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/name-demographics-analyzer/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/name-demographics-analyzer/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/name-demographics-analyzer/m1",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/name-demographics-analyzer/m2",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/openmeteo-weather/e2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/openmeteo-weather/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/openmeteo-weather/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/openmeteo-weather/m2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/pokeapi-pokedex/e2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/pokeapi-pokedex/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)→lib→FANOUT(tool)→lib",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolfanoutNestedToolfanoutenrichment",
+                "intentSignature": "lib→FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/pokeapi-pokedex/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              },
+              {
+                "name": "toolfanoutNestedToolfanoutenrichment",
+                "intentSignature": "lib→FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/pokeapi-pokedex/m2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)→lib→FANOUT(tool)→lib",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolfanoutNestedToolfanoutenrichment",
+                "intentSignature": "lib→FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/random-user-database/e2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/random-user-database/e3",
+            "intentSignature": "db→FANOUT(tool)→lib",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [],
+            "reused": false
+          },
+          {
+            "taskKey": "scaled_tasks/random-user-database/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/recipe-cookbook-builder/e2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/recipe-cookbook-builder/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              },
+              {
+                "name": "toolfanoutNestedToolfanoutenrichment",
+                "intentSignature": "lib→FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/recipe-cookbook-builder/m2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              },
+              {
+                "name": "toolfanoutNestedToolfanoutenrichment",
+                "intentSignature": "lib→FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/rickmorty-multiverse-explorer/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/rickmorty-multiverse-explorer/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/rickmorty-multiverse-explorer/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/rickmorty-multiverse-explorer/m2",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/tvmaze-series-analyzer/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/tvmaze-series-analyzer/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/tvmaze-series-analyzer/m1",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/tvmaze-series-analyzer/m2",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/university-directory-builder/e2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/university-directory-builder/e3",
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/university-directory-builder/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/university-directory-builder/m2",
+            "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/usgs-earthquake-monitor/e2",
+            "intentSignature": "FANOUT(db)→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [],
+            "reused": false
+          },
+          {
+            "taskKey": "scaled_tasks/usgs-earthquake-monitor/e3",
+            "intentSignature": "FANOUT(db)→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "recordToolLookup",
+                "intentSignature": "FANOUT(db)→FANOUT(tool)",
+                "relation": "exact"
+              },
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "recordToolLookup",
+                "intentSignature": "FANOUT(db)→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/usgs-earthquake-monitor/m1",
+            "intentSignature": "FANOUT(db)→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "recordToolLookup",
+                "intentSignature": "FANOUT(db)→FANOUT(tool)",
+                "relation": "exact"
+              },
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "recordToolLookup",
+                "intentSignature": "FANOUT(db)→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/usgs-earthquake-monitor/m2",
+            "intentSignature": "FANOUT(db)→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "recordToolLookup",
+                "intentSignature": "FANOUT(db)→FANOUT(tool)",
+                "relation": "exact"
+              },
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "recordToolLookup",
+                "intentSignature": "FANOUT(db)→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/vocabulary-builder/e2",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/vocabulary-builder/e3",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/vocabulary-builder/m1",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/vocabulary-builder/m2",
+            "intentSignature": "FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/world-bank-economic-snapshot/e2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/world-bank-economic-snapshot/e3",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/world-bank-economic-snapshot/m1",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          },
+          {
+            "taskKey": "scaled_tasks/world-bank-economic-snapshot/m2",
+            "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "availableCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "calledCoveringHelpers": [
+              {
+                "name": "toolFanout",
+                "intentSignature": "FANOUT(tool)",
+                "relation": "subintent"
+              },
+              {
+                "name": "toolFanoutEnrichment",
+                "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+                "relation": "exact"
+              }
+            ],
+            "reused": true
+          }
+        ]
+      }
+    },
+    "R8": {
+      "name": "compositionalConditionalCostDrop",
+      "value": 0.5871,
+      "threshold": "diagnostic only",
+      "detail": {
+        "pairedReuseEpisodes": 105,
+        "meanRatio": 0.5871,
+        "medianRatio": 0.5389,
+        "aggregateRatio": 0.5678,
+        "perPairPassFraction": 0.7524,
+        "pairs": [
+          {
+            "reuseEpisode": "cocktail-menu-generator/m1",
+            "baselineEpisode": "cocktail-menu-generator/e3",
+            "helper": "recordToolFanout",
+            "helperIntentSignature": "db→FANOUT(tool)→lib",
+            "episodeIntentSignature": "db→FANOUT(tool)→lib",
+            "relation": "exact",
+            "reuseCost": 1169,
+            "baselineCost": 2514,
+            "ratio": 0.465
+          },
+          {
+            "reuseEpisode": "cocktail-menu-generator/m2",
+            "baselineEpisode": "cocktail-menu-generator/e3",
+            "helper": "recordToolFanout",
+            "helperIntentSignature": "db→FANOUT(tool)→lib",
+            "episodeIntentSignature": "db→FANOUT(tool)→lib",
+            "relation": "exact",
+            "reuseCost": 1123,
+            "baselineCost": 2514,
+            "ratio": 0.4467
+          },
+          {
+            "reuseEpisode": "cocktail-menu-generator/h1",
+            "baselineEpisode": "cocktail-menu-generator/e3",
+            "helper": "recordToolFanout",
+            "helperIntentSignature": "db→FANOUT(tool)→lib",
+            "episodeIntentSignature": "db→FANOUT(tool)→lib",
+            "relation": "exact",
+            "reuseCost": 1196,
+            "baselineCost": 2514,
+            "ratio": 0.4757
+          },
+          {
+            "reuseEpisode": "countries-encyclopedia/e3",
+            "baselineEpisode": "countries-encyclopedia/e2",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1868,
+            "baselineCost": 3586,
+            "ratio": 0.5209
+          },
+          {
+            "reuseEpisode": "dnd-campaign-builder/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 2033,
+            "baselineCost": 2687,
+            "ratio": 0.7566
+          },
+          {
+            "reuseEpisode": "dnd-campaign-builder/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1917,
+            "baselineCost": 2687,
+            "ratio": 0.7134
+          },
+          {
+            "reuseEpisode": "dnd-campaign-builder/e3",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 2198,
+            "baselineCost": 2687,
+            "ratio": 0.818
+          },
+          {
+            "reuseEpisode": "dnd-campaign-builder/m1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 2178,
+            "baselineCost": 2687,
+            "ratio": 0.8106
+          },
+          {
+            "reuseEpisode": "dnd-campaign-builder/m2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 2578,
+            "baselineCost": 2687,
+            "ratio": 0.9594
+          },
+          {
+            "reuseEpisode": "dnd-monster-compendium/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1328,
+            "baselineCost": 2687,
+            "ratio": 0.4942
+          },
+          {
+            "reuseEpisode": "dnd-monster-compendium/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1504,
+            "baselineCost": 2687,
+            "ratio": 0.5597
+          },
+          {
+            "reuseEpisode": "dnd-monster-compendium/e3",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1608,
+            "baselineCost": 2687,
+            "ratio": 0.5984
+          },
+          {
+            "reuseEpisode": "dnd-monster-compendium/m1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1648,
+            "baselineCost": 2687,
+            "ratio": 0.6133
+          },
+          {
+            "reuseEpisode": "dnd-monster-compendium/m2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1357,
+            "baselineCost": 2687,
+            "ratio": 0.505
+          },
+          {
+            "reuseEpisode": "dnd-monster-compendium/h1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1641,
+            "baselineCost": 2687,
+            "ratio": 0.6107
+          },
+          {
+            "reuseEpisode": "dog-breeds-encyclopedia/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1307,
+            "baselineCost": 2687,
+            "ratio": 0.4864
+          },
+          {
+            "reuseEpisode": "dog-breeds-encyclopedia/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1533,
+            "baselineCost": 2687,
+            "ratio": 0.5705
+          },
+          {
+            "reuseEpisode": "dog-breeds-encyclopedia/e3",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1419,
+            "baselineCost": 2687,
+            "ratio": 0.5281
+          },
+          {
+            "reuseEpisode": "dog-breeds-encyclopedia/m1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1345,
+            "baselineCost": 2687,
+            "ratio": 0.5006
+          },
+          {
+            "reuseEpisode": "dog-breeds-encyclopedia/m2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1613,
+            "baselineCost": 2687,
+            "ratio": 0.6003
+          },
+          {
+            "reuseEpisode": "dog-breeds-encyclopedia/h1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1519,
+            "baselineCost": 2687,
+            "ratio": 0.5653
+          },
+          {
+            "reuseEpisode": "gitlab-deep-analysis/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1768,
+            "baselineCost": 2687,
+            "ratio": 0.658
+          },
+          {
+            "reuseEpisode": "gitlab-deep-analysis/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1749,
+            "baselineCost": 2687,
+            "ratio": 0.6509
+          },
+          {
+            "reuseEpisode": "gitlab-deep-analysis/e3",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 3774,
+            "baselineCost": 2687,
+            "ratio": 1.4045
+          },
+          {
+            "reuseEpisode": "gitlab-deep-analysis/m1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1987,
+            "baselineCost": 2687,
+            "ratio": 0.7395
+          },
+          {
+            "reuseEpisode": "gitlab-deep-analysis/m2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1932,
+            "baselineCost": 2687,
+            "ratio": 0.719
+          },
+          {
+            "reuseEpisode": "gitlab-deep-analysis/h1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 2178,
+            "baselineCost": 2687,
+            "ratio": 0.8106
+          },
+          {
+            "reuseEpisode": "jikan-anime-analysis/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1751,
+            "baselineCost": 2687,
+            "ratio": 0.6517
+          },
+          {
+            "reuseEpisode": "jikan-anime-analysis/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 2047,
+            "baselineCost": 2687,
+            "ratio": 0.7618
+          },
+          {
+            "reuseEpisode": "jikan-anime-analysis/e3",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 2272,
+            "baselineCost": 2687,
+            "ratio": 0.8456
+          },
+          {
+            "reuseEpisode": "jikan-anime-analysis/m1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1889,
+            "baselineCost": 2687,
+            "ratio": 0.703
+          },
+          {
+            "reuseEpisode": "jikan-anime-analysis/m2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 2054,
+            "baselineCost": 2687,
+            "ratio": 0.7644
+          },
+          {
+            "reuseEpisode": "jikan-anime-analysis/h1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 2108,
+            "baselineCost": 2687,
+            "ratio": 0.7845
+          },
+          {
+            "reuseEpisode": "jsonplaceholder-blog-analyzer/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1286,
+            "baselineCost": 2687,
+            "ratio": 0.4786
+          },
+          {
+            "reuseEpisode": "jsonplaceholder-blog-analyzer/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1235,
+            "baselineCost": 2687,
+            "ratio": 0.4596
+          },
+          {
+            "reuseEpisode": "jsonplaceholder-blog-analyzer/e3",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1425,
+            "baselineCost": 2687,
+            "ratio": 0.5303
+          },
+          {
+            "reuseEpisode": "jsonplaceholder-blog-analyzer/m1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1448,
+            "baselineCost": 2687,
+            "ratio": 0.5389
+          },
+          {
+            "reuseEpisode": "jsonplaceholder-blog-analyzer/m2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1602,
+            "baselineCost": 2687,
+            "ratio": 0.5962
+          },
+          {
+            "reuseEpisode": "jsonplaceholder-blog-analyzer/h1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1461,
+            "baselineCost": 2687,
+            "ratio": 0.5437
+          },
+          {
+            "reuseEpisode": "local-dna-analysis/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1559,
+            "baselineCost": 2687,
+            "ratio": 0.5802
+          },
+          {
+            "reuseEpisode": "local-dna-analysis/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1448,
+            "baselineCost": 2687,
+            "ratio": 0.5389
+          },
+          {
+            "reuseEpisode": "local-dna-analysis/e3",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1574,
+            "baselineCost": 2687,
+            "ratio": 0.5858
+          },
+          {
+            "reuseEpisode": "local-dna-analysis/m1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1637,
+            "baselineCost": 2687,
+            "ratio": 0.6092
+          },
+          {
+            "reuseEpisode": "local-dna-analysis/m2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1728,
+            "baselineCost": 2687,
+            "ratio": 0.6431
+          },
+          {
+            "reuseEpisode": "local-dna-analysis/h1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1707,
+            "baselineCost": 2687,
+            "ratio": 0.6353
+          },
+          {
+            "reuseEpisode": "name-demographics-analyzer/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1349,
+            "baselineCost": 2687,
+            "ratio": 0.502
+          },
+          {
+            "reuseEpisode": "name-demographics-analyzer/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1268,
+            "baselineCost": 2687,
+            "ratio": 0.4719
+          },
+          {
+            "reuseEpisode": "name-demographics-analyzer/e3",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1488,
+            "baselineCost": 2687,
+            "ratio": 0.5538
+          },
+          {
+            "reuseEpisode": "name-demographics-analyzer/m1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1369,
+            "baselineCost": 2687,
+            "ratio": 0.5095
+          },
+          {
+            "reuseEpisode": "name-demographics-analyzer/m2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 3763,
+            "baselineCost": 2687,
+            "ratio": 1.4004
+          },
+          {
+            "reuseEpisode": "name-demographics-analyzer/h1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1514,
+            "baselineCost": 2687,
+            "ratio": 0.5635
+          },
+          {
+            "reuseEpisode": "openmeteo-weather/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1993,
+            "baselineCost": 2687,
+            "ratio": 0.7417
+          },
+          {
+            "reuseEpisode": "openmeteo-weather/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1794,
+            "baselineCost": 2687,
+            "ratio": 0.6677
+          },
+          {
+            "reuseEpisode": "openmeteo-weather/e3",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1530,
+            "baselineCost": 2687,
+            "ratio": 0.5694
+          },
+          {
+            "reuseEpisode": "openmeteo-weather/m1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 2190,
+            "baselineCost": 2687,
+            "ratio": 0.815
+          },
+          {
+            "reuseEpisode": "openmeteo-weather/m2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 2119,
+            "baselineCost": 2687,
+            "ratio": 0.7886
+          },
+          {
+            "reuseEpisode": "openmeteo-weather/h1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 2507,
+            "baselineCost": 2687,
+            "ratio": 0.933
+          },
+          {
+            "reuseEpisode": "pokeapi-pokedex/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1435,
+            "baselineCost": 2687,
+            "ratio": 0.5341
+          },
+          {
+            "reuseEpisode": "pokeapi-pokedex/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1493,
+            "baselineCost": 2687,
+            "ratio": 0.5556
+          },
+          {
+            "reuseEpisode": "pokeapi-pokedex/e3",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)→lib→FANOUT(tool)→lib",
+            "relation": "subintent",
+            "reuseCost": 1696,
+            "baselineCost": 2687,
+            "ratio": 0.6312
+          },
+          {
+            "reuseEpisode": "pokeapi-pokedex/m1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1622,
+            "baselineCost": 2687,
+            "ratio": 0.6036
+          },
+          {
+            "reuseEpisode": "pokeapi-pokedex/m2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)→lib→FANOUT(tool)→lib",
+            "relation": "subintent",
+            "reuseCost": 2120,
+            "baselineCost": 2687,
+            "ratio": 0.789
+          },
+          {
+            "reuseEpisode": "pokeapi-pokedex/h1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1966,
+            "baselineCost": 2687,
+            "ratio": 0.7317
+          },
+          {
+            "reuseEpisode": "random-user-database/e1",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1932,
+            "baselineCost": 2687,
+            "ratio": 0.719
+          },
+          {
+            "reuseEpisode": "random-user-database/e2",
+            "baselineEpisode": "countries-encyclopedia/h1",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1753,
+            "baselineCost": 2687,
+            "ratio": 0.6524
+          },
+          {
+            "reuseEpisode": "random-user-database/m1",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1881,
+            "baselineCost": 4216,
+            "ratio": 0.4462
+          },
+          {
+            "reuseEpisode": "random-user-database/h1",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 2027,
+            "baselineCost": 4216,
+            "ratio": 0.4808
+          },
+          {
+            "reuseEpisode": "recipe-cookbook-builder/e1",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1476,
+            "baselineCost": 4216,
+            "ratio": 0.3501
+          },
+          {
+            "reuseEpisode": "recipe-cookbook-builder/e2",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1615,
+            "baselineCost": 4216,
+            "ratio": 0.3831
+          },
+          {
+            "reuseEpisode": "recipe-cookbook-builder/m1",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1794,
+            "baselineCost": 4216,
+            "ratio": 0.4255
+          },
+          {
+            "reuseEpisode": "recipe-cookbook-builder/m2",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1471,
+            "baselineCost": 4216,
+            "ratio": 0.3489
+          },
+          {
+            "reuseEpisode": "recipe-cookbook-builder/h1",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1811,
+            "baselineCost": 4216,
+            "ratio": 0.4296
+          },
+          {
+            "reuseEpisode": "rickmorty-multiverse-explorer/e1",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 2076,
+            "baselineCost": 4216,
+            "ratio": 0.4924
+          },
+          {
+            "reuseEpisode": "rickmorty-multiverse-explorer/e2",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1471,
+            "baselineCost": 4216,
+            "ratio": 0.3489
+          },
+          {
+            "reuseEpisode": "rickmorty-multiverse-explorer/e3",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1534,
+            "baselineCost": 4216,
+            "ratio": 0.3639
+          },
+          {
+            "reuseEpisode": "rickmorty-multiverse-explorer/m1",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1930,
+            "baselineCost": 4216,
+            "ratio": 0.4578
+          },
+          {
+            "reuseEpisode": "rickmorty-multiverse-explorer/m2",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1458,
+            "baselineCost": 4216,
+            "ratio": 0.3458
+          },
+          {
+            "reuseEpisode": "rickmorty-multiverse-explorer/h1",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1420,
+            "baselineCost": 4216,
+            "ratio": 0.3368
+          },
+          {
+            "reuseEpisode": "tvmaze-series-analyzer/e1",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1780,
+            "baselineCost": 4216,
+            "ratio": 0.4222
+          },
+          {
+            "reuseEpisode": "tvmaze-series-analyzer/e2",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1879,
+            "baselineCost": 4216,
+            "ratio": 0.4457
+          },
+          {
+            "reuseEpisode": "tvmaze-series-analyzer/e3",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 2163,
+            "baselineCost": 4216,
+            "ratio": 0.513
+          },
+          {
+            "reuseEpisode": "tvmaze-series-analyzer/m1",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1927,
+            "baselineCost": 4216,
+            "ratio": 0.4571
+          },
+          {
+            "reuseEpisode": "tvmaze-series-analyzer/m2",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1939,
+            "baselineCost": 4216,
+            "ratio": 0.4599
+          },
+          {
+            "reuseEpisode": "tvmaze-series-analyzer/h1",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 2142,
+            "baselineCost": 4216,
+            "ratio": 0.5081
+          },
+          {
+            "reuseEpisode": "university-directory-builder/e1",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1318,
+            "baselineCost": 4216,
+            "ratio": 0.3126
+          },
+          {
+            "reuseEpisode": "university-directory-builder/e2",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 3905,
+            "baselineCost": 4216,
+            "ratio": 0.9262
+          },
+          {
+            "reuseEpisode": "university-directory-builder/e3",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1278,
+            "baselineCost": 4216,
+            "ratio": 0.3031
+          },
+          {
+            "reuseEpisode": "university-directory-builder/m1",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1357,
+            "baselineCost": 4216,
+            "ratio": 0.3219
+          },
+          {
+            "reuseEpisode": "university-directory-builder/m2",
+            "baselineEpisode": "random-user-database/e3",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1443,
+            "baselineCost": 4216,
+            "ratio": 0.3423
+          },
+          {
+            "reuseEpisode": "usgs-earthquake-monitor/e3",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "helper": "recordToolLookup",
+            "helperIntentSignature": "FANOUT(db)→FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(db)→FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1630,
+            "baselineCost": 3757,
+            "ratio": 0.4339
+          },
+          {
+            "reuseEpisode": "usgs-earthquake-monitor/m1",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "helper": "recordToolLookup",
+            "helperIntentSignature": "FANOUT(db)→FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(db)→FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1579,
+            "baselineCost": 3757,
+            "ratio": 0.4203
+          },
+          {
+            "reuseEpisode": "usgs-earthquake-monitor/m2",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "helper": "recordToolLookup",
+            "helperIntentSignature": "FANOUT(db)→FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(db)→FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 2146,
+            "baselineCost": 3757,
+            "ratio": 0.5712
+          },
+          {
+            "reuseEpisode": "usgs-earthquake-monitor/h1",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "helper": "recordToolLookup",
+            "helperIntentSignature": "FANOUT(db)→FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(db)→FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1520,
+            "baselineCost": 3757,
+            "ratio": 0.4046
+          },
+          {
+            "reuseEpisode": "vocabulary-builder/e1",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1443,
+            "baselineCost": 3757,
+            "ratio": 0.3841
+          },
+          {
+            "reuseEpisode": "vocabulary-builder/e2",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1276,
+            "baselineCost": 3757,
+            "ratio": 0.3396
+          },
+          {
+            "reuseEpisode": "vocabulary-builder/e3",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1484,
+            "baselineCost": 3757,
+            "ratio": 0.395
+          },
+          {
+            "reuseEpisode": "vocabulary-builder/m1",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1373,
+            "baselineCost": 3757,
+            "ratio": 0.3655
+          },
+          {
+            "reuseEpisode": "vocabulary-builder/m2",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1431,
+            "baselineCost": 3757,
+            "ratio": 0.3809
+          },
+          {
+            "reuseEpisode": "vocabulary-builder/h1",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 1777,
+            "baselineCost": 3757,
+            "ratio": 0.473
+          },
+          {
+            "reuseEpisode": "world-bank-economic-snapshot/e1",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)",
+            "relation": "exact",
+            "reuseCost": 4272,
+            "baselineCost": 3757,
+            "ratio": 1.1371
+          },
+          {
+            "reuseEpisode": "world-bank-economic-snapshot/e2",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1666,
+            "baselineCost": 3757,
+            "ratio": 0.4434
+          },
+          {
+            "reuseEpisode": "world-bank-economic-snapshot/e3",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1725,
+            "baselineCost": 3757,
+            "ratio": 0.4591
+          },
+          {
+            "reuseEpisode": "world-bank-economic-snapshot/m1",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 3573,
+            "baselineCost": 3757,
+            "ratio": 0.951
+          },
+          {
+            "reuseEpisode": "world-bank-economic-snapshot/m2",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 4515,
+            "baselineCost": 3757,
+            "ratio": 1.2018
+          },
+          {
+            "reuseEpisode": "world-bank-economic-snapshot/h1",
+            "baselineEpisode": "usgs-earthquake-monitor/e2",
+            "helper": "toolFanout",
+            "helperIntentSignature": "FANOUT(tool)",
+            "episodeIntentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+            "relation": "subintent",
+            "reuseCost": 1874,
+            "baselineCost": 3757,
+            "ratio": 0.4988
+          }
+        ]
+      }
+    }
+  },
+  "helperMaturity": {
+    "byHelper": {
+      "recordToolEnrichment": {
+        "helperName": "recordToolEnrichment",
+        "intentSignature": "db→FANOUT(tool)→lib→FANOUT(tool)",
+        "attempts": 2,
+        "passes": 2,
+        "costDropWins": 0,
+        "costDropLosses": 0,
+        "consecutiveLosses": 0,
+        "state": "verified"
+      },
+      "recordToolFanout": {
+        "helperName": "recordToolFanout",
+        "intentSignature": "db→FANOUT(tool)→lib",
+        "attempts": 3,
+        "passes": 3,
+        "costDropWins": 3,
+        "costDropLosses": 0,
+        "consecutiveLosses": 0,
+        "state": "verified"
+      },
+      "recordToolLookup": {
+        "helperName": "recordToolLookup",
+        "intentSignature": "FANOUT(db)→FANOUT(tool)",
+        "attempts": 4,
+        "passes": 4,
+        "costDropWins": 4,
+        "costDropLosses": 0,
+        "consecutiveLosses": 0,
+        "state": "preferred"
+      },
+      "toolFanout": {
+        "helperName": "toolFanout",
+        "intentSignature": "FANOUT(tool)",
+        "attempts": 112,
+        "passes": 97,
+        "costDropWins": 26,
+        "costDropLosses": 14,
+        "consecutiveLosses": 1,
+        "state": "quarantined"
+      },
+      "toolFanoutEnrichment": {
+        "helperName": "toolFanoutEnrichment",
+        "intentSignature": "FANOUT(tool)→lib→FANOUT(tool)",
+        "attempts": 103,
+        "passes": 39,
+        "costDropWins": 0,
+        "costDropLosses": 0,
+        "consecutiveLosses": 0,
+        "state": "verified"
+      },
+      "toolfanoutNestedToolfanoutenrichment": {
+        "helperName": "toolfanoutNestedToolfanoutenrichment",
+        "intentSignature": "lib→FANOUT(tool)",
+        "attempts": 11,
+        "passes": 0,
+        "costDropWins": 0,
+        "costDropLosses": 0,
+        "consecutiveLosses": 0,
+        "state": "candidate"
+      }
+    },
+    "stateCounts": {
+      "candidate": 1,
+      "verified": 3,
+      "preferred": 1,
+      "suspect": 0,
+      "quarantined": 1
+    },
+    "preferredHelperNames": [
+      "recordToolLookup"
+    ]
+  }
+}

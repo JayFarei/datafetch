@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-05-17T17:45:32.264Z",
+  "adapterReady": false,
+  "skillcraftDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon-p1/eval/skillcraft/vendor/skillcraft",
+  "outDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon-p1/eval/skillcraft/results/datafetch/goal4-p1-armA-substrate-on-20260517",
+  "libCacheDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon-p1/eval/skillcraft/results/datafetch/goal4-p1-armA-substrate-on-20260517/lib-cache",
+  "selectedTasks": 126,
+  "mode": "live-agent-experimental",
+  "agent": "claude",
+  "promptMode": "brief",
+  "interfaceMode": "hooks-draft",
+  "codexDirectCacheIsolation": null,
+  "model": "claude-sonnet-4-6",
+  "reasoningEffort": "low",
+  "snippetTimeoutMs": 300000,
+  "armId": "datafetch-learned",
+  "disableLearning": false
+}
