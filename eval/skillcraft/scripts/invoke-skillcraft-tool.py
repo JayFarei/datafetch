@@ -157,11 +157,18 @@ def install_requests_shim() -> None:
         def json(self) -> Any:
             return json.loads(self.text)
 
+    def normalize_url(url: str) -> str:
+        parts = urllib.parse.urlsplit(url)
+        path = urllib.parse.quote(parts.path, safe="/%")
+        query = urllib.parse.quote(parts.query, safe="=&%")
+        return urllib.parse.urlunsplit((parts.scheme, parts.netloc, path, query, parts.fragment))
+
     def get(url: str, headers: dict[str, str] | None = None, params: dict[str, Any] | None = None, timeout: int | float | None = None) -> Response:
         full_url = url
         if params:
             query = urllib.parse.urlencode({key: value for key, value in params.items() if value is not None})
             full_url = f"{url}{'&' if '?' in url else '?'}{query}"
+        full_url = normalize_url(full_url)
         merged_headers = {"User-Agent": "Mozilla/5.0 (compatible; SkillCraft/1.0)"}
         merged_headers.update(headers or {})
         request = urllib.request.Request(full_url, headers=merged_headers)
