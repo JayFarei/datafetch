@@ -143,7 +143,9 @@ async function main(): Promise<void> {
   checks.push({
     name: "helper body is parameterised over toolBundle (not frozen to widgets_api)",
     pass:
-      helperSource.includes("df.tool[input.toolBundle]") &&
+      (helperSource.includes("df.tool[input.toolBundle]") ||
+        helperSource.includes("df.tool[toolBundle]") ||
+        helperSource.includes("df.tool[plan.toolBundle")) &&
       !helperSource.includes("df.tool.widgets_api["),
     detail: helperSource.includes("df.tool.widgets_api[")
       ? "FROZEN to widgets_api — would not transfer"

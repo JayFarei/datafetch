@@ -125,7 +125,7 @@ export function shouldCrystallise(args: ShouldCrystalliseArgs): GateOutcome {
     };
   }
   const distinctPrimitives = new Set(slice.map((c) => c.primitive));
-  if (distinctPrimitives.size < 2 && !isSubGraph) {
+  if (distinctPrimitives.size < 2 && !isSubGraph && !isPureToolFanout(slice)) {
     return {
       ok: false,
       reason: `trajectory has ${distinctPrimitives.size} distinct primitive(s); need at least 2`,
@@ -155,8 +155,28 @@ export function shouldCrystallise(args: ShouldCrystalliseArgs): GateOutcome {
       reason: "trajectory.errored=true (snippet threw or no body executed)",
     };
   }
-  for (const call of trajectory.calls) {
+  const firstDbIdxForErrors = slice.findIndex((c) => c.primitive.startsWith("db."));
+  const recordSignaturesForErrors =
+    firstDbIdxForErrors >= 0 && Array.isArray(slice[firstDbIdxForErrors]?.output)
+      ? pickSignatures(slice[firstDbIdxForErrors]!.output as unknown[])
+      : [];
+  const successfulRecordToolCallsForErrors = recordSignaturesForErrors.length > 0
+    ? slice.filter((candidate) =>
+        candidate.primitive.startsWith("tool.") &&
+        !looksLikeErrorOutput(candidate.output) &&
+        toolInputConsumesRecord(candidate.input, recordSignaturesForErrors),
+      ).length
+    : 0;
+  for (const call of slice) {
     if (looksLikeErrorOutput(call.output)) {
+      if (call.primitive.startsWith("tool.") && recordSignaturesForErrors.length > 0) {
+        if (!toolInputConsumesRecord(call.input, recordSignaturesForErrors)) {
+          continue;
+        }
+        if (successfulRecordToolCallsForErrors >= 2) {
+          continue;
+        }
+      }
       return {
         ok: false,
         reason: `call #${call.index} (${call.primitive}) output looks like an error`,
@@ -184,7 +204,12 @@ export function shouldCrystallise(args: ShouldCrystalliseArgs): GateOutcome {
   const learnedCall = trajectory.calls.find((c) =>
     callsKnownLearnedInterface(c.primitive, existing),
   );
-  if (learnedCall) {
+  if (
+    learnedCall &&
+    !isLearnedInterfaceWithDependentToolTail(trajectory.calls, learnedCall.index) &&
+    !isLearnedToolFanoutWithDependentToolTail(trajectory.calls, learnedCall.index) &&
+    !isLearnedInterfaceWithRecordToolReplay(trajectory.calls, learnedCall.index)
+  ) {
     return {
       ok: false,
       reason: `trajectory already calls learned interface ${learnedCall.primitive}; treat as reuse evidence, not a new template`,
@@ -246,31 +271,45 @@ export function shouldCrystallise(args: ShouldCrystalliseArgs): GateOutcome {
     }
   } else {
     if (firstDbIdx === -1) {
-      return {
-        ok: false,
-        reason: "no db.* call present; observer requires a substrate-rooted chain",
-      };
-    }
-    if (!Array.isArray(slice[firstDbIdx]?.output)) {
-      return {
-        ok: false,
-        reason: `first db.* call (#${firstDbIdx}) did not return a list`,
-      };
-    }
-    const downstreamLib = slice.slice(firstDbIdx + 1).find((c) =>
-      c.primitive.startsWith("lib."),
-    );
-    if (!downstreamLib) {
-      return {
-        ok: false,
-        reason: "no lib.* call after the first db.* call",
-      };
-    }
-    if (!consumesEarlierOutput(slice, firstDbIdx)) {
-      return {
-        ok: false,
-        reason: "no downstream call appears to consume the substrate output (data-flow check failed)",
-      };
+      if (isPureToolFanout(slice)) {
+        // Pure tool fan-out is a legitimate reusable helper family for
+        // SkillCraft tenants without mounted records, or for dependent
+        // enrichment tails. It still needs the no-error, composition-mode,
+        // shape-dedup, and convergence checks below.
+      } else if (hasLearnedToolFanoutWithDependentToolTail(slice, existing)) {
+        // A learned pure tool fan-out helper can be followed by a dependent
+        // tool fan-out over ids/names produced by the base rows. That is a
+        // new exact composition shape (`toolFanoutEnrichment`), not just
+        // plain helper reuse, even though there is no db.* substrate call.
+      } else {
+        return {
+          ok: false,
+          reason: "no db.* call present; observer requires a substrate-rooted chain",
+        };
+      }
+    } else {
+      if (!Array.isArray(slice[firstDbIdx]?.output)) {
+        return {
+          ok: false,
+          reason: `first db.* call (#${firstDbIdx}) did not return a list`,
+        };
+      }
+      const downstreamLib = slice.slice(firstDbIdx + 1).find((c) =>
+        c.primitive.startsWith("lib."),
+      );
+      const directRecordToolFanout = isDirectRecordToolFanout(slice, firstDbIdx);
+      if (!downstreamLib && !directRecordToolFanout) {
+        return {
+          ok: false,
+          reason: "no lib.* call after the first db.* call",
+        };
+      }
+      if (!consumesEarlierOutput(slice, firstDbIdx)) {
+        return {
+          ok: false,
+          reason: "no downstream call appears to consume the substrate output (data-flow check failed)",
+        };
+      }
     }
   }
 
@@ -319,6 +358,94 @@ function callsKnownLearnedInterface(
   if (!primitive.startsWith("lib.")) return false;
   const name = primitive.slice("lib.".length);
   return existing.learnedNames.has(name) || name.startsWith("crystallise_");
+}
+
+function isDirectRecordToolFanout(
+  calls: ReadonlyArray<TrajectoryRecord["calls"][number]>,
+  firstDbIdx: number,
+): boolean {
+  if (firstDbIdx < 0) return false;
+  const afterDb = calls.slice(firstDbIdx + 1);
+  if (afterDb.some((c) => c.primitive.startsWith("lib."))) return false;
+  return afterDb.filter((c) => c.primitive.startsWith("tool.")).length >= 2;
+}
+
+function isLearnedInterfaceWithDependentToolTail(
+  calls: ReadonlyArray<TrajectoryRecord["calls"][number]>,
+  learnedCallIndex: number,
+): boolean {
+  const learnedPosition = calls.findIndex((call) => call.index === learnedCallIndex);
+  if (learnedPosition < 0) return false;
+  const priorDb = calls
+    .slice(0, learnedPosition)
+    .some((call) => call.primitive.startsWith("db."));
+  if (!priorDb) return false;
+  const tailToolCalls = calls
+    .slice(learnedPosition + 1)
+    .filter((call) => call.primitive.startsWith("tool."));
+  return tailToolCalls.length >= 2;
+}
+
+function hasLearnedToolFanoutWithDependentToolTail(
+  calls: ReadonlyArray<TrajectoryRecord["calls"][number]>,
+  existing: LibrarySnapshot,
+): boolean {
+  const learnedCall = calls.find(
+    (call) =>
+      call.primitive === "lib.toolFanout" &&
+      callsKnownLearnedInterface(call.primitive, existing),
+  );
+  return learnedCall
+    ? isLearnedToolFanoutWithDependentToolTail(calls, learnedCall.index)
+    : false;
+}
+
+function isLearnedToolFanoutWithDependentToolTail(
+  calls: ReadonlyArray<TrajectoryRecord["calls"][number]>,
+  learnedCallIndex: number,
+): boolean {
+  const learnedPosition = calls.findIndex((call) => call.index === learnedCallIndex);
+  if (learnedPosition < 0) return false;
+  const learnedCall = calls[learnedPosition];
+  if (!learnedCall || learnedCall.primitive !== "lib.toolFanout") return false;
+  const baseToolCalls = calls
+    .slice(0, learnedPosition)
+    .filter(
+      (call) =>
+        call.primitive.startsWith("tool.") &&
+        call.scope?.parentPrimitive === learnedCall.primitive,
+    );
+  if (baseToolCalls.length < 2) return false;
+  const tailToolCalls = calls
+    .slice(learnedPosition + 1)
+    .filter((call) => call.primitive.startsWith("tool."));
+  return tailToolCalls.length >= 2;
+}
+
+function isLearnedInterfaceWithRecordToolReplay(
+  calls: ReadonlyArray<TrajectoryRecord["calls"][number]>,
+  learnedCallIndex: number,
+): boolean {
+  const learnedPosition = calls.findIndex((call) => call.index === learnedCallIndex);
+  if (learnedPosition < 0) return false;
+  const prefix = calls.slice(0, learnedPosition);
+  const firstDbIdx = prefix.findIndex((call) => call.primitive.startsWith("db."));
+  if (firstDbIdx < 0 || !Array.isArray(prefix[firstDbIdx]?.output)) return false;
+  const toolCalls = prefix.slice(firstDbIdx + 1).filter((call) => call.primitive.startsWith("tool."));
+  if (toolCalls.length < 2) return false;
+  return consumesEarlierOutput(calls.slice(0, learnedPosition + 1), firstDbIdx);
+}
+
+function isPureToolFanout(
+  calls: ReadonlyArray<TrajectoryRecord["calls"][number]>,
+): boolean {
+  if (calls.length < 3) return false;
+  if (!calls.every((c) => c.primitive.startsWith("tool."))) return false;
+  const counts = new Map<string, number>();
+  for (const call of calls) {
+    counts.set(call.primitive, (counts.get(call.primitive) ?? 0) + 1);
+  }
+  return [...counts.values()].some((count) => count >= 2);
 }
 
 // A call's output shape that "looks like an error" — defensive check; the
@@ -376,6 +503,11 @@ function safeJson(value: unknown): string | null {
   }
 }
 
+function toolInputConsumesRecord(input: unknown, signatures: string[]): boolean {
+  const json = safeJson(input);
+  return json !== null && signatures.some((signature) => json.includes(signature));
+}
+
 function pickSignatures(arr: unknown[]): string[] {
   const preferredKeys = [
     "id",
@@ -392,6 +524,24 @@ function pickSignatures(arr: unknown[]): string[] {
     if (!seen.has(raw)) {
       seen.add(raw);
       signatures.push(raw);
+    }
+  };
+  const addStringSignatureVariants = (raw: string): void => {
+    const trimmed = raw.trim();
+    if (trimmed.length === 0) return;
+    addSignature(JSON.stringify(trimmed));
+    const lower = trimmed.toLowerCase();
+    addSignature(JSON.stringify(lower));
+    addSignature(JSON.stringify(lower.replace(/\s+/g, "-")));
+    addSignature(JSON.stringify(lower.replace(/\b[a-z]/g, (ch) => ch.toUpperCase())));
+  };
+  const addRecordIdentifierSignature = (value: unknown): void => {
+    if (typeof value === "string" && value.length >= 1) {
+      addStringSignatureVariants(value);
+    } else if (typeof value === "number" && Number.isFinite(value)) {
+      const numStr = String(value);
+      addSignature(numStr);
+      addSignature(JSON.stringify(numStr));
     }
   };
 
@@ -413,6 +563,21 @@ function pickSignatures(arr: unknown[]): string[] {
       continue;
     }
     const rec = item as Record<string, unknown>;
+    if (isRecordRow(rec)) {
+      addRecordIdentifierSignature(rec["id"]);
+      addRecordIdentifierSignature(rec["entity"]);
+      const attributes = rec["attributes"];
+      if (
+        attributes !== null &&
+        typeof attributes === "object" &&
+        !Array.isArray(attributes)
+      ) {
+        const attrs = attributes as Record<string, unknown>;
+        addRecordIdentifierSignature(attrs["id"]);
+        addRecordIdentifierSignature(attrs["entity"]);
+      }
+      if (signatures.length >= 64) return signatures;
+    }
     const keys = [
       ...preferredKeys.filter((key) => Object.prototype.hasOwnProperty.call(rec, key)),
       ...Object.keys(rec).filter((key) => !preferredKeys.includes(key)),
@@ -420,7 +585,7 @@ function pickSignatures(arr: unknown[]): string[] {
     for (const key of keys) {
       const v = rec[key];
       if (typeof v === "string" && v.length >= 4) {
-        addSignature(JSON.stringify(v));
+        addStringSignatureVariants(v);
         if (signatures.length >= 64) return signatures;
       } else if (typeof v === "number" && Number.isFinite(v)) {
         // Numeric identifier-like values (>=2 digits) are common
@@ -447,7 +612,7 @@ function pickSignatures(arr: unknown[]): string[] {
               if (signatures.length >= 64) return signatures;
             }
           } else if (typeof inner === "string" && inner.length >= 4) {
-            addSignature(JSON.stringify(inner));
+            addStringSignatureVariants(inner);
             if (signatures.length >= 64) return signatures;
           }
         }
@@ -455,4 +620,14 @@ function pickSignatures(arr: unknown[]): string[] {
     }
   }
   return signatures;
+}
+
+function isRecordRow(rec: Record<string, unknown>): boolean {
+  return (
+    typeof rec["recordKey"] === "string" ||
+    (typeof rec["family"] === "string" &&
+      rec["attributes"] !== null &&
+      typeof rec["attributes"] === "object" &&
+      !Array.isArray(rec["attributes"]))
+  );
 }

@@ -182,6 +182,7 @@ export class Observer {
               [...snapshot.shapeHashes].filter((h) => h !== wholeHash),
             ),
             learnedNames: snapshot.learnedNames,
+            intentSignatures: snapshot.intentSignatures,
           }
         : snapshot;
 
@@ -209,6 +210,9 @@ export class Observer {
     const skipReasons: string[] = [];
     const acceptedHashes = new Set<string>(gateSnapshot.shapeHashes);
     const acceptedNames = new Set<string>(gateSnapshot.learnedNames);
+    const acceptedIntentSignatures = new Set<string>(
+      gateSnapshot.intentSignatures ?? [],
+    );
 
     for (const candidate of candidates) {
       const { kind, template, slice } = candidate;
@@ -240,6 +244,13 @@ export class Observer {
           shapeHash: template.shapeHash,
           templateName: template.name,
         });
+      }
+
+      if (!allowOverwrite && acceptedIntentSignatures.has(template.intentSignature)) {
+        skipReasons.push(
+          `${label}: intentSignature ${template.intentSignature} already has a learned helper`,
+        );
+        continue;
       }
 
       // Stage 3 — convergence check. baseCounts was read BEFORE this
@@ -280,6 +291,7 @@ export class Observer {
       }
       acceptedHashes.add(template.shapeHash);
       acceptedNames.add(template.name);
+      acceptedIntentSignatures.add(template.intentSignature);
       const slot = { name: authored.name, path: authored.path };
       if (primary === null) {
         primary = slot;
