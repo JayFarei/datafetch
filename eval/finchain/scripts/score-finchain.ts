@@ -142,7 +142,11 @@ function stepAlignmentScore(agentSteps: number[], goldSteps: number[]): number |
   return hits / goldSteps.length;
 }
 
-function perTierAggregates(rows: NormalizedRow[], paperBaseline: Record<string, number> | null): Record<string, PerTierMetric> {
+function perTierAggregates(
+  rows: NormalizedRow[],
+  paperBaseline: Record<string, Record<string, number>> | null,
+  baselineModelKey: string,
+): Record<string, PerTierMetric> {
   const tiers: Record<string, NormalizedRow[]> = {};
   for (const r of rows) {
     const t = r.difficulty ?? "Unknown";
@@ -155,7 +159,11 @@ function perTierAggregates(rows: NormalizedRow[], paperBaseline: Record<string, 
       .map((r) => stepAlignmentScore(r.derivationSteps ?? [], r.goldFinalValue !== null ? [r.goldFinalValue] : []))
       .filter((s): s is number => s !== null);
     const stepAlignment = meanOrNull(stepScores);
-    const baseline = paperBaseline?.[tier] ?? paperBaseline?.[tier.toLowerCase()] ?? null;
+    // paperBaseline shape: { Basic: { "claude-sonnet-4-5": 0.83 }, ... }
+    const tierBaselineMap = paperBaseline?.[tier] ?? paperBaseline?.[tier.toLowerCase()] ?? null;
+    const baseline = tierBaselineMap && typeof tierBaselineMap === "object" && baselineModelKey in tierBaselineMap
+      ? Number(tierBaselineMap[baselineModelKey])
+      : null;
     out[tier] = {
       episodes: tierRows.length,
       facRate,
@@ -264,8 +272,9 @@ async function main(): Promise<void> {
   const baselineFac = paperBaselineDoc?.["finalAnswerCorrectness"] ?? null;
   const baselineStep = paperBaselineDoc?.["stepAlignment"] ?? null;
 
-  const fc1 = perTierAggregates(learned, baselineFac);
-  const fc2 = perTierAggregates(learned, baselineStep);
+  const baselineModelKey = paperBaselineDoc?._modelKey ?? "claude-sonnet-4-5";
+  const fc1 = perTierAggregates(learned, baselineFac, baselineModelKey);
+  const fc2 = perTierAggregates(learned, baselineStep, baselineModelKey);
   const fc3 = fc3Stats(learned, control);
 
   const skillcraftScorecard = await tryReadJson(args.skillcraftScorecard) as Record<string, any> | null;

@@ -1,0 +1,59 @@
+{
+  "_meta": {
+    "source": "FinChain paper (arXiv:2506.02515 v4)",
+    "sourceUrl": "https://arxiv.org/html/2506.02515v4",
+    "leaderboardUrl": "https://mbzuai-nlp.github.io/finchain/leaderboard.html",
+    "snapshotDate": "2026-05-19",
+    "snapshottedBy": "Goal 5 iter 2d-paper-baseline; verified via WebFetch against arxiv HTML v4",
+    "note": "Paper publishes aggregate ChainEval + FAC per model. Per-difficulty breakdowns are in Appendix E.3 (not reproduced in the arxiv HTML). FC1/FC2 score against the aggregate baseline for now; iter 4-5 backfills per-tier numbers via a substrate-OFF reference run against the same model + scoring config."
+  },
+  "models": {
+    "claude-sonnet-4-5": {
+      "chainEval": 66.33,
+      "chainEvalStdev": 9.44,
+      "finalAnswerCorrectness": 83.34,
+      "finalAnswerCorrectnessStdev": 31.79,
+      "bertScore": 86.07
+    },
+    "claude-sonnet-4-0": {
+      "chainEval": 66.20,
+      "chainEvalStdev": 9.66,
+      "finalAnswerCorrectness": 82.62,
+      "finalAnswerCorrectnessStdev": 31.96,
+      "bertScore": 86.38
+    },
+    "gpt-5": {
+      "chainEval": 66.57,
+      "chainEvalStdev": 10.64,
+      "finalAnswerCorrectness": 82.03,
+      "finalAnswerCorrectnessStdev": 32.40,
+      "bertScore": 88.77
+    },
+    "gpt-5-mini": {
+      "chainEval": 67.17,
+      "chainEvalStdev": 11.06,
+      "finalAnswerCorrectness": 80.28,
+      "finalAnswerCorrectnessStdev": 32.34,
+      "bertScore": 88.18
+    },
+    "gemini-2-5-pro": {
+      "chainEval": 66.04,
+      "chainEvalStdev": 9.71,
+      "finalAnswerCorrectness": 84.34,
+      "finalAnswerCorrectnessStdev": 30.99,
+      "bertScore": 85.94
+    }
+  },
+  "finalAnswerCorrectness": {
+    "Basic":        { "claude-sonnet-4-5": 0.8334 },
+    "Intermediate": { "claude-sonnet-4-5": 0.8334 },
+    "Advanced":     { "claude-sonnet-4-5": 0.8334 },
+    "_note": "Aggregate FAC = 83.34% (paper Table 2 for Claude Sonnet 4.5). Per-tier breakdown placeholder — iter 4 backfills with the appendix E.3 numbers or computes from the substrate-OFF baseline run. FC1 conservatively scores against the aggregate until per-tier is filled."
+  },
+  "stepAlignment": {
+    "Basic":        { "claude-sonnet-4-5": 0.6633 },
+    "Intermediate": { "claude-sonnet-4-5": 0.6633 },
+    "Advanced":     { "claude-sonnet-4-5": 0.6633 },
+    "_note": "Aggregate ChainEval = 66.33% used as a proxy for step alignment per tier. ChainEval is FAC-weighted in the paper formula; this is an approximation pending per-tier appendix data."
+  }
+}

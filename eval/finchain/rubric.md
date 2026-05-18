@@ -26,15 +26,29 @@ R9's strict cross-benchmark variant is captured in FC4 below.
 
 **Why per-tier:** Frontier models saturate Basic; lift is concentrated in Intermediate and Advanced. Aggregate FAC can hide a regression on Basic offset by a gain on Advanced. Per-tier reporting prevents that.
 
-**Source baseline:** snapshot from https://mbzuai-nlp.github.io/finchain/leaderboard.html. Snapshot date: 2026-05-18 (TODO: confirm at iter 4 baseline run; if the leaderboard has moved, re-snapshot and note the delta).
+**Source baseline:** snapshotted from FinChain paper Table 2 (arXiv:2506.02515 v4, verified 2026-05-19 via WebFetch against the arxiv HTML). The interactive leaderboard at https://mbzuai-nlp.github.io/finchain/leaderboard.html is JS-rendered and not extractable via static fetch; paper Table 2 is the canonical source. Numbers live at `eval/finchain/configs/paper-baseline.json` (loaded by `score-finchain.ts` via `--paper-baseline`).
 
-**Snapshot table (TODO at iter 4, populated when the substrate-OFF baseline run completes and we compare against the leaderboard):**
+**Snapshot (Claude Sonnet 4.5 from paper Table 2):**
 
-| Difficulty | Claude Sonnet 4.5 (paper) | Claude Sonnet 4.6 (substrate-OFF, iter 4) | Claude Sonnet 4.6 (substrate-ON, iter 5+) | Δ vs paper | Δ vs OFF |
-|---|---|---|---|---|---|
-| Basic | TBD | TBD | TBD | TBD | TBD |
-| Intermediate | TBD | TBD | TBD | TBD | TBD |
-| Advanced | TBD | TBD | TBD | TBD | TBD |
+| Metric | Aggregate score | Stdev |
+|---|---|---|
+| ChainEval | 66.33 | 9.44 |
+| Final Answer Correctness (FAC) | 83.34 | 31.79 |
+| BERTScore | 86.07 | — |
+
+Comparison from same table:
+- Claude Sonnet 4 (4.0): ChainEval 66.20, FAC 82.62
+- GPT-5: ChainEval 66.57, FAC 82.03
+- GPT-5-mini: ChainEval 67.17, FAC 80.28 (highest ChainEval)
+- Gemini 2.5 Pro: ChainEval 66.04, FAC 84.34 (highest FAC)
+
+**Per-difficulty breakdown** is in the paper's Appendix E.3 (not reproduced in the arxiv HTML). Iter 4's substrate-OFF baseline run on Claude Sonnet 4.6 populates the per-tier OFF column directly; the paper baseline is currently held at the aggregate level (83.34% FAC, 66.33% ChainEval) for all three tiers. Once Appendix E.3 numbers are obtained (or the substrate-OFF iter 4 run provides a fresh per-tier reference), `paper-baseline.json` is updated.
+
+| Difficulty | Claude Sonnet 4.5 (paper, aggregate) | Claude Sonnet 4.6 (substrate-OFF, iter 4) | Claude Sonnet 4.6 (substrate-ON, iter 5+) |
+|---|---|---|---|
+| Basic | FAC 83.34 / ChainEval 66.33 | TBD | TBD |
+| Intermediate | FAC 83.34 / ChainEval 66.33 | TBD | TBD |
+| Advanced | FAC 83.34 / ChainEval 66.33 | TBD | TBD |
 
 ## FC2 — ChainEval step-alignment vs paper baseline
 
