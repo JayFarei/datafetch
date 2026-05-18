@@ -533,7 +533,15 @@ async function runLiveEpisode(input: {
   const libFunctionsAvailable = 1;  // per_entity seed
   try {
     const rawSource = await fsp.readFile(answerPath, "utf8");
-    const source = prepareAnswerSourceForRuntime(rawSource, workspace);
+    let source = prepareAnswerSourceForRuntime(rawSource, workspace);
+    // FinChain agents occasionally call bare `answer(...)` instead of
+    // `df.answer(...)` despite the prompt. Inject a top-level alias so
+    // both patterns work without an answer-kit import collision (the
+    // skillcraft answer-kit ANSWER_KIT_HELPERS list does NOT include
+    // "answer" — `answer` is a df-bound function, not a free helper).
+    if (/\b(?:return\s+|await\s+)?answer\s*\(/.test(source) && !/\bconst\s+answer\s*=\s*df\.answer/.test(source)) {
+      source = `const answer = df.answer.bind(df);\n${source}`;
+    }
     await fsp.writeFile(path.join(artifactDir, "prepared-answer.ts"), source);
     const { snippetRuntime } = await installSnippetRuntime({
       baseDir: datafetchHome,
