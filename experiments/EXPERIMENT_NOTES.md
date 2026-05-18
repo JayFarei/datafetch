@@ -2511,3 +2511,48 @@ Smoke validated on usgs-earthquake-monitor/m2 (the iter165 motivating case): sco
 Next definitive validation: re-run P1 full-126 with all three fixes landed. Projected outcome: Arm A R1 climbs from 92.9% → ~95.2% (matching Arm B), reflecting the 3 anti-pattern episodes recovering. The 4-vector likely flips from `{NEUTRAL, PASS, PASS, NEUTRAL}` to `{NEUTRAL-leaning-positive, PASS, PASS, NEUTRAL}` or `{MARGINAL, PASS, PASS, NEUTRAL}`. Cost/wall wins should be at least preserved (the fixes reduce failed-then-retried loops on the same 3 episodes).
 
 What this DOESN'T fix: the cat-facts-collector 0/6 ceiling (task-design issue, not substrate); the variance dimension's lack of statistical power at n=126 single-seed (still needs multi-seed). The substrate-OFF arm's slight pass-rate edge becomes a tie at best — graduation remains on cost, not correctness.
+
+---
+
+## 2026-05-18, Goal 5 iter 1 — FinChain dataset study + mount adapter design
+
+### 2026-05-18 23:00 [hypothesis]
+
+The mount adapter is the only place where FinChain's symbolic-reasoning shape (templates that return `(question, solution)` from random parameters) meets the substrate's "db.* first call → lib.* with data-flow" gate. The interesting design question is *what plays the role of records*. Three options were on the table at iter 0 close: (A) parameters of the current instance as a single-row records mount, (B) sibling seed instances of the same template as a multi-row records mount, (C) the full sibling library (other templates in the same topic) as records. Hypothesis: option (B) — same-template siblings — is the right default because it gives the substrate something to learn from (the formula recurs across seeds), exposes the cold→warm flip naturally (cold = read sibling examples and reverse-engineer; warm = call the crystallised helper that encodes the formula), and preserves the substrate-rooted-chain gate without per-benchmark special-casing.
+
+### 2026-05-18 23:00 [implement, vendor + protocol]
+
+Vendored FinChain into `eval/finchain/vendor/finchain/` via git clone, with `eval/finchain/vendor/.gitignore` (`*` + `!.gitignore`) mirroring SkillCraft's vendor convention so the clone stays local and `prepare-finchain.sh` (iter 2) clones it on setup.
+
+Read 4 templates across difficulty + domain to validate the design: `investment_analysis/ci.py` (compound interest, 4-5 templates Basic→Advanced), `financial_ratios/levratio.py` (D/E ratio, 5 templates with explicit Basic/Intermediate/Advanced docstrings), `risk_management/var.py` (Value at Risk, 5 templates), `corporate_finance/wacc.py` (5 templates). Confirmed:
+
+- 5 templates per topic is the fixed convention (matches README): templates 1-2 Basic, 3-4 Intermediate, 5 Advanced.
+- Templates use `random.*` for parameter sampling; wrapping the call with `random.seed(seed_index)` produces reproducible siblings.
+- Returns `(question, solution)` where `solution` is a multi-line natural-language reasoning trace with intermediate values embedded (e.g. "Step 1: Compound Amount = $5000 × ... = $5788.13").
+- No external tools needed — FinChain is purely computational; the substrate's tool catalog is empty for FinChain episodes.
+
+Read `src/eval/evalRecords.ts` to confirm the `EvalRecord` interface — `id`, `recordKey`, `family`, `entity`, `label`, `attributes` (where attributes accepts `string | number | boolean`). The shape accommodates FinChain's parameter sampling natively: each sibling seed becomes one record with parameters in `attributes`.
+
+Wrote `eval/finchain/protocol.md` (the design source of truth) and `eval/finchain/rubric.md` (R1-R9 + FC1-FC5 per-gate definitions with paper-baseline snapshot placeholders). Both mirror the SkillCraft equivalents file-for-file in structure.
+
+Key design decisions captured:
+
+- Family = `<domain>-<topic>` (e.g. `investment_analysis-ci`); level ∈ {e1, e2, m1, m2, h1} mapping to templates 1-5; seed index is sub-episode.
+- Records mount carries the *sibling library* (9 other seeds per template), exposing per-template intent recurrence.
+- Substrate-rooted-chain gate enforced via the records mount (cold-path agents must `df.db.records.findExact({})` before answering).
+- Cross-benchmark `__intent__/` pool is shared between SkillCraft and FinChain (single substrate-level directory, not per-benchmark) — directly tests FC4.
+- ChainEval port at `eval/finchain/scripts/score-finchain.ts` (iter 3) computes FAC + step-alignment from the agent's `df.answer.derivation` array.
+
+### 2026-05-18 23:00 [verify]
+
+`pnpm typecheck` clean, `pnpm test` green (374 vitest + 6 smokes — same baseline as iter 0). The two new docs and the vendor gitignore are the only worktree changes; no source code touched.
+
+### 2026-05-18 23:00 [next-step rationale]
+
+Iter 2 is the harness skeleton — the single largest iteration in the Goal 5 plan. Deliverables: `src/eval/finchainFullDatafetch.ts` (runner mirroring `skillcraftFullDatafetch.ts`), `src/eval/finchainRecords.ts` (template introspection + EvalRecord projection + seed-index iteration), `eval/finchain/scripts/prepare-finchain.sh`, `eval/finchain/scripts/normalize-results.ts`, `eval/finchain/scripts/analyze-results.ts`, `eval/finchain/scripts/build-report.ts`, `eval/finchain/scripts/verify-harness.ts`, the 6 pnpm scripts in package.json, the `src/observer/__smoke__/finchain-mount.ts` smoke. The smoke is the verification target: runs against `investment_analysis/ci.py` template 1 seed 0, asserts trajectory contains a `df.db.records.findExact` call followed by a `df.lib.*` or substrate-rooted chain, asserts `df.answer.value` is numeric.
+
+The trickiest part of iter 2 is template introspection: extracting the *parameters* a template binds at solve time (without per-template hardcoding) so they can be projected into `EvalRecord.attributes`. Two options to evaluate at iter 2 start: (a) Python subprocess that runs the template + emits parameters as JSON (reuses FinChain's own Python; clean separation; some IPC overhead per episode), (b) reimplement each template's random-sampling in TS (purer but couples us to FinChain's template internals — rejected on the spot, breaks the "no benchmark-specific code" rule). Default (a); iter 2 lands the IPC adapter.
+
+### 2026-05-18 23:00 [commit]
+
+Worktree state (uncommitted): `eval/finchain/protocol.md`, `eval/finchain/rubric.md`, `eval/finchain/vendor/.gitignore`, plus the gitignored vendor clone. About to commit.
