@@ -721,6 +721,52 @@ describe("Goal 4 answer builder hardening", () => {
     expect(kit.g({ attributes: {} }, "attributes.status", "entity.status", "unknown")).toBe("unknown");
   });
 
+  it("unwrap() strips single-key entity-named wrappers like {pokemon: {...}}", async () => {
+    // Regression for goal4-p1 pokeapi/m1: tool responses shaped like
+    // {pokemon: {id, name, types, ...}} were not unwrapped by the prior
+    // envelope-keys allowlist (it had `value`/`data`/`result` but not
+    // entity-named keys, which were correctly removed as benchmark
+    // identifiers). The generic single-non-metadata-key rule covers
+    // the same cases without smuggling benchmark identifiers back in.
+    const dir = await mkdtemp(path.join(tmpdir(), "datafetch-answer-kit-unwrap-"));
+    const kitPath = path.join(dir, "datafetch_answer_kit.ts");
+    await writeFile(kitPath, renderAnswerKitSource(), "utf8");
+    const kit = await import(`${pathToFileURL(kitPath).href}?t=${Date.now()}`) as {
+      unwrap: (x: unknown) => unknown;
+      g: (row: unknown, ...choices: unknown[]) => unknown;
+    };
+
+    // The failing pokeapi/m1 shape: a single entity-named key whose
+    // value is an object. Must unwrap to the inner object.
+    expect(kit.unwrap({ pokemon: { id: 25, name: "pikachu", types: ["electric"] } }))
+      .toEqual({ id: 25, name: "pikachu", types: ["electric"] });
+    // Idempotency: unwrapping an already-unwrapped object returns it unchanged.
+    expect(kit.unwrap({ id: 25, name: "pikachu", types: ["electric"] }))
+      .toEqual({ id: 25, name: "pikachu", types: ["electric"] });
+    // The same case via g() (the documented agent surface): after the
+    // fix, g(unwrap(resp), "name") returns the inner name, not undefined.
+    expect(kit.g(kit.unwrap({ show: { name: "the-office", year: 2005 } }), "name")).toBe("the-office");
+    expect(kit.g(kit.unwrap({ university: { id: 7, country: "US" } }), "country")).toBe("US");
+
+    // Do not over-unwrap: more than one non-metadata key means we can't
+    // safely guess which is the payload — return the wrapper unchanged.
+    expect(kit.unwrap({ pokemon: { id: 25 }, species: { id: 25 } }))
+      .toEqual({ pokemon: { id: 25 }, species: { id: 25 } });
+    // Do not unwrap when the single value is a primitive (the wrapper
+    // IS the payload then — e.g. a count or scalar response).
+    expect(kit.unwrap({ count: 5 })).toEqual({ count: 5 });
+    expect(kit.unwrap({ name: "siamese" })).toEqual({ name: "siamese" });
+    // Existing success/ok envelope and named-envelope-key rules still fire.
+    expect(kit.unwrap({ success: true, pokemon: { id: 25 } })).toEqual({ id: 25 });
+    expect(kit.unwrap({ value: { id: 25 } })).toEqual({ id: 25 });
+    // Error envelope still returns undefined.
+    expect(kit.unwrap({ success: false, error: "boom" })).toBeUndefined();
+    // Arrays and primitives pass through unchanged.
+    expect(kit.unwrap([1, 2, 3])).toEqual([1, 2, 3]);
+    expect(kit.unwrap("hello")).toBe("hello");
+    expect(kit.unwrap(null)).toBe(null);
+  });
+
   it("guards record lookup probes that can throw when no record mount exists", () => {
     const prepared = prepareAnswerSourceForRuntime(
       [
