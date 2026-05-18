@@ -637,7 +637,7 @@ async function runLiveExperimental(input: {
       datasetDir: input.skillcraftDir,
       datafetchHome,
       bundles: taskToolBundles(input.task),
-      toolRunnerPath: path.resolve("eval/skillcraft/scripts/invoke-skillcraft-tool.py"),
+      toolRunnerPath: path.resolve("eval/skillcraft/scripts/invoke-tool.py"),
       snippetTimeoutMs: input.snippetTimeoutMs,
       family: input.task.family,
       mountId,
@@ -708,7 +708,7 @@ async function runLiveExperimental(input: {
         toolBridge: {
           datasetDir: input.skillcraftDir,
           bundles: taskToolBundles(input.task),
-          runnerPath: path.resolve("eval/skillcraft/scripts/invoke-skillcraft-tool.py"),
+          runnerPath: path.resolve("eval/skillcraft/scripts/invoke-tool.py"),
         },
         snippetTimeoutMs: input.snippetTimeoutMs,
       },
@@ -3635,7 +3635,7 @@ async function listSkillcraftTools(input: {
   skillcraftDir: string;
   bundle: string;
 }): Promise<ToolDescriptor[]> {
-  const runnerPath = path.resolve("eval/skillcraft/scripts/invoke-skillcraft-tool.py");
+  const runnerPath = path.resolve("eval/skillcraft/scripts/invoke-tool.py");
   const proc = await spawnProcess(process.env["DATAFETCH_TOOL_PYTHON"] ?? "python3", [
     runnerPath,
     "--dataset-dir",

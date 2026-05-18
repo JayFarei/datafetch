@@ -61,6 +61,6 @@ if [[ ${SKIP_INSTALL} -eq 0 ]]; then
 fi
 
 echo "[prepare] indexing SkillCraft tasks"
-(cd "${ROOT}" && pnpm tsx eval/skillcraft/scripts/index-skillcraft-tasks.ts --dataset-dir "${SKILLCRAFT_DIR}" --out-dir "${HARNESS_DIR}/manifests")
+(cd "${ROOT}" && pnpm tsx eval/skillcraft/scripts/index-tasks.ts --dataset-dir "${SKILLCRAFT_DIR}" --out-dir "${HARNESS_DIR}/manifests")
 
 echo "[prepare] done"
