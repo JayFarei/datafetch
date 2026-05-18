@@ -190,8 +190,8 @@ describe("buildDf — df.db.<ident>", () => {
           tenantId: "t",
           mountIds: [],
           baseDir: dir,
-          skillcraftToolBridge: {
-            skillcraftDir: dir,
+          toolBridge: {
+            datasetDir: dir,
             bundles: ["demo"],
             runnerPath,
             python: process.execPath,
@@ -213,7 +213,7 @@ describe("buildDf — df.db.<ident>", () => {
     }
   }, 10_000);
 
-  it("memoizes identical SkillCraft tool calls within one snippet binding", async () => {
+  it("memoizes identical tool calls within one snippet binding", async () => {
     const dir = mkdtempSync(join(tmpdir(), "df-tool-memo-"));
     const runnerPath = join(dir, "count-runner.mjs");
     const countPath = join(dir, "count.txt");
@@ -235,8 +235,8 @@ describe("buildDf — df.db.<ident>", () => {
           tenantId: "t",
           mountIds: [],
           baseDir: dir,
-          skillcraftToolBridge: {
-            skillcraftDir: dir,
+          toolBridge: {
+            datasetDir: dir,
             bundles: ["demo"],
             runnerPath,
             python: process.execPath,

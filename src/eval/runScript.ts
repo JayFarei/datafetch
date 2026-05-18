@@ -2,16 +2,15 @@
 //
 // Bash-native multi-turn primitive for the agent during an eval
 // episode. Lets the agent run an ad-hoc TS snippet against the same
-// snippet runtime + df.* bindings + skillcraft tool bridge the final
+// snippet runtime + df.* bindings + tool bridge the final
 // scripts/answer.ts will see, so it can probe tool shapes, test
 // helpers under df.lib.<name>, and observe real output before
 // committing to the final answer.
 //
 // Context discovery: reads `.datafetch-ctx.json` from the current
-// working directory. The eval drops this file into the workspace at
-// episode setup time (see writeEpisodeContext in
-// skillcraftFullDatafetch.ts). Without it, this command exits with a
-// clear "run me inside an episode workspace" message.
+// working directory. The dataset eval drops this file into the
+// workspace at episode setup time. Without it, this command exits
+// with a clear "run me inside an episode workspace" message.
 //
 // Output: snippet stdout streams to this process's stdout; stderr
 // streams to stderr; exit code mirrors snippetRuntime.run's exitCode.
@@ -28,10 +27,10 @@ import { EvalRecordsMount, type EvalRecord } from "./evalRecords.js";
 
 interface DatafetchEpisodeCtx {
   tenantId: string;
-  skillcraftDir: string;
+  datasetDir: string;
   datafetchHome: string;
   bundles: string[];
-  skillcraftToolRunnerPath: string;
+  toolRunnerPath: string;
   snippetTimeoutMs?: number;
   family?: string;
   mountId?: string;
@@ -178,10 +177,10 @@ async function main(): Promise<void> {
         tenantId: ctx.tenantId,
         mountIds: mountedRuntime && ctx.mountId ? [ctx.mountId] : [],
         baseDir: ctx.datafetchHome,
-        skillcraftToolBridge: {
-          skillcraftDir: ctx.skillcraftDir,
+        toolBridge: {
+          datasetDir: ctx.datasetDir,
           bundles: ctx.bundles,
-          runnerPath: ctx.skillcraftToolRunnerPath,
+          runnerPath: ctx.toolRunnerPath,
         },
         snippetTimeoutMs: ctx.snippetTimeoutMs ?? 300_000,
       },

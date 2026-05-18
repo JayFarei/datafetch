@@ -2,15 +2,14 @@
  * jsonplaceholder tool surface.
  *
  * The substrate's snippet runtime exposes `df.tool.<bundle>.<name>(input)`
- * calls via the SkillCraft Python bridge in `src/snippet/dfBinding.ts`. That
- * bridge spawns `${python} ${runnerPath} --skillcraft-dir X --bundle Y --tool
- * Z --args JSON` and parses `{result: ...}` from stdout. The substrate does
- * not care what language the runner is, so we plug a jsonplaceholder runner
- * (written in Python stdlib) into that exact bridge interface.
+ * calls via the Python tool bridge in `src/snippet/dfBinding.ts`. That bridge
+ * spawns `${python} ${runnerPath} --dataset-dir X --bundle Y --tool Z --args
+ * JSON` and parses `{result: ...}` from stdout. The substrate does not care
+ * what language the runner is, so we plug a jsonplaceholder runner (written
+ * in Python stdlib) into that exact bridge interface.
  *
  * This module exposes the constants + a `buildJsonplaceholderBridgeConfig()`
- * helper returning the precise object shape `sessionCtx.skillcraftToolBridge`
- * expects.
+ * helper returning the precise object shape `sessionCtx.toolBridge` expects.
  */
 
 import { fileURLToPath } from "node:url";
@@ -45,7 +44,7 @@ export const JSONPLACEHOLDER_TOOLS: readonly string[] = [
 export type JsonplaceholderToolName = (typeof JSONPLACEHOLDER_TOOLS)[number];
 
 export type JsonplaceholderBridgeConfig = {
-  skillcraftDir: string;
+  datasetDir: string;
   bundles: string[];
   runnerPath: string;
   python: string;
@@ -54,13 +53,13 @@ export type JsonplaceholderBridgeConfig = {
 
 /**
  * Returns the exact object shape `dfBinding.ts` expects for
- * `sessionCtx.skillcraftToolBridge`. `skillcraftDir` is unused by our runner
- * but the substrate's type requires it, so we pass `process.cwd()` as an
- * inert placeholder.
+ * `sessionCtx.toolBridge`. `datasetDir` is unused by our jsonplaceholder
+ * runner (it queries a live HTTP endpoint, not a local dataset), so we pass
+ * `process.cwd()` as an inert placeholder.
  */
 export function buildJsonplaceholderBridgeConfig(): JsonplaceholderBridgeConfig {
   return {
-    skillcraftDir: process.cwd(),
+    datasetDir: process.cwd(),
     bundles: [JSONPLACEHOLDER_BUNDLE_NAME],
     runnerPath: JSONPLACEHOLDER_RUNNER_PATH,
     python: "python3",

@@ -531,9 +531,10 @@ describe("DiskSnippetRuntime phase artifacts", () => {
         mountIds: ["records"],
         baseDir,
         requireSubstrateRootedChain: true,
-        skillcraftToolBridge: {
-          skillcraftDir: baseDir,
+        toolBridge: {
+          datasetDir: baseDir,
           bundles: ["demo"],
+          runnerPath: "/nonexistent/runner.py",
         },
       },
     });

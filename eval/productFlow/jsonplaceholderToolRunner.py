@@ -83,7 +83,7 @@ def dispatch(tool, input_data):
 
 def main():
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--skillcraft-dir", required=False, default="")
+    parser.add_argument("--dataset-dir", required=False, default="")
     parser.add_argument("--bundle", required=False, default="")
     parser.add_argument("--tool", required=False, default="")
     parser.add_argument("--args", required=False, default="")

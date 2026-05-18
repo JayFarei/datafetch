@@ -196,8 +196,8 @@ function parseArgs(argv: string[]): Args {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--") continue;
-    if (arg === "--skillcraft-dir") args.skillcraftDir = path.resolve(argv[++index]);
-    else if (arg.startsWith("--skillcraft-dir=")) args.skillcraftDir = path.resolve(arg.slice("--skillcraft-dir=".length));
+    if (arg === "--dataset-dir") args.skillcraftDir = path.resolve(argv[++index]);
+    else if (arg.startsWith("--dataset-dir=")) args.skillcraftDir = path.resolve(arg.slice("--dataset-dir=".length));
     else if (arg === "--out-dir") args.outDir = path.resolve(argv[++index]);
     else if (arg.startsWith("--out-dir=")) args.outDir = path.resolve(arg.slice("--out-dir=".length));
     else if (arg === "--task") args.task = normalizeTaskKey(argv[++index]);
@@ -631,10 +631,10 @@ async function runLiveExperimental(input: {
     path.join(workspace, ".datafetch-ctx.json"),
     `${JSON.stringify({
       tenantId,
-      skillcraftDir: input.skillcraftDir,
+      datasetDir: input.skillcraftDir,
       datafetchHome,
       bundles: taskToolBundles(input.task),
-      skillcraftToolRunnerPath: path.resolve("eval/skillcraft/scripts/invoke-skillcraft-tool.py"),
+      toolRunnerPath: path.resolve("eval/skillcraft/scripts/invoke-skillcraft-tool.py"),
       snippetTimeoutMs: input.snippetTimeoutMs,
       family: input.task.family,
       mountId,
@@ -691,8 +691,8 @@ async function runLiveExperimental(input: {
         // answer through the substrate (df.db.* or df.lib.*) rather
         // than bare df.tool.* fan-out. Non-mounted tenants are unaffected.
         ...(mountedRuntime ? { requireSubstrateRootedChain: true } : {}),
-        skillcraftToolBridge: {
-          skillcraftDir: input.skillcraftDir,
+        toolBridge: {
+          datasetDir: input.skillcraftDir,
           bundles: taskToolBundles(input.task),
           runnerPath: path.resolve("eval/skillcraft/scripts/invoke-skillcraft-tool.py"),
         },
@@ -4001,9 +4001,9 @@ async function listSkillcraftTools(input: {
   bundle: string;
 }): Promise<ToolDescriptor[]> {
   const runnerPath = path.resolve("eval/skillcraft/scripts/invoke-skillcraft-tool.py");
-  const proc = await spawnProcess(process.env["SKILLCRAFT_TOOL_PYTHON"] ?? "python3", [
+  const proc = await spawnProcess(process.env["DATAFETCH_TOOL_PYTHON"] ?? "python3", [
     runnerPath,
-    "--skillcraft-dir",
+    "--dataset-dir",
     input.skillcraftDir,
     "--bundle",
     input.bundle,

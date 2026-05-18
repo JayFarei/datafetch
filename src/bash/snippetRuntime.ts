@@ -30,7 +30,7 @@ export type SessionCtx = {
   trajectoryId?: string;
   snippetTimeoutMs?: number;
   // When true, the snippet runtime enforces that the recorded trajectory
-  // contains at least one df.db.* or df.lib.* call. For SkillCraft tool-backed
+  // contains at least one df.db.* or df.lib.* call. For tool-backed
   // sessions, db-only placeholder contact is also rejected: a trajectory must
   // contain a df.lib.* or df.tool.* call. If the gate fails and the snippet
   // otherwise succeeded, the answer envelope is rewritten to
@@ -41,10 +41,15 @@ export type SessionCtx = {
   // fan-out. Probe-style runs leave the flag unset so the agent can probe
   // freely.
   requireSubstrateRootedChain?: boolean;
-  skillcraftToolBridge?: {
-    skillcraftDir: string;
+  // Tool bridge — when configured, df.tool.<bundle>.<tool>(input) shells
+  // out to `python runnerPath --dataset-dir <dir> --bundle <b> --tool <t>
+  // --args <json>`. Each dataset eval (eval/<dataset>/) owns its own runner
+  // script and declares the bundles it exposes. runnerPath is required;
+  // the substrate ships no default runner.
+  toolBridge?: {
+    datasetDir: string;
     bundles: string[];
-    runnerPath?: string;
+    runnerPath: string;
     python?: string;
     toolTimeoutMs?: number;
   };

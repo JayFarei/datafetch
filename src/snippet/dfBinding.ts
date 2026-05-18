@@ -268,7 +268,7 @@ export function buildDf(opts: BuildDfOpts): DfBinding {
   };
 }
 
-// --- SkillCraft tool bridge -------------------------------------------------
+// --- Tool bridge -----------------------------------------------------------
 
 function makeToolProxy(args: {
   sessionCtx: SessionCtx;
@@ -276,12 +276,12 @@ function makeToolProxy(args: {
   toolMemo: Map<string, Promise<unknown>>;
 }): Record<string, Record<string, (input: unknown) => Promise<unknown>>> {
   const { sessionCtx, dispatchCtx } = args;
-  const bridge = sessionCtx.skillcraftToolBridge;
+  const bridge = sessionCtx.toolBridge;
   return new Proxy({} as Record<string, Record<string, (input: unknown) => Promise<unknown>>>, {
     get(_target, prop): Record<string, (input: unknown) => Promise<unknown>> | undefined {
       if (typeof prop !== "string") return undefined;
       if (!bridge) {
-        throw new Error("df.tool: no SkillCraft tool bridge configured for this snippet session");
+        throw new Error("df.tool: no tool bridge configured for this snippet session");
       }
       if (!bridge.bundles.includes(prop)) {
         throw new Error(
@@ -316,7 +316,7 @@ function makeToolBundleProxy(args: {
         }
         const primitive = `tool.${args.bundle}.${toolName}`;
         const startedMs = performance.now();
-        const exec = async (): Promise<unknown> => invokeSkillcraftTool({
+        const exec = async (): Promise<unknown> => invokeBridgeTool({
           sessionCtx: args.sessionCtx,
           bundle: args.bundle,
           toolName,
@@ -378,23 +378,23 @@ function cloneToolOutput(value: unknown): unknown {
   }
 }
 
-async function invokeSkillcraftTool(args: {
+async function invokeBridgeTool(args: {
   sessionCtx: SessionCtx;
   bundle: string;
   toolName: string;
   input: unknown;
 }): Promise<unknown> {
-  const bridge = args.sessionCtx.skillcraftToolBridge;
-  if (!bridge) throw new Error("SkillCraft tool bridge missing");
-  const runnerPath = bridge.runnerPath ?? path.resolve("eval/skillcraft/scripts/invoke-skillcraft-tool.py");
-  const python = bridge.python ?? process.env["SKILLCRAFT_TOOL_PYTHON"] ?? "python3";
-  const timeoutMs = bridge.toolTimeoutMs ?? Number(process.env["SKILLCRAFT_TOOL_TIMEOUT_MS"] ?? 60_000);
+  const bridge = args.sessionCtx.toolBridge;
+  if (!bridge) throw new Error("tool bridge missing");
+  const runnerPath = bridge.runnerPath;
+  const python = bridge.python ?? process.env["DATAFETCH_TOOL_PYTHON"] ?? "python3";
+  const timeoutMs = bridge.toolTimeoutMs ?? Number(process.env["DATAFETCH_TOOL_TIMEOUT_MS"] ?? 60_000);
   const proc = await spawnJson({
     command: python,
     argv: [
       runnerPath,
-      "--skillcraft-dir",
-      bridge.skillcraftDir,
+      "--dataset-dir",
+      bridge.datasetDir,
       "--bundle",
       args.bundle,
       "--tool",
@@ -407,7 +407,7 @@ async function invokeSkillcraftTool(args: {
   if (proc.exitCode !== 0) {
     return {
       success: false,
-      error: `SkillCraft tool ${args.toolName} failed: ${proc.stderr || proc.stdout}`,
+      error: `tool ${args.toolName} failed: ${proc.stderr || proc.stdout}`,
       tool: args.toolName,
       input: args.input ?? {},
     };

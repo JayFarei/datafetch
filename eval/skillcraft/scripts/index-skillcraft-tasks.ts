@@ -36,8 +36,8 @@ function parseArgs(argv: string[]): Args {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--") continue;
-    if (arg === "--skillcraft-dir") args.skillcraftDir = path.resolve(argv[++index]);
-    else if (arg.startsWith("--skillcraft-dir=")) args.skillcraftDir = path.resolve(arg.slice("--skillcraft-dir=".length));
+    if (arg === "--dataset-dir") args.skillcraftDir = path.resolve(argv[++index]);
+    else if (arg.startsWith("--dataset-dir=")) args.skillcraftDir = path.resolve(arg.slice("--dataset-dir=".length));
     else if (arg === "--out-dir") args.outDir = path.resolve(argv[++index]);
     else if (arg.startsWith("--out-dir=")) args.outDir = path.resolve(arg.slice("--out-dir=".length));
     else throw new Error(`unknown argument: ${arg}`);

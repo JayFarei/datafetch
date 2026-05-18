@@ -5,7 +5,7 @@ mkdir -p "$OUT_BASE"
 
 env DATAFETCH_AGENT=claude DATAFETCH_INTERFACE_MODE=hooks-draft ANTHROPIC_LOG_LEVEL=error \
   pnpm eval:skillcraft \
-    --skillcraft-dir /tmp/skillcraft-official \
+    --dataset-dir /tmp/skillcraft-official \
     --out-dir "$OUT_BASE" \
     --families university-directory-builder,jikan-anime-analysis \
     --live --model claude-sonnet-4-6 --reasoning low --no-lib-cache \
