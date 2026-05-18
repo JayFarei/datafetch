@@ -280,6 +280,57 @@ substrate.
   system prompt is the same shape across all queries; what changes is
   what `df.*` exposes.
 
+## The substrate / dataset boundary
+
+The substrate (`src/`) is dataset-neutral. Each dataset lives under its
+own directory (`eval/<dataset>/`) and plugs into the substrate through
+a small, documented contract. This separation is enforced by convention
+and reinforced by the type surface.
+
+What lives in `src/runtime/` (cross-cutting, every dataset gets it):
+
+- `answerKit.ts` — the standard `scripts/datafetch_answer_kit.ts`
+  emitter (`g`/`arr`/`rowsOf`/`unwrap`/`text`/`num` helpers) plus the
+  generic syntax-slip rewriters (mixed `??`/`||`, unsafe
+  `.toLowerCase()` on `??`-chains, dotted indicator access, snake-case
+  shorthand). `applyGenericSyntaxFixes(source)` is the entry point a
+  harness calls on agent-authored snippet source before passing it to
+  the snippet runtime.
+- `toolCatalog.ts` — `ToolDescriptor`, `ToolCatalogEntry`,
+  `TOOL_MANIFEST_FILENAME`, `writeToolManifest(workspace, catalog)`.
+  The schema of `tool_manifest.json` is documented at the top of the
+  file. Every dataset's tool catalog conforms to this shape.
+
+What lives in `eval/<dataset>/` (dataset-specific):
+
+- `scripts/invoke-tool.py` (or any executable) — the runner the
+  substrate's tool bridge shells out to. Receives the contract
+  `--dataset-dir <dir> --bundle <b> --tool <t> --args <json>` on argv
+  and prints `{result: ...}` JSON on stdout.
+- `scripts/prepare-<dataset>.sh`, `scripts/index-tasks.ts` — dataset
+  bring-up: clones / indexes / preflights anything the runner needs.
+- Per-dataset workspace assembly (the `prepareLiveWorkspace`-style
+  function in the eval entrypoint) calls `writeToolManifest(workspace,
+  catalog)` and `renderAnswerKitSource()` so the workspace contract
+  ships uniformly across datasets.
+
+What the substrate hands the dataset eval at runtime:
+
+- `SessionCtx.toolBridge: { datasetDir, bundles, runnerPath, python?,
+  toolTimeoutMs? }` — set by the eval at snippet-run time. The
+  substrate uses `runnerPath` to invoke the dataset's runner.
+- `ObserverOpts.identifierAttributeKeys?: readonly string[]` — set by
+  the eval at observer install time. The substrate defaults to
+  `["id", "entity", "code", "slug"]` for the record-value signature
+  extractor; datasets whose records use additional identifier columns
+  (e.g. `country_code`, `nationality_code`, `isbn`) extend the list.
+
+The boundary is enforced negatively: a `grep -rn "<dataset-name>" src/`
+should return nothing outside `src/eval/<dataset>*`. Substrate-level
+directories (`src/runtime/`, `src/snippet/`, `src/observer/`,
+`src/bash/`, `src/hooks/`, `src/adapter/`, `src/server/`) carry no
+dataset-specific identifiers, runner paths, or column-name literals.
+
 ## Where to read the code
 
 | concept | implementation |
@@ -289,6 +340,8 @@ substrate.
 | Hook registry | `src/hooks/*` |
 | Observer / learning loop | `src/observer/*` |
 | Answer envelope + quality heuristic | `src/snippet/answer.ts` |
+| Generic answer-kit + syntax-slip rewriters | `src/runtime/answerKit.ts` |
+| Tool catalog types + manifest writer | `src/runtime/toolCatalog.ts` |
 | Trajectory recorder | `src/trajectory/recorder.ts` |
 | Mount runtime + adapters | `src/adapter/*` |
 | Multi-turn probe affordance | `src/eval/runScript.ts` |

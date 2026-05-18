@@ -151,7 +151,7 @@ This collapses into a clean architectural recipe:
 - `src/eval/productFlow/` (harness + comparison utilities — no
   substrate edits).
 - `eval/productFlow/jsonplaceholderToolRunner.py` (the Python bridge
-  that lets the existing skillcraftToolBridge handle any tool bundle).
+  that lets the existing toolBridge handle any tool bundle).
 - `eval/productFlow/preseed-rich-helper/userPostSummary.ts` and
   `eval/productFlow/preseed-typed-toolfanout/toolFanout.ts` as
   fixture examples of "what a well-authored helper looks like."

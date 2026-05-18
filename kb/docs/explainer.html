@@ -1,0 +1,978 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>datafetch — how it works, and how it stacked up</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #161922;
+    --panel-2: #1c2030;
+    --line: #2a2f3d;
+    --text: #e6e9f2;
+    --dim: #8b93a8;
+    --accent: #7cc4ff;
+    --good: #6ee7a3;
+    --warn: #f3c969;
+    --bad: #f88a8a;
+    --neutral: #b8bccb;
+    --mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #fbfaf7;
+      --panel: #ffffff;
+      --panel-2: #f4f2ed;
+      --line: #e6e2d8;
+      --text: #1a1c22;
+      --dim: #6b7080;
+      --accent: #1f6feb;
+      --good: #1f8a4c;
+      --warn: #a06c00;
+      --bad: #b3261e;
+      --neutral: #555a6b;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 56px 28px 96px;
+  }
+  header.hero {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 36px;
+    margin-bottom: 56px;
+  }
+  .eyebrow {
+    color: var(--dim);
+    font: 500 12px/1 var(--mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0 0 14px;
+  }
+  h1 {
+    font: 600 38px/1.12 -apple-system, system-ui;
+    letter-spacing: -0.015em;
+    margin: 0 0 14px;
+  }
+  .lede {
+    color: var(--dim);
+    font-size: 17px;
+    max-width: 68ch;
+    margin: 0 0 24px;
+  }
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--panel);
+    font: 500 12px var(--mono);
+    color: var(--dim);
+  }
+  .badge .dot { width: 6px; height: 6px; border-radius: 99px; background: var(--accent); }
+  .badge .dot.good { background: var(--good); }
+  .badge .dot.warn { background: var(--warn); }
+  .badge .dot.bad { background: var(--bad); }
+
+  section { margin: 0 0 72px; }
+  h2 {
+    font: 600 24px/1.2 -apple-system, system-ui;
+    letter-spacing: -0.01em;
+    margin: 0 0 8px;
+  }
+  h2 .num {
+    color: var(--dim);
+    font: 500 14px/1 var(--mono);
+    margin-right: 10px;
+    vertical-align: 3px;
+  }
+  h3 {
+    font: 600 17px/1.3 -apple-system, system-ui;
+    margin: 28px 0 8px;
+  }
+  h4 {
+    font: 600 14px/1.3 var(--mono);
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 20px 0 6px;
+  }
+  p { margin: 0 0 14px; }
+  .section-lede { color: var(--dim); max-width: 70ch; margin: 0 0 24px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Cards & grid */
+  .grid {
+    display: grid;
+    gap: 16px;
+  }
+  .grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 740px) {
+    .grid.cols-2, .grid.cols-3, .grid.cols-4 { grid-template-columns: 1fr; }
+  }
+  .card {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 10px;
+    padding: 18px 18px 16px;
+  }
+  .card .label {
+    color: var(--dim);
+    font: 500 11px var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .card .value {
+    font: 600 22px var(--mono);
+    letter-spacing: -0.01em;
+  }
+  .card .value.small { font-size: 16px; }
+  .card .delta {
+    font: 500 12px var(--mono);
+    color: var(--dim);
+    margin-top: 4px;
+  }
+  .v-good { color: var(--good); }
+  .v-bad { color: var(--bad); }
+  .v-warn { color: var(--warn); }
+  .v-neutral { color: var(--neutral); }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin: 12px 0 18px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    color: var(--dim);
+    font: 600 11px var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid var(--line);
+  }
+  td.num, th.num { font: 500 13px var(--mono); text-align: right; white-space: nowrap; }
+  td.mono { font: 500 13px var(--mono); }
+  .verdict { font: 600 11px var(--mono); padding: 2px 8px; border-radius: 4px; }
+  .verdict.pass { background: rgba(110, 231, 163, 0.12); color: var(--good); }
+  .verdict.fail { background: rgba(248, 138, 138, 0.12); color: var(--bad); }
+  .verdict.neutral { background: rgba(184, 188, 203, 0.12); color: var(--neutral); }
+  .verdict.warn { background: rgba(243, 201, 105, 0.12); color: var(--warn); }
+
+  /* Code */
+  pre, code {
+    font-family: var(--mono);
+  }
+  code {
+    background: var(--panel-2);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+  pre {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 14px 0;
+  }
+  pre code { background: transparent; padding: 0; }
+  .filepath { color: var(--dim); font: 500 12px var(--mono); display: block; margin: -6px 0 6px; }
+
+  /* Diagram */
+  .diagram {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 14px 0;
+  }
+  .diagram svg { display: block; width: 100%; height: auto; }
+  .diagram-caption { color: var(--dim); font-size: 13px; margin-top: 10px; }
+
+  /* Quote / callout */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--panel);
+    padding: 14px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+    color: var(--text);
+  }
+  .callout.warn { border-color: var(--warn); }
+  .callout.good { border-color: var(--good); }
+  .callout .lab {
+    font: 600 11px var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 6px;
+  }
+
+  /* Misc */
+  ul.tight { padding-left: 18px; margin: 6px 0 14px; }
+  ul.tight li { margin: 4px 0; }
+  .kvp {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 4px 16px;
+    font-size: 14px;
+    margin: 10px 0;
+  }
+  .kvp dt { color: var(--dim); font: 500 12px var(--mono); padding-top: 2px; }
+  .kvp dd { margin: 0; }
+
+  /* TOC nav */
+  nav.toc {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 56px;
+  }
+  nav.toc ol { margin: 0; padding-left: 18px; columns: 2; column-gap: 24px; }
+  nav.toc li { margin: 3px 0; font-size: 14px; }
+  nav.toc a { color: var(--text); }
+  nav.toc a:hover { color: var(--accent); }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    color: var(--dim);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <p class="eyebrow">datafetch — explainer · 2026-05-18</p>
+  <h1>A substrate that turns agent code into learnable execution surface</h1>
+  <p class="lede">
+    datafetch is a dataset harness for coding agents. The agent writes a TypeScript snippet against a typed
+    <code>df.*</code> runtime; every primitive call is captured into a trajectory; an observer crystallises
+    recurring compositions into typed helpers (<code>df.lib.&lt;name&gt;</code>) that subsequent episodes see and
+    reuse. This page documents the committed implementation, how it scored against the alternatives, and what
+    is still open.
+  </p>
+  <div class="badges">
+    <span class="badge"><span class="dot good"></span> Goal 4 MET · iter164 · 2026-05-17</span>
+    <span class="badge"><span class="dot good"></span> 374/374 vitest · typecheck clean</span>
+    <span class="badge"><span class="dot"></span> claude-sonnet-4-6 · full-126</span>
+    <span class="badge"><span class="dot warn"></span> caveats: reproducibility, crystallisation policy</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <ol>
+    <li><a href="#tldr">TL;DR — the one slide</a></li>
+    <li><a href="#how-it-works">How it works</a></li>
+    <li><a href="#runtime">The runtime (df.*)</a></li>
+    <li><a href="#pipeline">The crystallisation pipeline</a></li>
+    <li><a href="#patches">The four substrate patches</a></li>
+    <li><a href="#iter164">Results · iter164 (Goal 4 MET)</a></li>
+    <li><a href="#p1">Results · P1 paired comparison</a></li>
+    <li><a href="#p2">Results · P2 product-flow cross-eval</a></li>
+    <li><a href="#alternatives">Alternatives tested</a></li>
+    <li><a href="#open">Open issues &amp; next moves</a></li>
+  </ol>
+</nav>
+
+<!-- ============================== TL;DR ============================== -->
+<section id="tldr">
+  <h2><span class="num">01</span>TL;DR</h2>
+  <p class="section-lede">
+    Under matched-arm conditions on a 126-task benchmark with the same agent backend, the substrate delivers a
+    measurable cost win and is statistically indistinguishable on correctness. The headline claim is
+    <em>cost efficiency, not pass-rate lift</em>.
+  </p>
+
+  <div class="grid cols-4">
+    <div class="card">
+      <div class="label">Pass rate · A vs B</div>
+      <div class="value">92.9% <span class="v-neutral">/</span> 95.2%</div>
+      <div class="delta v-neutral">−2.4pp · NEUTRAL (McNemar p=0.25)</div>
+    </div>
+    <div class="card">
+      <div class="label">Effective tokens</div>
+      <div class="value v-good">−41%</div>
+      <div class="delta">1,951 vs 3,324 · paired t p≈0</div>
+    </div>
+    <div class="card">
+      <div class="label">Wall-clock</div>
+      <div class="value v-good">−17%</div>
+      <div class="delta">45.6s vs 55.1s · paired t p&lt;0.0001</div>
+    </div>
+    <div class="card">
+      <div class="label">4-vector verdict</div>
+      <div class="value small">{NEUTRAL, PASS, PASS, NEUTRAL}</div>
+      <div class="delta">pass · tokens · wall · σ</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="lab">The honest summary</div>
+    The substrate's contribution under a strong agent backend (Claude sonnet-4-6) is repeated tool-fanout
+    consolidation that drops per-task tokens by ~40% and wall-clock by ~17% while keeping correctness within
+    noise. Pass-rate headroom on this backend is too narrow at low effort to show a correctness signal; cost
+    is where the substrate measurably lifts.
+  </div>
+</section>
+
+<!-- ============================== HOW IT WORKS ============================== -->
+<section id="how-it-works">
+  <h2><span class="num">02</span>How it works — the workspace contract</h2>
+  <p class="section-lede">
+    Every episode runs in a mounted intent workspace. The harness builds it from a template, the agent fills in
+    <code>scripts/answer.ts</code>, the runtime replays it through the snippet sandbox, and the observer reads
+    the resulting trajectory off disk.
+  </p>
+
+  <div class="diagram">
+<svg viewBox="0 0 980 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Workspace contract diagram">
+  <defs>
+    <style>
+      .b { fill: var(--panel-2); stroke: var(--line); stroke-width: 1; }
+      .b-emph { fill: var(--panel-2); stroke: var(--accent); stroke-width: 1.5; }
+      .t { fill: var(--text); font: 600 12px ui-monospace, monospace; }
+      .td { fill: var(--dim); font: 500 11px ui-monospace, monospace; }
+      .tl { fill: var(--text); font: 600 13px -apple-system, system-ui; }
+      .ar { fill: none; stroke: var(--dim); stroke-width: 1; marker-end: url(#arr); }
+      .ar-emph { fill: none; stroke: var(--accent); stroke-width: 1.5; marker-end: url(#arr-a); }
+    </style>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--dim)"/>
+    </marker>
+    <marker id="arr-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+    </marker>
+  </defs>
+
+  <text x="0" y="14" class="tl">DATAFETCH_HOME (persistent substrate state)</text>
+  <rect x="0" y="24" width="280" height="118" rx="6" class="b"/>
+  <text x="14" y="48" class="t">lib/&lt;tenant&gt;/*.ts</text>
+  <text x="14" y="65" class="td">crystallised helpers (df.lib.&lt;name&gt;)</text>
+  <text x="14" y="86" class="t">observer/&lt;tenant&gt;/</text>
+  <text x="14" y="103" class="td">convergence index, shape-hash dedup</text>
+  <text x="14" y="124" class="t">telemetry/events.jsonl</text>
+
+  <text x="350" y="14" class="tl">per-episode workspace (temp dir)</text>
+  <rect x="350" y="24" width="290" height="260" rx="6" class="b-emph"/>
+  <text x="364" y="48" class="t">task.md · AGENTS.md · df.d.ts</text>
+  <text x="364" y="65" class="td">prompt, rules, typed surface</text>
+  <text x="364" y="90" class="t">db/</text>
+  <text x="364" y="107" class="td">immutable dataset context</text>
+  <text x="364" y="130" class="t">lib/</text>
+  <text x="364" y="147" class="td">warm-start helpers (mirrored from cache)</text>
+  <text x="364" y="170" class="t">scripts/answer.ts</text>
+  <text x="364" y="187" class="td">agent-authored intent program</text>
+  <text x="364" y="210" class="t">scripts/datafetch_answer_kit.ts</text>
+  <text x="364" y="227" class="td">unwrap · rowsOf · String() coercion</text>
+  <text x="364" y="250" class="t">tmp/runs/ · result/</text>
+  <text x="364" y="267" class="td">trajectory artefacts, committed answer</text>
+
+  <text x="700" y="14" class="tl">execution &amp; learning</text>
+  <rect x="700" y="24" width="280" height="50" rx="6" class="b"/>
+  <text x="714" y="48" class="t">DiskSnippetRuntime.run()</text>
+  <text x="714" y="65" class="td">evaluates · records trajectory</text>
+
+  <rect x="700" y="92" width="280" height="50" rx="6" class="b"/>
+  <text x="714" y="116" class="t">Observer.runObserve()</text>
+  <text x="714" y="133" class="td">buildCandidates → gate → author</text>
+
+  <rect x="700" y="160" width="280" height="50" rx="6" class="b"/>
+  <text x="714" y="184" class="t">HookRegistry.lookup()</text>
+  <text x="714" y="201" class="td">df.lib.&lt;name&gt; resolves next episode</text>
+
+  <rect x="700" y="228" width="280" height="56" rx="6" class="b"/>
+  <text x="714" y="252" class="t">score-r1-r9.ts</text>
+  <text x="714" y="269" class="td">R1–R9 rubric · dual R8 · cacheBounded</text>
+
+  <path d="M280,80 L350,80" class="ar"/>
+  <path d="M640,120 L700,50" class="ar-emph"/>
+  <path d="M700,117 L640,170" class="ar-emph"/>
+  <path d="M700,185 L640,140" class="ar-emph"/>
+  <path d="M280,55 L350,140" class="ar"/>
+</svg>
+    <div class="diagram-caption">
+      Tenant-persistent state lives under <code>DATAFETCH_HOME</code>. Each episode mounts a fresh workspace with
+      typed handles, a warm-start <code>lib/</code> mirror, and the runtime answer-kit. After the snippet runs,
+      the observer reads the trajectory off disk and authors new helpers into the cross-episode <code>lib/</code>.
+    </div>
+  </div>
+
+  <h3>Where each piece is constructed</h3>
+  <dl class="kvp">
+    <dt>workspace builder</dt>
+    <dd><code>prepareLiveWorkspace()</code> · <code>src/eval/skillcraftFullDatafetch.ts</code></dd>
+    <dt>runtime answer-kit</dt>
+    <dd><code>renderAnswerKitSource()</code> · <code>src/runtime/answerKit.ts</code></dd>
+    <dt>tool catalog types</dt>
+    <dd><code>ToolDescriptor</code> / <code>ToolCatalogEntry</code> · <code>src/runtime/toolCatalog.ts</code></dd>
+    <dt>snippet runtime</dt>
+    <dd><code>DiskSnippetRuntime.run()</code> · <code>src/snippet/runtime.ts</code> lines 95-316</dd>
+    <dt>observer worker</dt>
+    <dd><code>Observer.runObserve()</code> · <code>src/observer/worker.ts</code> line 121</dd>
+    <dt>cross-episode mirror</dt>
+    <dd><code>hydrateFamilyLibCache</code> / <code>persistFamilyLibCache</code> in the SkillCraft harness</dd>
+  </dl>
+</section>
+
+<!-- ============================== RUNTIME ============================== -->
+<section id="runtime">
+  <h2><span class="num">03</span>The runtime — what <code>df.*</code> exposes</h2>
+  <p class="section-lede">
+    The <code>df</code> global is constructed by <code>buildDf()</code> in <code>src/snippet/dfBinding.ts</code>
+    (line 74) and injected as <code>globalThis.df</code> before each snippet runs. Every primitive call is
+    proxied through a recorder, so a complete trajectory is captured as the snippet executes.
+  </p>
+
+  <table>
+    <thead><tr><th>Primitive</th><th>What it does</th><th>What gets recorded</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="mono">df.db.&lt;ident&gt;.findExact / search / findSimilar / hybrid</td>
+        <td>Resolves to a mounted dataset collection and calls the adapter</td>
+        <td class="mono">db.&lt;ident&gt;.&lt;method&gt;</td>
+      </tr>
+      <tr>
+        <td class="mono">df.tool.&lt;bundle&gt;.&lt;tool&gt;(input)</td>
+        <td>Shells out to <code>invoke-skillcraft-tool.py</code>; memoised within a run</td>
+        <td class="mono">tool.&lt;bundle&gt;.&lt;tool&gt;</td>
+      </tr>
+      <tr>
+        <td class="mono">df.lib.&lt;name&gt;(input)</td>
+        <td>Routes via <code>HookRegistry</code> (or <code>LibraryResolver</code> in legacy)</td>
+        <td class="mono">lib.&lt;name&gt;</td>
+      </tr>
+      <tr>
+        <td class="mono">df.answer(input)</td>
+        <td>Pure constructor of <code>AnswerEnvelope</code></td>
+        <td class="td">(not recorded)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    Every <code>db.*</code> and <code>tool.*</code> call passes through
+    <code>trajectory.call(primitiveLabel, input, exec, scope)</code> which captures input, output, duration, and
+    nesting scope into the <code>TrajectoryRecorder</code> defined in <code>src/trajectory/recorder.ts</code>.
+  </p>
+</section>
+
+<!-- ============================== PIPELINE ============================== -->
+<section id="pipeline">
+  <h2><span class="num">04</span>The crystallisation pipeline</h2>
+  <p class="section-lede">
+    A trajectory is saved to disk; the observer fires; the gate decides what survives; the author writes a
+    typed TypeScript file under <code>lib/&lt;tenant&gt;/</code> that becomes callable as
+    <code>df.lib.&lt;name&gt;</code> on the next episode.
+  </p>
+
+  <div class="diagram">
+<svg viewBox="0 0 980 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Crystallisation pipeline">
+  <defs>
+    <style>
+      .step { fill: var(--panel-2); stroke: var(--line); }
+      .step-emph { fill: var(--panel-2); stroke: var(--accent); stroke-width: 1.5; }
+      .lbl { fill: var(--text); font: 600 13px ui-monospace, monospace; }
+      .sub { fill: var(--dim); font: 500 11px ui-monospace, monospace; }
+      .arr { fill: none; stroke: var(--dim); stroke-width: 1; marker-end: url(#a2); }
+    </style>
+    <marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--dim)"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="40" width="170" height="78" rx="6" class="step"/>
+  <text x="14" y="64" class="lbl">trajectory</text>
+  <text x="14" y="82" class="sub">recorded primitive calls</text>
+  <text x="14" y="100" class="sub">mode: novel · interpreted</text>
+
+  <rect x="200" y="40" width="170" height="78" rx="6" class="step"/>
+  <text x="214" y="64" class="lbl">buildCandidates</text>
+  <text x="214" y="82" class="sub">whole-trajectory template</text>
+  <text x="214" y="100" class="sub">+ sub-graph slices</text>
+
+  <rect x="400" y="20" width="190" height="120" rx="6" class="step-emph"/>
+  <text x="414" y="44" class="lbl">gate (7 checks)</text>
+  <text x="414" y="62" class="sub">phase ∈ {execute, commit}</text>
+  <text x="414" y="78" class="sub">≥ 2 primitive calls</text>
+  <text x="414" y="94" class="sub">no error in slice</text>
+  <text x="414" y="110" class="sub">substrate-rooted chain</text>
+  <text x="414" y="126" class="sub">shape-hash dedup + convergence ≥ 2</text>
+
+  <rect x="620" y="40" width="170" height="78" rx="6" class="step"/>
+  <text x="634" y="64" class="lbl">authorFunction</text>
+  <text x="634" y="82" class="sub">deterministic TS file</text>
+  <text x="634" y="100" class="sub">YAML frontmatter</text>
+
+  <rect x="820" y="40" width="160" height="78" rx="6" class="step"/>
+  <text x="834" y="64" class="lbl">HookRegistry</text>
+  <text x="834" y="82" class="sub">resolves df.lib.&lt;name&gt;</text>
+  <text x="834" y="100" class="sub">next episode picks up</text>
+
+  <path d="M170,80 L200,80" class="arr"/>
+  <path d="M370,80 L400,80" class="arr"/>
+  <path d="M590,80 L620,80" class="arr"/>
+  <path d="M790,80 L820,80" class="arr"/>
+
+  <rect x="200" y="170" width="600" height="70" rx="6" class="step"/>
+  <text x="214" y="195" class="lbl">scoring</text>
+  <text x="214" y="214" class="sub">score-r1-r9.ts joins normalized.jsonl + helper-instrumentation.jsonl + intent-clusters.json</text>
+  <text x="214" y="231" class="sub">R1 pass · R2 tokens · R3 errors · R6 convergence · R7 reuse · R8 dual cost gate · R9 cross-shape transfer</text>
+</svg>
+    <div class="diagram-caption">
+      The seven gate checks live in <code>shouldCrystallise()</code> (<code>src/observer/gate.ts</code> line 82).
+      The intent-convergence threshold of 2 is what makes the loop "Goal 4-honest" — first occurrence records
+      but does not yet crystallise.
+    </div>
+  </div>
+
+  <h3>The seven gate checks</h3>
+  <ol class="tight">
+    <li>Phase must be <code>execute</code> or <code>commit</code> (plan attempts excluded).</li>
+    <li>Trajectory slice must have ≥ 2 primitive calls.</li>
+    <li><code>errored</code> false and no call output looks like an error.</li>
+    <li>Mode must be <code>novel</code> or <code>interpreted</code> (not LLM-backed or cached).</li>
+    <li>Substrate-rooted chain: a <code>db.*</code> list-returning call with a downstream <code>lib.*</code>/<code>tool.*</code> that structurally consumes it.</li>
+    <li>Shape-hash dedup against existing <code>lib/&lt;tenant&gt;/</code>.</li>
+    <li>Intent convergence: <code>convergenceCount ≥ 2</code> (default).</li>
+  </ol>
+</section>
+
+<!-- ============================== PATCHES ============================== -->
+<section id="patches">
+  <h2><span class="num">05</span>The four substrate patches that closed Goal 4</h2>
+  <p class="section-lede">
+    All four are generic (no benchmark identifiers) and now live in
+    <code>src/runtime/answerKit.ts</code>. They fix runtime errors that broke otherwise-correct agent
+    code on real REST shapes. Without them, R1 sits around 0.88; with them, full-126 crosses 0.92.
+  </p>
+
+  <table>
+    <thead><tr><th>#</th><th>Patch</th><th>What it fixes</th><th>Site</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><strong>success/ok envelope unwrap</strong></td>
+        <td>Silent empty-data when tools wrap payloads in <code>{success, &lt;entity&gt;}</code></td>
+        <td class="mono">answerKit.ts · renderAnswerKitSource</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><strong>AST <code>??</code>/<code>||</code> rewriter</strong></td>
+        <td>esbuild "Cannot use ?? with || without parens" on prettier-wrapped RHS</td>
+        <td class="mono">answerKit.ts · rewriteMixedNullishLogicalExpressions</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><strong>generic <code>rowsOf</code></strong></td>
+        <td>List extraction across <code>value/data/results/items/records/rows/entries/list</code> + one unwrap</td>
+        <td class="mono">answerKit.ts · rowsOf emitted inside renderAnswerKitSource</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><strong>String() coercion rewriter</strong></td>
+        <td><code>x.toLowerCase is not a function</code> when <code>??</code>-chain short-circuits on non-string</td>
+        <td class="mono">answerKit.ts · rewriteUnsafeStringCoercionCalls</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Post-P1 follow-ups (landed 2026-05-18)</h3>
+  <p>
+    Three commits replaced regex-based rewriters with AST-based ones and added a generic single-key wrapper
+    unwrap, recovering all three families that regressed under P1.
+  </p>
+  <table>
+    <thead><tr><th>Commit</th><th>Fix</th><th>Recovers</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">14bae808</td><td>AST <code>rewriteMixedNullishLogicalExpressions</code></td><td>random-user-database/m2, recipe-cookbook-builder/e3</td></tr>
+      <tr><td class="mono">4555f968</td><td>generic single-key wrapper unwrap in <code>unwrapToolPayload</code></td><td>pokeapi-pokedex/m1 (re-smoke 68.6 → 91.4)</td></tr>
+      <tr><td class="mono">7d416692</td><td>AST <code>rewriteUnsafeStringCoercionCalls</code></td><td>pre-emptive on receivers like <code>(fn(a) ?? gn(b)).includes(...)</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="lab">Why this matters</div>
+    These are not "tricks to score points on the benchmark." Each one is a generic typed scaffold that lifts a
+    real class of runtime errors out of agent-authored code. The pattern — author tries the obvious thing, gets
+    bitten by a payload shape or coercion edge case — is the same pattern you see across REST integrations in
+    the wild.
+  </div>
+</section>
+
+<!-- ============================== ITER164 ============================== -->
+<section id="iter164">
+  <h2><span class="num">06</span>Results · iter164 — Goal 4 MET (with caveats)</h2>
+  <p class="section-lede">
+    Run <code>eval/skillcraft/results/datafetch/goal4-iter164-full126-claude-clean-20260516</code>. Backend:
+    <code>claude --print</code> / <code>claude-sonnet-4-6</code> at effort <code>low</code>. Scale: full-126
+    (21 families × 6 difficulty levels). The only full-126 run on record that clears all 8 gates simultaneously.
+  </p>
+
+  <h3>R1–R9 scorecard (re-scored 2026-05-17 with the tightened dual R8 gate)</h3>
+  <table>
+    <thead><tr><th>Metric</th><th class="num">Value</th><th>Threshold</th><th>Met</th></tr></thead>
+    <tbody>
+      <tr><td>R1 passRate</td><td class="num">0.9365 (118/126)</td><td>≥ 0.92</td><td><span class="verdict pass">PASS</span></td></tr>
+      <tr><td>R2 avgEffectiveTokens</td><td class="num">1610.6</td><td>≤ 8000</td><td><span class="verdict pass">PASS</span></td></tr>
+      <tr><td>R3 runtimeErrorRate</td><td class="num">0.0079</td><td>≤ 0.05</td><td><span class="verdict pass">PASS</span></td></tr>
+      <tr><td>R4 quarantineRate</td><td class="num">0</td><td>≤ 0.03</td><td><span class="verdict pass">PASS</span></td></tr>
+      <tr><td>R6 convergenceRate</td><td class="num">1.0</td><td>≥ 0.80</td><td><span class="verdict pass">PASS</span></td></tr>
+      <tr><td>R7 conditionalReuseRate</td><td class="num">0.8551</td><td>≥ 0.60</td><td><span class="verdict pass">PASS</span></td></tr>
+      <tr><td>R8 conditionalCostDrop · mean</td><td class="num">0.6665</td><td>≤ 0.70 (mean)</td><td><span class="verdict pass">PASS</span></td></tr>
+      <tr><td>R8 conditionalCostDrop · per-pair fraction</td><td class="num">0.6444</td><td>≥ 0.70 (per-pair)</td><td><span class="verdict fail">FAIL (tightened)</span></td></tr>
+      <tr><td>R9 crossShapeTransfer</td><td class="num">FANOUT(tool)</td><td>≥ 1 sig across ≥ 2 families</td><td><span class="verdict pass">PASS</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <div class="lab">Important: scorer reframe</div>
+    EXPERIMENT_NOTES at run time declared iter164 "all 8 R1–R9 gates PASS" against the then-current mean-only
+    R8 gate. The dual gate (mean ≤ 0.70 AND per-pair pass-fraction ≥ 0.70) was added afterwards;
+    iter164's per-pair fraction is 0.6444, below 0.70. Goal 4 MET was reframed as "MET under the
+    <code>cacheBoundedByFramework</code> qualification with an acknowledged R8 measurement artifact." The user
+    accepted this reframe on 2026-05-17. The P1 Arm A run (same substrate, run the same day) passes R8 under
+    the tightened scorer (per-pair 0.7021, mean 0.6427).
+  </div>
+
+  <h3>Per-tier breakdown</h3>
+  <table>
+    <thead><tr><th>Tier</th><th class="num">n</th><th class="num">passed</th><th class="num">pass rate</th><th class="num">runtime errors</th><th class="num">avg eff tokens</th></tr></thead>
+    <tbody>
+      <tr><td>train</td><td class="num">21</td><td class="num">19</td><td class="num">0.9048</td><td class="num">0</td><td class="num">1489.9</td></tr>
+      <tr><td>warm</td><td class="num">84</td><td class="num">80</td><td class="num">0.9524</td><td class="num">0</td><td class="num">1599.7</td></tr>
+      <tr><td>hard</td><td class="num">21</td><td class="num">19</td><td class="num">0.9048</td><td class="num">1</td><td class="num">1775.2</td></tr>
+    </tbody>
+  </table>
+
+  <h3>What failed</h3>
+  <p>
+    8 failures: cat-facts-collector (all 6 episodes — task-scorer ceiling at 60-65 below the ≥ 70 evaluator
+    threshold), random-user-database/m1 (correctness), random-user-database/h1 (runtime error). Fanout slot
+    diagnostics: 49 slots, 23 verified, 0 suspect, 0 reject; 0 answer-used non-verified slots.
+  </p>
+</section>
+
+<!-- ============================== P1 ============================== -->
+<section id="p1">
+  <h2><span class="num">07</span>Results · P1 paired comparison — the only true A/B</h2>
+  <p class="section-lede">
+    Run on 2026-05-17 on branch <code>goal4-p1-matched-arm-skillcraft</code>. Both arms used Claude
+    <code>sonnet-4-6</code> with identical prompt skeleton and per-entity seed; the only difference was
+    <code>DATAFETCH_DISABLE_LEARNING=1</code> on Arm B, which skips
+    <code>hydrateFamilyLibCache</code>, <code>installObserver</code>, <code>persistFamilyLibCache</code>.
+  </p>
+
+  <h3>Headline 4-vector</h3>
+  <table>
+    <thead><tr><th>Dim</th><th class="num">Arm A (ON)</th><th class="num">Arm B (OFF)</th><th class="num">Δ</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td>Pass rate</td><td class="num">92.9% (117/126)</td><td class="num">95.2% (120/126)</td><td class="num">−2.4pp</td><td><span class="verdict neutral">NEUTRAL</span> McNemar p=0.250</td></tr>
+      <tr><td>Effective tokens (mean)</td><td class="num">1,951.1</td><td class="num">3,324.4</td><td class="num">−1,373 · −41.3%</td><td><span class="verdict pass">PASS</span> paired t p≈0</td></tr>
+      <tr><td>Wall-clock mean (ms)</td><td class="num">45,562.8</td><td class="num">55,086.5</td><td class="num">−9,524 · −17.3%</td><td><span class="verdict pass">PASS</span> paired t p&lt;0.0001</td></tr>
+      <tr><td>Effective-token σ</td><td class="num">828.3</td><td class="num">1,037.7</td><td class="num">−209 · −20.2%</td><td><span class="verdict neutral">NEUTRAL</span> no formal test</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Per-tier token / wall savings</h3>
+  <table>
+    <thead><tr><th>Tier</th><th class="num">n</th><th class="num">pass A</th><th class="num">pass B</th><th class="num">token Δ%</th><th class="num">wall Δ%</th></tr></thead>
+    <tbody>
+      <tr><td>train</td><td class="num">21</td><td class="num">95.2%</td><td class="num">95.2%</td><td class="num v-good">−38.5%</td><td class="num v-good">−14.3%</td></tr>
+      <tr><td>warm</td><td class="num">84</td><td class="num">91.7%</td><td class="num">95.2%</td><td class="num v-good">−38.7%</td><td class="num v-good">−15.0%</td></tr>
+      <tr><td>hard</td><td class="num">21</td><td class="num">95.2%</td><td class="num">95.2%</td><td class="num v-good">−52.2%</td><td class="num v-good">−27.7%</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Where Arm A regressed (each is one episode out of six)</h3>
+  <ul class="tight">
+    <li><strong>pokeapi-pokedex</strong> — silent empty-data output from <code>{pokemon: {...}}</code> wrapper.
+      Fixed by commit <code>4555f968</code>; re-smoke 68.6 → 91.4.</li>
+    <li><strong>random-user-database</strong> — esbuild "Cannot use ?? with || without parens" on prettier-wrapped
+      const RHS. Fixed by commit <code>14bae808</code>.</li>
+    <li><strong>recipe-cookbook-builder</strong> — same parser shape as random-user-database. Fixed by
+      <code>14bae808</code>.</li>
+  </ul>
+  <p>
+    <strong>cat-facts-collector</strong> failed 0/6 on both arms — a task-scorer ceiling, not a substrate
+    property. The projected Arm A R1 after the three fixes is ~95.2%, matching Arm B.
+  </p>
+
+  <div class="callout">
+    <div class="lab">The disciplined claim</div>
+    Two PASS + two NEUTRAL + zero REGRESSION clears the "respectable graduation" bar in the P1 spec (≥ 3
+    PASS/MARGINAL would be a strong claim; we have 2, with directional improvement the test design can't
+    significantly distinguish on the other two).
+  </div>
+</section>
+
+<!-- ============================== P2 ============================== -->
+<section id="p2">
+  <h2><span class="num">08</span>Results · P2 product-flow cross-eval — what the substrate looks like off-benchmark</h2>
+  <p class="section-lede">
+    A non-SkillCraft cross-eval against <code>jsonplaceholder.typicode.com</code> on branch
+    <code>goal4-p2-product-flow-cross-eval</code>. The original verdict on 2026-05-17 reported a
+    <strong>4.66× cost regression</strong> on the substrate-on arm. Follow-up on 2026-05-18 traced this to a
+    harness artifact, and the corrected arm settles at 1.70× one-shot (≈baseline session-cached).
+  </p>
+
+  <h3>The original vs corrected arms</h3>
+  <table>
+    <thead><tr><th>Arm</th><th class="num">warm eff tokens</th><th class="num">cost vs baseline</th><th class="num">reuses</th><th class="num">correct</th></tr></thead>
+    <tbody>
+      <tr><td>substrate-off baseline</td><td class="num">1,448</td><td class="num">1.00×</td><td class="num">0</td><td class="num">2/2</td></tr>
+      <tr><td>substrate-on (mandatory cat — original)</td><td class="num">6,749</td><td class="num v-bad">4.66×</td><td class="num">2</td><td class="num">2/2</td></tr>
+      <tr><td>substrate-on (workspace-lib, no hint)</td><td class="num">1,483</td><td class="num v-good">1.02×</td><td class="num">0</td><td class="num">2/2</td></tr>
+      <tr><td>substrate-on (manifest inlined)</td><td class="num">3,206</td><td class="num v-warn">2.21×</td><td class="num">1</td><td class="num">1/2</td></tr>
+      <tr><td><strong>substrate-on (skills-disclosure)</strong></td><td class="num"><strong>2,457</strong></td><td class="num v-good"><strong>1.70×</strong></td><td class="num">0</td><td class="num">2/2</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Diagnosis</h3>
+  <p>
+    Two causes: (1) the substrate's <code>AGENTS.md</code>/<code>CLAUDE.md</code>/<code>df.d.ts</code> contract
+    was being written to <code>$DATAFETCH_HOME</code> but never propagated into the per-episode
+    <code>workspace/</code> the agent's <code>claude-p</code> actually used; (2) the "MUST cat" discovery
+    instruction lived in the task prompt, adding ~2,400 output tokens per episode and making reuse mandatory
+    rather than earned.
+  </p>
+
+  <h3>Revised 5-claim verdict (skills-disclosure arm)</h3>
+  <table>
+    <thead><tr><th>Claim</th><th>Status</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>1. Crystallisation</td><td><span class="verdict pass">PASS</span></td><td><code>toolFanout</code> learned from e2</td></tr>
+      <tr><td>2. Discovery (no helper-name leak)</td><td><span class="verdict pass">PASS</span></td><td>workspace contract surfaces names via substrate manifest, not the task prompt</td></tr>
+      <tr><td>3. Reuse</td><td><span class="verdict fail">FAIL</span> / <span class="verdict pass">PASS</span></td><td>FAIL on auto-crystallised <code>toolFanout</code>; PASS on hand-authored rich <code>userPostSummary</code></td></tr>
+      <tr><td>4. Cost</td><td><span class="verdict neutral">NEAR-NEUTRAL</span></td><td>1.70× one-shot; ≈baseline session-cached</td></tr>
+      <tr><td>5. Correctness</td><td><span class="verdict pass">PASS</span></td><td>3/3 both arms</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <div class="lab">The open architectural diagnosis</div>
+    The substrate's <em>infrastructure</em> (observer, seed, <code>df.d.ts</code>, AGENTS.md, lib/ overlay)
+    now transfers off SkillCraft cleanly — the substrate-decouple work (May 2026) moved the four answer-kit
+    rewriters into <code>src/runtime/answerKit.ts</code>, renamed the SkillCraft-coded tool bridge to a
+    generic <code>toolBridge</code> with a required <code>runnerPath</code>, and parametrised the observer's
+    identifier-attribute heuristic. P2 itself (at the time of writing) ran through a SkillCraft-shaped fake
+    bridge; that coupling has since been removed. The substrate's <em>crystallisation policy</em> remains
+    the open issue: it authors helpers thin enough that agents prefer re-deriving inline. The auto-crystallised
+    <code>toolFanout</code> packages a 3-call fan-out into a one-liner — but the agent's inline
+    <code>Promise.all</code> reflex is equally short. Hand-authored helpers with rich frontmatter
+    (<code>userPostSummary</code>) do get reused. Fix queued as B2.
+  </div>
+</section>
+
+<!-- ============================== ALTERNATIVES ============================== -->
+<section id="alternatives">
+  <h2><span class="num">09</span>Alternatives tested — and how each landed</h2>
+  <p class="section-lede">
+    Before iter164, the team ran a structured battle-of-ideas on four competing hypotheses about why the
+    learning loop failed at scale. Two arms won and are committed; two were scaffolded and remain inert at
+    current scale. Several adjacent academic ideas were considered and deferred.
+  </p>
+
+  <h3>The battle of ideas (iters 49–78)</h3>
+  <table>
+    <thead><tr><th>Arm</th><th>Hypothesis</th><th>Outcome</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>A · Contract-aware tool admissibility</strong></td>
+        <td>recordToolFanout exposes tools on surface params rather than verified field-to-input contracts</td>
+        <td><span class="verdict neutral">PARTIAL</span> the slot-level classifier landed as <code>fanout-slot-diagnostics.ts</code>; the same-entity / dependent split moved into the helper topology</td>
+      </tr>
+      <tr>
+        <td><strong>B · Verification-gated promotion</strong></td>
+        <td>Loop promotes helpers from converged shape too early; should replay before marking preferred</td>
+        <td><span class="verdict warn">SCAFFOLDED, INERT</span> the PSN-style state machine landed in <code>score-r1-r9.ts</code>; full ReGAL semantic replay deferred</td>
+      </tr>
+      <tr>
+        <td><strong>C · Hierarchical skill decomposition</strong></td>
+        <td>One <code>recordToolFanout</code> is the wrong abstraction; same-entity vs dependent are separate skills</td>
+        <td><span class="verdict pass">WON</span> the four committed helper templates embody the hierarchy</td>
+      </tr>
+      <tr>
+        <td><strong>D · Fault-localising answer builder</strong></td>
+        <td>Generic typed scaffolds (unwrap envelopes, normalise syntax) lift R1/R3 without family-specific branches</td>
+        <td><span class="verdict pass">WON</span> the four substrate patches in §05 all derive from this arm</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Scaffolds that are inert at current scale</h3>
+  <div class="grid cols-2">
+    <div class="card">
+      <div class="label">V1 ReGAL gate</div>
+      <p style="margin:6px 0 0">Coverage-density gate in <code>src/observer/gate.ts</code>. Helpers whose
+        <code>min(steps,6) × distinctTools / 6 &lt; 2.0</code> are tagged narrow. All five current helper
+        templates pass by construction, so the env flag is non-moving. Full ReGAL semantic replay (execute
+        refactored program, compare outputs) deferred.</p>
+    </div>
+    <div class="card">
+      <div class="label">V2 PSN maturity state machine</div>
+      <p style="margin:6px 0 0">Per-helper FSM <code>candidate → verified → preferred ↔ suspect → quarantined</code>
+        in <code>score-r1-r9.ts</code> L245-422. Promotes after 2 passes, demotes after 3 consecutive cost-drop
+        losses. At 36-row probe scale each helper gets too few uses; needs full-126 to be observable.</p>
+    </div>
+  </div>
+
+  <h3>Backend comparison</h3>
+  <table>
+    <thead><tr><th>iter</th><th class="num">scale</th><th>backend</th><th class="num">R1</th><th class="num">R6</th><th class="num">R8</th><th class="num">gates</th></tr></thead>
+    <tbody>
+      <tr><td>153</td><td class="num">36</td><td>codex-direct</td><td class="num">0.97</td><td class="num">0.80</td><td class="num">0.71</td><td class="num">6/8</td></tr>
+      <tr><td>156</td><td class="num">36</td><td>codex-direct</td><td class="num">1.00</td><td class="num">1.00</td><td class="num">0.74</td><td class="num">7/8</td></tr>
+      <tr><td>158</td><td class="num">36</td><td>codex-direct</td><td class="num">0.97</td><td class="num">1.00</td><td class="num">0.66</td><td class="num"><strong>8/8</strong></td></tr>
+      <tr><td>159</td><td class="num">126</td><td>codex-direct</td><td class="num">0.95</td><td class="num">0.71</td><td class="num">0.73</td><td class="num">6/8</td></tr>
+      <tr><td>160</td><td class="num">36</td><td>claude</td><td class="num">0.97</td><td class="num">1.00</td><td class="num">0.79</td><td class="num">7/8</td></tr>
+      <tr><td>161</td><td class="num">126</td><td>claude</td><td class="num">0.48</td><td class="num">1.00</td><td class="num">0.55</td><td class="num">5/8 (invalidated; Anthropic 500s)</td></tr>
+      <tr><td><strong>164</strong></td><td class="num">126</td><td>claude</td><td class="num">0.94</td><td class="num">1.00</td><td class="num">0.67</td><td class="num"><strong>8/8</strong> (MET)</td></tr>
+    </tbody>
+  </table>
+  <p>
+    codex-direct full-126 fails R6 (compositional clusters) and R8 (cross-family per-row complexity) on the
+    same substrate. Goal 4 MET is Claude-specific; codex-direct is a useful control but cannot close all
+    eight gates simultaneously without new template authors.
+  </p>
+
+  <h3>Academic directions considered</h3>
+  <table>
+    <thead><tr><th>Direction</th><th>Status</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>ReGAL (arxiv:2401.16467) — verified abstraction promotion</td><td><span class="verdict warn">PARTIAL</span></td><td>V1 gate + offline slot verifier landed; semantic replay deferred</td></tr>
+      <tr><td>SkillX — three-level skill hierarchy</td><td><span class="verdict pass">CORE LANDED</span></td><td>same-entity / dependent split in helper topology; full SkillX KB deferred</td></tr>
+      <tr><td>PSN (arxiv:2601.03509) — maturity + fault localisation</td><td><span class="verdict warn">SCAFFOLDED, INERT</span></td><td>state machine in scorer; needs more episodes per helper to demote</td></tr>
+      <tr><td>Memory-Transfer / Insight (arxiv:2604.14004)</td><td><span class="verdict neutral">PLANNED · B2</span></td><td><code>@insight</code> YAML field in helper frontmatter; transfers +7.8% to novel domains in the paper</td></tr>
+      <tr><td>f(g(x)) composition (arxiv:2509.25123)</td><td><span class="verdict neutral">DEFERRED</span></td><td>relevant to the R6 compositional-cluster gap; stamp <code>@composes-with</code> edges from offline analysis</td></tr>
+      <tr><td>UCT critic-gated tool creation (arxiv:2602.01983)</td><td><span class="verdict neutral">DEFERRED</span></td><td>full ReGAL-style semantic validator; est. 16-23h</td></tr>
+      <tr><td>Voyager-style skill library</td><td><span class="verdict neutral">NOT TRIALLED</span></td><td>SkillX taxonomy played this role</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Cache qualification — strict-zero vs framework-bounded</h3>
+  <p>
+    The original Goal 4 cache rubric required <code>agentCachedInputTokens === 0</code> on every row. This is
+    structurally unachievable with <code>claude --print</code>: Anthropic's inference backend caches the
+    framework system prompt and tool definitions server-side, and that caching cannot be disabled by the caller.
+    The 2026-05-17 Codex adversarial review also caught a normalizer bug that had been silently dropping
+    <code>agentCachedInputTokens</code>, making the iter164 "0/126 cache nonzero" headline a measurement
+    artifact. Real value: 126/126 with cache &gt; 0.
+  </p>
+  <p>
+    The reframe accepted on 2026-05-17 — <code>cacheBoundedByFramework</code> — rejects only inter-episode
+    state leak inside the substrate (a learned helper grown too large, an accumulating lib-cache, a resumed
+    session), operationalised as <code>agentCachedInputTokens ≤ 250k per row</code>. The strict reading lives
+    on as <code>CACHE_QUALIFICATION_STRICT=1</code> but is treated as unachievable on this backend.
+  </p>
+</section>
+
+<!-- ============================== OPEN ============================== -->
+<section id="open">
+  <h2><span class="num">10</span>Open issues &amp; next moves</h2>
+  <p class="section-lede">
+    The three caveats that survive into the next phase, and the three overnight goals B1/B2/B3 from
+    <code>experiments/PLAN.md</code>.
+  </p>
+
+  <h3>Caveats that survive</h3>
+  <ul class="tight">
+    <li><strong>iter164 MET was fragile.</strong> Anthropic API health is the dominant variable: iter161 (same
+      substrate, ~24h earlier) had 114/126 500-errors and scored R1=0.48 / R3=0.29. Single-shot MET; not yet
+      replicated.</li>
+    <li><strong>Crystallisation policy is too permissive.</strong> Auto-crystallised thin helpers don't beat
+      the agent's inline-rewrite reflex (P2). Narrow the convergence gate to compositions that meaningfully
+      exceed inline cost; add the insight annotation for selective discovery.</li>
+    <li><strong>codex-direct full-126 is still 6/8.</strong> Goal 4 MET is Claude-specific; the compositional
+      cluster shapes need authored templates the substrate doesn't yet produce.</li>
+  </ul>
+
+  <h3>Next phase — overnight goals</h3>
+  <div class="grid cols-3">
+    <div class="card">
+      <div class="label">B1 · iter168 honest re-eval</div>
+      <p style="margin:6px 0 0">Re-run Claude full-126 under the tightened scorer (dual R8 +
+        <code>cacheBoundedByFramework</code> + benchmark-keys-removed substrate). Confirm iter164's MET is
+        reproducible across ≥ 2 runs, not a single-run Anthropic-uptime artifact.</p>
+    </div>
+    <div class="card">
+      <div class="label">B2 · insight layer probe</div>
+      <p style="margin:6px 0 0">Add <code>@insight</code> YAML field to crystallised helpers (auto-generated
+        title + description + generalised content). Probe whether richer annotation enables semantic
+        selectivity. Hypothesis: this is what unlocks reuse for thin helpers.</p>
+    </div>
+    <div class="card">
+      <div class="label">B3 · cold-to-warm via product flow</div>
+      <p style="margin:6px 0 0">Use the existing novel-tenant smoke
+        (<code>src/observer/__smoke__/novel-tenant.ts</code>) as departure point. Validate the substrate's
+        cold-to-warm wins generalise off SkillCraft, with the corrected workspace-lib propagation.</p>
+    </div>
+  </div>
+
+  <h3>Build &amp; test state at HEAD</h3>
+  <div class="grid cols-2">
+    <div class="card">
+      <div class="label">Tests</div>
+      <div class="value v-good">374 / 374</div>
+      <div class="delta">43 test files · 8.32s · 0 failures</div>
+    </div>
+    <div class="card">
+      <div class="label">Typecheck</div>
+      <div class="value v-good">clean</div>
+      <div class="delta"><code>pnpm typecheck</code> exit 0</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>
+    Sources: <code>experiments/STATUS.md</code>,
+    <code>experiments/EXPERIMENT_NOTES.md</code> (iter164 entry L2152-2238),
+    <code>eval/skillcraft/results/datafetch/goal4-p1-paired-comparison-20260517.md</code>,
+    <code>eval/skillcraft/results/datafetch/goal4-iter164-full126-claude-clean-20260516/r1-r9-scorecard.json</code>,
+    <code>eval/skillcraft/results/datafetch/goal4-p1-armA-substrate-on-20260517/r1-r9-scorecard.json</code>,
+    <code>eval/productFlow/results/p2-defensive-evidence-20260517/comparison.md</code>,
+    <code>experiments/archive/2026-05-goal4-skillcraft/goal4-battle-of-ideas-goal.md</code>.
+  </p>
+  <p>Generated 2026-05-18. All numbers reflect HEAD on <code>main</code>.</p>
+</footer>
+
+</div>
+</body>
+</html>
