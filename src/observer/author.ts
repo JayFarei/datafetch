@@ -61,6 +61,12 @@ export type AuthorFunctionArgs = {
   // Skill name to dispatch when the pure-composition path can't produce
   // valid source. Null/undefined disables the fallback.
   codifierSkill?: string | null;
+  // Attribute keys that the record-value signature extractor should
+  // short-string-rescue (allow values <3 chars through). The substrate's
+  // built-in defaults cover id/entity/code/slug; a dataset whose records
+  // expose additional identifier columns (e.g. country_code, isbn) extends
+  // the list at observer install time. Omitted: use defaults.
+  identifierAttributeKeys?: readonly string[];
 };
 
 // --- Public API ------------------------------------------------------------
@@ -91,14 +97,16 @@ export async function authorFunction(
   // concrete primitives — that freeze is exactly what would kill
   // cross-shape transfer (R9). Falls back to the pure-composition path
   // when the template is not a pure fan-out.
+  const identifierAttributeKeys = args.identifierAttributeKeys;
   const fanOutSource =
-    renderToolFanoutEnrichmentSource({ template, trajectory }) ??
-    renderRecordToolEnrichmentSource({ template, trajectory }) ??
-    renderRecordToolFanOutSource({ template, trajectory }) ??
-    renderFanOutSource({ template, trajectory });
+    renderToolFanoutEnrichmentSource({ template, trajectory, identifierAttributeKeys }) ??
+    renderRecordToolEnrichmentSource({ template, trajectory, identifierAttributeKeys }) ??
+    renderRecordToolFanOutSource({ template, trajectory, identifierAttributeKeys }) ??
+    renderFanOutSource({ template, trajectory, identifierAttributeKeys });
   const pureSource = fanOutSource ?? generatePureSource({
     template,
     trajectory,
+    identifierAttributeKeys,
   });
 
   let source: string | null = pureSource;
@@ -297,17 +305,19 @@ function isPureToolFanout(template: CallTemplate): boolean {
 function isRecordToolFanout(
   template: CallTemplate,
   trajectory: TrajectoryRecord,
+  identifierAttributeKeys?: readonly string[],
 ): boolean {
   if (!/^(?:db|FANOUT\(db\))→FANOUT\(tool\)(?:→lib)?$/.test(template.intentSignature)) {
     return false;
   }
-  return selectRecordBackedToolSteps({ template, trajectory }) !== null;
+  return selectRecordBackedToolSteps({ template, trajectory, identifierAttributeKeys }) !== null;
 }
 
 function selectRecordBackedToolSteps(args: {
   template: CallTemplate;
   trajectory: TrajectoryRecord;
   upperBound?: number;
+  identifierAttributeKeys?: readonly string[];
 }): TemplateStep[] | null {
   const { template, trajectory } = args;
   const dbIndex = template.steps.findIndex((s) => s.primitive.startsWith("db."));
@@ -325,7 +335,9 @@ function selectRecordBackedToolSteps(args: {
   if (calls.length !== template.steps.length) return null;
   const dbCall = calls[dbIndex];
   if (!dbCall) return null;
-  const recordSigs = collectRecordValueSignatures(dbCall.output);
+  const recordSigs = collectRecordValueSignatures(dbCall.output, {
+    identifierAttributeKeys: args.identifierAttributeKeys,
+  });
   if (recordSigs.length === 0) return null;
   const candidates: TemplateStep[] = [];
   const erroredPrimitives = new Set<string>();
@@ -528,7 +540,21 @@ function callsForSteps(
   return [];
 }
 
-function collectRecordValueSignatures(output: unknown): string[] {
+// Default identifier-attribute keys for the record-value signature
+// extractor. Generic across datasets: `id`/`entity` are the substrate's
+// canonical row identifiers; `code`/`slug` cover common short-string
+// identifier columns in REST payloads. A dataset eval whose records use
+// dataset-specific identifier columns (e.g. `country_code`,
+// `nationality_code`, `isbn`) extends this list at observer install time
+// via `ObserverOpts.identifierAttributeKeys`.
+export const DEFAULT_RECORD_IDENTIFIER_KEYS = ["id", "entity", "code", "slug"] as const;
+
+function collectRecordValueSignatures(
+  output: unknown,
+  options?: { identifierAttributeKeys?: readonly string[] },
+): string[] {
+  const identifierAttributeKeys = options?.identifierAttributeKeys
+    ?? DEFAULT_RECORD_IDENTIFIER_KEYS;
   if (!Array.isArray(output) || output.length === 0) return [];
   const signatures: string[] = [];
   const seen = new Set<string>();
@@ -569,7 +595,7 @@ function collectRecordValueSignatures(output: unknown): string[] {
   const addRecordIdentifiers = (value: unknown): void => {
     if (value === null || typeof value !== "object" || Array.isArray(value)) return;
     const row = value as Record<string, unknown>;
-    if (!isRecordLikeRow(row)) return;
+    if (!isRecordLikeRow(row, identifierAttributeKeys)) return;
     add(row.id, { allowShortString: true });
     add(row.entity, { allowShortString: true });
     const attributes = row.attributes;
@@ -579,11 +605,9 @@ function collectRecordValueSignatures(output: unknown): string[] {
       !Array.isArray(attributes)
     ) {
       const attrs = attributes as Record<string, unknown>;
-      add(attrs.id, { allowShortString: true });
-      add(attrs.entity, { allowShortString: true });
-      add(attrs.code, { allowShortString: true });
-      add(attrs.country_code, { allowShortString: true });
-      add(attrs.nationality_code, { allowShortString: true });
+      for (const key of identifierAttributeKeys) {
+        add(attrs[key], { allowShortString: true });
+      }
     }
   };
   const walk = (value: unknown, depth: number): void => {
@@ -608,7 +632,10 @@ function collectRecordValueSignatures(output: unknown): string[] {
   return signatures;
 }
 
-function isRecordLikeRow(row: Record<string, unknown>): boolean {
+function isRecordLikeRow(
+  row: Record<string, unknown>,
+  identifierAttributeKeys: readonly string[] = DEFAULT_RECORD_IDENTIFIER_KEYS,
+): boolean {
   if ("id" in row || "entity" in row) return true;
   const attributes = row.attributes;
   if (
@@ -617,13 +644,7 @@ function isRecordLikeRow(row: Record<string, unknown>): boolean {
     !Array.isArray(attributes)
   ) {
     const attrs = attributes as Record<string, unknown>;
-    return (
-      "id" in attrs ||
-      "entity" in attrs ||
-      "code" in attrs ||
-      "country_code" in attrs ||
-      "nationality_code" in attrs
-    );
+    return identifierAttributeKeys.some((key) => key in attrs);
   }
   return false;
 }
@@ -638,8 +659,12 @@ function jsonString(value: unknown): string | null {
 
 function renderRecordToolFanOutSource(args: GenerateArgs): string | null {
   const { template, trajectory } = args;
-  if (!isRecordToolFanout(template, trajectory)) return null;
-  const toolSteps = selectRecordBackedToolSteps({ template, trajectory });
+  if (!isRecordToolFanout(template, trajectory, args.identifierAttributeKeys)) return null;
+  const toolSteps = selectRecordBackedToolSteps({
+    template,
+    trajectory,
+    identifierAttributeKeys: args.identifierAttributeKeys,
+  });
   if (toolSteps === null) return null;
   const shape = harvestToolFanOutShape(toolSteps, trajectory);
   if (shape === null) return null;
@@ -814,6 +839,7 @@ function renderRecordToolEnrichmentSource(args: GenerateArgs): string | null {
     template,
     trajectory,
     upperBound: libIndex,
+    identifierAttributeKeys: args.identifierAttributeKeys,
   });
   if (baseToolSteps === null) return null;
   const baseShape = harvestToolFanOutShape(baseToolSteps, trajectory);
@@ -1384,6 +1410,9 @@ function renderFanOutSource(args: GenerateArgs): string | null {
 type GenerateArgs = {
   template: CallTemplate;
   trajectory: TrajectoryRecord;
+  // Forwarded through to selectRecordBackedToolSteps →
+  // collectRecordValueSignatures. See AuthorFunctionArgs for semantics.
+  identifierAttributeKeys?: readonly string[];
 };
 
 function generatePureSource(args: GenerateArgs): string | null {

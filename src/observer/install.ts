@@ -37,6 +37,9 @@ export function installObserver(
   if (opts.libraryResolver !== undefined) {
     observerOpts.libraryResolver = opts.libraryResolver;
   }
+  if (opts.identifierAttributeKeys !== undefined) {
+    observerOpts.identifierAttributeKeys = opts.identifierAttributeKeys;
+  }
 
   const observer = new Observer(observerOpts);
 

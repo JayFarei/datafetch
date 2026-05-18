@@ -681,7 +681,18 @@ async function runLiveExperimental(input: {
     // crystallises into df.lib for later episodes.
     const observer = input.disableLearning
       ? { observerPromise: new Map<string, Promise<unknown>>() }
-      : installObserver({ baseDir: datafetchHome, tenantId, snippetRuntime }).observer;
+      : installObserver({
+          baseDir: datafetchHome,
+          tenantId,
+          snippetRuntime,
+          // SkillCraft families like countries-explorer and random-user-database
+          // expose 2-3 char identifier columns (country_code "US", "UK";
+          // nationality_code "USA") that the generic short-string filter
+          // would otherwise drop. Listing them here keeps SkillCraft's
+          // record-backed-tool detection intact while leaving the
+          // substrate's defaults at the generic id/entity/code/slug set.
+          identifierAttributeKeys: ["id", "entity", "code", "slug", "country_code", "nationality_code"],
+        }).observer;
     const run = await snippetRuntime.run({
       source,
       sourcePath: answerPath,
