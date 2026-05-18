@@ -42,18 +42,42 @@ is the VFS + code-mode-as-learning-interface story: how the substrate
 behaves on real product flows rather than benchmark slices, with the
 agent as both consumer and implicit developer of its own interface.
 
-**Goal 4 P2 closed 2026-05-17, NEUTRAL verdict.** Non-SkillCraft
-cross-eval against jsonplaceholder.typicode.com archived at
-`eval/productFlow/results/p2-defensive-evidence-20260517/`. 5-claim
-scorecard: crystallisation PASS (`toolFanout.ts` learned from e2),
-discovery PASS (warm prompts contain 0 occurrences of the learned
-helper name, harness validator enforces), reuse PASS (e3 substrate-on
-trajectory contains `lib.toolFanout` — agent discovered the helper via
-`cat df.d.ts` and called it from `scripts/answer.ts`), correctness PASS
-both arms 3/3, cost REGRESSION substrate-on warm 6749 effective tokens
-vs off 1448 (-4.7×). Mechanically transfers off SkillCraft; cost
-crossover is past this 3-episode micro-scale. Branch:
-`goal4-p2-product-flow-cross-eval`.
+**Goal 4 P2 closed 2026-05-17, NEUTRAL verdict (revised 2026-05-18).**
+Non-SkillCraft cross-eval against jsonplaceholder.typicode.com
+archived at `eval/productFlow/results/p2-defensive-evidence-20260517/`.
+
+The original verdict reported a 4.66× cost regression on the
+substrate-on arm. Follow-up investigation on 2026-05-18 showed that
+was a HARNESS ARTIFACT, not a substrate property — the substrate's
+`AGENTS.md` / `CLAUDE.md` / `df.d.ts` workspace contract was being
+written to `<DATAFETCH_HOME>/` but never propagated into the
+per-episode `workspace/` cwd the agent's `claude-p` actually used. A
+corrected `--workspace-lib` arm that mirrors the substrate-shipped
+project memory into the workspace + drops the MUST-cat instruction
+from the task prompt brings cost to 1.70× one-shot (≈baseline
+session-cached).
+
+Revised 5-claim verdict on the corrected arm:
+- Crystallisation: PASS (`toolFanout` from e2)
+- Discovery (no leak): PASS (substrate manifest, not task prompt)
+- Reuse: FAIL on auto-crystallised content; CONFIRMED PASS on
+  hand-authored rich helpers (`userPostSummary`). The auto-crystallised
+  `toolFanout` is too thin to beat the agent's 5-line `Promise.all`
+  reflex; richer helpers DO get reused via the same skill-progressive-
+  disclosure pipeline.
+- Cost: NEAR-NEUTRAL one-shot, expected ≈baseline session-cached.
+- Correctness: 3/3 both arms.
+
+Architectural diagnosis: the substrate's *infrastructure* (observer,
+seed, df.d.ts, AGENTS.md, lib/ overlay) transfers off SkillCraft and
+runs at acceptable cost. The substrate's *crystallisation policy* is
+the open issue — it authors helpers thin enough that agents prefer
+re-deriving inline. Next iteration target: narrow the observer's gate
+to compositions that meaningfully exceed the inline-rewrite cost.
+
+Branch: `goal4-p2-product-flow-cross-eval`. Follow-up artifacts in
+`eval/productFlow/results/p2-skills-disclosure-*/` and
+`eval/productFlow/preseed-rich-helper/`.
 
 ## Recent iterations (iter150-167) — headline
 

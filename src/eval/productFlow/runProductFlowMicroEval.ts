@@ -46,6 +46,7 @@ process.env["DATAFETCH_CONVERGENCE_N"] = "1";
 import { installSnippetRuntime } from "../../snippet/install.js";
 import { installObserver } from "../../observer/install.js";
 import { regenerateManifest } from "../../server/manifest.js";
+import { regenerateWorkspaceMemory } from "../../bootstrap/workspaceMemory.js";
 import {
   readTrajectory,
   type TrajectoryRecord,
@@ -69,7 +70,7 @@ const SNIPPET_TIMEOUT_MS = 60 * 1000;
 const OBSERVER_AWAIT_MS = 5_000;
 
 type Arm = "substrate-on" | "substrate-off";
-type EpisodeId = "e1" | "e2" | "e3";
+type EpisodeId = "e1" | "e2" | "e3" | "e4";
 
 interface EpisodeSpec {
   id: EpisodeId;
@@ -108,6 +109,28 @@ const EPISODES: readonly EpisodeSpec[] = [
       { name: "Kurtis Weissnat", website: "elvis.io" },
     ],
   },
+  {
+    id: "e4",
+    // Big-task probe: multi-hop AND multi-entity. 1 getUsers + 10
+    // getPostsByUser + per-user aggregation. With toolFanout the agent
+    // can collapse 10 raw calls into one df.lib.toolFanout. Tests
+    // whether the agent's natural exploration threshold fires when
+    // the task is meaningfully bigger than e1-e3.
+    question:
+      "Fetch every user from the jsonplaceholder tool bundle, and for each user count how many posts they have authored. Write `scripts/answer.ts` so that running it prints a JSON array of `{\"name\": \"...\", \"postCount\": <integer>}` objects sorted by postCount descending, with ties broken by name ascending.",
+    gold: [
+      { name: "Chelsey Dietrich", postCount: 10 },
+      { name: "Clementina DuBuque", postCount: 10 },
+      { name: "Clementine Bauch", postCount: 10 },
+      { name: "Ervin Howell", postCount: 10 },
+      { name: "Glenna Reichert", postCount: 10 },
+      { name: "Kurtis Weissnat", postCount: 10 },
+      { name: "Leanne Graham", postCount: 10 },
+      { name: "Mrs. Dennis Schulist", postCount: 10 },
+      { name: "Nicholas Runolfsdottir V", postCount: 10 },
+      { name: "Patricia Lebsack", postCount: 10 },
+    ],
+  },
 ] as const;
 
 // --- Tool catalogue --------------------------------------------------------
@@ -136,6 +159,26 @@ interface Args {
   outDir: string;
   task?: EpisodeId;
   dryRun: boolean;
+  // When true (substrate-on only), the prompt inlines the rendered
+  // df.d.ts contents directly instead of instructing the agent to
+  // `cat` it. This converts the discovery loop's expensive
+  // output-token turns into cheap cached-input tokens. The substrate
+  // mechanics (observer, seed, crystallisation) are unchanged.
+  manifestInline: boolean;
+  // When true (substrate-on only), each episode mirrors
+  // <baseDir>/lib/{__seed__,<tenant>}/ into the episode's workspace
+  // under workspace/lib/. The prompt drops the entire
+  // Learned-interfaces section and only adds a one-line pointer in
+  // the workspace section. The agent discovers helpers by the same
+  // filesystem instincts it uses on any repo (ls, cat) — no special
+  // manifest channel. Runtime still routes through df.lib.<name>;
+  // the mirror is for discovery only.
+  workspaceLib: boolean;
+  // Absolute path to a directory whose .ts files are copied into
+  // <baseDir>/lib/<tenantId>/ after setupArm wipes the workspace. Used
+  // to inject hand-authored "rich" helpers for the
+  // composition-density / input-clarity experiment.
+  preseedHelpersDir?: string;
 }
 
 function parseArgs(argv: string[]): Args {
@@ -143,6 +186,9 @@ function parseArgs(argv: string[]): Args {
   let outDir: string | undefined;
   let task: EpisodeId | undefined;
   let dryRun = false;
+  let manifestInline = false;
+  let workspaceLib = false;
+  let preseedHelpersDir: string | undefined;
   for (let i = 0; i < argv.length; i += 1) {
     const key = argv[i];
     if (key === "--arm") {
@@ -151,14 +197,22 @@ function parseArgs(argv: string[]): Args {
         throw new Error(`--arm must be 'substrate-on' or 'substrate-off' (got '${v}')`);
       }
       arm = v;
+    } else if (key === "--manifest-inline") {
+      manifestInline = true;
+    } else if (key === "--workspace-lib") {
+      workspaceLib = true;
+    } else if (key === "--preseed-helpers") {
+      const v = argv[++i];
+      if (!v) throw new Error("--preseed-helpers requires a path");
+      preseedHelpersDir = path.resolve(v);
     } else if (key === "--out-dir") {
       const v = argv[++i];
       if (!v) throw new Error("--out-dir requires a value");
       outDir = v;
     } else if (key === "--task") {
       const v = argv[++i];
-      if (v !== "e1" && v !== "e2" && v !== "e3") {
-        throw new Error(`--task must be one of e1, e2, e3 (got '${v}')`);
+      if (v !== "e1" && v !== "e2" && v !== "e3" && v !== "e4") {
+        throw new Error(`--task must be one of e1, e2, e3, e4 (got '${v}')`);
       }
       task = v;
     } else if (key === "--dry-run") {
@@ -169,7 +223,24 @@ function parseArgs(argv: string[]): Args {
   }
   if (!arm) throw new Error("--arm is required");
   if (!outDir) throw new Error("--out-dir is required");
-  return { arm, outDir: path.resolve(outDir), task, dryRun };
+  if (manifestInline && arm !== "substrate-on") {
+    throw new Error("--manifest-inline only applies to --arm substrate-on");
+  }
+  if (workspaceLib && arm !== "substrate-on") {
+    throw new Error("--workspace-lib only applies to --arm substrate-on");
+  }
+  if (workspaceLib && manifestInline) {
+    throw new Error("--workspace-lib and --manifest-inline are mutually exclusive");
+  }
+  return {
+    arm,
+    outDir: path.resolve(outDir),
+    task,
+    dryRun,
+    manifestInline,
+    workspaceLib,
+    ...(preseedHelpersDir !== undefined ? { preseedHelpersDir } : {}),
+  };
 }
 
 // --- Prompt rendering ------------------------------------------------------
@@ -199,6 +270,17 @@ function renderSubstratePrimitivesSection(): string {
     "- `df.tool.<bundle>.<name>(input) -> { success, ...payload }` — call a registered tool.",
     "- `df.lib.<helperName>(input) -> { value, ...meta }` — call a learned/seed helper. Unwrap with `(await df.lib.<helperName>(input)).value`.",
     "- `df.answer(value)` — return the final answer envelope; useful when running inside the substrate runner.",
+  ].join("\n");
+}
+
+// workspace-lib variant: a one-line pointer to the lib/ dir that the
+// harness mirrored from the substrate's overlay into the workspace.
+// No MUST, no helper names, no special "discovery surfaces" — the
+// agent uses its native repo-exploration instincts (ls/cat/read code).
+function renderWorkspaceLibPointer(): string {
+  return [
+    "",
+    "Your workspace also contains a `lib/` directory with helper modules other agents have left here. You may call any of them via `df.lib.<helperName>(input)` if one matches your task; if none do, just use the tool primitives directly.",
   ].join("\n");
 }
 
@@ -283,22 +365,52 @@ function renderLearnedInterfacesSection(): string {
 function renderEpisodePrompt(input: {
   arm: Arm;
   episode: EpisodeSpec;
+  manifestInline: boolean;
+  workspaceLib: boolean;
+  inlinedManifest?: string;
 }): string {
   const sections: string[] = [];
   sections.push("# Task");
   sections.push("");
   sections.push(input.episode.question);
   sections.push("");
-  sections.push(renderWorkspaceSection());
+  sections.push(
+    input.workspaceLib
+      ? renderWorkspaceSection() + renderWorkspaceLibPointer()
+      : renderWorkspaceSection(),
+  );
   sections.push("");
   sections.push(renderToolBundlesSection());
   sections.push("");
   sections.push(renderSubstratePrimitivesSection());
-  if (input.arm === "substrate-on") {
+  if (input.arm === "substrate-on" && !input.workspaceLib) {
     sections.push("");
-    sections.push(renderLearnedInterfacesSection());
+    if (input.manifestInline && input.inlinedManifest !== undefined) {
+      sections.push(renderInlinedManifestSection(input.inlinedManifest));
+    } else {
+      sections.push(renderLearnedInterfacesSection());
+    }
   }
   return sections.join("\n") + "\n";
+}
+
+// Inline-manifest variant: the prompt embeds the current df.d.ts
+// contents directly. The agent gets the same discoverability without
+// needing 10+ turns of Bash `cat` round-trips. Source-inspection hint
+// remains because helper output shapes are typed `unknown` in the
+// manifest; the agent still needs to peek at the .ts body for specifics.
+function renderInlinedManifestSection(manifestText: string): string {
+  return [
+    "# Learned interfaces — manifest inlined",
+    "",
+    "The substrate's TypeScript manifest of every callable `df.lib.*` and `df.tool.*` for this workspace is reproduced below. Read it once; do not `cat` it again. If any `df.lib.<name>` entry's JSDoc intent matches your task (e.g. `\"repeated tool fan-out\"` matches multi-id fetches), call THAT helper instead of looping raw tool calls. If no entry matches, use the tool primitives directly. Do NOT invent helper names — only call names you see below.",
+    "",
+    "```ts",
+    manifestText.trimEnd(),
+    "```",
+    "",
+    "Note: the manifest declares helper return types as `Promise<Result<unknown>>`. If you decide to call a `df.lib.<name>` whose output shape isn't obvious from the JSDoc example, you MAY `cat \"$DATAFETCH_HOME/lib/__seed__/<name>.ts\"` (seed helpers) or `cat \"$DATAFETCH_HOME/lib/<tenant>/<name>.ts\"` (learned helpers) to inspect the function body's exact return shape — but only AFTER you've decided to use it. Don't browse the catalogue twice.",
+  ].join("\n");
 }
 
 // --- Helper-name leak guard ------------------------------------------------
@@ -319,19 +431,33 @@ const FORBIDDEN_NAME_TOKENS: readonly string[] = [
   "learnedHelper",
 ];
 
-function assertNoHelperNameLeak(prompt: string, episodeId: EpisodeId, arm: Arm): void {
+function assertNoHelperNameLeak(
+  prompt: string,
+  episodeId: EpisodeId,
+  arm: Arm,
+  manifestInline: boolean,
+): void {
+  // When manifest is inlined, the substrate-rendered df.d.ts legitimately
+  // contains every helper name. The leak check then becomes: "the harness
+  // author did not HARDCODE any helper name OUTSIDE the inlined manifest
+  // block." We strip the fenced ```ts ... ``` block (which holds the
+  // manifest verbatim) and run the existing checks on what remains.
+  let scanned = prompt;
+  if (manifestInline) {
+    scanned = prompt.replace(/```ts\n[\s\S]*?\n```/g, "");
+  }
   for (const token of FORBIDDEN_NAME_TOKENS) {
-    if (prompt.includes(token)) {
+    if (scanned.includes(token)) {
       throw new Error(
-        `[helper-name-leak] prompt for ${arm}/${episodeId} contains forbidden token '${token}'.`,
+        `[helper-name-leak] prompt for ${arm}/${episodeId} contains forbidden token '${token}' OUTSIDE the inlined manifest.`,
       );
     }
   }
-  const named = [...prompt.matchAll(DF_LIB_NAMED_RE)];
+  const named = [...scanned.matchAll(DF_LIB_NAMED_RE)];
   if (named.length > 0) {
     const names = named.map((m) => m[1]).join(", ");
     throw new Error(
-      `[helper-name-leak] prompt for ${arm}/${episodeId} contains explicit df.lib.<name> reference(s): ${names}`,
+      `[helper-name-leak] prompt for ${arm}/${episodeId} contains explicit df.lib.<name> reference(s) OUTSIDE the inlined manifest: ${names}`,
     );
   }
 }
@@ -573,6 +699,8 @@ async function runEpisode(input: {
   handles: SubstrateHandles;
   model: string;
   dryRun: boolean;
+  manifestInline: boolean;
+  workspaceLib: boolean;
 }): Promise<EpisodeResult> {
   const episodeDir = path.join(input.outDir, "episodes", input.episode.id);
   const workspace = path.join(episodeDir, "workspace");
@@ -580,8 +708,49 @@ async function runEpisode(input: {
   await fsp.mkdir(path.join(workspace, "scripts"), { recursive: true });
   await fsp.mkdir(agentDir, { recursive: true });
 
-  const prompt = renderEpisodePrompt({ arm: input.arm, episode: input.episode });
-  assertNoHelperNameLeak(prompt, input.episode.id, input.arm);
+  // workspace-lib mode: mirror the substrate's lib overlay +
+  // workspace-memory contract (AGENTS.md / CLAUDE.md / df.d.ts) into
+  // workspace/ so the agent discovers helpers via standard repo
+  // exploration (ls, cat, project-memory) instead of via a special
+  // discovery channel in the task prompt. Runtime still routes through
+  // df.lib.<name> against the substrate's overlay; the mirror is
+  // read-only documentation for the agent.
+  if (input.workspaceLib && input.arm === "substrate-on") {
+    // Regenerate df.d.ts and AGENTS.md BEFORE the mirror so they
+    // reflect any preseeded helpers + the current lib state.
+    await regenerateManifest({ baseDir: input.handles.baseDir, tenantId: TENANT_ID });
+    await regenerateWorkspaceMemory({ baseDir: input.handles.baseDir, tenantId: TENANT_ID });
+    await mirrorLibIntoWorkspace({
+      baseDir: input.handles.baseDir,
+      tenantId: TENANT_ID,
+      workspace,
+    });
+  }
+
+  // Inline-manifest mode: regenerate df.d.ts and read it BEFORE rendering
+  // the prompt, so the agent sees the manifest as cached input tokens
+  // rather than spending output-token turns on `cat`.
+  let inlinedManifest: string | undefined;
+  if (input.manifestInline && input.arm === "substrate-on") {
+    await regenerateManifest({ baseDir: input.handles.baseDir, tenantId: TENANT_ID });
+    try {
+      inlinedManifest = await fsp.readFile(
+        path.join(input.handles.baseDir, "df.d.ts"),
+        "utf8",
+      );
+    } catch {
+      inlinedManifest = "// (no df.d.ts available yet)\n";
+    }
+  }
+
+  const prompt = renderEpisodePrompt({
+    arm: input.arm,
+    episode: input.episode,
+    manifestInline: input.manifestInline,
+    workspaceLib: input.workspaceLib,
+    ...(inlinedManifest !== undefined ? { inlinedManifest } : {}),
+  });
+  assertNoHelperNameLeak(prompt, input.episode.id, input.arm, input.manifestInline);
   await fsp.writeFile(path.join(episodeDir, "prompt.txt"), prompt, "utf8");
   // Mirror to agent/ for parity with the SkillCraft layout.
   await fsp.writeFile(path.join(agentDir, "prompt.txt"), prompt, "utf8");
@@ -979,6 +1148,58 @@ async function fileExists(p: string): Promise<boolean> {
   }
 }
 
+async function mirrorLibIntoWorkspace(input: {
+  baseDir: string;
+  tenantId: string;
+  workspace: string;
+}): Promise<void> {
+  const targetLib = path.join(input.workspace, "lib");
+  await fsp.mkdir(targetLib, { recursive: true });
+  const sources = [
+    { src: path.join(input.baseDir, "lib", "__seed__"), dst: path.join(targetLib, "__seed__") },
+    { src: path.join(input.baseDir, "lib", input.tenantId), dst: path.join(targetLib, input.tenantId) },
+  ];
+  for (const { src, dst } of sources) {
+    try {
+      await fsp.access(src);
+    } catch {
+      continue;
+    }
+    await fsp.mkdir(dst, { recursive: true });
+    const entries = await fsp.readdir(src, { withFileTypes: true });
+    for (const ent of entries) {
+      if (!ent.isFile() || !ent.name.endsWith(".ts")) continue;
+      await fsp.copyFile(path.join(src, ent.name), path.join(dst, ent.name));
+    }
+  }
+  // Also mirror the substrate's workspace-memory contract (AGENTS.md +
+  // df.d.ts) into the workspace. claude-p reads CLAUDE.md from cwd as
+  // project memory; the substrate's AGENTS.md is the "First Reads"
+  // convention that tells the agent to consult df.d.ts and df.lib.*
+  // before writing primitives. This is the skill-progressive-disclosure
+  // pattern: the framework-level convention lives in the workspace, not
+  // in the per-task prompt.
+  for (const fname of ["AGENTS.md", "df.d.ts"]) {
+    const src = path.join(input.baseDir, fname);
+    try {
+      await fsp.access(src);
+    } catch {
+      continue;
+    }
+    await fsp.copyFile(src, path.join(input.workspace, fname));
+  }
+  // CLAUDE.md is a symlink to AGENTS.md in the substrate. Recreate it as
+  // a real file copy so claude-p picks it up regardless of symlink
+  // resolution policy.
+  const agentsDst = path.join(input.workspace, "AGENTS.md");
+  try {
+    await fsp.access(agentsDst);
+    await fsp.copyFile(agentsDst, path.join(input.workspace, "CLAUDE.md"));
+  } catch {
+    // no AGENTS.md to mirror; skip
+  }
+}
+
 async function listCrystallisedHelpers(baseDir: string): Promise<string[]> {
   const dir = path.join(baseDir, "lib", TENANT_ID);
   try {
@@ -1000,6 +1221,29 @@ async function main(): Promise<void> {
 
   const handles = await setupArm({ arm: args.arm, outDir: args.outDir });
 
+  // Preseed hand-authored helpers into the tenant overlay AFTER
+  // setupArm has wiped baseDir. These behave as if a prior episode
+  // had crystallised them; the resolver picks them up via the same
+  // DiskLibraryResolver lookup as auto-authored helpers.
+  if (args.preseedHelpersDir !== undefined && args.arm === "substrate-on") {
+    const tenantLibDir = path.join(handles.baseDir, "lib", TENANT_ID);
+    await fsp.mkdir(tenantLibDir, { recursive: true });
+    const entries = await fsp.readdir(args.preseedHelpersDir, { withFileTypes: true });
+    let copied = 0;
+    for (const ent of entries) {
+      if (!ent.isFile() || !ent.name.endsWith(".ts")) continue;
+      await fsp.copyFile(
+        path.join(args.preseedHelpersDir, ent.name),
+        path.join(tenantLibDir, ent.name),
+      );
+      copied += 1;
+    }
+    // eslint-disable-next-line no-console
+    console.log(
+      `[productflow] preseeded ${copied} helper(s) from ${args.preseedHelpersDir} into lib/${TENANT_ID}/`,
+    );
+  }
+
   const model = process.env["DF_TEST_MODEL"] ?? DEFAULT_MODEL;
   const episodes = args.task
     ? EPISODES.filter((e) => e.id === args.task)
@@ -1010,6 +1254,8 @@ async function main(): Promise<void> {
     JSON.stringify(
       {
         arm: args.arm,
+        manifestInline: args.manifestInline,
+        workspaceLib: args.workspaceLib,
         model,
         convergenceN: CONVERGENCE_N,
         tenantId: TENANT_ID,
@@ -1035,6 +1281,8 @@ async function main(): Promise<void> {
       handles,
       model,
       dryRun: args.dryRun,
+      manifestInline: args.manifestInline,
+      workspaceLib: args.workspaceLib,
     });
     episodeResults.push(result);
     // eslint-disable-next-line no-console

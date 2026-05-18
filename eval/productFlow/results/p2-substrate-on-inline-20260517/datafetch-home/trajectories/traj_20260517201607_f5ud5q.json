@@ -1,0 +1,277 @@
+{
+  "id": "traj_20260517201607_f5ud5q",
+  "tenantId": "productflow-jsonplaceholder",
+  "question": "// scripts/answer.ts",
+  "mode": "interpreted",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "tool.jsonplaceholder.getUser",
+      "input": {
+        "id": 5
+      },
+      "output": {
+        "success": true,
+        "user": {
+          "id": 5,
+          "name": "Chelsey Dietrich",
+          "username": "Kamren",
+          "email": "Lucio_Hettinger@annie.ca",
+          "address": {
+            "street": "Skiles Walks",
+            "suite": "Suite 351",
+            "city": "Roscoeview",
+            "zipcode": "33263",
+            "geo": {
+              "lat": "-31.8129",
+              "lng": "62.5342"
+            }
+          },
+          "phone": "(254)954-1289",
+          "website": "demarco.info",
+          "company": {
+            "name": "Keebler LLC",
+            "catchPhrase": "User-centric fault-tolerant solution",
+            "bs": "revolutionize end-to-end systems"
+          }
+        }
+      },
+      "startedAt": "2026-05-17T20:16:07.594Z",
+      "durationMs": 144.39470800000709,
+      "scope": {
+        "depth": 1,
+        "callPath": [
+          "lib.per_entity"
+        ],
+        "parentPrimitive": "lib.per_entity",
+        "rootPrimitive": "lib.per_entity"
+      }
+    },
+    {
+      "index": 1,
+      "primitive": "tool.jsonplaceholder.getUser",
+      "input": {
+        "id": 6
+      },
+      "output": {
+        "success": true,
+        "user": {
+          "id": 6,
+          "name": "Mrs. Dennis Schulist",
+          "username": "Leopoldo_Corkery",
+          "email": "Karley_Dach@jasper.info",
+          "address": {
+            "street": "Norberto Crossing",
+            "suite": "Apt. 950",
+            "city": "South Christy",
+            "zipcode": "23505-1337",
+            "geo": {
+              "lat": "-71.4197",
+              "lng": "71.7478"
+            }
+          },
+          "phone": "1-477-935-8478 x6430",
+          "website": "ola.org",
+          "company": {
+            "name": "Considine-Lockman",
+            "catchPhrase": "Synchronised bottom-line interface",
+            "bs": "e-enable innovative applications"
+          }
+        }
+      },
+      "startedAt": "2026-05-17T20:16:07.739Z",
+      "durationMs": 127.64604099999997,
+      "scope": {
+        "depth": 1,
+        "callPath": [
+          "lib.per_entity"
+        ],
+        "parentPrimitive": "lib.per_entity",
+        "rootPrimitive": "lib.per_entity"
+      }
+    },
+    {
+      "index": 2,
+      "primitive": "tool.jsonplaceholder.getUser",
+      "input": {
+        "id": 7
+      },
+      "output": {
+        "success": true,
+        "user": {
+          "id": 7,
+          "name": "Kurtis Weissnat",
+          "username": "Elwyn.Skiles",
+          "email": "Telly.Hoeger@billy.biz",
+          "address": {
+            "street": "Rex Trail",
+            "suite": "Suite 280",
+            "city": "Howemouth",
+            "zipcode": "58804-1099",
+            "geo": {
+              "lat": "24.8918",
+              "lng": "21.8984"
+            }
+          },
+          "phone": "210.067.6132",
+          "website": "elvis.io",
+          "company": {
+            "name": "Johns Group",
+            "catchPhrase": "Configurable multimedia task-force",
+            "bs": "generate enterprise e-tailers"
+          }
+        }
+      },
+      "startedAt": "2026-05-17T20:16:07.867Z",
+      "durationMs": 123.44404199998826,
+      "scope": {
+        "depth": 1,
+        "callPath": [
+          "lib.per_entity"
+        ],
+        "parentPrimitive": "lib.per_entity",
+        "rootPrimitive": "lib.per_entity"
+      }
+    },
+    {
+      "index": 3,
+      "primitive": "lib.per_entity",
+      "input": {
+        "entityIds": [
+          5,
+          6,
+          7
+        ],
+        "toolBundle": "jsonplaceholder",
+        "toolNames": [
+          "getUser"
+        ],
+        "paramName": "id"
+      },
+      "output": [
+        {
+          "id": 5,
+          "entity": 5,
+          "entityId": 5,
+          "entityValue": 5,
+          "tools": {
+            "getUser": {
+              "success": true,
+              "user": {
+                "id": 5,
+                "name": "Chelsey Dietrich",
+                "username": "Kamren",
+                "email": "Lucio_Hettinger@annie.ca",
+                "address": {
+                  "street": "Skiles Walks",
+                  "suite": "Suite 351",
+                  "city": "Roscoeview",
+                  "zipcode": "33263",
+                  "geo": {
+                    "lat": "-31.8129",
+                    "lng": "62.5342"
+                  }
+                },
+                "phone": "(254)954-1289",
+                "website": "demarco.info",
+                "company": {
+                  "name": "Keebler LLC",
+                  "catchPhrase": "User-centric fault-tolerant solution",
+                  "bs": "revolutionize end-to-end systems"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 6,
+          "entity": 6,
+          "entityId": 6,
+          "entityValue": 6,
+          "tools": {
+            "getUser": {
+              "success": true,
+              "user": {
+                "id": 6,
+                "name": "Mrs. Dennis Schulist",
+                "username": "Leopoldo_Corkery",
+                "email": "Karley_Dach@jasper.info",
+                "address": {
+                  "street": "Norberto Crossing",
+                  "suite": "Apt. 950",
+                  "city": "South Christy",
+                  "zipcode": "23505-1337",
+                  "geo": {
+                    "lat": "-71.4197",
+                    "lng": "71.7478"
+                  }
+                },
+                "phone": "1-477-935-8478 x6430",
+                "website": "ola.org",
+                "company": {
+                  "name": "Considine-Lockman",
+                  "catchPhrase": "Synchronised bottom-line interface",
+                  "bs": "e-enable innovative applications"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 7,
+          "entity": 7,
+          "entityId": 7,
+          "entityValue": 7,
+          "tools": {
+            "getUser": {
+              "success": true,
+              "user": {
+                "id": 7,
+                "name": "Kurtis Weissnat",
+                "username": "Elwyn.Skiles",
+                "email": "Telly.Hoeger@billy.biz",
+                "address": {
+                  "street": "Rex Trail",
+                  "suite": "Suite 280",
+                  "city": "Howemouth",
+                  "zipcode": "58804-1099",
+                  "geo": {
+                    "lat": "24.8918",
+                    "lng": "21.8984"
+                  }
+                },
+                "phone": "210.067.6132",
+                "website": "elvis.io",
+                "company": {
+                  "name": "Johns Group",
+                  "catchPhrase": "Configurable multimedia task-force",
+                  "bs": "generate enterprise e-tailers"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "startedAt": "2026-05-17T20:16:07.990Z",
+      "durationMs": 0.010083000001031905
+    }
+  ],
+  "errored": true,
+  "createdAt": "2026-05-17T20:16:07.591Z",
+  "cost": {
+    "tier": 2,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 395.530167000019
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "productflow-jsonplaceholder",
+    "mount": "<no-mount>"
+  }
+}

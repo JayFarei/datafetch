@@ -2315,3 +2315,66 @@ Key implementation findings worth recording:
    the trajectory's terminal step but the observer extracts the
    pure-tool fan-out sub-graph and authors a parameterised helper.
 
+
+## 2026-05-18, P2 follow-up: harness fixes + crystallisation diagnosis
+
+### 2026-05-18 09:10 [analyze]
+
+Re-ran P2 with two architectural fixes after digging into the 4.66× cost
+regression:
+
+1. Mirror the substrate's `<DATAFETCH_HOME>/AGENTS.md` + `CLAUDE.md` +
+   `df.d.ts` + `lib/{__seed__,<tenant>}/` into the agent's per-episode
+   `workspace/` cwd. claude-p loads CLAUDE.md as project memory; the
+   substrate's AGENTS.md "First Reads" contract is the skill-progressive-
+   disclosure pipeline.
+2. Drop the "MUST cat df.d.ts" instruction from the task prompt. Let
+   the workspace contract drive discovery (`--workspace-lib` arm).
+
+Two new arms in the bundle. Headline numbers (warm e2+e3 effective tokens):
+
+| arm | cost ratio | reuses | correct |
+| --- | --- | --- | --- |
+| substrate-off (baseline) | 1.00× | 0 | 2/2 |
+| substrate-on (mandatory cat — orig) | 4.66× | 2 | 2/2 |
+| substrate-on (workspace-lib, no hint) | 1.02× | 0 | 2/2 |
+| substrate-on (manifest inlined) | 2.21× | 1 | 1/2 |
+| substrate-on (skills-disclosure) | 1.70× | 0 | 2/2 |
+
+### 2026-05-18 09:25 [analyze]
+
+The 4.66× regression was a harness artifact. The substrate's infra +
+workspace memory + df.d.ts manifest are correctly designed; we just
+weren't propagating them to the cwd the agent actually used. The
+skills-disclosure arm shows acceptable steady-state cost (~1.7× one-
+shot, near-zero session-cached after first CLAUDE.md read).
+
+But the bigger finding emerged from the rich-helper test:
+
+- **Auto-crystallised helpers (`toolFanout`) get ignored** even when
+  fully disclosed. Agent's 5-line `Promise.all` reflex wins.
+- **Hand-authored rich helpers (`userPostSummary`) get used.** Same
+  disclosure pipeline, different acceptance threshold.
+
+The principle that emerges: agents pick helpers iff
+`effort-to-call < effort-to-derive`. For thin fan-out wrappers,
+effort-to-derive is already 5 lines, so the helper has to clear a very
+low bar to lose. Rich composition + typed input clarity flips the
+inequality.
+
+Architectural target: the observer's crystallisation gate accepts any
+qualifying trajectory shape (e.g. pure-tool fan-out). It should
+additionally check "is this helper rich enough to be preferred by an
+agent looking at its alternative?" — composition density + typed
+input clarity. Thin templates produce helpers no one will pick.
+
+Files in the corrected bundle:
+- `eval/productFlow/results/p2-skills-disclosure-full-20260518/` —
+  full 4-episode skills-disclosure arm
+- `eval/productFlow/results/p2-skills-disclosure-e4-20260518/` —
+  e4-only with preseeded rich helper (`userPostSummary`)
+- `eval/productFlow/results/p2-rich-helper-e4-20260518/` —
+  e4 with preseeded rich helper WITHOUT skills-disclosure (negative
+  result: rich helper alone, no CLAUDE.md, agent still ignores)
+- `eval/productFlow/preseed-rich-helper/userPostSummary.ts` —
+  hand-authored rich helper used in the experiments

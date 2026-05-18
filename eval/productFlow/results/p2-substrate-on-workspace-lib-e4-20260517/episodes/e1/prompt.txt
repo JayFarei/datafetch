@@ -1,0 +1,45 @@
+# Task
+
+Fetch the user whose id is 1 from the jsonplaceholder tool bundle and write `scripts/answer.ts` so that running it prints exactly `{"name": "...", "email": "..."}` for that user.
+
+# Workspace
+
+Write your solution to `scripts/answer.ts`. The file must be a self-contained TypeScript module that uses `df.*` and ends by printing the answer JSON on stdout. The harness runs your file directly; do not invoke it yourself.
+
+**IMPORTANT — your file MUST use top-level `await`.** Do NOT wrap your work in a fire-and-forget IIFE like `(async () => { ... })();` — the inner awaits will not run inside the harness's snippet runtime.
+
+Skeleton — use top-level statements directly:
+
+```ts
+// scripts/answer.ts
+const result = await df.tool.jsonplaceholder.getUser({ id: 1 });
+// ... compose your answer here ...
+console.log(JSON.stringify({ /* your answer */ }));
+```
+
+If you prefer naming a function, declare and `await` it at the top level:
+
+```ts
+async function main() {
+  const result = await df.tool.jsonplaceholder.getUser({ id: 1 });
+  console.log(JSON.stringify({ name: result.user.name, email: result.user.email }));
+}
+await main();
+```
+Your workspace also contains a `lib/` directory with helper modules other agents have left here. You may call any of them via `df.lib.<helperName>(input)` if one matches your task; if none do, just use the tool primitives directly.
+
+# Available tool bundles
+
+Bundle: `jsonplaceholder` (HTTP-backed, JSONPlaceholder REST API)
+
+- `df.tool.jsonplaceholder.getUsers()` -> Promise<{ success, users: Array<User> }>
+- `df.tool.jsonplaceholder.getUser({ id: number })` -> Promise<{ success, user: User }>
+- `df.tool.jsonplaceholder.getPosts()` -> Promise<{ success, posts: Array<Post> }>
+- `df.tool.jsonplaceholder.getPostsByUser({ userId: number })` -> Promise<{ success, posts: Array<Post> }>
+- `df.tool.jsonplaceholder.getCommentsByPost({ postId: number })` -> Promise<{ success, comments: Array<Comment> }>
+
+# Available substrate primitives
+
+- `df.tool.<bundle>.<name>(input) -> { success, ...payload }` — call a registered tool.
+- `df.lib.<helperName>(input) -> { value, ...meta }` — call a learned/seed helper. Unwrap with `(await df.lib.<helperName>(input)).value`.
+- `df.answer(value)` — return the final answer envelope; useful when running inside the substrate runner.

@@ -116,3 +116,78 @@ prompts with distinct intents, and warm prompts that mention only
 the discovery surface (`cat df.d.ts`, optional `apropos`/`man`)
 without naming any helper. The crystallised `toolFanout` was earned
 during the run, not planted.
+
+---
+
+## Follow-up (2026-05-18) — corrected harness arm
+
+The original 4.66× cost regression turned out to be a harness artifact, not
+a substrate property. Two missing pieces:
+
+1. **Workspace memory wasn't propagated.** The substrate auto-generates an
+   `AGENTS.md` / `CLAUDE.md` workspace contract + `df.d.ts` typed manifest
+   into `<DATAFETCH_HOME>/`. The agent's `claude-p` cwd is the per-episode
+   `workspace/` directory — which never saw those files. The agent had no
+   project-memory disclosure.
+2. **Discovery instructions lived in the task prompt.** The MUST-cat
+   instruction added ~2400 output tokens of exploration overhead per
+   episode AND only fired reuse because it was mandatory.
+
+A new arm — **`--workspace-lib`** — mirrors `lib/{__seed__,<tenant>}/`,
+`AGENTS.md`, `CLAUDE.md`, and `df.d.ts` into the workspace cwd and drops
+the per-task discovery section entirely. Skill-progressive-disclosure
+fires through the standard Claude Code project-memory loader instead of
+a custom instruction.
+
+**Corrected 4-way comparison (warm e2+e3 effective tokens):**
+
+| arm | warm eff | reuses | correct |
+| --- | --- | --- | --- |
+| substrate-off baseline | 1448 | 0 | 2/2 |
+| substrate-on (mandatory cat — orig) | 6749 (4.66×) | 2 | 2/2 |
+| substrate-on (workspace-lib, no hint) | 1483 (1.02×) | 0 | 2/2 |
+| substrate-on (manifest inlined) | 3206 (2.21×) | 1 | 1/2 |
+| **substrate-on (skills-disclosure)** | **2457 (1.70×)** | **0** | **2/2** |
+
+**Two clear findings beneath the cost numbers:**
+
+1. **The substrate's discovery infrastructure works at acceptable cost.**
+   The skills-disclosure arm pays ~300-500 extra output tokens per
+   episode for the agent to read CLAUDE.md → AGENTS.md → df.d.ts. Almost
+   all of that would land as `cache_read` in a session-cached setting,
+   so the steady-state cost delta is near-zero.
+2. **Auto-crystallised helpers are too thin for the agent to prefer
+   them.** Even with the disclosure pipeline working — `toolFanout`
+   listed in AGENTS.md, typed in df.d.ts, body in workspace `lib/` —
+   the agent still chose its own 5-line `Promise.all` over a
+   `df.lib.toolFanout(...)` call. The bar to clear is the cost of
+   re-deriving the helper inline; for fan-out, that's ~5 lines, which
+   the substrate's auto-crystallised helper doesn't beat.
+
+   In a separate test, a **hand-authored rich helper** (`userPostSummary`
+   — typed input shape, full multi-step composition for the e4 task)
+   pre-seeded into `lib/<tenant>/` alongside `toolFanout` was the helper
+   the agent picked. So the principle "rich + well-typed helpers get
+   reused under skill-progressive-disclosure" is confirmed.
+
+   The substrate's crystallisation gate currently authors helpers from
+   any qualifying trajectory shape — including thin fan-out templates
+   that agents will never prefer over `Promise.all`. The gate should
+   add a "composition-density beats inline" check before committing.
+
+**Revised 5-claim verdict (skills-disclosure arm):**
+
+| claim | status |
+| --- | --- |
+| 1. crystallisation | PASS — `toolFanout` learned from e2 |
+| 2. discovery (no helper-name leak) | PASS — workspace contract surfaces names via the substrate's own manifest, not the harness prompt |
+| 3. reuse (≥1 `df.lib.*` in warm) | **FAIL on auto-crystallised content** — agent ignored `toolFanout`. Confirmed PASS when rich helpers are present (`userPostSummary` test in `results/p2-skills-disclosure-e4-20260518/`) |
+| 4. cost | NEAR-NEUTRAL one-shot (1.70×), expected ≈baseline session-cached |
+| 5. correctness | PASS — 3/3 both arms |
+
+Architectural takeaway: the substrate's *infrastructure* transfers off
+SkillCraft (claims 1, 2, 4, 5 essentially clean). The *crystallisation
+policy* is the open issue — it produces helpers thin enough that agent
+calculus prefers re-derivation. Next iteration should narrow the gate's
+acceptance criteria to compositions that meaningfully exceed the
+inline-rewrite cost.

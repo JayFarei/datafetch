@@ -1,0 +1,31 @@
+{
+  "expected": [
+    {
+      "name": "Chelsey Dietrich",
+      "website": "demarco.info"
+    },
+    {
+      "name": "Mrs. Dennis Schulist",
+      "website": "ola.org"
+    },
+    {
+      "name": "Kurtis Weissnat",
+      "website": "elvis.io"
+    }
+  ],
+  "got": [
+    {
+      "name": "Chelsey Dietrich",
+      "website": "demarco.info"
+    },
+    {
+      "name": "Mrs. Dennis Schulist",
+      "website": "ola.org"
+    },
+    {
+      "name": "Kurtis Weissnat",
+      "website": "elvis.io"
+    }
+  ],
+  "passed": true
+}

@@ -1,0 +1,116 @@
+{
+  "arm": "substrate-on",
+  "model": "claude-sonnet-4-6",
+  "convergenceN": 1,
+  "tenantId": "productflow-jsonplaceholder",
+  "episodes": [
+    {
+      "id": "e4",
+      "promptBytes": 2445,
+      "agentInputTokens": 21,
+      "agentCachedInputTokens": 450167,
+      "agentOutputTokens": 3329,
+      "effectiveTokens": 3329,
+      "agentElapsedMs": 157003.917208,
+      "agentExitCode": 0,
+      "agentTotalCostUsd": 0,
+      "snippetExitCode": 0,
+      "trajectoryPrimitives": [
+        "tool.jsonplaceholder.getUsers",
+        "tool.jsonplaceholder.getPosts",
+        "lib.userPostSummary"
+      ],
+      "libCallsInTrajectory": [
+        "lib.userPostSummary"
+      ],
+      "answerCorrect": true,
+      "answerExpected": [
+        {
+          "name": "Chelsey Dietrich",
+          "postCount": 10
+        },
+        {
+          "name": "Clementina DuBuque",
+          "postCount": 10
+        },
+        {
+          "name": "Clementine Bauch",
+          "postCount": 10
+        },
+        {
+          "name": "Ervin Howell",
+          "postCount": 10
+        },
+        {
+          "name": "Glenna Reichert",
+          "postCount": 10
+        },
+        {
+          "name": "Kurtis Weissnat",
+          "postCount": 10
+        },
+        {
+          "name": "Leanne Graham",
+          "postCount": 10
+        },
+        {
+          "name": "Mrs. Dennis Schulist",
+          "postCount": 10
+        },
+        {
+          "name": "Nicholas Runolfsdottir V",
+          "postCount": 10
+        },
+        {
+          "name": "Patricia Lebsack",
+          "postCount": 10
+        }
+      ],
+      "answerGot": [
+        {
+          "name": "Chelsey Dietrich",
+          "postCount": 10
+        },
+        {
+          "name": "Clementina DuBuque",
+          "postCount": 10
+        },
+        {
+          "name": "Clementine Bauch",
+          "postCount": 10
+        },
+        {
+          "name": "Ervin Howell",
+          "postCount": 10
+        },
+        {
+          "name": "Glenna Reichert",
+          "postCount": 10
+        },
+        {
+          "name": "Kurtis Weissnat",
+          "postCount": 10
+        },
+        {
+          "name": "Leanne Graham",
+          "postCount": 10
+        },
+        {
+          "name": "Mrs. Dennis Schulist",
+          "postCount": 10
+        },
+        {
+          "name": "Nicholas Runolfsdottir V",
+          "postCount": 10
+        },
+        {
+          "name": "Patricia Lebsack",
+          "postCount": 10
+        }
+      ],
+      "crystallisedHelperFiles": [
+        "lib/productflow-jsonplaceholder/userPostSummary.ts"
+      ]
+    }
+  ]
+}
