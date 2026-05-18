@@ -1,0 +1,10 @@
+{
+  "interactionId": "7bb29eb4-12f9-45f9-bf8a-66832b3c8962",
+  "arm": "substrate-on",
+  "query": "how many 3-point attempts did steve nash average per game in seasons he made the 50-40-90 club?",
+  "agentAnswer": "approximately 2.2 three-point attempts per game",
+  "goldAnswer": "4 3-points attempts per game",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}
