@@ -1221,4 +1221,20 @@ describe("Goal 4 answer builder hardening", () => {
     const alreadySafe = 'const entity = String(r.x ?? r.y ?? "");\n';
     expect(rewriteUnsafeStringCoercionCalls(alreadySafe)).toBe(alreadySafe);
   });
+
+  it("AST rewriter catches nested-paren receivers the prior regex missed", () => {
+    // The prior regex `[^()]*\?\?[^()]*` for the inner expression
+    // could not cross internal parens, so receivers containing a
+    // function call on either side of `??` slipped through. The AST
+    // walker has no such limit.
+    const source = 'const out = (fn(a) ?? gn(b)).includes("foo");\n';
+    const rewritten = rewriteUnsafeStringCoercionCalls(source);
+    expect(rewritten).toContain('String(fn(a) ?? gn(b)).includes(');
+  });
+
+  it("AST rewriter handles multi-clause ?? chains containing calls", () => {
+    const source = 'const name = (lookup(id) ?? cache.get(id) ?? "").toLowerCase();\n';
+    const rewritten = rewriteUnsafeStringCoercionCalls(source);
+    expect(rewritten).toContain('String(lookup(id) ?? cache.get(id) ?? "").toLowerCase(');
+  });
 });

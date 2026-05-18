@@ -1416,10 +1416,10 @@ function rewriteGeneratedSyntaxSlips(source: string): string {
   return out.replace(/arguments\s*\[\s*arguments\.length\s*-\s*1\s*\]/g, `${restParam}[${restParam}.length - 1]`);
 }
 
-// Wrap calls to `.toLowerCase()`/`.toUpperCase()` on parenthesised
-// nullish-fallback expressions in `String(...)` coercion, and coerce
-// nullish-fallback variable initialisations whose RHS ends with `""`.
-// Catches the common agent patterns:
+// AST-based rewriter (May 2026, replaces a regex implementation).
+// Wraps calls like `(x ?? "").toLowerCase()` in `String(...)` coercion
+// and pre-coerces nullish-fallback variable initialisations whose RHS
+// ends with `""`. Catches the common agent patterns:
 //   (value ?? other ?? "").toLowerCase()
 //   const entity = r.intentEntity ?? r.label ?? "";  // then entity.toLowerCase()
 // where `value`/`other`/`r.intentEntity` can turn out to be a number
@@ -1427,27 +1427,122 @@ function rewriteGeneratedSyntaxSlips(source: string): string {
 // and `.toLowerCase()` then throws `TypeError: <x>.toLowerCase is not
 // a function`. Generic substrate hardening; no benchmark identifiers.
 //
-// The negative lookbehind `(?<!String)` on the parenthesised form
-// avoids re-wrapping when the agent already wrote `String((x ?? "")).
-// toUpperCase()` (otherwise we'd produce the bogus identifier
-// `StringString`).
+// The AST swap follows the same "parse + range-patch (no printer)"
+// approach as `rewriteMixedNullishLogicalExpressions`. The prior
+// regex implementation's negative-lookbehind `(?<!String)` is replaced
+// by an explicit AST check that the receiver is not already a
+// `String(...)` CallExpression.
 export function rewriteUnsafeStringCoercionCalls(source: string): string {
-  // String methods commonly called on values that nullish-fallback can
-  // return as non-strings: toLowerCase, toUpperCase, includes, startsWith,
-  // endsWith, trim, slice, indexOf, lastIndexOf, split, replace.
-  // Generic JS string surface, not benchmark-specific.
-  const unsafeMethods = "toLowerCase|toUpperCase|includes|startsWith|endsWith|trim|trimStart|trimEnd|slice|indexOf|lastIndexOf|split|replace|replaceAll|match|search|padStart|padEnd|repeat|charAt|codePointAt|normalize";
-  const parenForm = new RegExp(
-    `(?<!String)\\(([^()]*\\?\\?[^()]*)\\)\\.(${unsafeMethods})\\(`,
-    "g",
+  const sourceFile = ts.createSourceFile(
+    "answer.ts",
+    source,
+    ts.ScriptTarget.Latest,
+    /*setParentNodes*/ true,
+    ts.ScriptKind.TS,
   );
-  return source
-    .replace(parenForm, (_match, inner: string, method: string) => `String(${inner}).${method}(`)
-    .replace(
-      /\b((?:const|let|var)\s+[A-Za-z_$][\w$]*\s*=\s*)([^=;]+?\?\?[^=;]+?""\s*)(;)/g,
-      (_match, prefix: string, rhs: string, semi: string) =>
-        rhs.trimStart().startsWith("String(") ? `${prefix}${rhs}${semi}` : `${prefix}String(${rhs.trimEnd()})${semi}`,
+
+  // Generic JS string-surface methods commonly called on values that a
+  // `??`-chain can leave as a non-string. Not benchmark-specific.
+  const UNSAFE_METHODS = new Set([
+    "toLowerCase", "toUpperCase", "includes", "startsWith", "endsWith",
+    "trim", "trimStart", "trimEnd", "slice", "indexOf", "lastIndexOf",
+    "split", "replace", "replaceAll", "match", "search",
+    "padStart", "padEnd", "repeat", "charAt", "codePointAt", "normalize",
+  ]);
+
+  const NULLISH = ts.SyntaxKind.QuestionQuestionToken;
+
+  function containsNullish(node: ts.Node): boolean {
+    if (ts.isBinaryExpression(node) && node.operatorToken.kind === NULLISH) return true;
+    let found = false;
+    node.forEachChild((c) => { if (!found) found = containsNullish(c); });
+    return found;
+  }
+
+  function isStringCall(node: ts.Node): boolean {
+    return (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === "String"
     );
+  }
+
+  function isEmptyStringLiteral(node: ts.Node): boolean {
+    return ts.isStringLiteral(node) && node.text === "";
+  }
+
+  interface Edit { start: number; end: number; replacement: string }
+  const edits: Edit[] = [];
+  const seenRanges = new Set<string>();
+
+  function pushEdit(start: number, end: number, replacement: string): void {
+    const key = `${start}:${end}`;
+    if (seenRanges.has(key)) return;
+    seenRanges.add(key);
+    edits.push({ start, end, replacement });
+  }
+
+  function walk(node: ts.Node): void {
+    // Rule 1 — parenthesised receiver:  (X ?? Y).METHOD(...)  →
+    // String(X ?? Y).METHOD(...). The ParenthesizedExpression's
+    // source range INCLUDES its outer parens; we replace that whole
+    // range with `String(<inner-text>)` so the result has no extra
+    // grouping noise.
+    if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)) {
+      const propAccess = node.expression;
+      const method = propAccess.name.text;
+      const receiver = propAccess.expression;
+      if (
+        UNSAFE_METHODS.has(method) &&
+        ts.isParenthesizedExpression(receiver) &&
+        containsNullish(receiver.expression) &&
+        !isStringCall(receiver.expression)
+      ) {
+        const innerText = receiver.expression.getText(sourceFile);
+        pushEdit(
+          receiver.getStart(sourceFile),
+          receiver.getEnd(),
+          `String(${innerText})`,
+        );
+      }
+    }
+
+    // Rule 2 — variable-init coercion:  `const x = a ?? b ?? "";`  →
+    // `const x = String(a ?? b ?? "");`. Pre-coerces the variable so
+    // later bare `x.METHOD(...)` calls are safe. The check targets
+    // the topmost `??` BinaryExpression whose right operand is the
+    // empty-string literal `""` — `??` is left-associative so
+    // `a ?? b ?? ""` parses as `((a ?? b) ?? "")` and the topmost
+    // .right is the `""` literal. Initialisers already wrapped in
+    // `String(...)` are skipped.
+    if (ts.isVariableStatement(node)) {
+      for (const decl of node.declarationList.declarations) {
+        const init = decl.initializer;
+        if (!init) continue;
+        if (isStringCall(init)) continue;
+        if (!ts.isBinaryExpression(init)) continue;
+        if (init.operatorToken.kind !== NULLISH) continue;
+        if (!isEmptyStringLiteral(init.right)) continue;
+        const initText = init.getText(sourceFile);
+        pushEdit(
+          init.getStart(sourceFile),
+          init.getEnd(),
+          `String(${initText})`,
+        );
+      }
+    }
+
+    ts.forEachChild(node, walk);
+  }
+  walk(sourceFile);
+
+  if (edits.length === 0) return source;
+  edits.sort((a, b) => b.start - a.start);
+  let out = source;
+  for (const edit of edits) {
+    out = out.slice(0, edit.start) + edit.replacement + out.slice(edit.end);
+  }
+  return out;
 }
 
 function rewriteDottedIndicatorOptionalAccess(source: string): string {
