@@ -6,7 +6,336 @@
 > See [STATUS.md](./STATUS.md) for the achievements + remaining work
 > snapshot at the start of this iteration cycle.
 
-## Next phase (2026-05-17): definitive re-eval + insight layer + product-flow validation
+## Goal 5 (current, 2026-05-18): cross-benchmark generality — FinChain alongside SkillCraft
+
+> Direction set by the user 2026-05-18 via `/goal`. Supersedes the
+> Next-phase B1/B2/B3 queue below (B1 reproducibility re-eval remains a
+> sub-deliverable inside Goal 5's bilateral non-regression check; B2
+> insight layer and B3 cold-to-warm product flow are deferred until Goal
+> 5 closes met). The framing is that Goal 4's iter164 MET, while real,
+> stands on a single public benchmark; the substrate's commercial story
+> requires demonstrating that the same substrate (no benchmark-specific
+> code) lifts the published baseline on a *second*, structurally
+> different public benchmark, while preserving the SkillCraft iter164
+> result. FinChain (arxiv:2506.02515) is the chosen second benchmark —
+> see `kb/br/16-post-skillcraft-benchmark-selection.md` for the
+> selection rationale and the verified shape probe.
+
+### Why Goal 5 exists (the cross-benchmark generality argument)
+
+Goal 4's iter164 proved the learning loop fires under a learning-honest
+rubric (R1-R9 all PASS, framework-bounded cache) on SkillCraft. The P1
+matched-arm paired comparison (`{NEUTRAL, PASS, PASS, NEUTRAL}`) showed
+the substrate's measurable contribution is cost efficiency (-41%
+tokens, -17% wall-clock) under a strong agent backend, not correctness
+(SkillCraft's pass-rate headroom on Claude sonnet-4-6 at low effort is
+too narrow for a correctness signal). The P2 product-flow cross-eval
+on jsonplaceholder revealed the substrate's *crystallisation policy* is
+the open issue: agents pick helpers iff
+`effort-to-call < effort-to-derive`. Thin auto-crystallised wrappers
+(e.g. `toolFanout`) get bypassed in favour of inline 5-line
+`Promise.all`; hand-authored rich helpers (`userPostSummary`) get
+reused via the same skill-progressive-disclosure pipeline.
+
+Together these say: the substrate's infrastructure (observer, snippet
+runtime, hook registry, df.d.ts, lib/ overlay, AGENTS.md) works
+generically; the *correctness story* needs a benchmark with more
+compositional headroom AND a substrate that crystallises helpers above
+the agent's inline-rewrite threshold. FinChain — 290 parameterised
+templates × 10 seeds = 2,900 instances across 12 financial domains × 58
+topics, with the paper documenting that frontier models still exhibit
+"systematic weaknesses in long-horizon, compositional reasoning" on
+advanced (4-step) templates — is the right second benchmark.
+
+The commercial-release argument the project must support is: "the same
+substrate code, with no benchmark-specific identifiers, lifts the
+published baseline on *two* unrelated public benchmarks while
+respecting Goal 4's learning-honest rubric on both." Goal 5 is the
+experiment that produces that evidence.
+
+### What proves Goal 5
+
+A **bilateral rubric** combining iter164's R1-R9 (carried forward
+verbatim from Goal 4) with three FinChain-specific gates. All
+conditions evaluated from two paired runs (FinChain harness + SkillCraft
+regression check) on the same substrate commit:
+
+**Carried forward verbatim from Goal 4 (apply to BOTH benchmarks
+where the gate is defined):**
+
+- R1 `passRate ≥ 0.92` (substrate-ON arm on both benchmarks).
+- R2 `avgEffectiveTokens ≤ 8,000` (both).
+- R3 `runtimeErrorRate ≤ 0.05` (both).
+- R4 `quarantine rate ≤ 0.03` (both).
+- R5 novel-tenant smoke passes — zero substrate edits for a new tenant
+  (single check, not per-benchmark).
+- R6 **Convergence rate** ≥ 0.80 (of intent clusters with ≥ 2
+  qualifying successful trajectories, ≥ 80% crystallise exactly one
+  callable helper). Per-benchmark; cross-benchmark transfer measured
+  separately in R9.
+- R7 **Conditional reuse** ≥ 0.60 (of warm episodes where a
+  same-intent crystallised helper is available, ≥ 60% call it;
+  excludes the `per_entity` seed from the numerator). Per-benchmark.
+- R8 **Conditional cost-drop** (dual gate) — paired same-intent reuse
+  vs non-reuse episodes: `mean ≤ 0.70 AND per-pair pass-fraction ≥
+  0.70`. Per-benchmark.
+- R9 **Cross-shape transfer** — at least one `intentSignature`
+  crystallises a helper reused across ≥ 2 SkillCraft families with
+  different data shapes (Goal 4 R9 carried as-is). Goal 5 adds a
+  stronger variant FC4 below for cross-*benchmark* transfer.
+
+**Added (FinChain-specific gates):**
+
+- **FC1** — FinChain Final Answer Correctness (ChainEval FAC) on
+  substrate-ON Claude Sonnet 4.6 ≥ the paper's published Claude Sonnet
+  4.5 score per difficulty tier (Basic/Intermediate/Advanced) from
+  `https://mbzuai-nlp.github.io/finchain/leaderboard.html`. The
+  per-tier breakdown is the right granularity because frontier models
+  saturate Basic templates and break on Advanced; the substrate's
+  expected lift is concentrated in Intermediate and Advanced.
+- **FC2** — ChainEval step-alignment (the joint semantic + numerical
+  intermediate-step scorer) ≥ the paper's published Claude Sonnet 4.5
+  baseline on each tier. This is the *derivation visibility* gate —
+  did the substrate help the agent get not just the answer right but
+  the reasoning chain right.
+- **FC3** — **Substrate-ON > Substrate-OFF** on FinChain, paired by
+  template instance (same template + same seed across arms):
+  paired-t-test p < 0.05 on FAC AND ≥ 10% reduction on warm-tier
+  tokens-or-wall-clock for sibling cells. This is the matched-arm
+  equivalent of SkillCraft's P1 comparison; the `DATAFETCH_DISABLE_LEARNING=1`
+  control arm pattern is reused verbatim.
+
+**Added (cross-benchmark generality gates):**
+
+- **FC4** — Cross-benchmark transfer: at least one `intentSignature`
+  crystallises a helper that is callable and called across ≥ 1
+  SkillCraft family AND ≥ 1 FinChain topic. This is the proof that
+  the substrate's intent-shape interface generalises across data
+  shapes from two unrelated corpora.
+- **FC5** — **Bilateral non-regression**: SkillCraft full-126 paired
+  comparison on the Goal 5 substrate commit reproduces iter164's
+  4-vector ≥ `{NEUTRAL, PASS, PASS, NEUTRAL}` with R1-R9 all PASS at
+  iter164 levels under `cacheBoundedByFramework`. No per-family
+  regression beyond the 3 P1 anti-patterns
+  (pokeapi-pokedex / random-user-database / recipe-cookbook-builder),
+  and ideally with those 3 also recovered by the post-P1 generic fixes
+  already on main.
+
+Goal 5 is MET when R1-R9 + FC1-FC5 all hold simultaneously on a single
+substrate commit, evidenced by two paired-arm reports (FinChain +
+SkillCraft) on the same code SHA.
+
+### Harness shape (the implementation contract)
+
+The FinChain harness mirrors SkillCraft's structure file-for-file so
+substrate changes flow through both without per-benchmark adapters
+above the runtime layer:
+
+```
+eval/finchain/
+├── README.md                      — orientation, mirrors eval/skillcraft/README.md
+├── protocol.md                    — eval protocol, mirrors skillcraft/protocol.md
+├── rubric.md                      — R1-R9 + FC1-FC5 description (mirrors skillcraft/rubric.md)
+├── runbook.md                     — operational notes
+├── configs/                       — model configs (claude, codex-direct)
+├── manifests/                     — per-topic-instance task manifests (generated)
+├── adapters/                      — mount adapter (FinChain template → df.db env)
+├── vendor/finchain/               — git submodule or pinned clone of mbzuai-nlp/finchain
+├── scripts/
+│   ├── prepare-finchain.sh        — clone vendor, generate manifests
+│   ├── run-datafetch-finchain.sh  — paired-arm launcher (mirrors run-datafetch-skillcraft.sh)
+│   ├── normalize-results.ts       — JSON → normalized.jsonl
+│   ├── analyze-results.ts         — normalized.jsonl → analysis.json
+│   ├── score-r1-r9.ts             — REUSES eval/skillcraft/scripts/score-r1-r9.ts via shared import
+│   ├── score-finchain.ts          — FC1-FC5 scorer (FAC + step-alignment + paired comparison)
+│   ├── p1-paired-analysis.py      — REUSES eval/skillcraft/scripts/p1-paired-analysis.py
+│   ├── build-report.ts            — markdown report from analysis JSON
+│   └── verify-harness.ts          — smoke
+├── reports/                       — committed analysis JSONs (gitignored results, committed reports)
+└── results/                       — per-run base directories (gitignored)
+
+src/eval/finchainFullDatafetch.ts  — new runner, mirrors skillcraftFullDatafetch.ts
+src/eval/finchainRecords.ts        — FinChain template → EvalRecord adapter
+                                     (parallels src/eval/evalRecords.ts)
+src/observer/__smoke__/finchain-mount.ts  — new smoke
+
+package.json scripts:
+  "eval:finchain": "tsx src/eval/finchainFullDatafetch.ts"
+  "eval:finchain:prepare": "bash eval/finchain/scripts/prepare-finchain.sh"
+  "eval:finchain:normalize": "tsx eval/finchain/scripts/normalize-results.ts"
+  "eval:finchain:analyze": "tsx eval/finchain/scripts/analyze-results.ts"
+  "eval:finchain:report": "tsx eval/finchain/scripts/build-report.ts"
+  "eval:finchain:verify": "tsx eval/finchain/scripts/verify-harness.ts"
+```
+
+The mount adapter converts each FinChain template instance into the
+same `EvalRecord` shape that SkillCraft uses, with the difference that
+the "record set" for a template instance is the symbolic parameter
+state and the gold reasoning trace, not a list of entities. This is
+the cleanest interpretation: the substrate sees `df.db.records` as the
+template parameters; `df.lib.*` carries the crystallised reasoning
+helpers; the agent's job is to produce the final answer + the
+intermediate steps. ChainEval runs against the trajectory.
+
+The paired-arm control reuses `DATAFETCH_DISABLE_LEARNING=1` verbatim
+— no harness-side change. The matched-arm pattern from P1
+(`eval/skillcraft/results/datafetch/goal4-p1-paired-comparison-20260517.md`)
+is the template for the FinChain headline report.
+
+### The new substrate lever: composition density
+
+P2's diagnosis ("agents pick helpers iff `effort-to-call <
+effort-to-derive`") is the load-bearing constraint for Goal 5. On
+FinChain Basic templates, a frontier model can re-derive the formula
+inline in tokens; the substrate cannot win there. The substrate's
+advantage emerges on Intermediate and especially Advanced templates
+where multi-step computation increases re-derivation cost.
+
+This implies one new substrate lever for Goal 5:
+
+**Lever (new) — composition-density gate** in `src/observer/gate.ts`
+and/or `src/observer/template.ts`. The observer's crystallisation gate
+should accept a trajectory only when the helper it would author is
+sufficiently richer than the inline-rewrite alternative. Concrete
+candidates: (a) minimum composition depth (≥ 2 `df.lib` calls, or
+≥ 3 distinct primitives, or ≥ a token-count delta against a measured
+inline baseline); (b) typed-input clarity (named struct vs positional
+args; surface in `@insight` field if B2 lands); (c) reject pure
+single-call wrappers unless they encode non-trivial parameter
+defaults. Generic, applies to any benchmark, must not regress
+SkillCraft's `toolFanout` crystallisation (which IS rich enough by the
+P1 evidence to give -41% tokens).
+
+The existing levers from Goal 4 carry forward unchanged:
+intent-signature crystallisation key, convergence gate, nested-call
+extractor, parameterised authoring, smoke-replay promotion, discovery
+surface ranking.
+
+### Iteration schedule for Goal 5
+
+Mirrors Goal 4's pattern: iters 0-2 are infrastructure (no substrate
+behaviour change), iter 3+ measures + iterates. The estimated
+iteration count is ~10-15 to account for the new harness, the new
+rubric scorer, the substrate composition-density lever, and the
+bilateral non-regression check on every iteration.
+
+| iter | hypothesis / deliverable | lever |
+|---|---|---|
+| 0 ← IN PROGRESS | this PLAN.md § Goal 5 section + `kb/plans/007-finchain-integration.md` + `experiments/archive/2026-05-goal5-finchain/headline-rows.md` skeleton; no code change; `pnpm test` + `pnpm typecheck` stay green | docs only |
+| 1 | dataset study + mount adapter design: how each of FinChain's 290 templates becomes a SkillCraft-shaped task; family/level mapping (Basic/Intermediate/Advanced ≈ e/m/h); the EvalRecord shape for symbolic parameters; document in `eval/finchain/protocol.md`. No runtime code. | docs + design |
+| 2 | harness skeleton: `eval/finchain/` tree + `src/eval/finchainFullDatafetch.ts` + `src/eval/finchainRecords.ts` + the pnpm scripts; smoke at `src/observer/__smoke__/finchain-mount.ts` runs against one template (e.g. `investment_analysis/ci.py` template 1); no full run; `pnpm test` green with 7 smokes | harness |
+| 3 | single-topic probe under both arms (substrate-ON, substrate-OFF) on a moderate-difficulty topic (`investment_analysis/ci.py` template 3, Intermediate); paired-arm smoke at ~30 episodes; confirm FAC scorer + step-alignment scorer produce numbers; commit `eval/finchain/scripts/score-finchain.ts` | scoring |
+| 4 | substrate-OFF FinChain baseline at ~100-200 episodes (size matched to evaluation budget); establish the published-baseline reference for FC1/FC2 | measurement |
+| 5 | substrate-ON FinChain at same size; compute FC1-FC5 first time; SkillCraft regression check (P1 paired-comparison re-run on Goal 5 substrate commit) → first bilateral scorecard | measurement |
+| 6+ | substrate iteration loop: each iter targets a failing FC gate, implements via the composition-density lever or an existing Goal 4 lever, single-topic probe, fixed-pair validate `{one SkillCraft family, one FinChain topic}`, full bilateral run, headline row, EXPERIMENTS.md entry | substrate |
+| N | all R1-R9 + FC1-FC5 PASS on a single substrate commit; STATUS.md updated; Goal 5 closed | declare met |
+
+Stop conditions: R1-R9 + FC1-FC5 all hold simultaneously on the
+bilateral run, OR 15 accepted iterations, OR 96 hours of compute
+elapsed.
+
+### Working procedure (cadence rules)
+
+Same as Goal 4 with the bilateral non-regression check added:
+
+1. **Hypothesis.** One sentence; expected delta on one FC or R gate;
+   update PLAN.md if priority shifts.
+2. **Implement.** Generic lever only — `src/observer/`, `src/snippet/`,
+   `src/hooks/`, `src/eval/`, `src/sdk/`, `src/discovery/`,
+   `src/server/`. Never family/template/topic-specific. No conditional
+   logic keyed on benchmark identifier.
+3. **Probe.** Single FinChain topic (and/or single SkillCraft family
+   if the lever touches SkillCraft surface). Require: per-task pass +
+   token delta vs prior iteration baseline.
+4. **Validate.** Fixed pair: one SkillCraft family
+   {`university-directory-builder`} + one FinChain topic (TBD in
+   iter 1 — pick a Intermediate-tier topic from
+   `investment_analysis/` for stability). Require: combined pass + at
+   least one FC gate moves.
+5. **Bilateral full run.** FinChain at chosen size (4-shard parallel)
+   + SkillCraft full-126 regression (4-shard parallel). Both on the
+   same substrate SHA. Commit two scorecard JSONs.
+6. **Headline row.** Append to
+   `experiments/archive/2026-05-goal5-finchain/headline-rows.md`.
+   Mirror the Goal 4 archive table.
+7. **Hygiene.** `pnpm typecheck` clean, `pnpm test` green (7+ smokes),
+   working tree committed. The novel-tenant smoke must stay green
+   every iteration.
+8. **Bilateral non-regression check.** SkillCraft regression scorecard
+   must hold R1-R9 PASS at iter164 levels under
+   `cacheBoundedByFramework`. If not, iter is REJECTED and the
+   substrate change is reverted or generalised before the next attempt.
+
+### Forbidden behaviours (Goal 4 list carried verbatim, scoped to BOTH benchmarks)
+
+Goal 5 is NOT met if the transcript reveals any of (Goal 4 list,
+extended to FinChain identifiers):
+
+- Code that pattern-matches on SkillCraft *or* FinChain family names,
+  task keys, bundle names, topic names, template names, or specific
+  tool/primitive identifiers (no `if family === ...`,
+  `if topic === ...`, `if templateName.startsWith('ci_')`).
+- Pre-baked seed helpers under `seeds/<tenantId>/` or
+  `<baseDir>/lib/<tenantId>/` shipped to disk *before episode 1*
+  (`<datafetchHome>/lib/__seed__/` remains permitted; the `per_entity`
+  seed stays).
+- Prompt-template branches keyed on dataset / family / tier / topic
+  identity.
+- Hardcoded payload field defaults inside `df.tool` / `df.lib` proxies
+  for specific tools or specific FinChain template signatures.
+- Bypassing the hook registry: `<baseDir>/hooks/<tenantId>/` stays the
+  trust gate, `df.lib.<name>` stays the public contract, learned
+  bodies remain replaceable, quarantine stays active, per-tenant
+  layout preserved.
+- New server-side LLM call paths that substitute for the agent's own
+  composition. Observers learn FROM agent attempts.
+- Benchmark-shaped envelope keys in the substrate's envelope-unwrap
+  allowlist (the Codex audit on 2026-05-17 removed `pokemon`,
+  `species`, `show`, `university`, `details`; no FinChain-shaped keys
+  may be added — the generic success/ok-envelope rule covers them).
+
+All measured helpers must be observer-crystallised from earlier
+same-run episodes. The lib-cache directory must start empty per tenant
+for each fresh run.
+
+### What "done" looks like for Goal 5
+
+Before declaring Goal 5 met, surface in the same turn:
+
+- Both scorecards: `eval/finchain/results/datafetch/<run-base>/{analysis.json,r1-r9-scorecard.json,finchain-scorecard.json}`
+  and `eval/skillcraft/results/datafetch/<run-base>/r1-r9-scorecard.json`.
+- The FinChain per-difficulty-tier breakdown (Basic / Intermediate /
+  Advanced × FAC + step-alignment + token + wall-clock).
+- The SkillCraft per-tier breakdown (train / warm / hard × pass +
+  helpers-available + reuse + tokens).
+- The cross-benchmark transfer evidence (which `intentSignature`
+  crystallised which helper, reused across which SkillCraft family AND
+  which FinChain topic — this is FC4).
+- The bilateral 4-vector verdict for SkillCraft regression:
+  `{≥NEUTRAL, ≥PASS, ≥PASS, ≥NEUTRAL}` vs iter164 baseline.
+- The substrate commit SHA used for both runs.
+- The headline row diff in
+  `experiments/archive/2026-05-goal5-finchain/headline-rows.md`.
+- The `pnpm test` count (7+ smokes + ≥ 374 vitest).
+- Confirmation EXPERIMENTS.md has the final iteration's entry and
+  EXPERIMENT_NOTES.md is up to date.
+- A note on which Goal 5 iterations (G5.0..G5.N) contributed the
+  decisive movement and whether the composition-density lever was
+  load-bearing.
+
+When all of the above are surfaced and R1-R9 + FC1-FC5 are all PASS on
+the same substrate commit, Goal 5 is closed met and STATUS.md is
+updated to reflect cross-benchmark generality as the headline.
+
+---
+
+## Next phase (2026-05-17, SUPERSEDED 2026-05-18): definitive re-eval + insight layer + product-flow validation
+
+> **SUPERSEDED 2026-05-18 by Goal 5 above.** B1 reproducibility re-eval
+> is absorbed into Goal 5's bilateral non-regression check (every Goal
+> 5 iteration re-runs SkillCraft as the regression arm). B2 insight
+> layer and B3 cold-to-warm product flow are deferred until Goal 5
+> closes met.
 
 > Goal 4 declared MET on iter164 with caveats (see `goal.md` § "POST-MET"
 > and `STATUS.md` § "Current state"). The user pivoted on 2026-05-17 to
@@ -36,7 +365,7 @@ the tightened R8 dual gate.
 ### B2 — insight layer probe
 
 **Hypothesis:** Memory-Transfer / Insight pattern (Paper 5 in
-`docs/post-iter164-research.md`): high-level insight memories (title +
+`experiments/archive/2026-05-goal4-skillcraft/post-iter164-paper-digests.md`): high-level insight memories (title +
 description + generalised content) transfer better than raw helper
 bodies. Adding an `@insight` YAML field to crystallised helpers should
 enable semantic selectivity — the agent reads insight BEFORE deciding
@@ -100,7 +429,7 @@ ReGAL / PSN / SkillX:
 - **SkillCraft itself** (arxiv:2603.00718) → established skill-based
   learning works; our unique contribution is VFS+code-mode mechanism
 
-See `docs/post-iter164-research.md` for full digests +
+See `experiments/archive/2026-05-goal4-skillcraft/post-iter164-paper-digests.md` for full digests +
 substrate-file-level targets.
 
 ---
@@ -357,7 +686,7 @@ offline analyzer demonstrates clean clusters.
 4. **Validate.** Fixed pair {university-directory-builder,
    jikan-anime-analysis}.
 5. **Full-126.** Family-sequential, 4-shard parallel. Commit a headline
-   row to [`hook-registry-experiment.md`](../docs/hook-registry-experiment.md).
+   row to [`archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md`](archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md).
 6. **Hygiene.** `pnpm typecheck` clean, `pnpm test` green, working tree
    committed. The novel-tenant smoke must stay green every iteration.
 
@@ -595,7 +924,7 @@ OR 24 hours elapsed.
 
 After each iter: probe (SkillCraft single-family) → validate
 (univ + jikan) → (full-126 if probe+validate clear the gate) → commit
-headline row to `docs/hook-registry-experiment.md` AND confirm the
+headline row to `experiments/archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md` AND confirm the
 novel-tenant smoke is still passing (no regression on the generality
 claim).
 
@@ -860,7 +1189,7 @@ Same shape as the prior goal:
    - ≥ 30% reuseRate on the warm tier of either family
 5. **Full-126.** Family-sequential, lib-cache shared per family.
    4-shard parallel. Commit the new headline row to
-   [`hook-registry-experiment.md`](./hook-registry-experiment.md)
+   [`archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md`](./archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md)
    with analysis + error-taxonomy JSONs.
 6. **Hygiene.** `pnpm typecheck` clean, `pnpm test` ≥ 242 tests
    passing, working tree committed.
@@ -898,7 +1227,7 @@ tenant for each fresh run.
 Before declaring the goal met, surface in the same turn:
 
 - The analysis JSON path
-- The headline row diff (added to `hook-registry-experiment.md`)
+- The headline row diff (added to `archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md`)
 - The test count (`pnpm test`)
 - A per-tier breakdown table:
 
@@ -918,7 +1247,7 @@ Before declaring the goal met, surface in the same turn:
 | [PLAN.md](./PLAN.md) | living plan, updated when direction shifts |
 | [EXPERIMENTS.md](./EXPERIMENTS.md) | curated experiments with hypothesis, change, result, lessons |
 | [EXPERIMENT_NOTES.md](./EXPERIMENT_NOTES.md) | chronological scratchpad, real-time thoughts |
-| [../docs/hook-registry-experiment.md](../docs/hook-registry-experiment.md) | the committed headline-row table per iteration |
+| [archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md](archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md) | the committed headline-row table per iteration |
 
 EXPERIMENTS.md is the most important of the three. Every experiment,
 successful or not, gets an entry. The entry is what the next iteration
