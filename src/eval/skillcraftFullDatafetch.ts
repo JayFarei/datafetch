@@ -8,6 +8,7 @@ import { performance } from "node:perf_hooks";
 import { pathToFileURL } from "node:url";
 
 import Anthropic from "@anthropic-ai/sdk";
+import ts from "typescript";
 
 import { getMountRuntimeRegistry, type MountRuntime } from "../adapter/runtime.js";
 import { installObserver } from "../observer/install.js";
@@ -1488,118 +1489,79 @@ function rewriteSnakeCaseObjectShorthandAliases(source: string): string {
     .join("\n");
 }
 
+// AST-based replacement (May 2026). Replaces the prior regex/depth-walk
+// implementation that missed mixed `??`/`||` expressions buried inside
+// `String(...)` arguments, `.push(...)` arguments, object literal
+// properties, ternary branches, array elements, callback bodies, etc.
+// Codex review verified TypeScript's parser recovers cleanly from
+// these invalid-but-LLM-typical inputs, producing a BinaryExpression
+// tree we can walk.
+//
+// Strategy: parse the source, walk for every BinaryExpression whose
+// operator is `??`/`||`/`&&` and whose left or right child is also a
+// BinaryExpression in the OTHER operator family, then wrap that
+// child's source range with parentheses. Insertions are applied
+// back-to-front so earlier edits don't shift later positions. We do
+// NOT use the TypeScript printer — that would reflow the whole file
+// and break downstream regex rewriters in `prepareAnswerSourceForRuntime`.
+// See tests/skillcraft-full-datafetch-planner.test.ts for the regression
+// surface, and the 15-case prototype (now retired) for the wider
+// coverage that motivated this swap.
 export function rewriteMixedNullishLogicalExpressions(source: string): string {
-  // Walk the source character-by-character, partition into statements
-  // terminated by `;` at paren-depth 0, then parenthesize each statement
-  // whose RHS mixes `??` with `||`/`&&`. Multi-line aware so prettier-style
-  // wrapped const/return statements get the same treatment as single-line
-  // ones. Braces are intentionally NOT depth-tracked so statements inside
-  // function bodies and blocks still segment correctly; `;`s inside
-  // for-loop headers stay un-split because they live inside `()`.
-  const segments: string[] = [];
-  let start = 0;
-  let parenDepth = 0;
-  let quote: "'" | "\"" | "`" | null = null;
-  for (let index = 0; index < source.length; index += 1) {
-    const char = source[index]!;
-    if (quote) {
-      if (char === "\\") {
-        index += 1;
-      } else if (char === quote) {
-        quote = null;
+  const sourceFile = ts.createSourceFile(
+    "answer.ts",
+    source,
+    ts.ScriptTarget.Latest,
+    /*setParentNodes*/ true,
+    ts.ScriptKind.TS,
+  );
+
+  const NULLISH = ts.SyntaxKind.QuestionQuestionToken;
+  const LOGICAL_KINDS = new Set<ts.SyntaxKind>([
+    ts.SyntaxKind.BarBarToken,
+    ts.SyntaxKind.AmpersandAmpersandToken,
+  ]);
+
+  type Family = "nullish" | "logical";
+  function operatorFamily(node: ts.BinaryExpression): Family | null {
+    if (node.operatorToken.kind === NULLISH) return "nullish";
+    if (LOGICAL_KINDS.has(node.operatorToken.kind)) return "logical";
+    return null;
+  }
+
+  const seenRanges = new Set<string>();
+  const insertions: Array<{ pos: number; text: string; priority: number }> = [];
+
+  function maybeWrap(child: ts.Node, parentFamily: Family): void {
+    if (!ts.isBinaryExpression(child)) return;
+    const childFamily = operatorFamily(child);
+    if (!childFamily || childFamily === parentFamily) return;
+    const key = `${child.getStart(sourceFile)}:${child.getEnd()}`;
+    if (seenRanges.has(key)) return;
+    seenRanges.add(key);
+    insertions.push({ pos: child.getStart(sourceFile), text: "(", priority: 0 });
+    insertions.push({ pos: child.getEnd(), text: ")", priority: 1 });
+  }
+
+  function walk(node: ts.Node): void {
+    if (ts.isBinaryExpression(node)) {
+      const family = operatorFamily(node);
+      if (family) {
+        maybeWrap(node.left, family);
+        maybeWrap(node.right, family);
       }
-      continue;
     }
-    if (char === "'" || char === "\"" || char === "`") {
-      quote = char;
-      continue;
-    }
-    if (char === "(" || char === "[") {
-      parenDepth += 1;
-      continue;
-    }
-    if (char === ")" || char === "]") {
-      parenDepth = Math.max(0, parenDepth - 1);
-      continue;
-    }
-    if (parenDepth === 0 && char === ";") {
-      segments.push(rewriteStatementMixedNullishLogical(source.slice(start, index + 1)));
-      start = index + 1;
-    }
+    ts.forEachChild(node, walk);
   }
-  if (start < source.length) segments.push(source.slice(start));
-  return segments.join("");
-}
+  walk(sourceFile);
 
-function rewriteStatementMixedNullishLogical(stmt: string): string {
-  if (!stmt.includes("??")) return stmt;
-  if (!stmt.includes("||") && !stmt.includes("&&")) return stmt;
-  const returnMatch = /^(\s*return\s+)([\s\S]*?)(;\s*)$/.exec(stmt);
-  if (returnMatch) {
-    return `${returnMatch[1]}${parenthesizeMixedNullishLogicalIterated(returnMatch[2] ?? "")}${returnMatch[3]}`;
+  if (insertions.length === 0) return source;
+  insertions.sort((a, b) => (b.pos - a.pos) || (a.priority - b.priority));
+  let out = source;
+  for (const ins of insertions) {
+    out = out.slice(0, ins.pos) + ins.text + out.slice(ins.pos);
   }
-  const assignmentMatch = /^(\s*(?:const|let|var)\s+[^=]+=\s*)([\s\S]*?)(;\s*)$/.exec(stmt);
-  if (assignmentMatch) {
-    return `${assignmentMatch[1]}${parenthesizeMixedNullishLogicalIterated(assignmentMatch[2] ?? "")}${assignmentMatch[3]}`;
-  }
-  return stmt;
-}
-
-function parenthesizeMixedNullishLogicalIterated(expression: string): string {
-  // A single parenthesisation pass only resolves the outermost mix;
-  // nested mixes inside the newly-introduced parens stay illegal.
-  // Iterate (bounded) until stable so chains like `a ?? b ?? c * (...) || 0`
-  // become fully unambiguous.
-  let current = expression;
-  for (let i = 0; i < 16; i += 1) {
-    const next = parenthesizeMixedNullishLogical(current);
-    if (next === current) return current;
-    current = next;
-  }
-  return current;
-}
-
-function parenthesizeMixedNullishLogical(expression: string): string {
-  const nullishIndex = findTopLevelOperator(expression, ["??"]);
-  const logicalIndex = findTopLevelOperator(expression, ["||", "&&"]);
-  if (nullishIndex < 0 || logicalIndex < 0) return expression;
-  if (logicalIndex < nullishIndex) {
-    return `(${expression.slice(0, nullishIndex).trimEnd()}) ${expression.slice(nullishIndex).trimStart()}`;
-  }
-  return `${expression.slice(0, nullishIndex + 2).trimEnd()} (${expression.slice(nullishIndex + 2).trimStart()})`;
-}
-
-function findTopLevelOperator(expression: string, operators: string[]): number {
-  let depth = 0;
-  let quote: "'" | "\"" | "`" | null = null;
-  for (let index = 0; index < expression.length; index += 1) {
-    const char = expression[index]!;
-    if (quote) {
-      if (char === "\\") {
-        index += 1;
-      } else if (char === quote) {
-        quote = null;
-      }
-      continue;
-    }
-    if (char === "'" || char === "\"" || char === "`") {
-      quote = char;
-      continue;
-    }
-    if (char === "(" || char === "[" || char === "{") {
-      depth += 1;
-      continue;
-    }
-    if (char === ")" || char === "]" || char === "}") {
-      depth = Math.max(0, depth - 1);
-      continue;
-    }
-    if (depth !== 0) continue;
-    for (const op of operators) {
-      if (expression.startsWith(op, index)) return index;
-    }
-  }
-  return -1;
+  return out;
 }
 
 export function rewriteHyphenatedLocalPropertyAccess(source: string): string {
