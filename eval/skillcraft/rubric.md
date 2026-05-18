@@ -266,7 +266,7 @@ NOT measure semantic equivalence — running the helper on the source
 trajectory's records and checking the output matches the recorded
 output. That is the ReGAL gate properly done, and it is reserved for
 the `fanout-slot-diagnostics`-extension future work described in
-`../../experiments/post-iter164-research.md` paper 7.
+`../../experiments/archive/2026-05-goal4-skillcraft/post-iter164-paper-digests.md` paper 7.
 
 ### Per-helper attribution can be confused
 

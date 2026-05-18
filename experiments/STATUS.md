@@ -179,12 +179,12 @@ Just-completed tidying landed 10 commits (`ca8a2707` → `cd7450e1`):
   iter150-era slot verifier, productionised.
 - `tests/skillcraft-full-datafetch-planner.test.ts` — 125+ tests
   guarding the four substrate patches.
-- `experiments/goal4-academic-design-directions.md`,
+- `experiments/archive/2026-05-goal4-skillcraft/academic-design-directions.md`,
   `experiments/goal4-battle-of-ideas-goal.md` — research direction notes
   for the next phase.
 - This narrative-sync commit + four new docs:
   `intent-shape-interface.md`, `eval-rubric.md`,
-  `post-iter164-research.md`, `experiment-history.md`.
+  `archive/2026-05-goal4-skillcraft/post-iter164-paper-digests.md`, `experiment-history.md`.
 
 EXPERIMENT_NOTES.md still ends at iter164 (line 2238). iter165-167 +
 the 2026-05-17 Codex audit + the reframe entries need to be appended
@@ -306,6 +306,6 @@ runtime, hook registry, intent signatures).
 | [`experiment-history.md`](experiment-history.md) | future-readable narrative of every meaningful iteration |
 | [`../kb/docs/intent-shape-interface.md`](../kb/docs/intent-shape-interface.md) | the data-shape → intent-shape interface pivot |
 | [`../eval/skillcraft/rubric.md`](../eval/skillcraft/rubric.md) | honest R1-R9 + qualifications description |
-| [`post-iter164-research.md`](post-iter164-research.md) | 3 new paper digests (Memory Transfer / f(g(x)) composition / UCT critic) |
-| [`goal4-academic-design-directions.md`](goal4-academic-design-directions.md) | ReGAL / PSN / SkillX translations |
+| [`archive/2026-05-goal4-skillcraft/post-iter164-paper-digests.md`](archive/2026-05-goal4-skillcraft/post-iter164-paper-digests.md) | 3 new paper digests (Memory Transfer / f(g(x)) composition / UCT critic) |
+| [`archive/2026-05-goal4-skillcraft/academic-design-directions.md`](archive/2026-05-goal4-skillcraft/academic-design-directions.md) | ReGAL / PSN / SkillX translations |
 | [`goal4-battle-of-ideas-goal.md`](goal4-battle-of-ideas-goal.md) | candidate framings for goal 5 |

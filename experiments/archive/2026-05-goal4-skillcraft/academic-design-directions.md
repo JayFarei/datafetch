@@ -428,7 +428,7 @@ Win gate before full-126: R1/R3/R6/R7 green in a single-family probe; then R1/R2
 Do not count wins that rely on SkillCraft-specific branches, pre-baked tenant helpers, seed-only reuse, prompt branches keyed on family/task identity, runtime payload defaults that mask bad agent code, scorer relaxations, or forcing `recordToolFanout` when semantic fit has not been verified.
 
 Use references:
-- experiments/goal4-academic-design-directions.md
+- academic-design-directions.md
 - experiments/EXPERIMENT_NOTES.md iter49-57 and Rawls review
 - src/eval/skillcraftFullDatafetch.ts
 - src/observer/template.ts

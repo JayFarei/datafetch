@@ -36,7 +36,7 @@ the tightened R8 dual gate.
 ### B2 — insight layer probe
 
 **Hypothesis:** Memory-Transfer / Insight pattern (Paper 5 in
-`experiments/post-iter164-research.md`): high-level insight memories (title +
+`experiments/archive/2026-05-goal4-skillcraft/post-iter164-paper-digests.md`): high-level insight memories (title +
 description + generalised content) transfer better than raw helper
 bodies. Adding an `@insight` YAML field to crystallised helpers should
 enable semantic selectivity — the agent reads insight BEFORE deciding
@@ -100,7 +100,7 @@ ReGAL / PSN / SkillX:
 - **SkillCraft itself** (arxiv:2603.00718) → established skill-based
   learning works; our unique contribution is VFS+code-mode mechanism
 
-See `experiments/post-iter164-research.md` for full digests +
+See `experiments/archive/2026-05-goal4-skillcraft/post-iter164-paper-digests.md` for full digests +
 substrate-file-level targets.
 
 ---
@@ -357,7 +357,7 @@ offline analyzer demonstrates clean clusters.
 4. **Validate.** Fixed pair {university-directory-builder,
    jikan-anime-analysis}.
 5. **Full-126.** Family-sequential, 4-shard parallel. Commit a headline
-   row to [`hook-registry-experiment.md`](hook-registry-experiment.md).
+   row to [`archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md`](archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md).
 6. **Hygiene.** `pnpm typecheck` clean, `pnpm test` green, working tree
    committed. The novel-tenant smoke must stay green every iteration.
 
@@ -595,7 +595,7 @@ OR 24 hours elapsed.
 
 After each iter: probe (SkillCraft single-family) → validate
 (univ + jikan) → (full-126 if probe+validate clear the gate) → commit
-headline row to `experiments/hook-registry-experiment.md` AND confirm the
+headline row to `experiments/archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md` AND confirm the
 novel-tenant smoke is still passing (no regression on the generality
 claim).
 
@@ -860,7 +860,7 @@ Same shape as the prior goal:
    - ≥ 30% reuseRate on the warm tier of either family
 5. **Full-126.** Family-sequential, lib-cache shared per family.
    4-shard parallel. Commit the new headline row to
-   [`hook-registry-experiment.md`](./hook-registry-experiment.md)
+   [`archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md`](./archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md)
    with analysis + error-taxonomy JSONs.
 6. **Hygiene.** `pnpm typecheck` clean, `pnpm test` ≥ 242 tests
    passing, working tree committed.
@@ -898,7 +898,7 @@ tenant for each fresh run.
 Before declaring the goal met, surface in the same turn:
 
 - The analysis JSON path
-- The headline row diff (added to `hook-registry-experiment.md`)
+- The headline row diff (added to `archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md`)
 - The test count (`pnpm test`)
 - A per-tier breakdown table:
 
@@ -918,7 +918,7 @@ Before declaring the goal met, surface in the same turn:
 | [PLAN.md](./PLAN.md) | living plan, updated when direction shifts |
 | [EXPERIMENTS.md](./EXPERIMENTS.md) | curated experiments with hypothesis, change, result, lessons |
 | [EXPERIMENT_NOTES.md](./EXPERIMENT_NOTES.md) | chronological scratchpad, real-time thoughts |
-| [hook-registry-experiment.md](hook-registry-experiment.md) | the committed headline-row table per iteration |
+| [archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md](archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md) | the committed headline-row table per iteration |
 
 EXPERIMENTS.md is the most important of the three. Every experiment,
 successful or not, gets an entry. The entry is what the next iteration

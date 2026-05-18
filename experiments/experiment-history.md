@@ -10,7 +10,7 @@
 > scratchpad), `experiments/EXPERIMENTS.md` (curated 688 lines),
 > `experiments/PLAN.md`, `experiments/goal.md`, `experiments/STATUS.md`,
 > `kb/docs/intent-shape-interface.md`, `eval/skillcraft/rubric.md`,
-> `experiments/post-iter164-research.md`, `experiments/goal4-academic-design-directions.md`,
+> `experiments/archive/2026-05-goal4-skillcraft/post-iter164-paper-digests.md`, `experiments/archive/2026-05-goal4-skillcraft/academic-design-directions.md`,
 > `experiments/goal4-battle-of-ideas-goal.md`, and the full git log.
 
 ## 1. What this project is
@@ -72,7 +72,7 @@ learning-loop wins):
 | 3 | Snippet runtime auto-invokes uninvoked `main()` / `run()` / `solve()`. Forensic walk of failed stderr/prepared-answer files surfaced this as 50% of remaining failures. Trailer fired on 24/126 episodes; all 24 scored ≥ 70. | 91.3% pass, +7.2pp |
 | 4 | Snippet timeout 180s → 300s. Four heavy-iteration tasks were making real progress when killed. | **94.4% pass**, +3.1pp, goal met |
 
-Full headline rows in `experiments/hook-registry-experiment.md`. Goal 1
+Full headline rows in `experiments/archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md`. Goal 1
 cleared all three thresholds (pass ≥ 0.92, tokens ≤ 8,000, runtime
 error rate ≤ 0.05) simultaneously.
 
@@ -575,8 +575,8 @@ move:
 ## 8. Academic paper map
 
 Seven papers shaped the substrate's direction. Full digests in
-`experiments/goal4-academic-design-directions.md` and
-`experiments/post-iter164-research.md`. Mapping to substrate state:
+`experiments/archive/2026-05-goal4-skillcraft/academic-design-directions.md` and
+`experiments/archive/2026-05-goal4-skillcraft/post-iter164-paper-digests.md`. Mapping to substrate state:
 
 | Paper | What it offers | Landed? | Substrate touch |
 |---|---|---|---|

@@ -1,6 +1,6 @@
 # Post-Iter164 Research Digest: Four New Papers, Mapped to Substrate
 
-This digest extends `experiments/goal4-academic-design-directions.md` (which
+This digest extends `academic-design-directions.md` (which
 already covers ReGAL, SkillX, PSN, When2Tool, and the original Memory
 paper). The four papers below were surfaced this turn and map to
 concrete substrate targets.
@@ -396,7 +396,7 @@ non-trivial diff. Identical outputs skip the critic entirely.
 ## User's Synthesis: The Four-Part Fix
 
 The user surfaced the synthesis that ties the four mechanisms above
-together with the three already in `experiments/goal4-academic-design-directions.md`:
+together with the three already in `academic-design-directions.md`:
 
 | Mechanism | Maps To | What It Fixes |
 |---|---|---|

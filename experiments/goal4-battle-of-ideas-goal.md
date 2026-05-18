@@ -12,7 +12,7 @@ find a learning loop that scales across SkillCraft without reward hacking.
 Use these as the evidence pack before editing:
 
 - `experiments/EXPERIMENT_NOTES.md`, especially iter76-78.
-- `experiments/goal4-academic-design-directions.md`.
+- `experiments/archive/2026-05-goal4-skillcraft/academic-design-directions.md`.
 - iter78 full run:
   `eval/skillcraft/results/datafetch/goal4-iter78-full126-dependentsemantic-brief-hooksdraft-20260515/`
 - iter78 derived artifacts:
@@ -373,7 +373,7 @@ rerunning full-126.
 
 First recover context:
 - Read experiments/goal4-battle-of-ideas-goal.md.
-- Read experiments/goal4-academic-design-directions.md.
+- Read experiments/archive/2026-05-goal4-skillcraft/academic-design-directions.md.
 - Read experiments/EXPERIMENT_NOTES.md iter76-78.
 - Inspect iter78 artifacts under
   eval/skillcraft/results/datafetch/goal4-iter78-full126-dependentsemantic-brief-hooksdraft-20260515/.

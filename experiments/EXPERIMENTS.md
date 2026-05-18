@@ -94,7 +94,7 @@
 - Artefacts:
   - Analysis: `eval/skillcraft/reports/iter3-full-20260511-223714-analysis.json`
   - Taxonomy: `eval/skillcraft/reports/iter3-full-20260511-223714-error-taxonomy.json`
-  - Headline row: see `experiments/hook-registry-experiment.md` § "Iteration 3"
+  - Headline row: see `experiments/archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md` § "Iteration 3"
 
 ### E2: Snippet timeout 180s → 300s
 - Date: 2026-05-12
@@ -143,7 +143,7 @@
 - Artefacts:
   - Analysis: `eval/skillcraft/reports/iter3-full-20260512-075046-analysis.json`
   - Taxonomy: `eval/skillcraft/reports/iter3-full-20260512-075046-error-taxonomy.json`
-  - Headline row: `experiments/hook-registry-experiment.md` § "Iteration 4"
+  - Headline row: `experiments/archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md` § "Iteration 4"
 
 ### Cross-experiment lessons (Goal 1 retrospective)
 
