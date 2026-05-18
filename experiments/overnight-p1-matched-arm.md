@@ -44,9 +44,9 @@ iter164 declared Goal 4 MET on Claude full-126 under
 5/8 because of Anthropic 500 errors.
 
 Read in order before doing anything:
-- `docs/experiment-history.md` (the chronological arc, 660 lines)
-- `docs/eval-rubric.md` (what R1-R9 + qualifications measure)
-- `docs/intent-shape-interface.md` (the helper authoring pivot)
+- `experiments/experiment-history.md` (the chronological arc, 660 lines)
+- `eval/skillcraft/rubric.md` (what R1-R9 + qualifications measure)
+- `kb/docs/intent-shape-interface.md` (the helper authoring pivot)
 - `experiments/STATUS.md`, `experiments/PLAN.md`
 
 ## Architecture pieces
@@ -244,8 +244,8 @@ STOP and ESCALATE if:
 - `eval/skillcraft/scripts/normalize-results.ts`
 - `eval/skillcraft/scripts/analyze-results.ts:161`
 - `src/eval/skillcraftFullDatafetch.ts`
-- `docs/experiment-history.md`
-- `docs/eval-rubric.md`
+- `experiments/experiment-history.md`
+- `eval/skillcraft/rubric.md`
 - `scripts/parallel-eval.sh`
 
 Usage check before launching:

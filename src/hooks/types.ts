@@ -6,7 +6,7 @@
 // the public artifact. The hook registry — not the observer's authored
 // .ts file — owns public callability of df.lib.<name>.
 //
-// See docs/hook-registry-experiment.md for framing and design intent.
+// See experiments/hook-registry-experiment.md for framing and design intent.
 
 export type HookMaturity =
   | "observed"

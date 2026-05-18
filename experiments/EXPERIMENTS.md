@@ -94,7 +94,7 @@
 - Artefacts:
   - Analysis: `eval/skillcraft/reports/iter3-full-20260511-223714-analysis.json`
   - Taxonomy: `eval/skillcraft/reports/iter3-full-20260511-223714-error-taxonomy.json`
-  - Headline row: see `docs/hook-registry-experiment.md` § "Iteration 3"
+  - Headline row: see `experiments/hook-registry-experiment.md` § "Iteration 3"
 
 ### E2: Snippet timeout 180s → 300s
 - Date: 2026-05-12
@@ -143,7 +143,7 @@
 - Artefacts:
   - Analysis: `eval/skillcraft/reports/iter3-full-20260512-075046-analysis.json`
   - Taxonomy: `eval/skillcraft/reports/iter3-full-20260512-075046-error-taxonomy.json`
-  - Headline row: `docs/hook-registry-experiment.md` § "Iteration 4"
+  - Headline row: `experiments/hook-registry-experiment.md` § "Iteration 4"
 
 ### Cross-experiment lessons (Goal 1 retrospective)
 
@@ -356,7 +356,7 @@ hypotheses. Append new entries here as they execute.)
 - Status: **INCONCLUSIVE → STRUCTURAL FINDING.** The observer is wired and active; trajectories are saved (3 trajectories per e1 episode, all `mode: novel`, all `errored: false`). The gate's heuristic #5 rejects every single one for the same reason: zero `db.*` calls in the trajectory. The substrate's observer is built to recognise `db.* → lib.*` compositions with data-flow; SkillCraft trajectories are pure-tool fan-out aggregations with no data-flow between primitives.
 - Lessons:
   1. **The substrate's learning loop, as architected today, cannot fire on SkillCraft.** The observer's gate (`src/observer/gate.ts`) requires a `db.*` call as the first primitive and a downstream `lib.*` consumer with data-flow. SkillCraft tasks use only `df.tool.<bundle>` calls and structure their work as independent fan-out calls with a shared parameter literal. The gate's heuristics are designed for a different composition pattern than the one this benchmark uses.
-  2. **The user-visible behaviour ("agents get cheaper with reuse") has never been demonstrated on this substrate on this benchmark.** All Goal 1 wins (94.4% pass) were achieved by a substrate path that bypasses the learning loop entirely. The substrate's headline value prop is unvalidated on SkillCraft and the architecture in `docs/architecture.md` over-claims what the loop is designed to handle.
+  2. **The user-visible behaviour ("agents get cheaper with reuse") has never been demonstrated on this substrate on this benchmark.** All Goal 1 wins (94.4% pass) were achieved by a substrate path that bypasses the learning loop entirely. The substrate's headline value prop is unvalidated on SkillCraft and the architecture in `kb/docs/architecture.md` over-claims what the loop is designed to handle.
   3. The fix is not single-iteration scope. Three paths exist and none is a one-line change. See `EXPERIMENT_NOTES.md` § "2026-05-12 21:20 [analyze, E1.5 null result, structural finding]" for the full taxonomy (Option A: extend the gate for fan-out aggregations; Option B: trim the gate to data-flow only; Option C: pivot to a learning-loop-friendly benchmark; Option D: lean on agent-authored helpers and strengthen the prompt).
   4. Halting the autonomous cadence here. Picking one of the four options is a goal-level decision; user input required.
 - Artefacts:

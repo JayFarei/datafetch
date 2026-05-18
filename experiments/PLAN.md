@@ -36,7 +36,7 @@ the tightened R8 dual gate.
 ### B2 — insight layer probe
 
 **Hypothesis:** Memory-Transfer / Insight pattern (Paper 5 in
-`docs/post-iter164-research.md`): high-level insight memories (title +
+`experiments/post-iter164-research.md`): high-level insight memories (title +
 description + generalised content) transfer better than raw helper
 bodies. Adding an `@insight` YAML field to crystallised helpers should
 enable semantic selectivity — the agent reads insight BEFORE deciding
@@ -100,7 +100,7 @@ ReGAL / PSN / SkillX:
 - **SkillCraft itself** (arxiv:2603.00718) → established skill-based
   learning works; our unique contribution is VFS+code-mode mechanism
 
-See `docs/post-iter164-research.md` for full digests +
+See `experiments/post-iter164-research.md` for full digests +
 substrate-file-level targets.
 
 ---
@@ -357,7 +357,7 @@ offline analyzer demonstrates clean clusters.
 4. **Validate.** Fixed pair {university-directory-builder,
    jikan-anime-analysis}.
 5. **Full-126.** Family-sequential, 4-shard parallel. Commit a headline
-   row to [`hook-registry-experiment.md`](../docs/hook-registry-experiment.md).
+   row to [`hook-registry-experiment.md`](hook-registry-experiment.md).
 6. **Hygiene.** `pnpm typecheck` clean, `pnpm test` green, working tree
    committed. The novel-tenant smoke must stay green every iteration.
 
@@ -595,7 +595,7 @@ OR 24 hours elapsed.
 
 After each iter: probe (SkillCraft single-family) → validate
 (univ + jikan) → (full-126 if probe+validate clear the gate) → commit
-headline row to `docs/hook-registry-experiment.md` AND confirm the
+headline row to `experiments/hook-registry-experiment.md` AND confirm the
 novel-tenant smoke is still passing (no regression on the generality
 claim).
 
@@ -918,7 +918,7 @@ Before declaring the goal met, surface in the same turn:
 | [PLAN.md](./PLAN.md) | living plan, updated when direction shifts |
 | [EXPERIMENTS.md](./EXPERIMENTS.md) | curated experiments with hypothesis, change, result, lessons |
 | [EXPERIMENT_NOTES.md](./EXPERIMENT_NOTES.md) | chronological scratchpad, real-time thoughts |
-| [../docs/hook-registry-experiment.md](../docs/hook-registry-experiment.md) | the committed headline-row table per iteration |
+| [hook-registry-experiment.md](hook-registry-experiment.md) | the committed headline-row table per iteration |
 
 EXPERIMENTS.md is the most important of the three. Every experiment,
 successful or not, gets an entry. The entry is what the next iteration

@@ -15,7 +15,7 @@ interfaces over your own data. The pitch is one line:
 > get cheaper and more accurate the more they are used.
 
 The proof of that pitch is the SkillCraft eval (see
-[`docs/proof-skillcraft.md`](./proof-skillcraft.md)). The substrate
+[`../../eval/skillcraft/proof.md`](../../eval/skillcraft/proof.md)). The substrate
 exists today and the validation work is done. What is left is the
 shape of the release, the boundary between open and commercial, and
 the polish required to put it in someone else's hands.

@@ -9,9 +9,9 @@
 > `experiments/EXPERIMENT_NOTES.md` (2238 lines, chronological
 > scratchpad), `experiments/EXPERIMENTS.md` (curated 688 lines),
 > `experiments/PLAN.md`, `experiments/goal.md`, `experiments/STATUS.md`,
-> `docs/intent-shape-interface.md`, `docs/eval-rubric.md`,
-> `docs/post-iter164-research.md`, `docs/goal4-academic-design-directions.md`,
-> `docs/goal4-battle-of-ideas-goal.md`, and the full git log.
+> `kb/docs/intent-shape-interface.md`, `eval/skillcraft/rubric.md`,
+> `experiments/post-iter164-research.md`, `experiments/goal4-academic-design-directions.md`,
+> `experiments/goal4-battle-of-ideas-goal.md`, and the full git log.
 
 ## 1. What this project is
 
@@ -72,7 +72,7 @@ learning-loop wins):
 | 3 | Snippet runtime auto-invokes uninvoked `main()` / `run()` / `solve()`. Forensic walk of failed stderr/prepared-answer files surfaced this as 50% of remaining failures. Trailer fired on 24/126 episodes; all 24 scored ≥ 70. | 91.3% pass, +7.2pp |
 | 4 | Snippet timeout 180s → 300s. Four heavy-iteration tasks were making real progress when killed. | **94.4% pass**, +3.1pp, goal met |
 
-Full headline rows in `docs/hook-registry-experiment.md`. Goal 1
+Full headline rows in `experiments/hook-registry-experiment.md`. Goal 1
 cleared all three thresholds (pass ≥ 0.92, tokens ≤ 8,000, runtime
 error rate ≤ 0.05) simultaneously.
 
@@ -198,7 +198,7 @@ probes rather than full-126 runs.
 Goal 3's "7 thresholds" were replaced by a rubric that measures
 correctness, cost, trust, novel-tenant onboarding, convergence, reuse,
 cost-drop, and cross-shape transfer. The honest description lives in
-`docs/eval-rubric.md`; this is the brief:
+`eval/skillcraft/rubric.md`; this is the brief:
 
 | Rubric | Measures | Threshold |
 |---|---|---|
@@ -277,7 +277,7 @@ interface + ReGAL promotion gate"):
 ### 5.4 Iters 49-78 — the "Battle of Ideas" era
 
 After iter49 the work split into parallel attack arms. The framing
-doc is `docs/goal4-battle-of-ideas-goal.md`. Four assumption arms
+doc is `experiments/goal4-battle-of-ideas-goal.md`. Four assumption arms
 were tested in parallel via small evals:
 
 - **A. Contract-aware tool admissibility** — `recordToolFanout` should
@@ -328,7 +328,7 @@ This is the longest stretch. It was an interleaved sequence of:
   plan may be data-shaped. The public input flips from
   `{entityValues, toolBundle, toolNames, paramName, ...}` to
   `{intent, limit?}` plus a hidden `Internal*Plan` (cast at body
-  time). Full detail in `docs/intent-shape-interface.md`.
+  time). Full detail in `kb/docs/intent-shape-interface.md`.
 - **tool memoization + soft-error envelopes** (`3e376997`) so a
   failing tool subprocess returns `{success: false, error, tool,
   input}` instead of throwing the whole snippet.
@@ -575,8 +575,8 @@ move:
 ## 8. Academic paper map
 
 Seven papers shaped the substrate's direction. Full digests in
-`docs/goal4-academic-design-directions.md` and
-`docs/post-iter164-research.md`. Mapping to substrate state:
+`experiments/goal4-academic-design-directions.md` and
+`experiments/post-iter164-research.md`. Mapping to substrate state:
 
 | Paper | What it offers | Landed? | Substrate touch |
 |---|---|---|---|

@@ -5,7 +5,7 @@
 > String-coercion rewriter). Updated when a goal cycle closes;
 > intermediate progress lives in [EXPERIMENTS.md](./EXPERIMENTS.md)
 > and [EXPERIMENT_NOTES.md](./EXPERIMENT_NOTES.md). Full chronological
-> arc in [`../docs/experiment-history.md`](../docs/experiment-history.md).
+> arc in [`experiment-history.md`](experiment-history.md).
 
 ## Current state (2026-05-18, post-P1-followups)
 
@@ -179,8 +179,8 @@ Just-completed tidying landed 10 commits (`ca8a2707` → `cd7450e1`):
   iter150-era slot verifier, productionised.
 - `tests/skillcraft-full-datafetch-planner.test.ts` — 125+ tests
   guarding the four substrate patches.
-- `docs/goal4-academic-design-directions.md`,
-  `docs/goal4-battle-of-ideas-goal.md` — research direction notes
+- `experiments/goal4-academic-design-directions.md`,
+  `experiments/goal4-battle-of-ideas-goal.md` — research direction notes
   for the next phase.
 - This narrative-sync commit + four new docs:
   `intent-shape-interface.md`, `eval-rubric.md`,
@@ -303,9 +303,9 @@ runtime, hook registry, intent signatures).
 | [`EXPERIMENT_NOTES.md`](./EXPERIMENT_NOTES.md) | chronological scratchpad |
 | [`goal.md`](./goal.md) | canonical `/goal` condition strings |
 | [`STATUS.md`](./STATUS.md) | this file |
-| [`../docs/experiment-history.md`](../docs/experiment-history.md) | future-readable narrative of every meaningful iteration |
-| [`../docs/intent-shape-interface.md`](../docs/intent-shape-interface.md) | the data-shape → intent-shape interface pivot |
-| [`../docs/eval-rubric.md`](../docs/eval-rubric.md) | honest R1-R9 + qualifications description |
-| [`../docs/post-iter164-research.md`](../docs/post-iter164-research.md) | 3 new paper digests (Memory Transfer / f(g(x)) composition / UCT critic) |
-| [`../docs/goal4-academic-design-directions.md`](../docs/goal4-academic-design-directions.md) | ReGAL / PSN / SkillX translations |
-| [`../docs/goal4-battle-of-ideas-goal.md`](../docs/goal4-battle-of-ideas-goal.md) | candidate framings for goal 5 |
+| [`experiment-history.md`](experiment-history.md) | future-readable narrative of every meaningful iteration |
+| [`../kb/docs/intent-shape-interface.md`](../kb/docs/intent-shape-interface.md) | the data-shape → intent-shape interface pivot |
+| [`../eval/skillcraft/rubric.md`](../eval/skillcraft/rubric.md) | honest R1-R9 + qualifications description |
+| [`post-iter164-research.md`](post-iter164-research.md) | 3 new paper digests (Memory Transfer / f(g(x)) composition / UCT critic) |
+| [`goal4-academic-design-directions.md`](goal4-academic-design-directions.md) | ReGAL / PSN / SkillX translations |
+| [`goal4-battle-of-ideas-goal.md`](goal4-battle-of-ideas-goal.md) | candidate framings for goal 5 |

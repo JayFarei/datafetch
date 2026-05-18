@@ -182,7 +182,7 @@ bash scripts/iter1-analyze.sh \
 
 The committed analysis JSON, error taxonomy JSON, and per-shard runs
 are checked in and dated. The headline row diff is in
-`docs/hook-registry-experiment.md`. Any third party can rerun on the
+`../../experiments/hook-registry-experiment.md`. Any third party can rerun on the
 same commit and verify the numbers.
 
 ## Caveats

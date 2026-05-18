@@ -143,7 +143,7 @@ for the iteration loop:
   ≥ 2 runs, not a single-shot Anthropic-uptime artifact. Gates are the
   iter164 gates.
 - **B2 — insight layer probe.** Memory-Transfer / Insight pattern
-  (Paper 5 in `docs/post-iter164-research.md`): add `@insight` YAML
+  (Paper 5 in `experiments/post-iter164-research.md`): add `@insight` YAML
   field to crystallised helpers, render in `df.d.ts` surface, probe
   whether semantic annotation improves R7 reuse rate or R8 cost-drop.
 - **B3 — cold-to-warm via product flow.** Use
@@ -189,21 +189,21 @@ hypothesis schedule. Paste-ready condition (≤ 4000 chars):
 
 Stop after 8 accepted iterations or 24 hours otherwise.
 
-Working files: experiments/PLAN.md (current goal + iteration schedule), experiments/EXPERIMENTS.md (curated log, read before each new hypothesis; Goals 1+2 entries E0.5..E8 shape priors), experiments/EXPERIMENT_NOTES.md (chronological scratchpad), experiments/STATUS.md (snapshot of achievements + remaining work), experiments/goal.md (this file). docs/architecture.md, docs/proof-skillcraft.md, docs/release-plan.md, docs/hook-registry-experiment.md are background reading; the last appends one headline row per iteration.
+Working files: experiments/PLAN.md (current goal + iteration schedule), experiments/EXPERIMENTS.md (curated log, read before each new hypothesis; Goals 1+2 entries E0.5..E8 shape priors), experiments/EXPERIMENT_NOTES.md (chronological scratchpad), experiments/STATUS.md (snapshot of achievements + remaining work), experiments/goal.md (this file). kb/docs/architecture.md, eval/skillcraft/proof.md, kb/docs/release-plan.md, experiments/hook-registry-experiment.md are background reading; the last appends one headline row per iteration.
 
 Per-iteration cadence:
 1. Read EXPERIMENTS.md first. State one hypothesis with expected delta on a learning-loop metric and its design lever. Valid levers: observer gate, hook registry promotion, snippet runtime, prompt template, df.lib discovery surface, smoke-replay gate, quality-gated df.answer. Never SkillCraft-specific. Add [hypothesis] note to EXPERIMENT_NOTES.md; update PLAN.md if priority shifts.
 2. Implement against hook-registry / observer / snippet-runtime substrate.
 3. Single-family probe with lib-cache enabled and DATAFETCH_AGENT=claude DATAFETCH_INTERFACE_MODE=hooks-draft. Required: >=+5pp pass vs iter4 baseline AND >=1 helper authored in e1 AND >=1 helper reused in e2-m2. Add [probe] note.
 4. Validate on {university-directory-builder, jikan-anime-analysis}. Required: >=+3pp combined pass AND >=30% reuseRate on warm tier of at least one family. Add [validate] note.
-5. Full-126, 4-shard parallel, family-sequential (e1->e2->e3->m1->m2->h1 with persistent per-tenant lib-cache). Commit headline row to docs/hook-registry-experiment.md with analysis + error-taxonomy JSONs. Append final [full-126] note AND a complete EXPERIMENTS.md entry.
+5. Full-126, 4-shard parallel, family-sequential (e1->e2->e3->m1->m2->h1 with persistent per-tenant lib-cache). Commit headline row to experiments/hook-registry-experiment.md with analysis + error-taxonomy JSONs. Append final [full-126] note AND a complete EXPERIMENTS.md entry.
 6. pnpm typecheck clean, pnpm test >= 242 passing, working tree committed.
 
 Lib-cache starts empty per tenant. All measured helpers must be observer-crystallised same-run. Seed helpers under <datafetchHome>/lib/__seed__/ are permitted as cold-start init (per user's framing 2026-05-12); pre-baked seeds under seeds/<tenantId>/ or <baseDir>/lib/<tenantId>/ before episode 1 remain forbidden.
 
 NOT met if the transcript reveals: code pattern-matching on SkillCraft family/task/bundle/tool identifiers; pre-baked seed helpers under seeds/<tenantId>/ or <baseDir>/lib/<tenantId>/; prompt-template branches keyed on dataset/family/tier identity; hardcoded payload defaults in df.tool/df.lib proxies for specific tools; bypassing the hook registry; new server-side LLM call paths substituting for the agent's composition; manually pre-loaded hooks. New affordances reach the agent via bash + filesystem + pnpm script aliases. Persisted artefacts under <baseDir>/{lib,hooks,trajectories}/<tenantId>/.
 
-Before declaring met, surface in the same turn: analysis JSON path; headline row diff in docs/hook-registry-experiment.md; pnpm test count; per-tier breakdown (train/warm/hard with helpers-available, helpers-used, reuse-rate, avg-tokens); note on which experiments contributed; confirmation EXPERIMENTS.md has the final iteration's complete entry. Condition holds when all seven thresholds AND constraints AND family-sequential lib-cache-enabled execution are simultaneously true on the most recent full-126.
+Before declaring met, surface in the same turn: analysis JSON path; headline row diff in experiments/hook-registry-experiment.md; pnpm test count; per-tier breakdown (train/warm/hard with helpers-available, helpers-used, reuse-rate, avg-tokens); note on which experiments contributed; confirmation EXPERIMENTS.md has the final iteration's complete entry. Condition holds when all seven thresholds AND constraints AND family-sequential lib-cache-enabled execution are simultaneously true on the most recent full-126.
 ```
 
 ## Goal 2 (preceding): prove the learning loop fires
@@ -216,7 +216,7 @@ Achieved on the pilot but not on the strict full-126; see
 
 Achieved: 94.4% pass on full-126 at 3,027 effective tokens / task,
 0.8% runtime errors. Details in [`STATUS.md`](./STATUS.md) § "Goal 1"
-and [`../docs/hook-registry-experiment.md`](../docs/hook-registry-experiment.md)
+and [`hook-registry-experiment.md`](hook-registry-experiment.md)
 § "Iter4 full-126 (the headline)". Original framing preserved below.
 
 ### Framing
@@ -229,7 +229,7 @@ to push numbers on the evaluator while explicitly disqualifying
 wins that come from baking SkillCraft-specific knowledge into the
 substrate.
 
-Current baseline (from `docs/hook-registry-experiment.md` →
+Current baseline (from `experiments/hook-registry-experiment.md` →
 iter2 full-126 section, committed at HEAD):
 
 - pass ≥70: 85.7%
@@ -260,7 +260,7 @@ Cadence per iteration, each surfaced in the transcript:
 2. Implement against the hook-registry / VFS substrate.
 3. Run a single-family probe; surface per-task pass + tokens + runtime-error counts. Require ≥+5pp pass vs the latest committed baseline on that family.
 4. If probe passes, run a 2-family held-out validate on the fixed rotation pair {university-directory-builder, jikan-anime-analysis}. Require ≥+3pp combined pass.
-5. If validate passes, run full-126 (4-shard parallel) and commit the new headline row to docs/hook-registry-experiment.md with the analysis + error-taxonomy JSONs.
+5. If validate passes, run full-126 (4-shard parallel) and commit the new headline row to experiments/hook-registry-experiment.md with the analysis + error-taxonomy JSONs.
 6. After every iteration: pnpm typecheck clean, pnpm test shows ≥ 227 tests passing, and the working tree is committed.
 
 Condition is NOT met if the transcript reveals any of:
