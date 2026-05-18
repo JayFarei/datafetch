@@ -17,6 +17,7 @@ data/
 .opentraces.json
 .opentraces/
 eval/skillcraft/results/
+eval/finchain/results/
 
 # Root-level scratch artefacts that agents drop during probes.
 # These are eval outputs and should never be committed.

@@ -2620,3 +2620,57 @@ Iter 2b implements `src/eval/finchainFullDatafetch.ts` — the runner mirroring 
 ### 2026-05-18 23:40 [commit]
 
 About to commit: `package.json` (2 new scripts), `eval/finchain/scripts/{prepare-finchain.sh,introspect-template.py}`, `src/eval/finchainRecords.ts`, `src/observer/__smoke__/finchain-mount.ts`. Vendor clone stays gitignored.
+
+---
+
+## 2026-05-18, Goal 5 iter 2b — finchainFullDatafetch.ts runner skeleton
+
+### 2026-05-18 23:55 [hypothesis]
+
+A bounded runner skeleton (argument parsing + planner + workspace setup + run-info write + --dry-run + --fixture-smoke) is the right slice for iter 2b. The full agent-call matrix (claude / codex / codex-direct + per-episode trajectory write + observer install/uninstall + lib-cache hydrate/persist + parallel sharding) is too large for one iteration without testing each backend; that lands in iter 2c (claude only, the default) and iter 2d (codex / codex-direct + sharding). Iter 2b's verification: --dry-run plans episodes correctly, --fixture-smoke exercises buildFinChainMount end-to-end on one (topic, template, seed) triple and writes a fixture-smoke.json with the integration evidence.
+
+### 2026-05-18 23:55 [implement]
+
+Wrote `src/eval/finchainFullDatafetch.ts` (~310 lines vs SkillCraft's 4,867). Smaller because: no tool catalog (FinChain is purely computational), no per-family entity extraction (sibling library is built from introspection), no native skill-mode comparison arm (FinChain doesn't have a native baseline equivalent of SkillCraft's `skillcraft-base`). Surface:
+
+- `parseArgs(argv)` — CLI parsing for `--vendor-dir`, `--out-dir`, `--label`, `--topics` (CSV), `--templates` (CSV ints), `--seed-indices` (CSV ints), `--seed-count` (default 10), `--limit`, `--dry-run`, `--fixture-smoke`, `--live`, `--model`, `--reasoning`, `--timeout-ms`, `--snippet-timeout-ms`, `--lib-cache-dir`, `--no-lib-cache`, `--resume`. When `--label` is provided, `out-dir` becomes `eval/finchain/results/datafetch/<label>` (the run-base convention from `kb/br/16` and goal4 archive). `DATAFETCH_DISABLE_LEARNING=1` and `DATAFETCH_AGENT=<claude|codex|codex-direct>` env vars honoured identically to SkillCraft.
+- `discoverTopics(vendorDir)` — enumerates `data/templates/<domain>/<topic>.py` files under the vendor clone, returns `<domain>/<topic_basename>` strings.
+- `planEpisodes(args)` — cross-product of selected topics × templates × seed-indices; produces `PlannedEpisode` rows with `taskKey` (`<topic>:tpl<position>:seed<seedIndex>`), `family` (`<domain>-<topic_basename>` via `familyForTopic`), `level` (e1/e2/m1/m2/h1 by template position 1-5).
+- `main()` — writes `run-info.json` + `planned-episodes.json` to outDir; on `--fixture-smoke` additionally builds the mount via `buildFinChainMount` and introspects the current instance to produce `fixture-smoke.json`; on `--live` throws with a clean "iter 2c lands the agent backend" message; on default execution path also throws with an iter-2c pointer. Exports `parseArgs`, `planEpisodes`, `discoverTopics`, `LEVEL_BY_TEMPLATE_POSITION` for iter 2c tests + use.
+
+Added `eval/finchain` to root `.gitignore` so per-run results don't pollute git tree; added `pnpm eval:finchain` script (the runner entrypoint).
+
+### 2026-05-18 23:55 [verify]
+
+`pnpm typecheck`: clean.
+
+`pnpm test`: 7 smokes (15/15 on finchain-mount) + 374/374 vitest, all green.
+
+Functional verification:
+
+- `pnpm eval:finchain --dry-run --topics investment_analysis/ci --templates 1,2 --seed-indices 0,1 --label iter2b-skeleton-smoke` → planned 4 episodes (2 templates × 2 seeds); wrote `run-info.json` + `planned-episodes.json` with the expected family (`investment_analysis-ci`), levels (e1/e2), and metadata. `iterScope: "iter-2b-skeleton"` marker in run-info for downstream analyzers to know what's wired vs TODO.
+- `pnpm eval:finchain --fixture-smoke --topics investment_analysis/ci --templates 1 --seed-indices 0 --label iter2b-fixture-smoke` → planned 1 episode; built the 9-record sibling mount for `investment_analysis/ci` template 1 seed 0; introspected the current instance (Mark Smith / $1165 / 4.07% / 5y, gold=257.18); wrote `fixture-smoke.json` with mount inventory + current-question summary. The --fixture-smoke flow is the integration verification anchor for iter 2b.
+- `pnpm eval:finchain --live ...` → throws cleanly with "iter 2c lands the agent backend" message. Iter 2c contract is explicit in the source.
+
+### 2026-05-18 23:55 [next-step rationale]
+
+Iter 2c implements the claude backend (the default; matches SkillCraft's primary backend). Single-episode flow:
+
+1. Build workspace dir under outDir (one per episode).
+2. Mount finchain records via `buildFinChainMount` + register with snippet runtime.
+3. Render the question into `scripts/answer.ts` template.
+4. Install observer (skip if `disableLearning`).
+5. Hydrate lib-cache from `<libCacheDir>/<family>/` if present (skip if `disableLearning` or `noLibCache`).
+6. Render df.d.ts with finchain primitives + per_entity seed + family helpers.
+7. Spawn `claude --print` against the episode prompt; capture stdout/stderr/usage.
+8. Run `scripts/answer.ts` through the snippet runtime; capture trajectory.
+9. Validate `df.answer({status, value, derivation})`; compare value against `currentInstance.goldFinalValue` for FAC pass/fail.
+10. Persist lib-cache (if observer crystallised any helpers).
+11. Write per-episode artifacts (`<workspace>/trajectory.jsonl`, `<workspace>/answer.json`, etc.).
+12. Append to `episodes.jsonl` + write `results.partial.json`.
+
+This is ~600-800 lines of new code in `finchainFullDatafetch.ts` (reusing patterns from skillcraftFullDatafetch.ts lines 232-1500 area). Heavier still: iter 2d adds codex + codex-direct + 4-shard parallel + family-sequential lib-cache hydration matching SkillCraft's full surface area. Iter 3 lands `score-finchain.ts` (FC1/FC2 scorer) + the first single-topic substrate-OFF baseline probe.
+
+### 2026-05-18 23:55 [commit]
+
+About to commit: `.gitignore` (results dir), `package.json` (eval:finchain script), `src/eval/finchainFullDatafetch.ts` (the runner skeleton). Vendor + results stay gitignored. EXPERIMENT_NOTES iter 2b block included.

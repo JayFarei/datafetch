@@ -26,6 +26,7 @@
     "eval:skillcraft:report": "tsx eval/skillcraft/scripts/build-report.ts",
     "eval:skillcraft:verify": "tsx eval/skillcraft/scripts/verify-harness.ts",
     "eval:skillcraft:preflight": "tsx eval/skillcraft/scripts/check-native-readiness.ts",
+    "eval:finchain": "tsx src/eval/finchainFullDatafetch.ts",
     "eval:finchain:prepare": "bash eval/finchain/scripts/prepare-finchain.sh",
     "eval:finchain:verify": "tsx src/observer/__smoke__/finchain-mount.ts",
     "test": "tsx src/snippet/__smoke__.ts && tsx src/snippet/__sdk_import_smoke__.ts && tsx src/observer/__smoke__/finqa.ts && tsx src/observer/__smoke__/novel-tenant.ts && tsx src/observer/__smoke__/cross-shape-transfer.ts && tsx src/bash/__smoke__.ts && tsx src/observer/__smoke__/finchain-mount.ts && vitest run",
