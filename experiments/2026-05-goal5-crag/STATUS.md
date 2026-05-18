@@ -53,7 +53,8 @@ SkillCraft full-126 at no worse than this:
 | P2    | Iter2 — mock-API modeling probe (db.* vs tool.*)       | ✅ done (INCONCLUSIVE: both modelings have gaps) |
 | P2.5  | Iter3 — hybrid db+lib modeling probe                   | dropped (diminishing returns; surfacing gap in real LLM-driven eval instead) |
 | P3    | Vendor CRAG dataset (public split, 2,706 records)      | ✅ done (E3, 2026-05-19) |
-| P4    | Build CRAG adapter (src/eval/cragFullDatafetch.ts)     | ⏳ next    |
+| P4    | E4 — substrate plumbing smoke (hand-authored, no LLM)  | ✅ done (PASSED, 5/6 +1 + 1/6 abstain) |
+| P5    | E5 — claude-p driver, small-N matched-arm (50 questions) | ⏳ next   |
 | P3    | Resolve mock-API modeling (df.db.* vs df.tool.*)       | pending    |
 | P4    | Build CRAG adapter (src/eval/cragFullDatafetch.ts)     | pending    |
 | P5    | Build CRAG tri-state scorer + R1-R10 normalizer         | pending    |

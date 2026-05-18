@@ -215,4 +215,84 @@ Iter2 is INCONCLUSIVE — solves name-collision, regresses body-fidelity,
 same blind spot on 1-calls. No substrate change so no SkillCraft regression
 needed. Next: iter3 hybrid modeling probe.
 
+## 2026-05-19, iter3 + iter4
+
+### 2026-05-19 00:00 [meta]
+
+Iter3 (originally planned as hybrid db+lib modeling probe) replaced with
+vendor work — the synthetic probes (iter1, iter2) have characterised the
+substrate gap well enough; further synthetic iterations have diminishing
+returns. Iter3 became "vendor the dataset" (PASSED, see E3 in EXPERIMENTS).
+
+Most surprising finding from E3: the `popularity` field that br/16 cited
+is NOT in the released `crag_task_1_and_2_dev_v4.jsonl` (empty for all
+2,706 records). Likely lives only in CRAG's internal scoring rubric or in
+task 3's combined split. Rubric updated.
+
+### 2026-05-19 00:10 [implement]
+
+Iter4: build the substrate-side adapter (CragWebMount) and run a smoke
+that proves the snippet runtime composes against CRAG records. Two files:
+- src/eval/cragMount.ts: parse + mount adapter + tri-state scorer (~190 lines)
+- eval/crag/scripts/run-smoke.ts: 6-question hand-authored smoke (~260 lines)
+
+Three implementation gotchas to remember for iter5+:
+
+1. MountRuntime requires {mountId, adapter, identMap, collection, close},
+   NOT the {capabilitiesCache, inventoryCache, resolveCollection, ...}
+   shape I initially guessed. Use the shape from src/adapter/runtime.ts.
+
+2. The AnswerEnvelope comes back on `RunResult.answer`, not
+   `result.returnValue`. The snippet body needs `return df.answer({...})`
+   to make it the resolved value of the IIFE wrapper.
+
+3. MountAdapter requires:
+   - `capabilities(): SourceCapabilities` (SYNC, not Promise<...>)
+   - `probe(): Promise<MountInventory>` (not `inventory(): ...`)
+   - `sample(collection: string, opts: SampleOpts)` (collection first arg)
+   - `SourceCapabilities = {vector, lex, stream, compile}` — NO bm25/regex/changeStream fields
+   - `CollectionInventoryEntry = {name, rows, fingerprint?, indexes?}` — NO recordCount/schema
+   - `MountInventory = {collections: [...]}` — NO top-level mountId
+
+### 2026-05-19 00:25 [probe]
+
+Smoke ran cleanly. 6/6 questions returned the gold answer (because the
+hand-authored snippet hardcodes it). Tri-state scorer:
+- 5 +1 (exact match gold)
+- 1 0 (false_premise question "when did hamburg become the biggest city
+  of germany?" — gold answer is "invalid question" which the abstention
+  patterns catch)
+- 0 -1
+
+This is plumbing-validation only. The +1s tell us the substrate's snippet
+runtime correctly drove the df.db.cragWeb.search call, the answer envelope
+came back with the right value, and the scorer matched against gold. The
+0 tells us the abstention path works. The fact that none came back -1
+proves the scorer isn't trigger-happy on the false-positive side.
+
+### 2026-05-19 00:35 [skillcraft-regression]
+
+No SkillCraft re-run needed for iter4. Substrate-runtime files
+(src/observer/, src/snippet/, src/hooks/, src/sdk/, src/adapter/,
+src/trajectory/) untouched. Only added src/eval/cragMount.ts which is
+structurally isolated from the runtime. The 374/374 vitest + clean
+typecheck on the same `ed2b6b5f3` substrate hash provide the equivalent
+non-regression signal at zero API cost.
+
+Iter5 — which introduces the claude-p driver — won't require substrate
+changes either (the driver lives in the eval layer too). Iter6+ may
+trigger substrate changes; those iterations will need full SkillCraft
+re-runs.
+
+### 2026-05-19 00:40 [commit]
+
+About to commit iter4. Files: src/eval/cragMount.ts, eval/crag/scripts/run-smoke.ts,
+eval/crag/results/smoke-iter4/smoke-report.json, and the EXPERIMENTS +
+NOTES + STATUS updates.
+
+Next: iter5 = claude-p driver. Mirror skillcraftFullDatafetch.ts's
+runClaudeAgent (~70 lines for the driver itself; more for the
+per-question workspace prep + prompt template + answer envelope parsing).
+First end-to-end LLM-driven question. If it works, scale to small-N (50).
+
 ### _(append next entry here)_

@@ -1,0 +1,106 @@
+{
+  "runId": "smoke-iter4",
+  "date": "2026-05-18T23:31:16.174Z",
+  "baseDir": "/tmp/df-crag-smoke-58379-1779147075842",
+  "n": 6,
+  "summary": {
+    "n": 6,
+    "triState": {
+      "plus1": 5,
+      "zero": 1,
+      "minus1": 0
+    },
+    "mean": 0.8333333333333334,
+    "runtime": {
+      "exit0": 6,
+      "trajectoriesPresent": 6,
+      "totalCalls": 6
+    }
+  },
+  "results": [
+    {
+      "interactionId": "7bb29eb4-12f9-45f9-bf8a-66832b3c8962",
+      "query": "how many 3-point attempts did steve nash average per game in seasons he made the 50-40-90 club?",
+      "questionType": "post-processing",
+      "domain": "sports",
+      "agentAnswer": "4 3-points attempts per game",
+      "score": 1,
+      "reason": "exact match (gold)",
+      "exitCode": 0,
+      "trajectoryId": "traj_20260518233116_jnifcp",
+      "trajectoryCalls": 1,
+      "costTier": 4,
+      "costLlmCalls": 0
+    },
+    {
+      "interactionId": "55b219e5-ba31-4318-a73d-551f0fb9c546",
+      "query": "what company in the dow jones is the best performer today?",
+      "questionType": "multi-hop",
+      "domain": "finance",
+      "agentAnswer": "salesforce",
+      "score": 1,
+      "reason": "exact match (gold)",
+      "exitCode": 0,
+      "trajectoryId": "traj_20260518233116_tgfrdd",
+      "trajectoryCalls": 1,
+      "costTier": 4,
+      "costLlmCalls": 0
+    },
+    {
+      "interactionId": "8163a6f0-3238-4a69-ba60-a4a06090bc6f",
+      "query": "in 2004, which animated film was recognized with the best animated feature film oscar?",
+      "questionType": "simple",
+      "domain": "movie",
+      "agentAnswer": "finding nemo",
+      "score": 1,
+      "reason": "exact match (gold)",
+      "exitCode": 0,
+      "trajectoryId": "traj_20260518233116_xwtj9t",
+      "trajectoryCalls": 1,
+      "costTier": 4,
+      "costLlmCalls": 0
+    },
+    {
+      "interactionId": "9864fff2-af82-495c-ab18-a6c589635d29",
+      "query": "when did hamburg become the biggest city of germany?",
+      "questionType": "false_premise",
+      "domain": "open",
+      "agentAnswer": "invalid question",
+      "score": 0,
+      "reason": "abstained",
+      "exitCode": 0,
+      "trajectoryId": "traj_20260518233116_kfabdk",
+      "trajectoryCalls": 1,
+      "costTier": 4,
+      "costLlmCalls": 0
+    },
+    {
+      "interactionId": "37d00a45-b707-4f82-8ad5-faaab9f7f24a",
+      "query": "who has had more number one hits on the us billboard dance/electronic songs chart, calvin harris or the chainsmokers?",
+      "questionType": "comparison",
+      "domain": "music",
+      "agentAnswer": "the chainsmokers",
+      "score": 1,
+      "reason": "exact match (gold)",
+      "exitCode": 0,
+      "trajectoryId": "traj_20260518233116_eug636",
+      "trajectoryCalls": 1,
+      "costTier": 4,
+      "costLlmCalls": 0
+    },
+    {
+      "interactionId": "fd686881-eab3-48b9-838e-5927ff80772b",
+      "query": "how many english titles have manchester city won?",
+      "questionType": "aggregation",
+      "domain": "sports",
+      "agentAnswer": "manchester city have won nine english football titles.",
+      "score": 1,
+      "reason": "exact match (gold)",
+      "exitCode": 0,
+      "trajectoryId": "traj_20260518233116_ibggoh",
+      "trajectoryCalls": 1,
+      "costTier": 4,
+      "costLlmCalls": 0
+    }
+  ]
+}

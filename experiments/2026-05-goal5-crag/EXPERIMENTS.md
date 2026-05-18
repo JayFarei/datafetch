@@ -106,3 +106,29 @@ The two new rows vs the SkillCraft cycle format:
   - vendor README with distributions: `eval/crag/vendor/README.md`
   - gitignore for the raw files: `eval/crag/vendor/.gitignore`
   - substrate hash: `ed2b6b5f3` (still iter1's hash)
+
+### E4: end-to-end substrate plumbing through CRAG records (smoke, hand-authored)
+- Date: 2026-05-19
+- Goal: P4 — prove the substrate's snippet runtime composes against CRAG records before introducing LLM-driven runs
+- Hypothesis: Wrapping a CRAG record's 5 search_results pages as a `df.db.cragWeb` collection via a generic `MountAdapter`, the substrate's snippet runtime can run a hand-authored snippet that calls `df.db.cragWeb.search(query)` + `df.answer({...})` end-to-end, capture a trajectory, and let the tri-state scorer grade against gold + alt_ans — all without modifying any substrate-runtime files.
+- Lever: harness-only. New files: `src/eval/cragMount.ts` (CragWebMount + parseCragRecord + scoreTriState), `eval/crag/scripts/run-smoke.ts` (6-question hand-authored smoke covering simple/comparison/multi-hop/false_premise/aggregation/post-processing).
+- Change: no substrate-runtime edits. Pure adapter-layer work. `pnpm typecheck` clean, `pnpm test` 374/374 pass on the same `ed2b6b5f3` substrate hash.
+- Probe: 6 hand-picked CRAG questions (1 per question_type × ≥4 domains). Snippet does `df.db.cragWeb.search(query, {limit:3})` then `return df.answer({status:"answered", value: <gold>, evidence: <urls>})`. The snippet returns the gold answer directly — the smoke is plumbing-validation, not extraction-quality.
+- Validate (smoke per-question): exit 0 in 6/6, trajectories captured in 6/6 (1 primitive call each = the `db.cragWeb.search`), `cost.tier=4`, `cost.llmCalls=0`, scorer fires correctly on all 6 (5 exact-match +1, 1 false-premise abstention 0, 0 incorrect -1). Mean tri-state = **0.833**. Report at `eval/crag/results/smoke-iter4/smoke-report.json`.
+- Small-N (50): not run — iter5 introduces claude-p driver.
+- Full CRAG (2,706): not run.
+- SkillCraft re-run: not required. Iter4 landed no substrate-runtime changes; only added `src/eval/cragMount.ts` (eval-adapter, structurally isolated from src/observer/, src/snippet/, src/hooks/, src/sdk/, src/adapter/, src/trajectory/). The 374/374 vitest + clean typecheck on the same substrate hash provide the equivalent non-regression signal at zero API cost.
+- Status: PASSED.
+- Lessons:
+  1. CragWebMount works as a generic `MountAdapter` over per-question pages. The pattern (one mount per CRAG question, registered/unregistered around each `snippetRuntime.run`) keeps each question's evidence surface isolated and is naturally parallelisable.
+  2. The substrate's `df.db.<ident>` resolution requires an `identMap` on the MountRuntime (not just on the adapter); construct via the `{mountId, adapter, identMap, collection, close}` shape exported from `src/adapter/runtime.ts`.
+  3. The AnswerEnvelope from `df.answer(...)` is returned via `result.answer` on the snippet runtime's `RunResult`, not `result.returnValue`. The snippet body needs `return df.answer({...})` to make it the IIFE's resolved value.
+  4. Tri-state scorer is rule-based-only for this iteration. Patterns like "invalid question" / "i don't know" / "unknown" / "n/a" / empty all map to abstention (0); exact / substring match against gold or alt_ans maps to +1; everything else for false-premise questions maps to -1. LLM-judge augmentation is iter5+.
+  5. Hand-authored "return gold answer" is a useful intermediate step — proves end-to-end plumbing without burning API credit on a still-unbuilt extraction path. Iter5 swaps in claude-p.
+- Artefacts:
+  - new substrate file: `src/eval/cragMount.ts` (~190 lines: parseCragRecord, CragWebMount/CragWebCollection, scoreTriState)
+  - smoke runner: `eval/crag/scripts/run-smoke.ts` (~260 lines)
+  - smoke report: `eval/crag/results/smoke-iter4/smoke-report.json`
+  - substrate hash: `ed2b6b5f3` (unchanged from iter1; only eval-layer additions)
+  - typecheck output: clean (0 errors)
+  - test output: 374/374 vitest pass
