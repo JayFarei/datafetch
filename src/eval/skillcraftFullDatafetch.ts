@@ -20,6 +20,12 @@ import {
   rewriteMixedNullishLogicalExpressions,
   rewriteUnsafeStringCoercionCalls,
 } from "../runtime/answerKit.js";
+import {
+  flattenToolCatalogNames,
+  writeToolManifest,
+  type ToolCatalogEntry,
+  type ToolDescriptor,
+} from "../runtime/toolCatalog.js";
 import { readFrontmatterHead } from "../sdk/frontmatter.js";
 import { readTrajectory, type TrajectoryRecord } from "../sdk/index.js";
 import { installSnippetRuntime } from "../snippet/install.js";
@@ -154,17 +160,6 @@ interface AdapterEpisode {
   agentReasoningTokens?: number;
   agentElapsedMs?: number;
   armId?: "datafetch-control" | "datafetch-learned";
-}
-
-interface ToolDescriptor {
-  name: string;
-  description: string;
-  params_json_schema: Record<string, unknown>;
-}
-
-interface ToolCatalogEntry {
-  bundle: string;
-  tools: ToolDescriptor[];
 }
 
 interface AgentRun {
@@ -1748,10 +1743,7 @@ async function prepareLiveWorkspace(input: {
     await fsp.copyFile(input.task.agentPromptPath, path.join(input.workspace, "agent_system_prompt.md"));
   }
   await fsp.copyFile(input.task.taskConfigPath, path.join(input.workspace, "task_config.json"));
-  await fsp.writeFile(
-    path.join(input.workspace, "tool_manifest.json"),
-    `${JSON.stringify(toolCatalog, null, 2)}\n`,
-  );
+  await writeToolManifest(input.workspace, toolCatalog);
   const allLibFunctions = Array.from(new Set([
     ...(input.seededLibFunctions ?? []),
     ...input.availableLibFunctions,
@@ -3660,10 +3652,6 @@ async function collectToolCatalog(
     });
   }
   return catalog;
-}
-
-function flattenToolCatalogNames(toolCatalog: ToolCatalogEntry[]): string[] {
-  return toolCatalog.flatMap((entry) => entry.tools.map((tool) => tool.name));
 }
 
 function taskToolBundles(task: SkillCraftTask): string[] {
