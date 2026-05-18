@@ -14,24 +14,10 @@
 // production (random-user-database/m2, recipe-cookbook-builder/e3)
 // plus the next-most-likely miss classes that Codex flagged.
 
-import { createRequire } from "node:module";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { describe, it, expect } from "vitest";
+import { transformSync } from "esbuild";
 
 import { rewriteMixedNullishLogicalExpressions } from "../src/runtime/answerKit.js";
-
-// esbuild is a transitive dep of vitest. Resolve it relative to this
-// test file so the regression surface stays portable across worktrees.
-const here = path.dirname(fileURLToPath(import.meta.url));
-const requireRel = createRequire(import.meta.url);
-const esbuildModulePath = path.resolve(
-  here,
-  "../node_modules/.pnpm/esbuild@0.27.7/node_modules/esbuild",
-);
-const { transformSync } = requireRel(esbuildModulePath) as {
-  transformSync: (src: string, opts: Record<string, unknown>) => unknown;
-};
 
 function compilesCleanly(source: string): { ok: true } | { ok: false; error: string } {
   try {
