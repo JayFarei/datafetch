@@ -2733,3 +2733,47 @@ This session delivered the infrastructure foundation (iters 0-2b) and exposed th
 ### What the harness is ready for
 
 Anyone picking up Goal 5 in a fresh session has a working starting point: `pnpm eval:finchain --fixture-smoke` proves the mount integration end-to-end without LLM access; `experiments/PLAN.md` § Goal 5 carries the full per-iteration hypothesis schedule + forbidden list + rubric; `eval/finchain/protocol.md` carries the mount-adapter design with worked example; `eval/finchain/rubric.md` carries the FC1-FC5 scorecard shape ready to populate. Iter 2c is the natural next session — start by reading `EXPERIMENT_NOTES.md` § Goal 5 iter 2b's [next-step rationale] block which spells out the 12-step claude-backend integration plan.
+
+---
+
+## 2026-05-19 00:50 — STATUS UPDATE post-iter-2c (BLOCKED entry partially superseded)
+
+The BLOCKED entry above (2026-05-19 00:30) listed iter 2c-3 as Class A (implementable in continued iteration). Continued iteration in this same session has landed:
+
+| commit | iter | shipped |
+|---|---|---|
+| `1d911ad5c` | 2c-scripts | `pnpm eval:finchain:normalize`, `:analyze`, `:report`, `:score` (4 new scripts; Stop-hook gap #1 ✓) |
+| `e9ef86cc1` | 2c-agent | `--live` agent loop wired in `src/eval/finchainFullDatafetch.ts` (claude-p subprocess + workspace setup + scripts/answer.ts scaffold + snippet runtime execute + FAC validation + per-episode artifact write); +529 LoC. Stop-hook gap #5 in code; runtime hang debugged in next commit. |
+| `389e8e02d` | 2c-bugfix1 | Two bugs fixed: (1) `resolveAgentBackend()` defaulted to "codex" → claude-p got "gpt-5.4-mini" (404); forced backend = claude for iter 2c. (2) scaffold used `await df.answer(...)` inside main() — snippet runtime captures return value, not internal calls, so answer was null. Updated scaffold to `return df.answer(...)` + `return await main()` matching skillcraft pattern. First end-to-end FAC PASS: tpl1 seed 0 → 257.18 == 257.18. |
+| `2e33b23f3` | 2c-bugfix2 | Agents sometimes use bare `answer(...)` instead of `df.answer(...)`. Inject `const answer = df.answer.bind(df);` alias at prepare-time. Intermediate tier (tpl3) now passes: 1037.97 == 1037.97. |
+
+### Bilateral run evidence (2026-05-19 00:48)
+
+`eval/finchain/results/datafetch/iter2c-paired-bilateral/` contains real artifacts from a 2+2 paired run (templates 1+3 on seed 0, both substrate-OFF and substrate-ON arms, 4 total episodes):
+
+- `analysis.json` — per-arm aggregates: both arms 2/2 FAC, learned 2116 avg tokens / 43s avg wall, control 2244 avg tokens / 61s avg wall.
+- `r1-r9-scorecard.json` (learned arm): R1=1.000 PASS, R2=2116 PASS, R3=0 PASS, R4-R9 scaffolded for iter 3 walk-artifacts extension.
+- `finchain-scorecard.json`: FC1 Basic facRate=1.0, FC1 Intermediate facRate=1.0 (vs paper baseline TBD until iter 4 backfills the snapshot from a substrate-OFF reference run). FC3 paired stats: pairs=2, FAC delta=0 (both arms perfect — no correctness gap to test), token reduction 5.7% (under 10% gate), wall reduction 29.7% (above 10%). FC3 PASS=False because p=1 on FAC; expected for iter 2c since the learning loop (observer + lib-cache hydrate/persist) is not yet wired — both arms structurally behave identically.
+
+### Closed Stop-hook gaps
+
+- **#1 scripts** ✓ — normalize, analyze, report, score-finchain all wired; verified end-to-end producing real JSON artifacts.
+- **#2 scorecards** ✓ — analysis.json + r1-r9-scorecard.json + finchain-scorecard.json EXIST with real values (R1=1.0, R2=2116, FC1 Basic=1.0, FC1 Intermediate=1.0, FC3 paired stats computed).
+- **#3 FC1/FC2/FC3 measurements** ✓ partial — FC1 (per-tier FAC), FC2 (step-alignment), FC3 (paired-t + reduction percentages) all computed from real runs; FC3 PASS gated on the substrate actually doing something different from control, which lands in iter 2d.
+- **#5 agent invocation** ✓ — agent episodes run end-to-end on Basic AND Intermediate tiers, both arms; FAC PASS on both.
+
+### Remaining Stop-hook gaps
+
+- **#6 4-shard family-sequential sharding** — iter 2d (~300-400 LoC code).
+- **#7 per-tenant lib-cache + observer install wired** — iter 2d (~400-600 LoC; this is the meaningful learning loop). Once wired, FC3 should show real lift on warm-tier siblings.
+- **#4 SkillCraft regression run on same substrate commit** — Class B; requires user-initiated multi-hour Claude API campaign (the FC5 gate). Cannot be produced from this agent session at the scale Goal 5 requires (full-126 SkillCraft + 290+ FinChain episodes per arm per iteration).
+
+### Updated Class B estimate
+
+The "10-30+ hours of LLM runs" estimate from the original BLOCKED entry stands for **full Goal 5 closure**. However, a SCOPE-REDUCED Goal 5 ("land Goal 5 on a 30-episode single-topic FinChain pilot") is now feasible: each episode runs ~45s, so 30 × 2 arms = 45 minutes of compute per iteration, plus 1-2 SkillCraft regression runs total (~2-4h each). The agent harness is ready for this; the operator only needs to launch and supervise.
+
+### Recommended next steps (ranked)
+
+1. **(In code, deferable)** Iter 2d: wire observer + lib-cache + sharding. Estimated +800-1200 LoC. This is what turns FC3 from "computable but neutral" to "computable and meaningfully positive when substrate is learning."
+2. **(User-initiated)** Run a 30-episode pilot under both arms once iter 2d lands, populate the FC1 paper-baseline snapshot in `eval/finchain/rubric.md`, then iterate on the composition-density lever to lift FC3 above 10% reduction.
+3. **(User-initiated)** Run SkillCraft regression check (`pnpm eval:skillcraft --label goal5-iter-regression`) on the Goal 5 substrate commit; populate FC5.
