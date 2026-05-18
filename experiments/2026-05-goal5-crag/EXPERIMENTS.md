@@ -58,3 +58,29 @@ The two new rows vs the SkillCraft cycle format:
   - probe source: `scripts/crag-probe/crag-shape-probe.ts`
   - substrate hash: `ed2b6b5f3` (scaffold commit: `5d28dd6a6`)
   - prior-cycle peer findings: `kb/br/17-crag-shape-probe-findings.md`
+
+### E2: db.* modeling probe — does pushing CRAG onto db primitives differentiate?
+- Date: 2026-05-18
+- Goal: P2 — settle the mock-API modeling decision before building the adapter
+- Hypothesis: Modeling CRAG mock APIs as `df.db.cragFinance.companies.findExact(...)` rather than `df.tool.cragFinance.getCompanyInfo(...)` routes CRAG trajectories onto richer substrate shapes (per `kb/br/17` § "The modeling decision the probe forces"); the substrate produces structurally-different helpers per question type instead of one toolFanout-for-everything
+- Lever: harness-only. New probe at `scripts/crag-probe/crag-shape-probe-db.ts`. Substrate untouched.
+- Change: 7 trajectories re-modeled to use `db.*` primitives over denormalised collections (cragFinanceCompanies / cragMovieYears / cragMovieTitles / cragMoviePersons / cragSportsPlayers / cragFinanceCeos). Simple lookups become 1-call (`findExact` returns the rich row); comparisons/multi-hops remain 2-call.
+- Probe: 7 trajectories. **Three findings**:
+  1. Name-collision DISAPPEARS. Each 2-call trajectory authored a UNIQUE helper name derived from the question text (`whichHasHigherMarketCapAppleOrMic`, `whoDirectedTheMovieThatWonBestPic`, `whatIsTheMarketCapOfTheCompanyWh`). No silent "name already exists" skips.
+  2. 4/7 trajectories (A1, A2, D, E — the 1-call ones) are structurally outside crystallisation. Rich-row modeling reduces tool calls but also eliminates substrate learning opportunities for simple-chain CRAG questions.
+  3. **Authored helper bodies are SINGLE-CALL clones, not full-trajectory clones.** Helper B (comparison) accepts `{name: string}` and calls `findExact` once; the original 2-call comparison logic (Apple AND Microsoft) is dropped. Helper C (multi-hop) renders only the SECOND `findExact` call, dropping the year-lookup that produced its input. Iter1's tool helper at least rendered both calls; the db-render path is degenerate by comparison.
+- Validate: not run (probe-level finding sufficient to decide).
+- Small-N (50): not run.
+- Full CRAG (2,706): not run.
+- SkillCraft re-run: not required (no substrate change).
+- Status: INCONCLUSIVE. db modeling wins on name-collision; regresses on helper-body fidelity; same blind spot on 1-call trajectories. **Neither pure modeling produces useful crystallisation alone.**
+- Lessons:
+  1. The substrate has render-function coverage for FANOUT(tool) but NOT for FANOUT(db). The db-path falls back to a degenerate single-call body. Iter3 needs to either (a) add a `renderDbFanOutSource` that captures the full trajectory or (b) push CRAG onto hybrid `db→lib` / `db→tool→lib` shapes that match the existing render functions (`recordToolFanout`, `recordToolEnrichment`, `recordToolLookup`).
+  2. 1-call simple-chain CRAG questions cannot be crystallised under either modeling. The substrate's value-add for these question types is zero. If we want substrate wins on CRAG's simple slice, EITHER we need a sub-1-call crystallisation path (e.g. crystallise the local-extract logic), OR we accept that the substrate's CRAG win comes from the multi-call slices (comparison, multi-hop, enriched-multi-hop).
+  3. Name derivation in the db render-path uses the QUESTION TEXT as the helper name. This is functionally helpful (no collision) but semantically wrong (the helper is structurally a generic "lookup-by-name-then-extract", not a question-specific function). Future iteration should refactor name derivation to use the intent-shape, not the question text.
+- Artefacts:
+  - probe output: `eval/crag/reports/iter2-probe-db-output.txt`
+  - authored helpers (transient): `/tmp/crag-probe-db-*/lib/crag-probe-db/*.ts`
+  - probe source: `scripts/crag-probe/crag-shape-probe-db.ts`
+  - substrate hash: `ed2b6b5f3` (still iter1's hash; no substrate change)
+  - decision: **REJECT both pure modelings.** Iter3 explores hybrid `db→lib` or `db→tool` shapes.

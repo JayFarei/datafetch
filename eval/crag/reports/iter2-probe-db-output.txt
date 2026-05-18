@@ -1,0 +1,104 @@
+(node:11825) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+=== CRAG SHAPE PROBE — db.* MODELING ===
+baseDir: /tmp/crag-probe-db-11825-1779143427001
+
+▶ A1. simple (Apple PE)              [1-call]
+  Q: What is Apple's PE ratio?
+  calls (1): db.cragFinanceCompanies.findExact
+  intentSignature: db
+  author: skipped — trajectory has <2 calls — extractTemplate requires ≥2
+
+▶ A2. simple (MSFT PE) — sibling     [1-call]
+  Q: What is Microsoft's PE ratio?
+  calls (1): db.cragFinanceCompanies.findExact
+  intentSignature: db
+  author: skipped — trajectory has <2 calls — extractTemplate requires ≥2
+
+▶ B.  comparison (AAPL vs MSFT)      [2-call db fanout]
+  Q: Which has higher market cap, Apple or Microsoft?
+  calls (2): db.cragFinanceCompanies.findExact → db.cragFinanceCompanies.findExact
+  intentSignature: FANOUT(db)
+  author: authored — name=whichHasHigherMarketCapAppleOrMic; lib/crag-probe-db/whichHasHigherMarketCapAppleOrMic.ts
+
+▶ C.  multi-hop (1994 Oscars)        [2-call db chain]
+  Q: Who directed the movie that won Best Picture in 1994?
+  calls (2): db.cragMovieYears.findExact → db.cragMovieTitles.findExact
+  intentSignature: FANOUT(db)
+  author: authored — name=whoDirectedTheMovieThatWonBestPic; lib/crag-probe-db/whoDirectedTheMovieThatWonBestPic.ts
+
+▶ D.  false-premise (Ruth on Cubs)   [1-call]
+  Q: When did Babe Ruth play for the Chicago Cubs?
+  calls (1): db.cragSportsPlayers.findExact
+  intentSignature: db
+  author: skipped — trajectory has <2 calls — extractTemplate requires ≥2
+
+▶ E.  aggregation (Hanks 90s)        [1-call, local filter]
+  Q: How many movies did Tom Hanks star in during the 1990s?
+  calls (1): db.cragMoviePersons.findExact
+  intentSignature: db
+  author: skipped — trajectory has <2 calls — extractTemplate requires ≥2
+
+▶ F.  enriched multi-hop (Tim Cook)  [2-call db chain dependent]
+  Q: What is the market cap of the company whose CEO is Tim Cook?
+  calls (2): db.cragFinanceCeos.findExact → db.cragFinanceCompanies.findExact
+  intentSignature: FANOUT(db)
+  author: authored — name=whatIsTheMarketCapOfTheCompanyWh; lib/crag-probe-db/whatIsTheMarketCapOfTheCompanyWh.ts
+
+
+=== MACHINE SUMMARY (JSON) ===
+{
+  "baseDir": "/tmp/crag-probe-db-11825-1779143427001",
+  "rows": [
+    {
+      "family": "A1. simple (Apple PE)              [1-call]",
+      "callCount": 1,
+      "intentSignature": "db",
+      "subgraphCount": 0,
+      "authorOutcome": "skipped"
+    },
+    {
+      "family": "A2. simple (MSFT PE) — sibling     [1-call]",
+      "callCount": 1,
+      "intentSignature": "db",
+      "subgraphCount": 0,
+      "authorOutcome": "skipped"
+    },
+    {
+      "family": "B.  comparison (AAPL vs MSFT)      [2-call db fanout]",
+      "callCount": 2,
+      "intentSignature": "FANOUT(db)",
+      "subgraphCount": 0,
+      "authorOutcome": "authored"
+    },
+    {
+      "family": "C.  multi-hop (1994 Oscars)        [2-call db chain]",
+      "callCount": 2,
+      "intentSignature": "FANOUT(db)",
+      "subgraphCount": 0,
+      "authorOutcome": "authored"
+    },
+    {
+      "family": "D.  false-premise (Ruth on Cubs)   [1-call]",
+      "callCount": 1,
+      "intentSignature": "db",
+      "subgraphCount": 0,
+      "authorOutcome": "skipped"
+    },
+    {
+      "family": "E.  aggregation (Hanks 90s)        [1-call, local filter]",
+      "callCount": 1,
+      "intentSignature": "db",
+      "subgraphCount": 0,
+      "authorOutcome": "skipped"
+    },
+    {
+      "family": "F.  enriched multi-hop (Tim Cook)  [2-call db chain dependent]",
+      "callCount": 2,
+      "intentSignature": "FANOUT(db)",
+      "subgraphCount": 0,
+      "authorOutcome": "authored"
+    }
+  ]
+}

@@ -122,4 +122,97 @@ About to commit iter1 with the EXPERIMENTS.md row + the probe-output artefact
 re-run needed for this iteration. Next iteration (E2) is the db.* modeling
 probe.
 
+## 2026-05-18, iter2 — db.* modeling
+
+### 2026-05-18 23:30 [hypothesis]
+
+iter2 tests br/16's recommendation (modeling CRAG mock APIs as
+`df.db.cragFinance.companies.findExact(...)` rather than as
+`df.tool.cragFinance.getCompanyInfo(...)`). Prediction was that db modeling
+would route CRAG trajectories onto richer substrate shapes that match
+existing render functions like `recordToolFanout`.
+
+Wrote `scripts/crag-probe/crag-shape-probe-db.ts` — sibling of the original
+probe but with 7 db-modeled trajectories. Added an extra trajectory (F:
+enriched multi-hop, "What is the market cap of the company whose CEO is Tim
+Cook?") to test the chain-dependent case explicitly.
+
+Key modeling choice: I built collections as denormalised rich-row tables.
+So `cragFinanceCompanies.findExact({name: "Apple"})` returns
+`{name, ticker, pe_ratio, market_cap}` in one shot. This means simple
+questions like "What is Apple's PE ratio?" become ONE-call trajectories
+(agent extracts `.pe_ratio` locally). That's structurally fewer trajectory
+calls but also fewer crystallisation opportunities.
+
+### 2026-05-18 23:35 [probe]
+
+Probe ran cleanly, ~5 seconds wall-clock. Three big findings vs iter1:
+
+1. **Name collision DISAPPEARS.** Each 2-call trajectory gets a UNIQUE
+   helper name derived from the question text. So instead of all
+   trajectories trying to author `toolFanout.ts`, we get
+   `whichHasHigherMarketCapAppleOrMic.ts`,
+   `whoDirectedTheMovieThatWonBestPic.ts`,
+   `whatIsTheMarketCapOfTheCompanyWh.ts` — three distinct files.
+
+2. **1-call trajectories (4/7) are structurally outside crystallisation.**
+   A1, A2, D, E all have a single db.findExact call; `extractTemplate`
+   requires ≥ 2 calls, so no template. The substrate's learning loop fires
+   for ZERO of the simple-chain CRAG question types under db modeling.
+
+3. **Authored helper bodies are WORSE than iter1's clones.** Cat'd them.
+   Helper B (comparison) input is `{name: string}` and body is a SINGLE
+   findExact call. The comparison logic — fetch Apple AND Microsoft,
+   compute max — is dropped entirely. Helper C (multi-hop) only renders the
+   SECOND findExact call. Helper F (enriched multi-hop) likewise drops the
+   first call. **The db-render path produces single-call bodies instead of
+   full-trajectory bodies.** Iter1's `toolFanout` at least rendered both
+   `getTickerByName` AND `getPeRatio`; iter2's db helpers drop half the
+   trajectory.
+
+### 2026-05-18 23:40 [analyze]
+
+This is the wrong dichotomy. The choice isn't tool.* vs db.* — neither
+produces useful crystallisation for CRAG alone. The real gaps are:
+
+- **Gap A (signature scheme):** FANOUT(tool) and FANOUT(db) are both too
+  coarse. Two different question shapes that produce the same signature get
+  conflated (iter1) or get unique names with degenerate bodies (iter2).
+  Need either finer-grained signature OR per-signature render-function
+  coverage.
+
+- **Gap B (render-function coverage):** the substrate has `toolFanout` /
+  `toolFanoutEnrichment` / `recordToolFanout` / `recordToolEnrichment` /
+  `recordToolLookup` — five templates. NONE of them match `FANOUT(db)` (no
+  downstream tool/lib). The db-path falls through to a generic single-call
+  rendering. Either add a `renderDbFanOutSource` OR refuse to author for
+  unmapped signatures (cleaner failure mode).
+
+- **Gap C (1-call crystallisation):** simple CRAG questions can't be
+  crystallised at all under either modeling. To capture them, EITHER the
+  substrate needs to crystallise sub-call patterns (local extraction
+  logic), OR we accept that the substrate's CRAG win comes from the
+  multi-call slices only (comparison, multi-hop, enriched).
+
+Direction for iter3: explore HYBRID modeling. The cold call writes
+`db.findExact → df.lib.someHelper(...)` where `someHelper` does the local
+extraction. The second-call signature becomes `db→lib`. The substrate then
+has a structurally richer pattern to crystallise from. Closest matching
+existing template is `recordToolFanout` (`db→FANOUT(tool)→lib`) — but our
+shape is `db→lib`, simpler. Worth checking whether this falls through to
+the same degenerate single-call render, or whether `recordToolLookup`'s
+`FANOUT(db)→FANOUT(tool)` family is closer.
+
+Also worth a side-test: what happens if I author a hand-rolled SEED helper
+(like the SkillCraft cycle's `df.lib.toolFanout` seed) and run the same
+trajectories with the agent invoking the seed instead of writing raw db
+calls? That tests whether the substrate's discover-and-reuse path even
+fires when the helper exists pre-authored.
+
+### 2026-05-18 23:45 [commit]
+
+Iter2 is INCONCLUSIVE — solves name-collision, regresses body-fidelity,
+same blind spot on 1-calls. No substrate change so no SkillCraft regression
+needed. Next: iter3 hybrid modeling probe.
+
 ### _(append next entry here)_
