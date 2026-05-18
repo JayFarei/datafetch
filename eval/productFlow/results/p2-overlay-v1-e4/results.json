@@ -1,0 +1,80 @@
+{
+  "arm": "substrate-on",
+  "model": "claude-sonnet-4-6",
+  "convergenceN": 1,
+  "tenantId": "productflow-jsonplaceholder",
+  "episodes": [
+    {
+      "id": "e4",
+      "promptBytes": 2445,
+      "agentInputTokens": 10,
+      "agentCachedInputTokens": 115314,
+      "agentOutputTokens": 1101,
+      "effectiveTokens": 1101,
+      "agentElapsedMs": 110848.345625,
+      "agentExitCode": 0,
+      "agentTotalCostUsd": 0,
+      "snippetExitCode": 0,
+      "trajectoryPrimitives": [
+        "tool.jsonplaceholder.getUsers",
+        "tool.jsonplaceholder.getPostsByUser",
+        "tool.jsonplaceholder.getPostsByUser",
+        "tool.jsonplaceholder.getPostsByUser",
+        "tool.jsonplaceholder.getPostsByUser",
+        "tool.jsonplaceholder.getPostsByUser",
+        "tool.jsonplaceholder.getPostsByUser",
+        "tool.jsonplaceholder.getPostsByUser",
+        "tool.jsonplaceholder.getPostsByUser",
+        "tool.jsonplaceholder.getPostsByUser",
+        "tool.jsonplaceholder.getPostsByUser"
+      ],
+      "libCallsInTrajectory": [],
+      "answerCorrect": false,
+      "answerExpected": [
+        {
+          "name": "Chelsey Dietrich",
+          "postCount": 10
+        },
+        {
+          "name": "Clementina DuBuque",
+          "postCount": 10
+        },
+        {
+          "name": "Clementine Bauch",
+          "postCount": 10
+        },
+        {
+          "name": "Ervin Howell",
+          "postCount": 10
+        },
+        {
+          "name": "Glenna Reichert",
+          "postCount": 10
+        },
+        {
+          "name": "Kurtis Weissnat",
+          "postCount": 10
+        },
+        {
+          "name": "Leanne Graham",
+          "postCount": 10
+        },
+        {
+          "name": "Mrs. Dennis Schulist",
+          "postCount": 10
+        },
+        {
+          "name": "Nicholas Runolfsdottir V",
+          "postCount": 10
+        },
+        {
+          "name": "Patricia Lebsack",
+          "postCount": 10
+        }
+      ],
+      "crystallisedHelperFiles": [
+        "lib/productflow-jsonplaceholder/toolFanout.ts"
+      ]
+    }
+  ]
+}

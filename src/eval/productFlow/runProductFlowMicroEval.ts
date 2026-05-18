@@ -179,6 +179,11 @@ interface Args {
   // to inject hand-authored "rich" helpers for the
   // composition-density / input-clarity experiment.
   preseedHelpersDir?: string;
+  // Absolute path to a directory whose files (e.g. CLAUDE.md) are copied
+  // into the per-episode workspace AFTER the substrate's mirror runs.
+  // Used to override the substrate-default workspace memory with a
+  // more directive variant for the project-steer experiments.
+  workspaceOverlayDir?: string;
 }
 
 function parseArgs(argv: string[]): Args {
@@ -189,6 +194,7 @@ function parseArgs(argv: string[]): Args {
   let manifestInline = false;
   let workspaceLib = false;
   let preseedHelpersDir: string | undefined;
+  let workspaceOverlayDir: string | undefined;
   for (let i = 0; i < argv.length; i += 1) {
     const key = argv[i];
     if (key === "--arm") {
@@ -205,6 +211,10 @@ function parseArgs(argv: string[]): Args {
       const v = argv[++i];
       if (!v) throw new Error("--preseed-helpers requires a path");
       preseedHelpersDir = path.resolve(v);
+    } else if (key === "--workspace-overlay") {
+      const v = argv[++i];
+      if (!v) throw new Error("--workspace-overlay requires a path");
+      workspaceOverlayDir = path.resolve(v);
     } else if (key === "--out-dir") {
       const v = argv[++i];
       if (!v) throw new Error("--out-dir requires a value");
@@ -240,6 +250,7 @@ function parseArgs(argv: string[]): Args {
     manifestInline,
     workspaceLib,
     ...(preseedHelpersDir !== undefined ? { preseedHelpersDir } : {}),
+    ...(workspaceOverlayDir !== undefined ? { workspaceOverlayDir } : {}),
   };
 }
 
@@ -701,6 +712,7 @@ async function runEpisode(input: {
   dryRun: boolean;
   manifestInline: boolean;
   workspaceLib: boolean;
+  workspaceOverlayDir?: string;
 }): Promise<EpisodeResult> {
   const episodeDir = path.join(input.outDir, "episodes", input.episode.id);
   const workspace = path.join(episodeDir, "workspace");
@@ -725,6 +737,18 @@ async function runEpisode(input: {
       tenantId: TENANT_ID,
       workspace,
     });
+    // Apply optional overlay AFTER the substrate mirror so it can
+    // override workspace memory (e.g. a more directive CLAUDE.md).
+    if (input.workspaceOverlayDir !== undefined) {
+      const entries = await fsp.readdir(input.workspaceOverlayDir, { withFileTypes: true });
+      for (const ent of entries) {
+        if (!ent.isFile()) continue;
+        await fsp.copyFile(
+          path.join(input.workspaceOverlayDir, ent.name),
+          path.join(workspace, ent.name),
+        );
+      }
+    }
   }
 
   // Inline-manifest mode: regenerate df.d.ts and read it BEFORE rendering
@@ -1283,6 +1307,9 @@ async function main(): Promise<void> {
       dryRun: args.dryRun,
       manifestInline: args.manifestInline,
       workspaceLib: args.workspaceLib,
+      ...(args.workspaceOverlayDir !== undefined
+        ? { workspaceOverlayDir: args.workspaceOverlayDir }
+        : {}),
     });
     episodeResults.push(result);
     // eslint-disable-next-line no-console
