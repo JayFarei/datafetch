@@ -1,0 +1,6 @@
+# Raw dataset files are too large to commit (705 MB compressed,
+# 4.8 GB uncompressed). Download via `bash eval/crag/scripts/prepare-crag.sh`.
+raw/*.jsonl
+raw/*.jsonl.bz2
+raw/*.tar.bz2
+raw/*.tar.bz2.part*

@@ -22,9 +22,11 @@ Five differences from the SkillCraft R1-R9:
 2. **No SkillCraft-style families.** CRAG's structural unit is the
    **question template** (≈ 600 across the dataset). The R7 helper-reuse
    metric is computed over template instances, not family instances.
-3. **Popularity × dynamism slicing.** Every question is labelled head /
-   torso / tail and static / slow-changing / fast-changing / real-time.
-   R1-R3 are reported as overall means *and* per-slice means.
+3. **Dynamism slicing.** Every question is labelled static / slow-changing /
+   fast-changing / real-time. R1-R3 are reported as overall means *and* per-slice
+   means. **Popularity slicing (head/torso/tail) is documented in the CRAG paper
+   but the field is empty for all 2,706 records in `crag_task_1_and_2_dev_v4`;
+   dropped from this rubric. Re-add if/when task 3 (50-page web) is also vendored.**
 4. **R10 — Brier calibration.** New metric, CRAG-specific. Measures how
    well-calibrated substrate-ON's abstention behaviour is on questions
    where the gold answer is "I don't know" (false-premise + unanswerable
@@ -134,9 +136,11 @@ Mirror SkillCraft's qualifications. Three:
 R1, R2, R3, R4, R7 are reported as overall means *and* per-slice means
 along:
 
-- domain × question_type (40 cells)
-- popularity (head / torso / tail, 3 cells)
+- domain × question_type (40 cells; 5 × 8)
 - static_or_dynamic (4 cells)
 
 The paired-comparison report renders the per-slice substrate-ON minus
 substrate-OFF deltas as a heatmap.
+
+Popularity slicing (head/torso/tail) is dropped pending task 3 vendoring;
+see § "How CRAG differs from SkillCraft" item 3.

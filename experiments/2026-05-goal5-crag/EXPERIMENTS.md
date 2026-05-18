@@ -83,4 +83,26 @@ The two new rows vs the SkillCraft cycle format:
   - authored helpers (transient): `/tmp/crag-probe-db-*/lib/crag-probe-db/*.ts`
   - probe source: `scripts/crag-probe/crag-shape-probe-db.ts`
   - substrate hash: `ed2b6b5f3` (still iter1's hash; no substrate change)
-  - decision: **REJECT both pure modelings.** Iter3 explores hybrid `db→lib` or `db→tool` shapes.
+  - decision: **REJECT both pure modelings.** Iter3 (originally planned as hybrid probe) replaced with vendoring + adapter work — the substrate gap is well-characterised; further synthetic probes have diminishing returns. Iter4 will land the gap in real LLM-driven measurement.
+
+### E3: vendor CRAG dataset (task 1+2 public dev split)
+- Date: 2026-05-19
+- Goal: P3 — get the 2,706-question public split downloaded, decompressed, schema-verified, and reproducibly preparable
+- Hypothesis: the CRAG dataset matches `kb/br/16`'s schema description; the 2,706-record count holds.
+- Lever: harness-only (download + script).
+- Change: `eval/crag/scripts/prepare-crag.sh` — idempotent download + decompress + verify; `eval/crag/vendor/.gitignore` (excludes the raw 705 MB / 4.8 GB files from git); `eval/crag/vendor/README.md` (full distribution stats).
+- Probe: schema fields match expectations (interaction_id / query_time / domain / question_type / static_or_dynamic / query / answer / alt_ans / search_results / split). **One critical deviation from br/16: `popularity` field is MISSING from all 2,706 records.** Likely available only in task 3's combined split or in CRAG's internal scoring rubric.
+- Validate: record counts confirmed: 2,706 total (1,371 validation + 1,335 public test). Domain distribution: finance 661, movie 611, open 542, sports 519, music 373. Question-type distribution: simple 754, simple_w_condition 407, comparison 333, aggregation 315, false_premise 309, set 249, multi-hop 231, post-processing 108. Dynamism: static 1,503 / slow-changing 583 / fast-changing 353 / real-time 267.
+- Small-N (50): not run.
+- Full CRAG (2,706): dataset ready; adapter not yet built.
+- SkillCraft re-run: not required (no substrate change).
+- Status: PASSED.
+- Lessons:
+  1. The `popularity` field that br/16 cited (661 head, 658 torso, 665 tail) is **not in the released dataset** for task 1+2. Rubric updated to drop popularity slicing; will re-add if/when task 3 is vendored.
+  2. Search results per record = **5** (not 50). Task 3 is the 50-page version, downloaded separately. For substrate purposes 5 pages is plenty — fewer tokens to manage per question.
+  3. Question-type distribution is **heavily simple-biased**: 754 simple + 407 simple_w_condition = 43% of the corpus. Per iter2 finding (3), simple 1-call trajectories don't crystallise under either modeling. So substrate value at full eval depends on the remaining 57% (comparison + aggregation + multi-hop + set + post-processing + false_premise — all multi-call shapes).
+- Artefacts:
+  - download script: `eval/crag/scripts/prepare-crag.sh` (idempotent)
+  - vendor README with distributions: `eval/crag/vendor/README.md`
+  - gitignore for the raw files: `eval/crag/vendor/.gitignore`
+  - substrate hash: `ed2b6b5f3` (still iter1's hash)

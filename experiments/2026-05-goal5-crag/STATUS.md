@@ -51,8 +51,9 @@ SkillCraft full-126 at no worse than this:
 | P0    | Cycle + harness scaffold                               | ✅ done    |
 | P1    | Iter1 — re-probe substrate state under main            | ✅ done (PASSED, finding (A): br/17 replicates) |
 | P2    | Iter2 — mock-API modeling probe (db.* vs tool.*)       | ✅ done (INCONCLUSIVE: both modelings have gaps) |
-| P2.5  | Iter3 — hybrid db+lib modeling probe                   | ⏳ next    |
-| P3    | Vendor CRAG dataset (public split, 2,706 records)      | pending    |
+| P2.5  | Iter3 — hybrid db+lib modeling probe                   | dropped (diminishing returns; surfacing gap in real LLM-driven eval instead) |
+| P3    | Vendor CRAG dataset (public split, 2,706 records)      | ✅ done (E3, 2026-05-19) |
+| P4    | Build CRAG adapter (src/eval/cragFullDatafetch.ts)     | ⏳ next    |
 | P3    | Resolve mock-API modeling (df.db.* vs df.tool.*)       | pending    |
 | P4    | Build CRAG adapter (src/eval/cragFullDatafetch.ts)     | pending    |
 | P5    | Build CRAG tri-state scorer + R1-R10 normalizer         | pending    |
