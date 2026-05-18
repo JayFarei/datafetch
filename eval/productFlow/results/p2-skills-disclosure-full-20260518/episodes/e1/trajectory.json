@@ -1,0 +1,61 @@
+{
+  "id": "traj_20260518075914_us3d2g",
+  "tenantId": "productflow-jsonplaceholder",
+  "question": "const result = await df.tool.jsonplaceholder.getUser({ id: 1 });",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "tool.jsonplaceholder.getUser",
+      "input": {
+        "id": 1
+      },
+      "output": {
+        "success": true,
+        "user": {
+          "id": 1,
+          "name": "Leanne Graham",
+          "username": "Bret",
+          "email": "Sincere@april.biz",
+          "address": {
+            "street": "Kulas Light",
+            "suite": "Apt. 556",
+            "city": "Gwenborough",
+            "zipcode": "92998-3874",
+            "geo": {
+              "lat": "-37.3159",
+              "lng": "81.1496"
+            }
+          },
+          "phone": "1-770-736-8031 x56442",
+          "website": "hildegard.org",
+          "company": {
+            "name": "Romaguera-Crona",
+            "catchPhrase": "Multi-layered client-server neural-net",
+            "bs": "harness real-time e-markets"
+          }
+        }
+      },
+      "startedAt": "2026-05-18T07:59:14.046Z",
+      "durationMs": 149.04579199999716
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-05-18T07:59:14.042Z",
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 149.09158300000126
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "productflow-jsonplaceholder",
+    "mount": "<no-mount>"
+  }
+}

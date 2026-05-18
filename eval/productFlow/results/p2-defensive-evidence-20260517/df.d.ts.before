@@ -1,0 +1,22 @@
+// df.d.ts state BEFORE e1 (substrate-on).
+//
+// At episode-1 boot, the substrate-on arm has:
+//   - the per_entity seed at <baseDir>/lib/__seed__/per_entity.ts
+//   - empty per-tenant lib at <baseDir>/lib/productflow-jsonplaceholder/
+//
+// The df.d.ts manifest at this point declares ONLY:
+//   - the substrate boilerplate types (Result, AnswerEnvelope, etc.)
+//   - the 5 jsonplaceholder tool primitives under df.tool.jsonplaceholder.*
+//   - the per_entity seed under df.lib.per_entity
+//
+// It does NOT yet declare any learned df.lib.* — those crystallise after e2.
+//
+// To inspect the EXACT pre-e1 manifest, run:
+//   rm -rf eval/productFlow/results/p2-substrate-on-20260517-fresh
+//   pnpm tsx src/eval/productFlow/runProductFlowMicroEval.ts \
+//     --arm substrate-on --task e1 --dry-run \
+//     --out-dir eval/productFlow/results/p2-substrate-on-20260517-fresh
+//   cat eval/productFlow/results/p2-substrate-on-20260517-fresh/datafetch-home/df.d.ts
+//
+// (the --dry-run path renders the manifest as it would be seen by the
+// agent without spending a Claude call).

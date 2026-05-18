@@ -1,0 +1,13 @@
+{
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"session_id\":\"62481351-7d5e-4c0c-b793-aa113ca16384\",\"result\":\"`scripts/answer.ts` is written. It fetches users 2, 3, and 4 in parallel with `Promise.all`, maps each result to `{name, email}`, and prints the array as JSON on stdout — all at the top level so the harness's `await` resolves correctly.\",\"is_error\":false,\"duration_ms\":76061,\"duration_api_ms\":0,\"num_turns\":3,\"total_cost_usd\":0,\"usage\":{\"input_tokens\":7,\"output_tokens\":742,\"cache_read_input_tokens\":52624,\"cache_creation_input_tokens\":33828},\"permission_denials\":[]}\n",
+  "stderr": "",
+  "exitCode": 0,
+  "elapsedMs": 76119.342791,
+  "totalCostUsd": 0,
+  "usage": {
+    "inputTokens": 7,
+    "cachedInputTokens": 86452,
+    "outputTokens": 742
+  },
+  "finalMessage": "`scripts/answer.ts` is written. It fetches users 2, 3, and 4 in parallel with `Promise.all`, maps each result to `{name, email}`, and prints the array as JSON on stdout — all at the top level so the harness's `await` resolves correctly."
+}

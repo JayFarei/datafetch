@@ -1,0 +1,13 @@
+{
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"session_id\":\"ac0ec5a0-53c9-49ae-8971-968fa84e91e3\",\"result\":\"`scripts/answer.ts` is written. It calls `df.tool.jsonplaceholder.getUser({ id: 1 })` at the top level and prints `{\\\"name\\\": \\\"...\\\", \\\"email\\\": \\\"...\\\"}` for that user.\",\"is_error\":false,\"duration_ms\":74024,\"duration_api_ms\":0,\"num_turns\":3,\"total_cost_usd\":0,\"usage\":{\"input_tokens\":7,\"output_tokens\":536,\"cache_read_input_tokens\":52373,\"cache_creation_input_tokens\":33232},\"permission_denials\":[]}\n",
+  "stderr": "",
+  "exitCode": 0,
+  "elapsedMs": 74077.081125,
+  "totalCostUsd": 0,
+  "usage": {
+    "inputTokens": 7,
+    "cachedInputTokens": 85605,
+    "outputTokens": 536
+  },
+  "finalMessage": "`scripts/answer.ts` is written. It calls `df.tool.jsonplaceholder.getUser({ id: 1 })` at the top level and prints `{\"name\": \"...\", \"email\": \"...\"}` for that user."
+}

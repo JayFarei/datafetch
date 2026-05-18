@@ -1,0 +1,12 @@
+$ DATAFETCH_HOME=<baseDir> pnpm exec datafetch apropos "fan out tool"
+no active session. Run `datafetch session new --tenant <id>` or pass `--session <id>` / set DATAFETCH_SESSION.
+
+# Note: `datafetch apropos` requires an active session id, which is
+# outside the scope of this micro-eval. The PRIMARY discovery surface
+# is reading df.d.ts directly (see df.d.ts.after in this bundle) — that
+# file declares every callable with a JSDoc intent block, and is the path
+# the agent actually used in e3 to find toolFanout.
+#
+# To exercise apropos manually:
+#   datafetch session new --tenant productflow-jsonplaceholder
+#   datafetch apropos "fan out tool"

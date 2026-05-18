@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260517221547_40pbez",
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 388.3609989999968
+    },
+    "llmCalls": 0
+  },
+  "answer": null
+}

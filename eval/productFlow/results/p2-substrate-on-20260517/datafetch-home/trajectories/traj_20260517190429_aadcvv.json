@@ -1,0 +1,277 @@
+{
+  "id": "traj_20260517190429_aadcvv",
+  "tenantId": "productflow-jsonplaceholder",
+  "question": "// scripts/answer.ts",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "tool.jsonplaceholder.getUser",
+      "input": {
+        "id": 2
+      },
+      "output": {
+        "success": true,
+        "user": {
+          "id": 2,
+          "name": "Ervin Howell",
+          "username": "Antonette",
+          "email": "Shanna@melissa.tv",
+          "address": {
+            "street": "Victor Plains",
+            "suite": "Suite 879",
+            "city": "Wisokyburgh",
+            "zipcode": "90566-7771",
+            "geo": {
+              "lat": "-43.9509",
+              "lng": "-34.4618"
+            }
+          },
+          "phone": "010-692-6593 x09125",
+          "website": "anastasia.net",
+          "company": {
+            "name": "Deckow-Crist",
+            "catchPhrase": "Proactive didactic contingency",
+            "bs": "synergize scalable supply-chains"
+          }
+        }
+      },
+      "startedAt": "2026-05-17T19:04:29.322Z",
+      "durationMs": 122.54045800003223,
+      "scope": {
+        "depth": 1,
+        "callPath": [
+          "lib.per_entity"
+        ],
+        "parentPrimitive": "lib.per_entity",
+        "rootPrimitive": "lib.per_entity"
+      }
+    },
+    {
+      "index": 1,
+      "primitive": "tool.jsonplaceholder.getUser",
+      "input": {
+        "id": 3
+      },
+      "output": {
+        "success": true,
+        "user": {
+          "id": 3,
+          "name": "Clementine Bauch",
+          "username": "Samantha",
+          "email": "Nathan@yesenia.net",
+          "address": {
+            "street": "Douglas Extension",
+            "suite": "Suite 847",
+            "city": "McKenziehaven",
+            "zipcode": "59590-4157",
+            "geo": {
+              "lat": "-68.6102",
+              "lng": "-47.0653"
+            }
+          },
+          "phone": "1-463-123-4447",
+          "website": "ramiro.info",
+          "company": {
+            "name": "Romaguera-Jacobson",
+            "catchPhrase": "Face to face bifurcated interface",
+            "bs": "e-enable strategic applications"
+          }
+        }
+      },
+      "startedAt": "2026-05-17T19:04:29.444Z",
+      "durationMs": 128.6771670000162,
+      "scope": {
+        "depth": 1,
+        "callPath": [
+          "lib.per_entity"
+        ],
+        "parentPrimitive": "lib.per_entity",
+        "rootPrimitive": "lib.per_entity"
+      }
+    },
+    {
+      "index": 2,
+      "primitive": "tool.jsonplaceholder.getUser",
+      "input": {
+        "id": 4
+      },
+      "output": {
+        "success": true,
+        "user": {
+          "id": 4,
+          "name": "Patricia Lebsack",
+          "username": "Karianne",
+          "email": "Julianne.OConner@kory.org",
+          "address": {
+            "street": "Hoeger Mall",
+            "suite": "Apt. 692",
+            "city": "South Elvis",
+            "zipcode": "53919-4257",
+            "geo": {
+              "lat": "29.4572",
+              "lng": "-164.2990"
+            }
+          },
+          "phone": "493-170-9623 x156",
+          "website": "kale.biz",
+          "company": {
+            "name": "Robel-Corkery",
+            "catchPhrase": "Multi-tiered zero tolerance productivity",
+            "bs": "transition cutting-edge web services"
+          }
+        }
+      },
+      "startedAt": "2026-05-17T19:04:29.573Z",
+      "durationMs": 148.0835420000367,
+      "scope": {
+        "depth": 1,
+        "callPath": [
+          "lib.per_entity"
+        ],
+        "parentPrimitive": "lib.per_entity",
+        "rootPrimitive": "lib.per_entity"
+      }
+    },
+    {
+      "index": 3,
+      "primitive": "lib.per_entity",
+      "input": {
+        "entityIds": [
+          2,
+          3,
+          4
+        ],
+        "toolBundle": "jsonplaceholder",
+        "toolNames": [
+          "getUser"
+        ],
+        "paramName": "id"
+      },
+      "output": [
+        {
+          "id": 2,
+          "entity": 2,
+          "entityId": 2,
+          "entityValue": 2,
+          "tools": {
+            "getUser": {
+              "success": true,
+              "user": {
+                "id": 2,
+                "name": "Ervin Howell",
+                "username": "Antonette",
+                "email": "Shanna@melissa.tv",
+                "address": {
+                  "street": "Victor Plains",
+                  "suite": "Suite 879",
+                  "city": "Wisokyburgh",
+                  "zipcode": "90566-7771",
+                  "geo": {
+                    "lat": "-43.9509",
+                    "lng": "-34.4618"
+                  }
+                },
+                "phone": "010-692-6593 x09125",
+                "website": "anastasia.net",
+                "company": {
+                  "name": "Deckow-Crist",
+                  "catchPhrase": "Proactive didactic contingency",
+                  "bs": "synergize scalable supply-chains"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 3,
+          "entity": 3,
+          "entityId": 3,
+          "entityValue": 3,
+          "tools": {
+            "getUser": {
+              "success": true,
+              "user": {
+                "id": 3,
+                "name": "Clementine Bauch",
+                "username": "Samantha",
+                "email": "Nathan@yesenia.net",
+                "address": {
+                  "street": "Douglas Extension",
+                  "suite": "Suite 847",
+                  "city": "McKenziehaven",
+                  "zipcode": "59590-4157",
+                  "geo": {
+                    "lat": "-68.6102",
+                    "lng": "-47.0653"
+                  }
+                },
+                "phone": "1-463-123-4447",
+                "website": "ramiro.info",
+                "company": {
+                  "name": "Romaguera-Jacobson",
+                  "catchPhrase": "Face to face bifurcated interface",
+                  "bs": "e-enable strategic applications"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 4,
+          "entity": 4,
+          "entityId": 4,
+          "entityValue": 4,
+          "tools": {
+            "getUser": {
+              "success": true,
+              "user": {
+                "id": 4,
+                "name": "Patricia Lebsack",
+                "username": "Karianne",
+                "email": "Julianne.OConner@kory.org",
+                "address": {
+                  "street": "Hoeger Mall",
+                  "suite": "Apt. 692",
+                  "city": "South Elvis",
+                  "zipcode": "53919-4257",
+                  "geo": {
+                    "lat": "29.4572",
+                    "lng": "-164.2990"
+                  }
+                },
+                "phone": "493-170-9623 x156",
+                "website": "kale.biz",
+                "company": {
+                  "name": "Robel-Corkery",
+                  "catchPhrase": "Multi-tiered zero tolerance productivity",
+                  "bs": "transition cutting-edge web services"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "startedAt": "2026-05-17T19:04:29.721Z",
+      "durationMs": 0.016375000006519258
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-05-17T19:04:29.316Z",
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 399.33866700006183
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "productflow-jsonplaceholder",
+    "mount": "<no-mount>"
+  }
+}

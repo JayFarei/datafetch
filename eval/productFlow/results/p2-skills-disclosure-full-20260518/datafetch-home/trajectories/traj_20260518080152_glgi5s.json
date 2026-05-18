@@ -1,0 +1,131 @@
+{
+  "id": "traj_20260518080152_glgi5s",
+  "tenantId": "productflow-jsonplaceholder",
+  "question": "// scripts/answer.ts",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "tool.jsonplaceholder.getUser",
+      "input": {
+        "id": 6
+      },
+      "output": {
+        "success": true,
+        "user": {
+          "id": 6,
+          "name": "Mrs. Dennis Schulist",
+          "username": "Leopoldo_Corkery",
+          "email": "Karley_Dach@jasper.info",
+          "address": {
+            "street": "Norberto Crossing",
+            "suite": "Apt. 950",
+            "city": "South Christy",
+            "zipcode": "23505-1337",
+            "geo": {
+              "lat": "-71.4197",
+              "lng": "71.7478"
+            }
+          },
+          "phone": "1-477-935-8478 x6430",
+          "website": "ola.org",
+          "company": {
+            "name": "Considine-Lockman",
+            "catchPhrase": "Synchronised bottom-line interface",
+            "bs": "e-enable innovative applications"
+          }
+        }
+      },
+      "startedAt": "2026-05-18T08:01:52.921Z",
+      "durationMs": 131.84479099998134
+    },
+    {
+      "index": 1,
+      "primitive": "tool.jsonplaceholder.getUser",
+      "input": {
+        "id": 7
+      },
+      "output": {
+        "success": true,
+        "user": {
+          "id": 7,
+          "name": "Kurtis Weissnat",
+          "username": "Elwyn.Skiles",
+          "email": "Telly.Hoeger@billy.biz",
+          "address": {
+            "street": "Rex Trail",
+            "suite": "Suite 280",
+            "city": "Howemouth",
+            "zipcode": "58804-1099",
+            "geo": {
+              "lat": "24.8918",
+              "lng": "21.8984"
+            }
+          },
+          "phone": "210.067.6132",
+          "website": "elvis.io",
+          "company": {
+            "name": "Johns Group",
+            "catchPhrase": "Configurable multimedia task-force",
+            "bs": "generate enterprise e-tailers"
+          }
+        }
+      },
+      "startedAt": "2026-05-18T08:01:52.922Z",
+      "durationMs": 376.3368330000085
+    },
+    {
+      "index": 2,
+      "primitive": "tool.jsonplaceholder.getUser",
+      "input": {
+        "id": 5
+      },
+      "output": {
+        "success": true,
+        "user": {
+          "id": 5,
+          "name": "Chelsey Dietrich",
+          "username": "Kamren",
+          "email": "Lucio_Hettinger@annie.ca",
+          "address": {
+            "street": "Skiles Walks",
+            "suite": "Suite 351",
+            "city": "Roscoeview",
+            "zipcode": "33263",
+            "geo": {
+              "lat": "-31.8129",
+              "lng": "62.5342"
+            }
+          },
+          "phone": "(254)954-1289",
+          "website": "demarco.info",
+          "company": {
+            "name": "Keebler LLC",
+            "catchPhrase": "User-centric fault-tolerant solution",
+            "bs": "revolutionize end-to-end systems"
+          }
+        }
+      },
+      "startedAt": "2026-05-18T08:01:52.921Z",
+      "durationMs": 377.5590839999786
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-05-18T08:01:52.919Z",
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 885.7591249999823
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "productflow-jsonplaceholder",
+    "mount": "<no-mount>"
+  }
+}

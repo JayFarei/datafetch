@@ -1,0 +1,10 @@
+{
+  "arm": "substrate-off",
+  "model": "claude-sonnet-4-6",
+  "convergenceN": 1,
+  "tenantId": "productflow-jsonplaceholder",
+  "jsonplaceholderRunnerPath": "/Users/jayfarei/src/tries/2026-05-01-hackathon-p2/eval/productFlow/jsonplaceholderToolRunner.py",
+  "generatedAt": "2026-05-17T18:32:42.222Z",
+  "dryRun": false,
+  "taskFilter": null
+}

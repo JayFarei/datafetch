@@ -1,0 +1,123 @@
+{
+  "arm": "substrate-on",
+  "model": "claude-sonnet-4-6",
+  "convergenceN": 1,
+  "tenantId": "productflow-jsonplaceholder",
+  "episodes": [
+    {
+      "id": "e1",
+      "promptBytes": 5482,
+      "agentInputTokens": 7,
+      "agentCachedInputTokens": 85605,
+      "agentOutputTokens": 536,
+      "effectiveTokens": 536,
+      "agentElapsedMs": 74077.081125,
+      "agentExitCode": 0,
+      "agentTotalCostUsd": 0,
+      "snippetExitCode": 0,
+      "trajectoryPrimitives": [
+        "tool.jsonplaceholder.getUser"
+      ],
+      "libCallsInTrajectory": [],
+      "answerCorrect": true,
+      "answerExpected": {
+        "name": "Leanne Graham",
+        "email": "Sincere@april.biz"
+      },
+      "answerGot": {
+        "name": "Leanne Graham",
+        "email": "Sincere@april.biz"
+      },
+      "crystallisedHelperFiles": []
+    },
+    {
+      "id": "e2",
+      "promptBytes": 5524,
+      "agentInputTokens": 12,
+      "agentCachedInputTokens": 173164,
+      "agentOutputTokens": 1560,
+      "effectiveTokens": 1560,
+      "agentElapsedMs": 92303.43100000001,
+      "agentExitCode": 0,
+      "agentTotalCostUsd": 0,
+      "snippetExitCode": 0,
+      "trajectoryPrimitives": [
+        "tool.jsonplaceholder.getUser",
+        "tool.jsonplaceholder.getUser",
+        "tool.jsonplaceholder.getUser"
+      ],
+      "libCallsInTrajectory": [],
+      "answerCorrect": true,
+      "answerExpected": [
+        {
+          "name": "Ervin Howell",
+          "email": "Shanna@melissa.tv"
+        },
+        {
+          "name": "Clementine Bauch",
+          "email": "Nathan@yesenia.net"
+        },
+        {
+          "name": "Patricia Lebsack",
+          "email": "Julianne.OConner@kory.org"
+        }
+      ],
+      "answerGot": [
+        {
+          "name": "Ervin Howell",
+          "email": "Shanna@melissa.tv"
+        },
+        {
+          "name": "Clementine Bauch",
+          "email": "Nathan@yesenia.net"
+        },
+        {
+          "name": "Patricia Lebsack",
+          "email": "Julianne.OConner@kory.org"
+        }
+      ],
+      "crystallisedHelperFiles": [
+        "lib/productflow-jsonplaceholder/toolFanout.ts"
+      ]
+    },
+    {
+      "id": "e3",
+      "promptBytes": 6428,
+      "agentInputTokens": 12,
+      "agentCachedInputTokens": 175003,
+      "agentOutputTokens": 1646,
+      "effectiveTokens": 1646,
+      "agentElapsedMs": 94987.66320800001,
+      "agentExitCode": 0,
+      "agentTotalCostUsd": 0,
+      "snippetExitCode": 1,
+      "trajectoryPrimitives": [
+        "tool.jsonplaceholder.getUser",
+        "tool.jsonplaceholder.getUser",
+        "tool.jsonplaceholder.getUser",
+        "lib.per_entity"
+      ],
+      "libCallsInTrajectory": [
+        "lib.per_entity"
+      ],
+      "answerCorrect": false,
+      "answerExpected": [
+        {
+          "name": "Chelsey Dietrich",
+          "website": "demarco.info"
+        },
+        {
+          "name": "Mrs. Dennis Schulist",
+          "website": "ola.org"
+        },
+        {
+          "name": "Kurtis Weissnat",
+          "website": "elvis.io"
+        }
+      ],
+      "crystallisedHelperFiles": [
+        "lib/productflow-jsonplaceholder/toolFanout.ts"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "stdout": "{\"type\":\"result\",\"subtype\":\"success\",\"session_id\":\"f5d56d6a-8b53-4472-b0d9-49ea0a711a1b\",\"result\":\"`scripts/answer.ts` is written. It fetches users 2, 3, and 4 in parallel with `Promise.all`, then maps each to `{name, email}` in id order and prints the JSON array to stdout.\",\"is_error\":false,\"duration_ms\":100877,\"duration_api_ms\":0,\"num_turns\":5,\"total_cost_usd\":0,\"usage\":{\"input_tokens\":11,\"output_tokens\":1273,\"cache_read_input_tokens\":93313,\"cache_creation_input_tokens\":50716},\"permission_denials\":[]}\n",
+  "stderr": "",
+  "exitCode": 0,
+  "elapsedMs": 100935.448709,
+  "totalCostUsd": 0,
+  "usage": {
+    "inputTokens": 11,
+    "cachedInputTokens": 144029,
+    "outputTokens": 1273
+  },
+  "finalMessage": "`scripts/answer.ts` is written. It fetches users 2, 3, and 4 in parallel with `Promise.all`, then maps each to `{name, email}` in id order and prints the JSON array to stdout."
+}

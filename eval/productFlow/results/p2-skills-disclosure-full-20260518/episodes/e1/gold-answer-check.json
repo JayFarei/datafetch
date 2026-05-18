@@ -1,0 +1,11 @@
+{
+  "expected": {
+    "name": "Leanne Graham",
+    "email": "Sincere@april.biz"
+  },
+  "got": {
+    "name": "Leanne Graham",
+    "email": "Sincere@april.biz"
+  },
+  "passed": true
+}
