@@ -278,7 +278,15 @@ async function main(): Promise<void> {
     ? "datafetch-control"
     : "datafetch-learned";
 
-  const agentBackend = resolveAgentBackend();
+  // Iter 2c: the runner only knows how to spawn claude-p. Codex / codex-direct
+  // backends ship in iter 2d. Force backend = claude regardless of env so an
+  // unset DATAFETCH_AGENT (defaults to "codex") doesn't pass a codex model
+  // name to claude-p (would 404 with "There's an issue with the selected
+  // model"). Iter 2d removes this override and routes correctly per backend.
+  const agentBackendRaw = resolveAgentBackend();
+  const agentBackend: AgentBackend = agentBackendRaw === "codex" || agentBackendRaw === "codex-direct"
+    ? "claude"
+    : agentBackendRaw;
   const resolvedModel = args.model
     ?? (agentBackend === "claude" ? DEFAULT_CLAUDE_MODEL : DEFAULT_CODEX_MODEL);
   const resolvedEffort = args.reasoningEffort ?? DEFAULT_REASONING_EFFORT;
@@ -702,10 +710,10 @@ function renderFinchainPrompt(instance: FinChainTemplateInstance, mountId: strin
     `- Read the typed surface at /df.d.ts.`,
     `- Read the scaffold at /scripts/answer.ts and replace its body to solve the question.`,
     `- The sibling library is mounted at \`df.db.records\` (mount id: ${mountId}). Each record carries a prior seed's question + gold_final_value + parameters. You MUST call \`df.db.records.findExact({}, 9)\` at least once before answering (the substrate enforces a substrate-rooted chain).`,
-    `- Commit with \`df.answer({status: "answered", value: <numerical_answer>, derivation: [{step: 1, label: "...", value: <intermediate>}, ...], evidence: []})\`. The harness scores Final Answer Correctness (numerical equality within 1%) and Step Alignment (numerical alignment of derivation steps).`,
+    `- Commit by RETURNING df.answer: \`return df.answer({status: "answered", value: <numerical_answer>, derivation: [{step: 1, label: "...", value: <intermediate>}, ...], evidence: []})\`. The runtime captures the snippet's return value as the answer. The harness scores Final Answer Correctness (numerical equality within 1%) and Step Alignment (numerical alignment of derivation steps).`,
     ``,
     `## How to write scripts/answer.ts`,
-    `Write a complete, self-contained TypeScript snippet. Read records, infer the formula from sibling examples, compute, commit via df.answer. No external tools; computation is pure-symbolic.`,
+    `Write a complete, self-contained TypeScript snippet. Read records, infer the formula from sibling examples, compute, commit via df.answer({...}). Call \`answer\` directly (NOT \`df.answer\`) — the harness injects \`import { answer } from "@datafetch/...\` automatically. No external tools; computation is pure-symbolic.`,
     ``,
     `Reply by editing scripts/answer.ts in the workspace. The harness will execute it.`,
   ].join("\n");
@@ -752,13 +760,15 @@ async function writeFinchainAnswerScaffold(workspace: string, instance: FinChain
     `// Question (verbatim):`,
     `// ${instance.question.split("\n").join("\n// ")}`,
     `//`,
-    `// Replace the body below with your solution. Use df.db.records to read sibling examples,`,
-    `// infer the formula, compute, and commit via df.answer.`,
+    `// Replace the body below with your solution. Read sibling examples from`,
+    `// df.db.records, infer the formula, compute, then RETURN df.answer(...).`,
+    `// The snippet runtime captures the answer from the snippet's RETURN VALUE,`,
+    `// not from internal calls — you must "return df.answer(...)" or "return await main()".`,
     ``,
     `async function main() {`,
     `  // const siblings = await df.db.records.findExact({}, 9);`,
     `  // ... infer formula from siblings ...`,
-    `  await df.answer({`,
+    `  return df.answer({`,
     `    status: "unsupported",`,
     `    value: null,`,
     `    derivation: [],`,
@@ -766,7 +776,7 @@ async function writeFinchainAnswerScaffold(workspace: string, instance: FinChain
     `  });`,
     `}`,
     ``,
-    `await main();`,
+    `return await main();`,
   ].join("\n");
   await fsp.writeFile(path.join(workspace, "scripts", "answer.ts"), body);
 }
