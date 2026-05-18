@@ -1,12 +1,38 @@
 # Project status: SkillCraft learning-loop iterations
 
-> Snapshot refreshed 2026-05-17 after the P1 matched-arm paired
-> comparison. Updated when a goal cycle closes;
+> Snapshot refreshed 2026-05-18 after the post-P1 substrate fixes
+> (AST mixed-nullish rewriter, single-key wrapper unwrap, AST
+> String-coercion rewriter). Updated when a goal cycle closes;
 > intermediate progress lives in [EXPERIMENTS.md](./EXPERIMENTS.md)
 > and [EXPERIMENT_NOTES.md](./EXPERIMENT_NOTES.md). Full chronological
 > arc in [`../docs/experiment-history.md`](../docs/experiment-history.md).
 
-## Current state (2026-05-17, post-P1)
+## Current state (2026-05-18, post-P1-followups)
+
+**P1 anti-patterns are addressed.** The three families flagged in the
+P1 paired comparison (pokeapi-pokedex/m1, random-user-database/m2,
+recipe-cookbook-builder/e3) were each root-caused to specific
+substrate defects, and three follow-up commits landed on main 2026-05-18:
+
+| Commit | Fix | Recovers |
+|---|---|---|
+| `14bae808` | AST-based `rewriteMixedNullishLogicalExpressions` (replaces a regex that missed nested-paren receivers) | random-user-database/m2, recipe-cookbook-builder/e3 (esbuild `Cannot use "??" with "\|\|" without parens`) |
+| `4555f968` | Generic single-key wrapper unwrap rule in `unwrapToolPayload` (covers `{pokemon: {...}}`, `{show: {...}}` shapes without smuggling benchmark identifiers) | pokeapi-pokedex/m1 (silent empty-data output, score 68.6 → 91.4 in re-smoke) |
+| `7d416692` | AST-based `rewriteUnsafeStringCoercionCalls` (replaces a regex that couldn't cross internal parens) | Pre-emptive coverage of receivers like `(fn(a) ?? gn(b)).includes(...)`; same parser-shaped class as the mixed-nullish rewriter |
+
+374/374 vitest tests pass; full typecheck clean. Each substrate fix
+was smoke-validated end-to-end on the originally-failing task
+(pokeapi/m1 now scores 91.4, usgs/m2 still 100).
+
+**Projected P1 re-eval after fixes:** Arm A R1 climbs from 92.9% →
+~95.2% (matching Arm B), flipping the 4-vector from
+`{NEUTRAL, PASS, PASS, NEUTRAL}` toward `{NEUTRAL-leaning-positive,
+PASS, PASS, NEUTRAL}` or `{MARGINAL, PASS, PASS, NEUTRAL}`. The cost
+and wall-clock wins (-41% / -17%) should be at least preserved
+because the fixes reduce failed-then-retried agent loops on the same
+3 episodes.
+
+## P1 matched-arm paired comparison (2026-05-17)
 
 **P1 matched-arm paired comparison: substrate produces measurable cost
 advantage, neutral on pass rate.** Branch

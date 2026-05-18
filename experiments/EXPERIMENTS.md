@@ -686,3 +686,33 @@ Re-analyzed iter14 numbers with the fix:
   - `pnpm vitest run tests/observer-template.test.ts tests/observer-author.test.ts` — 29/29.
   - `pnpm typecheck` — pass.
   - `pnpm test` — smokes green, cross-shape-transfer `8/8`, novel-tenant `11/11`, Vitest `271/271`.
+
+---
+
+### EN-P1-followup: AST rewriter swap + envelope-unwrap fix (3 anti-patterns addressed)
+- Date: 2026-05-18
+- Goal: address the three anti-pattern episodes that regressed in P1 paired comparison without changing the rubric or introducing benchmark identifiers.
+- Hypothesis: each of the 3 P1 anti-pattern episodes (pokeapi-pokedex/m1, random-user-database/m2, recipe-cookbook-builder/e3) is a deterministic substrate defect, not stochastic noise. Fixing them recovers the episodes; the substrate's pass-rate dimension catches up to the substrate-OFF arm.
+- Lever: substrate code only — three commits, each in its own worktree, each merged into local main via fast-forward.
+- Change:
+  1. `rewriteMixedNullishLogicalExpressions` swapped to AST-based implementation (commit `14bae808`). Walks every `BinaryExpression` whose operator is `??`/`||`/`&&` and whose child is a `BinaryExpression` in the other operator family; range-patches parens around the child. Codex consulted on the architectural choice; verified that the TypeScript parser cleanly recovers from the failing inputs. Net diff -38 lines vs the four regex helpers it replaces.
+  2. `unwrapToolPayload` extended with a generic single-non-metadata-key rule (commit `4555f968`). Handles tool responses like `{pokemon: {...}}` or `{show: {...}}` without smuggling benchmark identifiers back into the envelope-keys allowlist. Same change applied uniformly to the four template-generator instances in `src/observer/author.ts` and to the runtime `unwrap()` helper in `renderAnswerKitSource`.
+  3. `rewriteUnsafeStringCoercionCalls` swapped to AST (commit `7d416692`). Same parser-shaped class as the mixed-nullish rewriter, same AST-locate + range-patch approach. Catches receivers with nested parens that the prior regex `[^()]*\?\?[^()]*` couldn't cross.
+- Validation:
+  - 15-case AST regression suite (positive cases the prior regex missed + negative idempotent cases) under `tests/ast-syntax-fix-prototype.test.ts`.
+  - New `unwrap()` regression test in `tests/skillcraft-full-datafetch-planner.test.ts`.
+  - Smoke runs: pokeapi-pokedex/m1 scored **91.4** with the fix (was 68.6 in P1, below the 70 pass threshold); usgs-earthquake-monitor/m2 still **100**; cocktail-menu-generator e1+e2 and dnd-campaign-builder e1+e2 all clean after the mixed-nullish swap.
+- Projected re-eval: Arm A R1 climbs from 92.9% → ~95.2% (matching Arm B). 4-vector shifts from `{NEUTRAL, PASS, PASS, NEUTRAL}` toward `{NEUTRAL-leaning-positive, PASS, PASS, NEUTRAL}` or `{MARGINAL, PASS, PASS, NEUTRAL}`. Cost/wall PASS verdicts preserved (fixes reduce failed-then-retried loops on the same 3 episodes).
+- Status: **LANDED, NOT YET RE-EVALUATED.** Definitive validation is the B1 full-126 re-eval.
+- Lessons:
+  1. The 15-rewriter chain in `prepareAnswerSourceForRuntime` is fine as a library of small specialised transforms. Only the parser-shaped sub-rewriters belong in AST form; the text/import/identifier ones should stay regex. Replacing all 15 would amplify parse cost and grow the file by 300-500 LOC without solving anything.
+  2. Codex's explicit guidance: do NOT use the TypeScript printer in this codebase. Patch byte-ranges back-to-front so the 14 downstream regex rewriters still see source they recognise.
+  3. The prior regex `rewriteMixedNullishLogicalExpressions` missed its own intended case (`return X;` inside function bodies) because the segment-walker tracked `()`/`[]` depth but not `{}`. AST coverage went from 2/11 to 11/11 on the regression cases.
+  4. The envelope-unwrap fix illustrates the "no benchmark identifiers" rule under pressure. Re-adding `pokemon`/`species` to the allowlist would have been the quick fix; the principled fix (generic single-key-with-object-value rule) covers the same cases without re-introducing benchmark-shape.
+- Verification:
+  - `pnpm typecheck` — pass.
+  - `pnpm test` — 374/374 across 43 test files.
+- Artefacts:
+  - Commits: `14bae808`, `4555f968`, `7d416692`.
+  - Test files: `tests/ast-syntax-fix-prototype.test.ts` (AST regression), `tests/skillcraft-full-datafetch-planner.test.ts` (unwrap regression added).
+  - Investigation chronology: `experiments/EXPERIMENT_NOTES.md` § "2026-05-18, post-P1 substrate fixes".

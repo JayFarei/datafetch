@@ -2435,3 +2435,45 @@ Analysis script: `eval/skillcraft/scripts/p1-paired-analysis.py` (reusable for f
 Substrate change: 7 surgical edits to `src/eval/skillcraftFullDatafetch.ts` + 4 to `normalize-results.ts` + arms.yaml entry. No rubric changes, no benchmark identifiers, no observer/gate/template/author/snippet/hook changes, measurement-only as the spec required.
 
 Branch: `goal4-p1-matched-arm-skillcraft`. Worktree: `/Users/jayfarei/src/tries/2026-05-01-hackathon-p1`. Commit is local-only per the goal directive (no push).
+
+---
+
+## 2026-05-18, post-P1 substrate fixes (3 anti-patterns addressed)
+
+### 2026-05-18 12:00 [hypothesis]
+
+P1 left three families with one-episode regressions on the substrate-on arm. The natural next move was to either characterise them as stochastic noise or root-cause them as substrate bugs. Investigating the artifacts (snippet stderr, prepared-answer.ts, evaluator output) showed two distinct substrate-code defects, not three: a parser-shaped rewriter miss (2 episodes) and an envelope-unwrap gap (1 episode). Codex consulted on whether the regex-based rewriter approach should be replaced with AST. Verdict: yes for the parser-shaped repairs, no for the text/import-shaped ones — keep the 15-rewriter chain, swap only the parser-shaped sub-rewriters to AST.
+
+### 2026-05-18 12:30 [implement, AST mixed-nullish swap]
+
+Replaced `rewriteMixedNullishLogicalExpressions` with an AST-locate + range-patch implementation using `ts.createSourceFile`. Walks every `BinaryExpression` whose operator is `??`/`||`/`&&` and whose left/right child is a `BinaryExpression` in the other operator family; wraps that child's source range with parens. Codex's explicit guidance: do NOT use the TypeScript printer — patch byte-ranges back-to-front so formatting is preserved and the 14 downstream regex rewriters in `prepareAnswerSourceForRuntime` still see source they recognise.
+
+Net diff: -38 lines (the AST implementation is shorter than the four regex helpers it replaces). 15-case regression suite added covering both observed P1 failures + 9 nested-placement cases + 3 negative-idempotent cases. Surprising finding: the prior regex even missed its OWN intended case (mixed `??`/`||` in a `return X;` statement) because the segment-walker tracks `()`/`[]` depth but not `{}`, so `return` statements inside function bodies broke the segment boundary the regex expected. Coverage went from 2/11 (regex) to 11/11 (AST) on the positive cases.
+
+Smoke validated: 4 episodes (cocktail-menu-generator/e1+e2, dnd-campaign-builder/e1+e2) end-to-end on the new substrate, all pass with snippetExitCode=0.
+
+### 2026-05-18 13:50 [implement, single-key wrapper unwrap]
+
+Root cause of pokeapi/m1: tool responses shaped like `{pokemon: {id, name, types, ...}}` were not unwrapped by the substrate's envelope-keys allowlist (`value`/`data`/`result`/`record`/`entity`/`item`/`payload`). The benchmark-flavoured keys (`pokemon`/`species`/`show`/`university`/`details`) had been correctly removed earlier as benchmark identifiers; the substrate was supposed to cover them via the generic success/ok-flagged single-payload-key rule, but tools that return `{pokemon: {...}}` without a success/ok flag slipped through. The agent wrote `row.tools["X"].name` per the documented contract; with no unwrap, every field returned undefined and the "guard with defaults" prompt rule turned the bug into silent empty-data output (score 68.6, below the 70 pass threshold).
+
+Fix: added a generic single-non-metadata-key rule with two narrow guards — fires only when there is exactly one non-metadata key AND that key's value is itself a plain object (preserves single-key scalar responses like `{count: 5}`). Touched two places that share the same unwrap definition: the four `unwrapToolPayload` helpers baked into `src/observer/author.ts`'s template generators, and the runtime `unwrap()` helper shipped in `renderAnswerKitSource`. Both updated identically.
+
+Smoke re-run on pokeapi-pokedex/e1+m1: m1 now scores 91.4 (was 68.6 in P1), recovering the anti-pattern episode without introducing benchmark identifiers into the substrate.
+
+### 2026-05-18 13:55 [implement, AST String-coercion swap]
+
+Same parser-shaped problem as the mixed-nullish rewriter. The prior `rewriteUnsafeStringCoercionCalls` regex had two patterns: parenthesised-form (`(x ?? "").METHOD(...)` → `String(x ?? "").METHOD(...)`) and variable-init form (`const x = a ?? b ?? "";` → `const x = String(a ?? b ?? "");`). The parenthesised form's `[^()]*\?\?[^()]*` inner-expression match couldn't cross internal parens — receivers like `(fn(a) ?? gn(b)).includes(...)` were missed.
+
+AST swap follows the same approach as the mixed-nullish rewriter: parse, walk for the two patterns (CallExpression with ParenthesizedExpression receiver containing `??`, and VariableStatement with `??`-ending-in-`""` initializer), range-patch back-to-front. The negative-lookbehind `(?<!String)` for already-wrapped calls is replaced by an explicit AST check that the receiver is not already a `String()` call.
+
+Existing planner tests pass unchanged (text-equivalent output for shapes the regex handled). 2 new tests cover what AST adds: nested-paren receivers (`(fn(a) ?? gn(b)).includes(...)`) and multi-clause `??` chains containing calls.
+
+Smoke validated on usgs-earthquake-monitor/m2 (the iter165 motivating case): score 100/100, snipExit=0.
+
+### 2026-05-18 14:00 [meta, release-readiness]
+
+3 substrate fixes landed on main as separate commits (`14bae808`, `4555f968`, `7d416692`). Each in its own worktree, each smoke-validated, each merged via fast-forward. 374/374 vitest tests pass. Typecheck clean. Worktrees cleaned up; branches deleted.
+
+Next definitive validation: re-run P1 full-126 with all three fixes landed. Projected outcome: Arm A R1 climbs from 92.9% → ~95.2% (matching Arm B), reflecting the 3 anti-pattern episodes recovering. The 4-vector likely flips from `{NEUTRAL, PASS, PASS, NEUTRAL}` to `{NEUTRAL-leaning-positive, PASS, PASS, NEUTRAL}` or `{MARGINAL, PASS, PASS, NEUTRAL}`. Cost/wall wins should be at least preserved (the fixes reduce failed-then-retried loops on the same 3 episodes).
+
+What this DOESN'T fix: the cat-facts-collector 0/6 ceiling (task-design issue, not substrate); the variance dimension's lack of statistical power at n=126 single-seed (still needs multi-seed). The substrate-OFF arm's slight pass-rate edge becomes a tie at best — graduation remains on cost, not correctness.
