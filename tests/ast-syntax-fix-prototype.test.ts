@@ -19,7 +19,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it, expect } from "vitest";
 
-import { rewriteMixedNullishLogicalExpressions } from "../src/eval/skillcraftFullDatafetch.js";
+import { rewriteMixedNullishLogicalExpressions } from "../src/runtime/answerKit.js";
 
 // esbuild is a transitive dep of vitest. Resolve it relative to this
 // test file so the regression surface stays portable across worktrees.

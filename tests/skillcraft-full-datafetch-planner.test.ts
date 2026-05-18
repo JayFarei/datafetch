@@ -12,16 +12,18 @@ import {
   isTransferableHelperSource,
   prepareAnswerSourceForRuntime,
   renderColdStartFanoutGuidance,
-  renderAnswerKitSource,
   renderAnswerScaffold,
   renderInputHygieneRules,
   renderLearnedReuseSurface,
   renderRecordIntentHelperSource,
   renderTaskLiteralHints,
   rewriteHyphenatedLocalPropertyAccess,
+} from "../src/eval/skillcraftFullDatafetch.js";
+import {
+  renderAnswerKitSource,
   rewriteMixedNullishLogicalExpressions,
   rewriteUnsafeStringCoercionCalls,
-} from "../src/eval/skillcraftFullDatafetch.js";
+} from "../src/runtime/answerKit.js";
 
 function task(family: string, toolsUsed: string[], bundle = "api"): any {
   return {
