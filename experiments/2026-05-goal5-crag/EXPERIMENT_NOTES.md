@@ -71,4 +71,55 @@ If they replicate → iter2 attacks the modeling decision (db.* vs tool.*).
 If they don't → re-read main's observer to understand what changed, then
 adjust the gap list.
 
+### 2026-05-18 22:55 [probe]
+
+Iter1 probe ran cleanly. ~30 seconds wall-clock end-to-end. No substrate
+change, no LLM calls, no external deps. Output captured at
+`eval/crag/reports/iter1-probe-output.txt`.
+
+Identical shape-output to br/17 (compared row-by-row):
+- A1 (Apple PE chain): intentSignature `FANOUT(tool)`, authored as `toolFanout.ts`
+- A2 (MSFT PE — same tools): `FANOUT(tool)`, skipped `name already exists`
+- A3 (MSFT cap — different metric): `FANOUT(tool)`, skipped
+- B (comparison, 4 calls): `FANOUT(tool)`, skipped
+- C (multi-hop): `FANOUT(tool)`, skipped
+- D (false-premise, 1 call): `tool`, refused (< 2 calls)
+- E (aggregation, 11 calls): `FANOUT(tool)`, skipped
+
+`cat`'d the authored helper from the latest run's tmpdir. Identical body to
+br/17 § Finding 3 — `{query, tickerName}` data-shape clone with hardcoded
+`getTickerByName + getPeRatio` body, frontmatter still describes itself as
+"reusable learned interface for the tool_fanout intent shape" which is
+structurally false (it's a single-trajectory clone).
+
+Helper invocation also reproduces br/17 § Finding 4: invoking with
+`{query: "Microsoft", tickerName: "MSFT"}` fires warm (mode `interpreted`,
+tier 2, 0 LLM calls) — correctness landmine intact. Calling it for a
+market-cap question would return PE-ratio output silently.
+
+### 2026-05-18 23:00 [analyze]
+
+This is the (A) branch from the iter1 hypothesis. Implication: the substrate
+gap is real and on main; iter2 attacks it as planned (mock-API modeling
+decision: db.* vs tool.*).
+
+Notable: zero LLM calls, zero external deps, ~30s wall-clock cost iter1.
+The hand-authored probe pattern is high-leverage for substrate validation —
+worth reusing for every "before we build an adapter, does the substrate
+shape match what we'll need" question in subsequent cycles.
+
+One small open question I'm parking: the helper's frontmatter `description`
+makes a structurally-false claim ("reusable across entity/metric/period/
+wording"). If we eventually fix the underlying issue (intent-shape pivot
+fires on 2-call FANOUT(tool)), do we also retroactively rewrite frontmatter
+on already-authored helpers? Probably yes — stale description on a corrected
+body is a worse landmine than a clone body with a frank description.
+
+### 2026-05-18 23:05 [commit]
+
+About to commit iter1 with the EXPERIMENTS.md row + the probe-output artefact
++ this notes-file entry. No substrate change, so no SkillCraft regression
+re-run needed for this iteration. Next iteration (E2) is the db.* modeling
+probe.
+
 ### _(append next entry here)_

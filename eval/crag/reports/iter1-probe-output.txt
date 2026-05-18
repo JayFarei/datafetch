@@ -1,0 +1,108 @@
+(node:80212) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+=== CRAG SHAPE PROBE ===
+baseDir: /tmp/crag-probe-80212-1779143136951
+
+▶ A1. simple-chain (Apple PE)                    [cold]
+  Q: What is Apple's PE ratio?
+  calls (2): tool.cragFinance.getTickerByName → tool.cragFinance.getPeRatio
+  intentSignature: FANOUT(tool)
+  author: authored — name=toolFanout; lib/crag-probe/toolFanout.ts
+
+▶ A2. simple-chain (MSFT PE) — same tools        [warm?]
+  Q: What is Microsoft's PE ratio?
+  calls (2): tool.cragFinance.getTickerByName → tool.cragFinance.getPeRatio
+  intentSignature: FANOUT(tool)
+  author: skipped — name already exists at /tmp/crag-probe-80212-1779143136951/lib/crag-probe/toolFanout.ts
+
+▶ A3. simple-chain (MSFT cap) — different metric [warm?]
+  Q: What is Microsoft's market cap?
+  calls (2): tool.cragFinance.getTickerByName → tool.cragFinance.getMarketCapitalization
+  intentSignature: FANOUT(tool)
+  author: skipped — name already exists at /tmp/crag-probe-80212-1779143136951/lib/crag-probe/toolFanout.ts
+
+▶ B.  comparison (AAPL vs MSFT)
+  Q: Which has higher market cap, Apple or Microsoft?
+  calls (4): tool.cragFinance.getTickerByName → tool.cragFinance.getTickerByName → tool.cragFinance.getMarketCapitalization → tool.cragFinance.getMarketCapitalization
+  intentSignature: FANOUT(tool)
+  author: skipped — name already exists at /tmp/crag-probe-80212-1779143136951/lib/crag-probe/toolFanout.ts
+
+▶ C.  multi-hop (1994 Oscars)
+  Q: Who directed the movie that won Best Picture in 1994?
+  calls (2): tool.cragMovie.getYearInfo → tool.cragMovie.getMovieInfo
+  intentSignature: FANOUT(tool)
+  author: skipped — name already exists at /tmp/crag-probe-80212-1779143136951/lib/crag-probe/toolFanout.ts
+
+▶ D.  false-premise (Ruth on Cubs)
+  Q: When did Babe Ruth play for the Chicago Cubs?
+  calls (1): tool.cragSports.getPlayerCareer
+  intentSignature: tool
+  author: skipped — trajectory has <2 calls — extractTemplate requires ≥2
+
+▶ E.  aggregation (Hanks 90s)
+  Q: How many movies did Tom Hanks star in during the 1990s?
+  calls (11): tool.cragMovie.getPersonInfo → tool.cragMovie.getMovieInfo → tool.cragMovie.getMovieInfo → tool.cragMovie.getMovieInfo → tool.cragMovie.getMovieInfo → tool.cragMovie.getMovieInfo → tool.cragMovie.getMovieInfo → tool.cragMovie.getMovieInfo → tool.cragMovie.getMovieInfo → tool.cragMovie.getMovieInfo → tool.cragMovie.getMovieInfo
+  intentSignature: FANOUT(tool)
+  author: skipped — name already exists at /tmp/crag-probe-80212-1779143136951/lib/crag-probe/toolFanout.ts
+
+=== REUSE PROBE (warm invocation) ===
+helper: toolFanout
+  invoke OK
+  output: {"dataShapeOutput":{"value":{"tool":"getPeRatio","ok":true,"tickerName":"MSFT"},"mode":"interpreted","cost":{"tier":2,"tokens":{"hot":0,"cold":0},"ms":{"hot":0.02450000000004593,"cold":0},"llmCalls":0
+
+=== MACHINE SUMMARY (JSON) ===
+{
+  "baseDir": "/tmp/crag-probe-80212-1779143136951",
+  "rows": [
+    {
+      "family": "A1. simple-chain (Apple PE)                    [cold]",
+      "callCount": 2,
+      "intentSignature": "FANOUT(tool)",
+      "subgraphCount": 0,
+      "authorOutcome": "authored"
+    },
+    {
+      "family": "A2. simple-chain (MSFT PE) — same tools        [warm?]",
+      "callCount": 2,
+      "intentSignature": "FANOUT(tool)",
+      "subgraphCount": 0,
+      "authorOutcome": "skipped"
+    },
+    {
+      "family": "A3. simple-chain (MSFT cap) — different metric [warm?]",
+      "callCount": 2,
+      "intentSignature": "FANOUT(tool)",
+      "subgraphCount": 0,
+      "authorOutcome": "skipped"
+    },
+    {
+      "family": "B.  comparison (AAPL vs MSFT)",
+      "callCount": 4,
+      "intentSignature": "FANOUT(tool)",
+      "subgraphCount": 0,
+      "authorOutcome": "skipped"
+    },
+    {
+      "family": "C.  multi-hop (1994 Oscars)",
+      "callCount": 2,
+      "intentSignature": "FANOUT(tool)",
+      "subgraphCount": 0,
+      "authorOutcome": "skipped"
+    },
+    {
+      "family": "D.  false-premise (Ruth on Cubs)",
+      "callCount": 1,
+      "intentSignature": "tool",
+      "subgraphCount": 0,
+      "authorOutcome": "skipped"
+    },
+    {
+      "family": "E.  aggregation (Hanks 90s)",
+      "callCount": 11,
+      "intentSignature": "FANOUT(tool)",
+      "subgraphCount": 0,
+      "authorOutcome": "skipped"
+    }
+  ]
+}

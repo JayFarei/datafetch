@@ -49,8 +49,9 @@ SkillCraft full-126 at no worse than this:
 | Phase | Description                                            | Status     |
 |---|---|---|
 | P0    | Cycle + harness scaffold                               | ✅ done    |
-| P1    | Iter1 — re-probe substrate state under main            | ⏳ next    |
-| P2    | Vendor CRAG dataset (public split, 2,706 records)      | pending    |
+| P1    | Iter1 — re-probe substrate state under main            | ✅ done (PASSED, finding (A): br/17 replicates) |
+| P2    | Iter2 — mock-API modeling probe (db.* vs tool.*)       | ⏳ next    |
+| P3    | Vendor CRAG dataset (public split, 2,706 records)      | pending    |
 | P3    | Resolve mock-API modeling (df.db.* vs df.tool.*)       | pending    |
 | P4    | Build CRAG adapter (src/eval/cragFullDatafetch.ts)     | pending    |
 | P5    | Build CRAG tri-state scorer + R1-R10 normalizer         | pending    |
