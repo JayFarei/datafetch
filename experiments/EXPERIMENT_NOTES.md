@@ -2556,3 +2556,67 @@ The trickiest part of iter 2 is template introspection: extracting the *paramete
 ### 2026-05-18 23:00 [commit]
 
 Worktree state (uncommitted): `eval/finchain/protocol.md`, `eval/finchain/rubric.md`, `eval/finchain/vendor/.gitignore`, plus the gitignored vendor clone. About to commit.
+
+---
+
+## 2026-05-18, Goal 5 iter 2a — mount adapter scaffolding (prepare + introspect + records + smoke)
+
+### 2026-05-18 23:40 [hypothesis]
+
+Iter 2's harness skeleton is too big to land as one accepted iteration (the SkillCraft runner is 4,867 lines). Split into iter 2a (mount-side scaffolding: shell prep, Python introspection helper, TS records adapter, structural smoke — verifies the data path end-to-end without needing an agent), iter 2b (full `finchainFullDatafetch.ts` runner mirroring the SkillCraft one), iter 2c (normalize/analyze/build-report/verify-harness scripts). Iter 2a hypothesis: a Python subprocess that seeds `random` and parses `(question, solution)` from each template is enough to materialise the sibling-library mount per the iter 1 design, with no per-template hardcoding. Verification: `tsx src/observer/__smoke__/finchain-mount.ts` runs 15 checks against `investment_analysis/ci` template 1 seed 0 (sibling library of 9 records, plus cross-topic `financial_ratios/levratio` Advanced spot-check).
+
+### 2026-05-18 23:40 [implement, prepare-finchain.sh]
+
+Wrote `eval/finchain/scripts/prepare-finchain.sh` mirroring `eval/skillcraft/scripts/prepare-skillcraft.sh` (same argument shape — `--dataset-dir`, `--repo`, `--ref`, `--skip-verify`). Clones `mbzuai-nlp/finchain` into `eval/finchain/vendor/finchain` if absent; optionally checks out a pinned ref (default floating main since the FinChain repo is small and stable); verifies the documented inventory (12 domains × 58 topics). Smoke-tested against the iter 1 pre-existing vendor clone: reports `12 domains, 59 topics` (FinChain actually has 59 topic files; README says 58 — minor doc-vs-code discrepancy upstream, not blocking).
+
+### 2026-05-18 23:40 [implement, introspect-template.py]
+
+Wrote `eval/finchain/scripts/introspect-template.py` — Python CLI that takes `--topic <domain>/<topic_basename> --template-index <1-5> --seed-index <int> --vendor-dir <path>` and emits a JSON object to stdout with `{question, solution, gold_final_value, gold_intermediate_values, difficulty, template_name, template_position, seed_index}`. Key design choices:
+
+- **Reproducibility via `random.seed(seed_index)` before calling the template.** Confirmed: same seed → same question + same gold value; different seed → different question. Tested seeds 0, 1 on `investment_analysis/ci` template 1: seed 0 = "Mark Smith / $1165 / 4.07% / 5y / gold=257.18", seed 1 = "Susan Lee / $4471 / Samsung / gold=376.46".
+- **Template position via source-line ordering**, not name lookup. Sorts `template_*` functions by `inspect.getsourcelines` to match the README convention of declaration order = difficulty ascending.
+- **Gold final value via "last number in solution string" heuristic** (`-?[\d,]+\.?\d*` regex). The solution's final `= <number>` line always trails the chain, so the last extracted number is the canonical final value. Tolerates `$`, `%`, thousand separators. Confirmed against multiple templates: ci.py template 1 → 257.18 (compound interest); levratio.py template 5 → 0.68 (D/E ratio).
+- **Difficulty detection: docstring parse first, then position fallback**. Some templates (e.g. `financial_ratios/levratio.py`) encode `"1:Basic:..."` in the docstring; others (e.g. `corporate_finance/wacc.py`) don't, so position-based mapping (1-2 → Basic, 3-4 → Intermediate, 5 → Advanced) is the fallback.
+- **No per-template hardcoding.** The script discovers all `template_*` functions dynamically per-topic; works on any FinChain topic without modification.
+
+### 2026-05-18 23:40 [implement, src/eval/finchainRecords.ts]
+
+Wrote the TS mount adapter `src/eval/finchainRecords.ts` paralleling `src/eval/evalRecords.ts`. Exports:
+
+- `FinChainTemplateInstance` type (the parsed introspector output)
+- `defaultIntrospectorPaths(repoRoot)` — canonical paths to the Python script + vendor dir
+- `introspectTemplate({paths, topic, templateIndex, seedIndex})` — spawns `python3 introspect-template.py` and parses the JSON output; rejects on non-zero exit + surfaces stderr
+- `familyForTopic("<domain>/<topic>") → "<domain>-<topic>"` — the family-identifier convention
+- `renderRecord(instance) → EvalRecord` — converts one instance to the substrate's `EvalRecord` shape (id = seed_index, recordKey = "topic:template_name:seed", attributes = {seed_index, template_name, template_position, difficulty, question, gold_final_value})
+- `buildSiblingLibrary({paths, topic, templateIndex, currentSeedIndex, seedCount = 10}) → EvalRecord[]` — introspects all seeds in [0, seedCount) EXCLUDING currentSeedIndex; sequential to keep per-episode Python invocation cost predictable
+- `buildFinChainMount({...same..., mountId})` — wraps the sibling library in an `EvalRecordsMount` ready for installation; default mountId = `finchain-<family>` (e.g. `finchain-investment_analysis-ci`)
+
+Uses the existing `EvalRecord` + `EvalRecordsMount` from `evalRecords.ts` unchanged. The mount adapter is benchmark-agnostic; only the record construction is FinChain-specific, and that's confined to the new file.
+
+### 2026-05-18 23:40 [implement, finchain-mount smoke]
+
+Wrote `src/observer/__smoke__/finchain-mount.ts` — 15-check structural smoke matching the existing smoke convention (PASS/FAIL prints, exit 0/1). Coverage:
+
+- Introspection: tuple shape, gold value extraction, difficulty parsing
+- Seed reproducibility (same seed → same Q) + variation (different seed → different Q)
+- Sibling library construction: 9 records (seed 0 excluded), correct seed coverage, attribute shape, family identifier, recordKey uniqueness
+- Mount adapter: probe inventory, sample, findExact({id})/findExact({})
+- Cross-topic spot-check: `financial_ratios/levratio` template 5 = Advanced, gold extracted
+
+All 15 checks pass on first run. Wired into `pnpm test` as the 7th smoke; also exposed as `pnpm eval:finchain:verify` for standalone runs.
+
+### 2026-05-18 23:40 [verify]
+
+- `pnpm typecheck`: clean
+- `pnpm test`: 374/374 vitest + 7 smokes (snippet, sdk-import, finqa, novel-tenant, cross-shape-transfer, bash, **finchain-mount**) all green
+- `pnpm eval:finchain:prepare`: works; reports inventory
+- `pnpm eval:finchain:verify`: 15/15 checks pass
+- The substrate code (`src/observer/`, `src/snippet/`, `src/hooks/`, etc.) is untouched. The only `src/` change is the NEW `src/eval/finchainRecords.ts` + the NEW `src/observer/__smoke__/finchain-mount.ts`. No benchmark identifiers leak into shared substrate paths — the FinChain-aware code is confined to the new files and `eval/finchain/scripts/`.
+
+### 2026-05-18 23:40 [next-step rationale]
+
+Iter 2b implements `src/eval/finchainFullDatafetch.ts` — the runner mirroring `skillcraftFullDatafetch.ts`. Will reuse `buildFinChainMount` from iter 2a for the per-episode mount. Will need: argument parser, per-episode workspace setup, agent invocation (claude/codex/codex-direct via the same `DATAFETCH_AGENT` env), trajectory write, `DATAFETCH_DISABLE_LEARNING=1` control toggle. Estimated size: 1,500-2,500 lines (smaller than SkillCraft's 4,867 because no tool catalog / no per-family entity extraction / simpler task config). Once iter 2b lands, iter 2c adds normalize/analyze/build-report/verify-harness scripts. Iter 3 lands the ChainEval port (`score-finchain.ts` for FC1/FC2) + the substrate-OFF single-topic probe.
+
+### 2026-05-18 23:40 [commit]
+
+About to commit: `package.json` (2 new scripts), `eval/finchain/scripts/{prepare-finchain.sh,introspect-template.py}`, `src/eval/finchainRecords.ts`, `src/observer/__smoke__/finchain-mount.ts`. Vendor clone stays gitignored.
