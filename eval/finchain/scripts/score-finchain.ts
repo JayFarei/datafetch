@@ -146,6 +146,7 @@ function perTierAggregates(
   rows: NormalizedRow[],
   paperBaseline: Record<string, Record<string, number>> | null,
   baselineModelKey: string,
+  metric: "fac" | "stepAlignment",
 ): Record<string, PerTierMetric> {
   const tiers: Record<string, NormalizedRow[]> = {};
   for (const r of rows) {
@@ -164,12 +165,15 @@ function perTierAggregates(
     const baseline = tierBaselineMap && typeof tierBaselineMap === "object" && baselineModelKey in tierBaselineMap
       ? Number(tierBaselineMap[baselineModelKey])
       : null;
+    // FC1 gates on FAC (final-answer correctness); FC2 gates on stepAlignment.
+    // Use the right metric for the pass decision.
+    const gateValue = metric === "fac" ? facRate : stepAlignment;
     out[tier] = {
       episodes: tierRows.length,
       facRate,
       stepAlignment,
       paperBaseline: baseline,
-      passes: facRate === null || baseline === null ? null : facRate >= baseline,
+      passes: gateValue === null || baseline === null ? null : gateValue >= baseline,
     };
   }
   return out;
@@ -273,8 +277,8 @@ async function main(): Promise<void> {
   const baselineStep = paperBaselineDoc?.["stepAlignment"] ?? null;
 
   const baselineModelKey = paperBaselineDoc?._modelKey ?? "claude-sonnet-4-5";
-  const fc1 = perTierAggregates(learned, baselineFac, baselineModelKey);
-  const fc2 = perTierAggregates(learned, baselineStep, baselineModelKey);
+  const fc1 = perTierAggregates(learned, baselineFac, baselineModelKey, "fac");
+  const fc2 = perTierAggregates(learned, baselineStep, baselineModelKey, "stepAlignment");
   const fc3 = fc3Stats(learned, control);
 
   const skillcraftScorecard = await tryReadJson(args.skillcraftScorecard) as Record<string, any> | null;
