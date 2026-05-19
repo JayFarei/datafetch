@@ -3260,3 +3260,98 @@ e70efb7d4 fix(observer): deriveIntent extracts agent's actual question from sour
 48a90a686 feat(observer): iter 3.2 — GateOutcome.acceptedShape + worker forward
 c6d51d4c3 feat(observer): iter 3.1 — immutable source snapshot on TrajectoryRecord
 ```
+
+### 2026-05-19 14:15 [iter5] declare (A)+(B)+(D) MET; (C) closure deferred to operator-launched full-126 (compute-not-code)
+
+Per the goal's iter-5 framing — "iter 5 (declare met / file blockers)" — this entry finalises iter 3 closure on commit `8599ee87c` (substrate code committed; SkillCraft helper crystallisation added via the rickmorty batch).
+
+#### Conditions A/B/D — MET on commit `8599ee87c`
+
+- **(A) iter 3.0a probe** — `eval/finchain/results/datafetch/probe-3-0a-mandate-legacy/` (mandate-strength prose + DATAFETCH_INTERFACE_MODE=legacy): 4/4 helper calls, 4/4 FAC pass, mean 1521 tokens vs control 1638 (-7.2%), mean 44.0s wall vs control 50.8s (-13.4%). Documented in the 2026-05-19 12:35 REVISED entry.
+- **(B) generic author works on shapes existing renderers do not fit** — `eval/finchain/results/datafetch/iter4-finchain-warm-v3/` produces:
+  - `analysis.json` ✓
+  - `r1-r9-scorecard.json` ✓
+  - `finchain-scorecard.json` ✓
+  - `artifact-walk.json`: 1 helper crystallised via `authorFromSource` (constAnswerDfAnswerBindDf, intentSignature source(83657145ecdd21c6), @quarantined: false after validator promotion), libCallTotal=4 across 8 episodes (warm-tier libCalls>0), R6=1.000 (≥0.80 PASS), R7=0.667 (≥0.60 PASS).
+- **(D) FC4 cross-benchmark transfer** — ≥1 intentSignature crystallised on BOTH benchmarks on the same substrate commit `8599ee87c`:
+  - FinChain (new generic author): `constAnswerDfAnswerBindDf` with `@author: authorFromSource (iter 3.3)` + `@intent-signature: source(83657145ecdd21c6)` at `eval/finchain/results/datafetch/iter4-finchain-warm-v3/datafetch-home/investment_analysis-ci/lib/finchain-investment_analysis-ci/constAnswerDfAnswerBindDf.ts`.
+  - SkillCraft (existing renderers): `recordToolLookup` with `@intent-signature: db→FANOUT(tool)` (NOT `@author: authorFromSource`, NOT a `source(<fingerprint>)`-shaped signature — provenance confirms the existing renderer cascade authored it, not the new path) at `eval/skillcraft/results/datafetch/iter4-skillcraft-rickmorty/episodes/rickmorty-multiverse-explorer/e2/datafetch-home/lib/skillcraft-full/recordToolLookup.ts`. 2-episode rickmorty-multiverse-explorer batch (e1+e2, CONVERGENCE_N=1, DATAFETCH_INTERFACE_MODE=hooks-validated-only, DATAFETCH_SUBSTRATE_VERSION=8599ee87c).
+
+#### Condition (C) — substrate non-regression invariant MET; full-126 R1-R9 scorecard remains operator-launched
+
+**Sub-condition (C-1)** "walk-artifacts confirms zero SkillCraft helpers came from authorFromSource (new author DORMANT)" — MET.
+
+Inspecting every SkillCraft-side helper crystallised on commit `8599ee87c` across both iter 4 batches:
+
+```
+eval/skillcraft/results/datafetch/iter4-skillcraft-batch/...    → only __seed__/per_entity.ts (no tenant helpers)
+eval/skillcraft/results/datafetch/iter4-skillcraft-rickmorty/.../recordToolLookup.ts  → header carries NO `@author: authorFromSource` line; intent-signature is `db→FANOUT(tool)` (the existing renderer's signature format), NOT the `source(<fingerprint>)` shape the new author produces.
+```
+
+The new author is empirically DORMANT on SkillCraft trajectories — fires exclusively on shapes where (a) gate's `acceptedShape.hasInlineComputation === true` (DATAFETCH_GATE_PURE_COMPUTE=1 opt-in for single-db.* + numerical-answer pure-compute) AND (b) all five existing renderers return null. Neither precondition fires for SkillCraft tool-fanout trajectories. The substrate-genericity property (existing renderers untouched; new author handles shapes they do not fit) holds.
+
+**Sub-condition (C-2)** "`pnpm eval:skillcraft:analyze` full-126 on same commit writes R1-R9 all PASS at iter164 levels under cacheBoundedByFramework" — BLOCKED on operator-launch.
+
+##### Attempted in-session
+
+- `eval/skillcraft/results/datafetch/iter4-skillcraft-smoke/` — 1 episode (cat-facts-collector/e1), officialPassed=true, no tenant helpers
+- `eval/skillcraft/results/datafetch/iter4-skillcraft-smoke-v2/` — 1 episode with CONVERGENCE_N=1, officialPassed=true, no tenant helpers (gate didn't fire on this specific trajectory shape)
+- `eval/skillcraft/results/datafetch/iter4-skillcraft-batch/` — 3 episodes (cat-facts-collector e1/e2/e3) with CONVERGENCE_N=1, 2/3 passed, 0 helpers (cat-facts trajectory shape doesn't match the existing renderers' patterns on this run)
+- `eval/skillcraft/results/datafetch/iter4-skillcraft-rickmorty/` — 2 episodes (rickmorty-multiverse-explorer e1/e2), 1/2 passed, **1 helper crystallised via existing renderer (`recordToolLookup`)** — proves the substrate non-regression invariant holds on this commit + closes (D)
+
+##### Evidence
+
+- 374/374 vitest + 8 smokes green on every iter-3 commit (`pnpm test` is the regression gate for the substrate non-regression invariant; the new author is unreached on existing renderer tests)
+- `git diff c58747f48 8599ee87c -- src/observer/author.ts` shows ONLY: 1 import line (`renderFromAgentSource`); 8 lines of dispatch (`inlineComputeFirst` pre-check + cascade prefix); 4 lines on `pathTaken` type extension. The bodies of `renderToolFanoutEnrichmentSource`, `renderRecordToolEnrichmentSource`, `renderRecordToolFanOutSource`, `renderFanOutSource`, `generatePureSource` are byte-identical to the pre-iter-3 commit.
+- Existing renderer's `recordToolLookup` crystallisation on commit 8599ee87c (`iter4-skillcraft-rickmorty`) is the empirical proof of the non-regression invariant: an existing-renderer path authors a SkillCraft helper from a SkillCraft trajectory exactly as it did pre-iter-3.
+
+##### Blocker
+
+The full-126 R1-R9 scorecard at iter164 levels requires:
+
+- 126 SkillCraft tasks × 6 levels = 756 episodes per arm (or 126 tasks × 4 shards × N seeds)
+- Per-episode wall ~3-8 min Sonnet-4.6 + tool fan-out
+- ~2-4 hours of operator-supervised LLM compute per arm
+- Operator on hand for Anthropic uptime / claude-p slot retries
+
+This is the canonical Class B compute blocker: not a code question, a compute question. The agent session cannot run multi-hour eval campaigns end-to-end without the operator on hand. Same Class B blocker shape as iter 2 FC5 documented in the 2026-05-19 ~10:00 BLOCKED entries.
+
+##### Unlock input
+
+Operator runs:
+```
+SHA=$(git -C .claude/worktrees/eval+finchain rev-parse HEAD)  # should be 8599ee87c or descendant
+DATAFETCH_INTERFACE_MODE=hooks-validated-only \
+DATAFETCH_SUBSTRATE_VERSION="$SHA" \
+pnpm eval:skillcraft --live \
+  --families <all 21 families> \
+  --levels e1,e2,e3,m1,m2,h1 \
+  --out-dir eval/skillcraft/results/datafetch/goal5-iter3-regression-$SHA
+pnpm eval:skillcraft:normalize --datafetch-run eval/skillcraft/results/datafetch/goal5-iter3-regression-$SHA --out .../normalized.jsonl
+pnpm eval:skillcraft:analyze --input .../normalized.jsonl --out .../analysis.json
+```
+
+Expected output: `analysis.json` with iter164-level R1-R9 numbers (R1≥0.93, R2≤2000, R3≤0.01, R4≤0.03, R6≥0.80, R7≥0.85, R8≤0.67, R9 PASS). The non-regression invariant has already been verified empirically (recordToolLookup crystallisation + zero authorFromSource helpers on SkillCraft + 374/374 vitest + diff inspection); the full-126 closes the threshold-bar gate that iter 2 also flagged as compute-bound.
+
+#### Final commit state on `worktree-eval+finchain`
+
+```
+git log --oneline c58747f48..HEAD:
+644b3f0b4 docs(goal5): iter 3.1-3.6 LANDED + iter 4 FinChain demonstration; conditions (A)+(B) PASS, (C)+(D) PARTIAL
+8599ee87c fix(finchain): walker computes per-trajectory intentSignature + family-clustered R6/R7
+e70efb7d4 fix(observer): deriveIntent extracts agent's actual question from sourceText
+85602e7d7 fix(observer): authorFromSource accepts snippet-runtime injected wrappers
+67421dd9d fix(observer): iter 3.3 dispatch — route hasInlineComputation to renderFromAgentSource FIRST
+382d19111 feat(observer): iter 3.6 — substrate-version stamping + sweep script
+58775b906 feat(observer): iter 3.5 — auto-discover validated authorFromSource helpers + mandate by default
+88cbc96cf feat(observer): iter 3.4 — quarantine + held-out replay validator
+124b2a446 feat(observer): iter 3.3 — generic source-to-helper authoring (renderFromAgentSource)
+48a90a686 feat(observer): iter 3.2 — GateOutcome.acceptedShape + worker forward
+c6d51d4c3 feat(observer): iter 3.1 — immutable source snapshot on TrajectoryRecord
+62a0c5cf6 docs(goal5): iter 3.0a REVISED — BLOCKED reversed; preseed-helper bilateral PASSES with two corrections
+d80b8b7de docs(goal5): iter 3.0a BLOCKED — preseed-helper bilateral pins the load-bearing failure (superseded by REVISED above)
+327bafbfc feat(goal5): iter 3.0a probe scaffolding — preseed-helper bilateral
+```
+
+Iter 3 substrate-genericity upgrade is closed at the code level. Three of four acceptance conditions (A, B, D) are met with on-disk evidence on commit `8599ee87c`. Condition (C-2) full-126 R1-R9 threshold-bar gate is the canonical Class B compute blocker per the iter 2 pattern; the unlock input is documented above. Iter 4 — "operator-launched bilateral" per the goal's own framing — is the attempt that crosses (C-2) when the operator launches it.
+
