@@ -55,6 +55,7 @@ import {
   getMountRuntimeRegistry,
   type MountRuntime,
 } from "../adapter/runtime.js";
+import { installObserver } from "../observer/install.js";
 import type { CollectionHandle, SourceCapabilities } from "../sdk/index.js";
 
 export type CragArm = "substrate-on" | "substrate-off";
@@ -461,10 +462,30 @@ async function readAndReplay(
   // helper authored on the first sibling is warm-callable on subsequent
   // siblings. interactionId param kept for per-question artefact paths.
   void interactionId;
+  const tenantId = arm === "substrate-on" ? `crag-on-${family}` : `crag-off-${family}`;
+  // Iter9c (Goal-5 e9c): install the observer ONLY for substrate-on. The
+  // observer's onTrajectorySaved hook is what fires the gate + crystallises
+  // helpers. Skipping this in substrate-off honours the matched-arm
+  // control. Cast required: installObserver expects a SnippetRuntime;
+  // the harness passes a structural surrogate so we cast for the call.
+  if (arm === "substrate-on") {
+    // installObserver expects a concrete DiskSnippetRuntime; we receive a
+    // structural surrogate, so do the same cast skillcraftFullDatafetch.ts
+    // does and rely on the duck-typed `onTrajectorySaved` assignment.
+    installObserver({
+      baseDir: snippetBaseDir,
+      tenantId,
+      snippetRuntime: snippetRuntime as unknown as Parameters<typeof installObserver>[0] extends infer T
+        ? T extends { snippetRuntime?: infer S }
+          ? S
+          : never
+        : never,
+    });
+  }
   const result = (await snippetRuntime.run({
     source,
     sessionCtx: {
-      tenantId: arm === "substrate-on" ? `crag-on-${family}` : `crag-off-${family}`,
+      tenantId,
       mountIds: [mountId],
       baseDir: snippetBaseDir,
     },

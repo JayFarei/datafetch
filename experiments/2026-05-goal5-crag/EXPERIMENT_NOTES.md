@@ -365,4 +365,80 @@ dynamic slice (no helper amortises across "today's INTA price" and
 Substrate value-add likely concentrates on static slice. Worth checking
 per-dynamism breakdown in the small-N report.
 
+## 2026-05-19 06:10 [BLOCKED]
+
+**Blocked stage**: iter9 — exercising R7 on the CRAG harness.
+
+**Goal 5 condition wedge that surfaced this block**: R7 helper-reuse
+must fire on at least one sibling-template family. iter7-iter9c have
+landed substantial generic substrate + harness fixes but R7 is still 0.
+
+**Attempted paths (in order)**:
+1. iter7 (commit `9b20afb97`): added generic `renderDbFanOutSource` to
+   `src/observer/author.ts` + `dbFanout` entry in template.ts. Verified
+   via synthetic probe (`crag-shape-probe-db.ts`) — substrate authors
+   correct full-trajectory body. SkillCraft 1-task non-regression
+   PASSED.
+2. iter8 (commit `5312e5865`): per-family tenants in `cragRunner.ts`
+   (`crag-on-<domain>-<questionType>`) so sibling questions share lib
+   state. Eval-layer; no substrate change.
+3. iter9a (commit `e2d4ee0e9`): updated AGENTS.md prompt to require
+   2-4 targeted `df.db.cragWeb.search` calls per question. Verified —
+   trajectories now have 3 calls each.
+4. iter9b (UNCOMMITTED — in working tree): added `isPureDbFanout` to
+   `src/observer/gate.ts` parallel to `isPureToolFanout`. Fixed two
+   gate rejection points: (a) line 128 distinct-primitives check now
+   accepts pure-db-fanout, (b) line ~306 downstream-lib check now
+   accepts pure-db-fanout without requiring a `db.*→lib.*` boundary.
+5. iter9c (UNCOMMITTED — in working tree): added `installObserver` call
+   in `cragRunner.ts` for substrate-on arm (was MISSING entirely;
+   without it the observer's onTrajectorySaved hook never fired).
+   Lib directory now CREATES (proves gate is reaching), but stays
+   EMPTY (authoring still rejecting somewhere downstream of the gate
+   fixes).
+
+**Evidence gathered**:
+- Synthetic probe (`crag-shape-probe-db.ts`) authors helpers when calling
+  authorFunction directly. Result confirmed in iter7 commit notes.
+- Live harness (`run-iter8-sibling-probe.ts`) post-iter9c: lib directory
+  `crag-on-crag-movie-simple/` is created (means installObserver wired
+  + observer's onTrajectorySaved fires + gate runs) but no helpers
+  authored. Q1 has 3 trajectory calls (passes isPureDbFanout). Three
+  remaining suspects for the rejection:
+    1. `extractCandidateTemplates` returns empty for our shape
+       (worker.ts:169 "no template candidates extracted")
+    2. Convergence gate (worker.ts:260, requires N=2+ trajectories of
+       the same intent signature; this is by-design — first trajectory
+       is recorded-but-not-crystallised). 3 sibling questions might not
+       enough to trip the convergence count.
+    3. shape-hash dedup (gate.ts:326) if a prior probe seeded something.
+
+**Generic-vs-benchmark-specific tension**: NONE. All iter7-iter9c
+substrate edits are generic. `isPureDbFanout` parallels `isPureToolFanout`
+exactly. No CRAG identifiers, no benchmark conditionals. The remaining
+gap (whichever of the three suspects above) is also expected to be
+generic-fixable.
+
+**Input that would unlock progress**:
+- 30-60 min of focused investigation into worker.ts:169 vs 260 vs 326
+  to identify the specific gate condition still rejecting CRAG
+  trajectories. Suspected first investigation: enable verbose worker
+  logging (or add temporary console.error) to capture the exact
+  rejection reason from `shouldCrystallise` and `extractCandidateTemplates`.
+- THEN: ~1-2 hours wall-clock for SkillCraft full-126 re-run on the
+  iter9b+iter9c substrate (non-regression gate; iter7 was confirmed
+  via 1-task sanity).
+- THEN: ~10-15 hours wall-clock for full 2,706-question CRAG eval.
+- Total to fully meet Goal 5 condition: ~12-17 hours of background eval
+  + ~1-2 hours of focused next-session work on iter9d (the rejection
+  reason fix).
+
+**State at block**: 22 commits on `worktree-eval+crag` branch (plus the
+uncommitted iter9b + iter9c edits in `src/observer/gate.ts` and
+`src/eval/cragRunner.ts`). `pnpm typecheck` clean throughout. `pnpm test`
+374/374 passing throughout. SkillCraft 1-task non-regression PASSED on
+iter7 substrate. The Goal 5 verification surface (paired-comparison.md
+at `eval/crag/results/small-n-1779157398395/`) covers a 50-question
+small-N — not the full 2,706 the goal requires.
+
 ### _(append next entry here)_

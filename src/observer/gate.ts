@@ -125,7 +125,12 @@ export function shouldCrystallise(args: ShouldCrystalliseArgs): GateOutcome {
     };
   }
   const distinctPrimitives = new Set(slice.map((c) => c.primitive));
-  if (distinctPrimitives.size < 2 && !isSubGraph && !isPureToolFanout(slice)) {
+  if (
+    distinctPrimitives.size < 2 &&
+    !isSubGraph &&
+    !isPureToolFanout(slice) &&
+    !isPureDbFanout(slice)
+  ) {
     return {
       ok: false,
       reason: `trajectory has ${distinctPrimitives.size} distinct primitive(s); need at least 2`,
@@ -298,13 +303,19 @@ export function shouldCrystallise(args: ShouldCrystalliseArgs): GateOutcome {
         c.primitive.startsWith("lib."),
       );
       const directRecordToolFanout = isDirectRecordToolFanout(slice, firstDbIdx);
-      if (!downstreamLib && !directRecordToolFanout) {
+      // Iter9b/c (Goal-5): a pure FANOUT(db) slice (all-db, same primitive,
+      // ≥3 calls) is a legitimate reusable helper family even with no
+      // downstream lib/tool consumer — the agent is iterating the SAME
+      // db method over different query strings (the natural shape on
+      // benchmarks like CRAG). Generic — applies to any benchmark.
+      const isPureDb = isPureDbFanout(slice);
+      if (!downstreamLib && !directRecordToolFanout && !isPureDb) {
         return {
           ok: false,
           reason: "no lib.* call after the first db.* call",
         };
       }
-      if (!consumesEarlierOutput(slice, firstDbIdx)) {
+      if (!isPureDb && !consumesEarlierOutput(slice, firstDbIdx)) {
         return {
           ok: false,
           reason: "no downstream call appears to consume the substrate output (data-flow check failed)",
@@ -441,6 +452,23 @@ function isPureToolFanout(
 ): boolean {
   if (calls.length < 3) return false;
   if (!calls.every((c) => c.primitive.startsWith("tool."))) return false;
+  const counts = new Map<string, number>();
+  for (const call of calls) {
+    counts.set(call.primitive, (counts.get(call.primitive) ?? 0) + 1);
+  }
+  return [...counts.values()].some((count) => count >= 2);
+}
+
+// Iter9b (Goal-5 e9b): a pure FANOUT(db) slice — three or more calls
+// all targeting the same db.* primitive (e.g. df.db.cragWeb.search
+// called three times with different queries). Mirrors isPureToolFanout
+// for the db.* primitive family. Generic — applies to any benchmark
+// whose agents fan a single collection-method over multiple queries.
+function isPureDbFanout(
+  calls: ReadonlyArray<TrajectoryRecord["calls"][number]>,
+): boolean {
+  if (calls.length < 3) return false;
+  if (!calls.every((c) => c.primitive.startsWith("db."))) return false;
   const counts = new Map<string, number>();
   for (const call of calls) {
     counts.set(call.primitive, (counts.get(call.primitive) ?? 0) + 1);
