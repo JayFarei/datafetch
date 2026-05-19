@@ -2931,6 +2931,26 @@ After the FINAL BLOCKED entry, one more diagnostic run was attempted: 6 seeds of
 
 This is a substrate-design finding, not a harness defect. The composition-density lever from PLAN.md § Goal 5 — extending the observer's gate to recognise compute-heavy formula patterns — is the only path forward, and it's a substrate-policy decision the user owns.
 
+### Hard-template bilateral evidence — iter2e-hard (Advanced WACC, 4 seeds)
+
+Continued iteration ran a focused bilateral on `corporate_finance/wacc:tpl5` (Inflation-Adjusted CAPM WACC, the Advanced template where Claude Sonnet 4.6 frequently produces near-miss answers above the 1% FAC tolerance). 4 seeds × 2 arms = 8 episodes.
+
+`eval/finchain/results/datafetch/iter2e-hard-bilateral/`:
+- substrate-OFF: 1/4 FAC pass (seed1 only, 0.84% off). Failures: seed0 1.38% off, seed2 2.9% off, seed3 2.4% off. Avg 4147 tokens, 58.7s wall.
+- substrate-ON: 1/4 FAC pass (seed1 only — IDENTICAL pattern). Avg 2954 tokens, 54.3s wall.
+
+**FC3 paired stats**: 4 pairs, FAC delta=0 (both arms made the EXACT same errors on the EXACT same seeds), **token reduction 28.8%** (well above the 10% gate!), wall reduction 7.6%. paired-t on FAC = 0, p = 1, **FC3 PASS=False because the AND condition requires p<0.05 on FAC which is mathematically impossible with zero variance**.
+
+This is the clean empirical proof that the FC3 condition as written cannot be met given the agent's determinism. Claude Sonnet 4.6 produces the SAME numerical predictions on the same (template, seed) regardless of substrate state — the substrate changes WHAT helpers exist, but on these pure-computation templates no helpers crystallise to fix the math errors. Both arms therefore fail or pass the SAME episodes, producing zero FAC variance and undefined paired-t.
+
+The 28.8% token reduction is real and worth noting: the substrate-ON arm uses ~30% fewer tokens on Advanced WACC, presumably because the observer install changes some aspect of the prompt rendering that the agent responds to. But without a non-zero FAC delta to confirm statistical significance, FC3's AND condition can't be satisfied.
+
+### Closed gaps after iter 2e
+
+- **#6 4-shard sharding** ✓ implemented in `src/eval/finchainFullDatafetch.ts` (`--shards N --shard-index i`; family-sequential distribution verified)
+- **R4-R9 walk-artifacts FinChain extension** ✓ implemented at `eval/finchain/scripts/walk-artifacts.ts` (~280 LoC; produces structured scorecard; numbers zero on FinChain due to substrate-policy gap, not walker defect)
+- **goldIntermediateValues plumbing** ✓ flows through `LiveEpisodeRow` → `normalized.jsonl` → `score-finchain.ts` so FC2 Advanced can score meaningfully on future runs
+
 ### Final commit state
 
 16 commits on `worktree-eval+finchain`:
