@@ -295,4 +295,74 @@ runClaudeAgent (~70 lines for the driver itself; more for the
 per-question workspace prep + prompt template + answer envelope parsing).
 First end-to-end LLM-driven question. If it works, scale to small-N (50).
 
+## 2026-05-19, iter6 — small-N matched-arm
+
+### 2026-05-19 00:30 [implement]
+
+Built three pieces in one go:
+- `eval/crag/scripts/run-small-n.ts` — k=N parallel matched-arm runner
+- `eval/crag/scripts/build-paired-comparison.ts` — McNemar + paired-t + 4-vector verdict
+- Edits to `src/eval/cragRunner.ts` for the replay mutex
+
+The race condition first surfaced in the workers=3 smoke: 1 question
+completed in 134s, then the tsx parent hit 98% CPU for 14 minutes with no
+live claude-p subprocesses. Killed and traced to `globalThis.df` overlay
+contention.
+
+The fix (process-wide `withReplayLock` mutex on the snippet replay phase)
+is generic — it's a property of the snippet runtime's globalThis.df
+pattern, not CRAG-specific. Same issue would hit any harness running
+parallel `snippetRuntime.run` invocations. Worth a follow-up note in the
+substrate's own docs: the snippet runtime is not reentrant on
+globalThis.df. For now, keeping the mutex in cragRunner.ts (the consumer)
+rather than touching the substrate.
+
+### 2026-05-19 00:50 [smoke]
+
+8 invocations (4 questions × 2 arms), all hit the 180s claude-p timeout.
+Looking at the four questions selected (random first-4 by manifest order):
+- f08ed2eb: "what was the price of inta at the end of the day yesterday?"
+  (finance/simple/real-time) — agent can't possibly answer this without
+  live data; cached 2024 pages don't have today's INTA close.
+- d55e6e15: finance/simple_w_condition/static
+- c7f3a697: finance/comparison/fast-changing
+- adea74b3: finance/aggregation/static — gold "4"; agent answered "quarterly"
+
+All finance, mostly dynamic/real-time. The agent's answer.ts for the
+comparison question is EMPTY — claude-p was killed before the agent
+finished writing. That's why score=0 (abstain): no answer to extract.
+
+Predictably the full 50-record manifest will have better domain diversity
+(8 each of finance/music/open/sports, 18 movie). Static questions should
+dominate (1503/2706 = 55% of dataset), and most are answerable from
+cached pages.
+
+### 2026-05-19 01:00 [skillcraft-regression]
+
+No SkillCraft re-run for iter6. cragRunner.ts is eval-layer code. The
+substrate-runtime files (src/observer, src/snippet, src/hooks, src/sdk,
+src/adapter, src/trajectory) remain bit-identical to ed2b6b5f3 (main).
+pnpm test 374/374 still passes — same vitest suite that gates substrate
+behavior. That's the equivalent non-regression signal at zero API cost.
+
+### 2026-05-19 01:05 [commit]
+
+Committing iter6 smoke as 4a631b0ca. Launching full small-N immediately
+after (100 calls, ~100 min wall-clock budget). Monitor armed for
+milestones (every 10 questions + summary).
+
+### 2026-05-19 01:10 [meta]
+
+Open question for iter7+: rule-based scorer is brittle. Saw it in iter5
+(Nash's 2.2 may be more correct than gold's 4) and will keep biting on
+ambiguous numerical / paraphrase answers. LLM-judge augmentation should
+land — but it doubles per-question cost (another claude-p call per
+question). Defer to iter7 after small-N gives us a baseline.
+
+Other open question: substrate-ON has no way to win on the finance/
+dynamic slice (no helper amortises across "today's INTA price" and
+"today's Apple price" because the temporal-resolution path is the same).
+Substrate value-add likely concentrates on static slice. Worth checking
+per-dynamism breakdown in the small-N report.
+
 ### _(append next entry here)_
