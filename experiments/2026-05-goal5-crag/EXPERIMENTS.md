@@ -182,3 +182,61 @@ The two new rows vs the SkillCraft cycle format:
   - smoke results: `eval/crag/results/small-n-1779148735566/results.json`, `paired-comparison.md`
   - per-question artefacts: `eval/crag/results/small-n-1779148735566/{substrate-on,substrate-off}/<interactionId>/`
   - substrate hash: `ed2b6b5f3` (cragRunner.ts is eval-layer; substrate-runtime unchanged)
+
+### E6 (full): small-N matched-arm — 50 records × 2 arms = 100 invocations
+- Date: 2026-05-19
+- Goal: P6 — first end-to-end paired-comparison report on a stratified
+  small-N slice; this is the diagnostic that informs iter7's substrate
+  fix strategy.
+- Hypothesis (predicted from iter1+iter2 substrate-gap analysis): 4-vector
+  lands {NEUTRAL, NEUTRAL, NEUTRAL, NEUTRAL} + R7 FAIL because no helpers
+  crystallise under the current substrate's render-function coverage. The
+  small-N's value is the per-slice diagnostic, not the overall verdict.
+- Lever: harness-only. No substrate change. Re-uses run-small-n.ts +
+  build-paired-comparison.ts from E6 smoke.
+- Setup:
+  - Manifest: `eval/crag/manifests/small-n-50.json` (deterministic seed
+    20260519, stratified across 5 domains × 8 question_types).
+  - 50 records × 2 arms (substrate-on / substrate-off) = 100 invocations.
+  - k=3 parallel claude-p workers.
+  - 180s claude-p timeout per question (iter5 noted some questions hit
+    even 180s — true real-time questions where cached 2024 pages don't
+    have the answer).
+  - Snippet runtime replay phase serialised via `withReplayLock` mutex.
+- Wall-clock: **TBD** (running, ETA ~30 min remaining at progress
+  milestone 70/100). Estimated total ~100 min.
+- Probe (per-question, in flight): mixed results emerging.
+  - finance/real-time/dynamic: all hitting 180s timeout (cached pages
+    don't contain today's data).
+  - movie/static: mostly incorrect (gold answers can be ambiguous; agent
+    abstaining on uncertain DOBs).
+  - music/static-or-slow: hitting exact + substring matches.
+- Validate (small-N final): **TBD** — paired-comparison.md will land at
+  `eval/crag/results/small-n-<runId>/paired-comparison.md`.
+- SkillCraft re-run: not required for this iteration (no substrate
+  change; cragRunner.ts mutex is eval-layer only). pnpm test 374/374
+  still passes; pnpm typecheck clean.
+- Status: **TBD on completion.** Predicted NEUTRAL/NEUTRAL/NEUTRAL/NEUTRAL
+  + R7 FAIL informs iter7's substrate fix. If unexpectedly substrate-ON
+  outperforms substrate-OFF significantly without any helper authoring,
+  that would be a SURPRISE (probable cause: latent learning in claude-p
+  framework cache rather than substrate) and worth investigating.
+- Lessons:
+  1. ZERO tenant-specific helpers authored across all 50 substrate-on
+     trajectories in the in-flight run (verified via
+     `find /tmp/df-iter6-*/lib/crag-on-*`). Confirms the iter1+iter2 gap
+     stands at scale; iter7's renderDbFanOutSource is the load-bearing
+     fix.
+  2. Per-question wall-clock averages ~60-80s for questions that
+     complete naturally; 180s for ones that time out. With k=3 workers,
+     full small-N completes in ~100 min — usable budget for iterative
+     improvement cycles.
+  3. The per-question artefacts directory tree
+     (`results/<runId>/<arm>/<interactionId>/{answer.json, claude-result.json, workspace/}`)
+     is exactly the structure SkillCraft uses. Tooling for analysis
+     (per-question failure forensics, helper-reuse audit) carries forward.
+- Artefacts:
+  - results: `eval/crag/results/small-n-<runId>/results.json`
+  - paired-comparison report: `eval/crag/results/small-n-<runId>/paired-comparison.md`
+  - per-question: `eval/crag/results/small-n-<runId>/{substrate-on,substrate-off}/<interactionId>/`
+  - substrate hash: `ed2b6b5f3` (unchanged)
