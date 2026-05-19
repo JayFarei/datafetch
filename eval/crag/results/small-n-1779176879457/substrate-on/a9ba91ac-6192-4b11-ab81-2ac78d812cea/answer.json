@@ -1,0 +1,10 @@
+{
+  "interactionId": "a9ba91ac-6192-4b11-ab81-2ac78d812cea",
+  "arm": "substrate-on",
+  "query": "how many goldfish should i keep in an aquarium at once?",
+  "agentAnswer": "",
+  "goldAnswer": "to care for the fish properly, you should have at least two goldfish in a tank, ideally more.",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

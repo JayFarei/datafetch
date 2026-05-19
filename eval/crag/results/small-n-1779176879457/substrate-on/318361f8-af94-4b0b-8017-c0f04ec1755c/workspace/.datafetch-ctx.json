@@ -1,0 +1,10 @@
+{
+  "tenantId": "crag-on-crag-finance-multi-hop",
+  "datasetDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/crag/results/small-n-1779176879457/substrate-on/318361f8-af94-4b0b-8017-c0f04ec1755c",
+  "datafetchHome": "/tmp/df-iter6-29337-1779176887046",
+  "bundles": [],
+  "toolRunnerPath": "",
+  "snippetTimeoutMs": 180000,
+  "mountId": "crag-318361f8-af94-4b0b-8017-c0f04ec1755c",
+  "family": "crag-finance-multi-hop"
+}

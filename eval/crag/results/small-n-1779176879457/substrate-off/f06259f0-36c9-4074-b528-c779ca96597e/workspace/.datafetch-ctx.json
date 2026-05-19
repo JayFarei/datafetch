@@ -1,0 +1,10 @@
+{
+  "tenantId": "crag-off-crag-sports-post-processing",
+  "datasetDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/crag/results/small-n-1779176879457/substrate-off/f06259f0-36c9-4074-b528-c779ca96597e",
+  "datafetchHome": "/tmp/df-iter6-29337-1779176887046",
+  "bundles": [],
+  "toolRunnerPath": "",
+  "snippetTimeoutMs": 180000,
+  "mountId": "crag-f06259f0-36c9-4074-b528-c779ca96597e",
+  "family": "crag-sports-post-processing"
+}

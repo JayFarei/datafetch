@@ -1,0 +1,10 @@
+{
+  "interactionId": "dc4ed1b5-208d-4b79-9e7f-1076d6eb6857",
+  "arm": "substrate-off",
+  "query": "can you tell me the date of birth of kasper holten, the renowned moviemaker?",
+  "agentAnswer": "",
+  "goldAnswer": "1973-10-26",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

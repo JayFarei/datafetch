@@ -1,0 +1,10 @@
+{
+  "interactionId": "2aa174aa-8f25-483d-a3db-ce38098ee190",
+  "arm": "substrate-off",
+  "query": "how many olympic gold medals does usain bolt hold across his career in sprinting events?",
+  "agentAnswer": "",
+  "goldAnswer": "an eight-time olympic gold medallist",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

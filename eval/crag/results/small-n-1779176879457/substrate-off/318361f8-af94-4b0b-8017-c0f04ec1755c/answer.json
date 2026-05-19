@@ -1,0 +1,10 @@
+{
+  "interactionId": "318361f8-af94-4b0b-8017-c0f04ec1755c",
+  "arm": "substrate-off",
+  "query": "what company in the dow jones has the largest market capitalization?",
+  "agentAnswer": "Apple",
+  "goldAnswer": "microsoft",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}

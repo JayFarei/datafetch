@@ -1,0 +1,10 @@
+{
+  "tenantId": "crag-off-crag-open-set",
+  "datasetDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/crag/results/small-n-1779176879457/substrate-off/2b26da89-6f9e-49d9-8d25-e75528ae297d",
+  "datafetchHome": "/tmp/df-iter6-29337-1779176887046",
+  "bundles": [],
+  "toolRunnerPath": "",
+  "snippetTimeoutMs": 180000,
+  "mountId": "crag-2b26da89-6f9e-49d9-8d25-e75528ae297d",
+  "family": "crag-open-set"
+}

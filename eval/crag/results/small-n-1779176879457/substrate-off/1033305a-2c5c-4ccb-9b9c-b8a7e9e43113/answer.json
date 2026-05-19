@@ -1,0 +1,10 @@
+{
+  "interactionId": "1033305a-2c5c-4ccb-9b9c-b8a7e9e43113",
+  "arm": "substrate-off",
+  "query": "how much did each toy story movie gross on average?",
+  "agentAnswer": "$752.5 million",
+  "goldAnswer": "$753,901,490",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}

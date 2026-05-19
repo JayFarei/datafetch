@@ -1,0 +1,10 @@
+{
+  "interactionId": "75dea36d-67fe-46df-be34-4003ba9d58ff",
+  "arm": "substrate-on",
+  "query": "who has a larger social media following, selena gomez or kylie jenner?",
+  "agentAnswer": "Selena Gomez",
+  "goldAnswer": "selena gomez has a larger social media following than kylie jenner, with over 220 million followers on instagram compared to kylie jenner's 150 million followers.",
+  "altAns": [],
+  "score": 1,
+  "scoreReason": "substring match (gold)"
+}

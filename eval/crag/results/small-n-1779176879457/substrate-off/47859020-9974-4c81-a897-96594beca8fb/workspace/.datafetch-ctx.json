@@ -1,0 +1,10 @@
+{
+  "tenantId": "crag-off-crag-movie-aggregation",
+  "datasetDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/crag/results/small-n-1779176879457/substrate-off/47859020-9974-4c81-a897-96594beca8fb",
+  "datafetchHome": "/tmp/df-iter6-29337-1779176887046",
+  "bundles": [],
+  "toolRunnerPath": "",
+  "snippetTimeoutMs": 180000,
+  "mountId": "crag-47859020-9974-4c81-a897-96594beca8fb",
+  "family": "crag-movie-aggregation"
+}

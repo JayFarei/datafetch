@@ -1,0 +1,10 @@
+{
+  "interactionId": "9b770c69-f54f-46d8-bbb4-d89e098d82fb",
+  "arm": "substrate-on",
+  "query": "do you know who the director of katherine ryan: in trouble is?",
+  "agentAnswer": "Colin Dench",
+  "goldAnswer": "colin dench",
+  "altAns": [],
+  "score": 1,
+  "scoreReason": "exact match (gold)"
+}

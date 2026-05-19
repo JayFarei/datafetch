@@ -1,0 +1,10 @@
+{
+  "interactionId": "6bfc8de1-cb1f-44cb-9f95-afae35f81bcd",
+  "arm": "substrate-on",
+  "query": "is prelude 31 the original title of the movie?",
+  "agentAnswer": "no",
+  "goldAnswer": "invalid question",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "false-premise: answered when abstention expected"
+}

@@ -1,0 +1,10 @@
+{
+  "interactionId": "20bdd3d1-9613-4ec7-9d17-b2349bea3fa4",
+  "arm": "substrate-on",
+  "query": "can you tell me the original language of the pact?",
+  "agentAnswer": "the",
+  "goldAnswer": "en",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}

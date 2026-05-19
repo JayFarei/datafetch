@@ -1,0 +1,10 @@
+{
+  "interactionId": "0706fe40-1baf-4ceb-a0c2-3156b9af015d",
+  "arm": "substrate-off",
+  "query": "what companies were added to the dow jones industrial average in august 2020?",
+  "agentAnswer": "",
+  "goldAnswer": "amgen inc., honeywell international inc., salesforce, inc.",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

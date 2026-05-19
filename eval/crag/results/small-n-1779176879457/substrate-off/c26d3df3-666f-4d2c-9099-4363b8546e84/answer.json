@@ -1,0 +1,10 @@
+{
+  "interactionId": "c26d3df3-666f-4d2c-9099-4363b8546e84",
+  "arm": "substrate-off",
+  "query": "who were the original members of the band the rolling stones during their \"beggars banquet\" era?",
+  "agentAnswer": "",
+  "goldAnswer": "the members of the rolling stones during their \"beggars banquet\" era were mick jagger, keith richards, brian jones, bill wyman, and charlie watts.",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

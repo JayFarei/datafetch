@@ -1,0 +1,10 @@
+{
+  "tenantId": "crag-off-crag-music-comparison",
+  "datasetDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/crag/results/small-n-1779176879457/substrate-off/35409f1c-3906-4941-9369-017d96c17fff",
+  "datafetchHome": "/tmp/df-iter6-29337-1779176887046",
+  "bundles": [],
+  "toolRunnerPath": "",
+  "snippetTimeoutMs": 180000,
+  "mountId": "crag-35409f1c-3906-4941-9369-017d96c17fff",
+  "family": "crag-music-comparison"
+}

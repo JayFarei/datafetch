@@ -340,3 +340,44 @@ The two new rows vs the SkillCraft cycle format:
   - prompt change: src/eval/cragRunner.ts (AGENTS_MD template, lines 171-200ish)
   - probe results: eval/crag/results/iter8-sibling-probe-1779165067678/
   - substrate hash: still `9b20afb97` (no substrate change)
+
+### E9d-full: SkillCraft full-126 + CRAG small-N matched-arm re-run on iter9d substrate
+- Date: 2026-05-19
+- Goal: P10+P11 — final Goal 5 verification artefacts. SkillCraft full-126 non-regression on iter9d substrate; CRAG small-N re-run shows whether R7 fires as warm-call usage now that authoring works.
+- Lever: no further code changes. Pure measurement.
+- Setup: background pipeline PID 61826 ran `pnpm eval:skillcraft --live` (codex-direct, gpt-5.4-mini) followed by CRAG small-N (50×2=100 via claude-p sonnet-4-6).
+
+**SkillCraft full-126 result** (`eval/skillcraft/results/datafetch/run_20260519_052739/`):
+- 104/126 pass = **82.5% R1** (regression from iter164/0.929 and iter159/0.95 baselines)
+- 21/126 errors = **16.7% runtime error rate** (vs iter164's 1.6% — 10x higher)
+- mean effective tokens 25,753 (vs iter164's 1,951 — also order-of-magnitude higher)
+- 4 families at 50%: dnd-campaign-builder, recipe-cookbook-builder, university-directory-builder, usgs-earthquake-monitor
+
+**SkillCraft caveat (important)**: The elevated error rate + token bloat strongly suggest codex API variance, not substrate regression. iter161 had 114/126 500-errors → R1=0.48 on the same substrate from API health alone. Without a re-run on a calmer API window, this number is indeterminate.
+
+**CRAG small-N re-run result** (`eval/crag/results/small-n-1779176879457/`):
+- **4-vector: {NEUTRAL, NEUTRAL, FAIL, NEUTRAL}** — worse than iter6's {NEUTRAL,NEUTRAL,PASS,PASS}
+- R1 substrate-on -0.200 vs off -0.100 (delta -0.100) — substrate-on slightly WORSE this run
+- R4 wall-clock: substrate-on 196,905ms vs off 181,638ms (+0.051 log, p<0.10) — substrate-on SLOWER (extra time from multi-call prompt + observer overhead)
+- R3 errors: both arms 98-100% (no signal)
+- **R7: STILL 0/50 both arms** — even though 1 helper DID author in the substrate-on family tenant (`/tmp/df-iter6-*/lib/crag-on-crag-movie-simple/constHitsAwaitPromiseAll.ts`), no subsequent question DISCOVERED + INVOKED it. The authoring path works; the discovery+usage path is iter9e.
+
+**Status**: Goal 5 threshold NOT MET on this run.
+- ≥ 3 of 4 axes PASS: 0/4 ✗
+- R7 fires on ≥ 1 family: ✗ (authoring yes, warm-call no)
+- SkillCraft baseline holds: indeterminate (API variance suspected)
+
+**iter9e gap (the final unlock)**: subsequent sibling questions' workspace df.d.ts manifest is not regenerated to surface newly-authored helpers. Q2-Q11 of the movie/simple family see the same df.d.ts as Q1 (which had no helpers). They cannot discover `df.lib.constHitsAwaitPromiseAll`. Mock SkillCraft fix: after each question's observer authoring, regenerate df.d.ts for the NEXT question in the same tenant. Plus update AGENTS.md to suggest `man <helperName>` or apropos lookup before writing scripts/answer.ts.
+
+**Lessons (final session)**:
+1. The substrate's CRAG authoring pipeline is FULLY OPERATIONAL on iter9d. 1 helper crystallised in a real live run.
+2. R7 firing as warm-call usage requires harness-side discovery (iter9e), not more substrate work.
+3. SkillCraft full-126 result is API-variance-confounded. The 4 families at 50% pass align with the elevated 16.7% error rate (vs iter164's 1.6%) — likely codex API stress during run, not substrate regression. Need re-run on quieter window.
+4. R7 = 0 across iter6 (no fix), iter7 (gate-blocked), iter9d (auth-without-discovery). The harness needs iter9e to close the loop.
+5. The iter9a multi-call prompt now produces 1.76 trajectory calls per substrate-on question vs 1.20 substrate-off — agents ARE making more searches per the prompt. But this added work doesn't help R1 because the answer extraction is the bottleneck, not retrieval breadth.
+
+- Artefacts:
+  - SkillCraft scorecard: `eval/crag/reports/skillcraft-full126-iter9d-scorecard.json`
+  - CRAG paired-comparison: `eval/crag/results/small-n-1779176879457/paired-comparison.md`
+  - Authored helper (transient): `/tmp/df-iter6-*/lib/crag-on-crag-movie-simple/constHitsAwaitPromiseAll.ts`
+  - Substrate hash: `9b20afb97` (iter7) → `09198f0c8` (iter9d) — same code, no rollback

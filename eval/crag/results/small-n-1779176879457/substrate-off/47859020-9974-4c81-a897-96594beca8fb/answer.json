@@ -1,0 +1,10 @@
+{
+  "interactionId": "47859020-9974-4c81-a897-96594beca8fb",
+  "arm": "substrate-off",
+  "query": "how many family movies were there that came out in 1994?",
+  "agentAnswer": "invalid question",
+  "goldAnswer": "109",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

@@ -1,0 +1,10 @@
+{
+  "interactionId": "e4953aa2-ee3a-40ac-93ba-70209e4c708f",
+  "arm": "substrate-off",
+  "query": "can you tell me the latest score of lille's game today?",
+  "agentAnswer": "I don't know",
+  "goldAnswer": "invalid question",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

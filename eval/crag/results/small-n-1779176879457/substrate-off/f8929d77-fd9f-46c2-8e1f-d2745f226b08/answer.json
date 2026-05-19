@@ -1,0 +1,10 @@
+{
+  "interactionId": "f8929d77-fd9f-46c2-8e1f-d2745f226b08",
+  "arm": "substrate-off",
+  "query": "what are the names of all the movies in the bourne franchise?",
+  "agentAnswer": "",
+  "goldAnswer": "the names of the movies in the bourne franchise are \"the bourne identity\", \"the bourne supremecy\", \"the bourne ultimatum\", \"the bourne legacy\", and \"jason bourne\".",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

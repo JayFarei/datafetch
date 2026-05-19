@@ -1,0 +1,10 @@
+{
+  "tenantId": "crag-on-crag-music-post-processing",
+  "datasetDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/crag/results/small-n-1779176879457/substrate-on/461bb1ce-c717-4522-8ec0-cb20671c5bb1",
+  "datafetchHome": "/tmp/df-iter6-29337-1779176887046",
+  "bundles": [],
+  "toolRunnerPath": "",
+  "snippetTimeoutMs": 180000,
+  "mountId": "crag-461bb1ce-c717-4522-8ec0-cb20671c5bb1",
+  "family": "crag-music-post-processing"
+}

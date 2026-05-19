@@ -1,0 +1,10 @@
+{
+  "tenantId": "crag-on-crag-movie-simple",
+  "datasetDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/crag/results/small-n-1779176879457/substrate-on/dc4ed1b5-208d-4b79-9e7f-1076d6eb6857",
+  "datafetchHome": "/tmp/df-iter6-29337-1779176887046",
+  "bundles": [],
+  "toolRunnerPath": "",
+  "snippetTimeoutMs": 180000,
+  "mountId": "crag-dc4ed1b5-208d-4b79-9e7f-1076d6eb6857",
+  "family": "crag-movie-simple"
+}
