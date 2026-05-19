@@ -97,7 +97,25 @@ export async function authorFunction(
   // concrete primitives — that freeze is exactly what would kill
   // cross-shape transfer (R9). Falls back to the pure-composition path
   // when the template is not a pure fan-out.
+  // iter 3.3 dispatch: when the gate's acceptedShape hint flags an
+  // inline-computation trajectory (single db.* + numeric answer + a
+  // non-trivial source body), the generic source-to-helper author runs
+  // BEFORE the existing cascade. The five existing renderers were tuned
+  // for tool-fanout and record-tool shapes; on a single-db.* trajectory
+  // they would emit a placeholder helper that misses the inline-math
+  // payload (generatePureSource wraps the single primitive). When
+  // hasInlineComputation is false (every legacy SkillCraft-shape
+  // trajectory), the order reverts to the existing cascade and
+  // renderFromAgentSource is unreached — the new author is DORMANT on
+  // those shapes (verified by walk-artifacts in iter 4).
+  //
+  // Strictly additive: the five existing render-path bodies are
+  // unmodified above and below this dispatch.
+  const inlineComputeFirst = args.acceptedShape?.hasInlineComputation === true
+    ? renderFromAgentSource({ trajectory, template, acceptedShape: args.acceptedShape })
+    : null;
   const fanOutSource =
+    inlineComputeFirst ??
     renderToolFanoutEnrichmentSource({ template, trajectory }) ??
     renderRecordToolEnrichmentSource({ template, trajectory }) ??
     renderRecordToolFanOutSource({ template, trajectory }) ??
@@ -106,15 +124,17 @@ export async function authorFunction(
     template,
     trajectory,
   });
-  // iter 3.3: ONE-LINE dispatch — falls through to the generic
-  // source-to-helper author only when all five existing renderers above
-  // return null AND the gate's acceptedShape hint says the trajectory has
-  // inline computation (i.e. work that lives in source, not in primitive
-  // calls). The existing five renderers are unmodified above this line.
+  // End-of-cascade fallback: when none of the above produced source AND
+  // the gate flagged inline computation (which the existing renderers
+  // cannot handle), reach for renderFromAgentSource one more time. This
+  // is a no-op when inlineComputeFirst already fired.
   const generic = pureSource ?? renderFromAgentSource({ trajectory, template, acceptedShape: args.acceptedShape });
 
   let source: string | null = generic;
-  let pathTaken: "pure" | "codifier" | "from-source" = pureSource === null && generic !== null ? "from-source" : "pure";
+  let pathTaken: "pure" | "codifier" | "from-source" =
+    inlineComputeFirst !== null || (pureSource === null && generic !== null)
+      ? "from-source"
+      : "pure";
 
   if (source === null) {
     // Fallback: dispatch the codifier skill via the registered Flue
