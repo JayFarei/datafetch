@@ -158,7 +158,7 @@ function perTierAggregates(
   for (const [tier, tierRows] of Object.entries(tiers)) {
     const facRate = meanOrNull(tierRows.map((r) => (r.facMatch ? 1 : 0)));
     // Use the full goldIntermediateValues list when present (iter 2e
-     plumbing); fall back to single-element [goldFinalValue] for older runs.
+    // plumbing); fall back to single-element [goldFinalValue] for older runs.
     const stepScores = tierRows
       .map((r) => {
         const gold = (r.goldIntermediateValues && r.goldIntermediateValues.length > 0)
