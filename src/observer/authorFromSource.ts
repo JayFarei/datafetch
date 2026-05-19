@@ -560,9 +560,30 @@ function escapeRegExp(s: string): string {
 }
 
 function deriveIntent(trajectory: TrajectoryRecord, promotedNames: string[]): string {
-  const q = trajectory.question.replace(/\s+/g, " ").trim();
-  const head = q.length > 140 ? `${q.slice(0, 137)}...` : q;
-  return `Derived helper for: "${head}". Parameters: ${promotedNames.join(", ")}.`;
+  // trajectory.question is set by firstNonEmptyLine(source), which after
+  // prepareAnswerSourceForRuntime's preprocessing is "const answer =
+  // df.answer.bind(df);" — useless. Search the source text for a
+  // benchmark-conventional `// Question (verbatim):` block, parse the
+  // following commented lines as the actual task description. If that
+  // signal isn't present, fall back to a generic parameter-shape
+  // description that at least lists what the helper takes.
+  const params = promotedNames.join(", ");
+  const source = trajectory.sourceText ?? "";
+  const m = source.match(/\/\/\s*Question\s*\(verbatim\):\s*([\s\S]*?)\n\s*(?:\/\/\s*\n|\n\s*\nasync\s+function|\nasync\s+function|\nfunction\s)/i);
+  if (m) {
+    const block = m[1]!
+      .split("\n")
+      .map((line) => line.replace(/^\s*\/\/\s?/, "").trim())
+      .filter((line) => line.length > 0)
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (block.length > 0) {
+      const head = block.length > 200 ? `${block.slice(0, 197)}...` : block;
+      return `${head} (helper derived from agent source; parameters: ${params}).`;
+    }
+  }
+  return `Numeric formula derived from agent source over parameters: ${params}.`;
 }
 
 function renderHelperSource(input: {
