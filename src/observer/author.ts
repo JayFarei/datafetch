@@ -61,6 +61,10 @@ export type AuthorFunctionArgs = {
   // Skill name to dispatch when the pure-composition path can't produce
   // valid source. Null/undefined disables the fallback.
   codifierSkill?: string | null;
+  // iter 3.2: structural hint from the gate's acceptedShape. Only the new
+  // generic author in src/observer/authorFromSource.ts (iter 3.3) reads
+  // this; the five existing render paths above ignore it.
+  acceptedShape?: { hasInlineComputation: boolean };
 };
 
 // --- Public API ------------------------------------------------------------

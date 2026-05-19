@@ -66,7 +66,7 @@ describe("shouldCrystallise", () => {
       shapeHash: "fresh",
       existing: EMPTY_LIB,
     });
-    expect(out).toEqual({ ok: true });
+    expect(out.ok).toBe(true);
   });
 
   it("approves visible filtered subsets of a db result set", () => {
@@ -102,7 +102,7 @@ describe("shouldCrystallise", () => {
       shapeHash: "filtered-subset",
       existing: EMPTY_LIB,
     });
-    expect(out).toEqual({ ok: true });
+    expect(out.ok).toBe(true);
   });
 
   it("approves record-backed sub-graphs whose downstream tools consume short record ids", () => {
@@ -151,7 +151,7 @@ describe("shouldCrystallise", () => {
       subGraph: true,
       callsSlice: calls,
     });
-    expect(out).toEqual({ ok: true });
+    expect(out.ok).toBe(true);
   });
 
   it("approves direct record-backed tool fan-out trajectories without a seed helper", () => {
@@ -204,7 +204,7 @@ describe("shouldCrystallise", () => {
       shapeHash: "direct-record-fanout",
       existing: EMPTY_LIB,
     });
-    expect(out).toEqual({ ok: true });
+    expect(out.ok).toBe(true);
   });
 
   it("allows slot-local record tool failures when clean record slots remain", () => {
@@ -260,7 +260,7 @@ describe("shouldCrystallise", () => {
       shapeHash: "slot-local-error",
       existing: EMPTY_LIB,
     });
-    expect(out).toEqual({ ok: true });
+    expect(out.ok).toBe(true);
   });
 
   it("allows exact record fanout promotion from learned lookup replay rows", () => {
@@ -310,7 +310,7 @@ describe("shouldCrystallise", () => {
         learnedNames: new Set<string>(["recordToolLookup"]),
       },
     });
-    expect(out).toEqual({ ok: true });
+    expect(out.ok).toBe(true);
   });
 
   it("does not treat arbitrary one-character object ids as substrate flow", () => {
@@ -413,7 +413,7 @@ describe("shouldCrystallise", () => {
       convergenceCount: 2,
       convergenceThreshold: 2,
     });
-    expect(out).toEqual({ ok: true });
+    expect(out.ok).toBe(true);
   });
 
   it("allows a learned record helper plus dependent fan-out tail to crystallise as a composite", () => {
@@ -495,7 +495,7 @@ describe("shouldCrystallise", () => {
       convergenceCount: 2,
       convergenceThreshold: 2,
     });
-    expect(out).toEqual({ ok: true });
+    expect(out.ok).toBe(true);
   });
 
   it("allows a learned pure tool fan-out helper plus dependent fan-out tail to crystallise as enrichment", () => {
@@ -554,7 +554,7 @@ describe("shouldCrystallise", () => {
       convergenceCount: 2,
       convergenceThreshold: 2,
     });
-    expect(out).toEqual({ ok: true });
+    expect(out.ok).toBe(true);
   });
 
   it("localizes unrelated optional tool errors away from record-backed learning", () => {
@@ -603,7 +603,7 @@ describe("shouldCrystallise", () => {
       convergenceCount: 2,
       convergenceThreshold: 2,
     });
-    expect(out).toEqual({ ok: true });
+    expect(out.ok).toBe(true);
   });
 
   it("approves mode='novel' trajectories (first-time successful composition)", () => {
@@ -613,7 +613,7 @@ describe("shouldCrystallise", () => {
       shapeHash: "fresh-novel",
       existing: EMPTY_LIB,
     });
-    expect(out).toEqual({ ok: true });
+    expect(out.ok).toBe(true);
   });
 
   it("rejects errored trajectories regardless of mode", () => {
@@ -671,7 +671,7 @@ describe("shouldCrystallise", () => {
       shapeHash: "commit",
       existing: EMPTY_LIB,
     });
-    expect(out).toEqual({ ok: true });
+    expect(out.ok).toBe(true);
   });
 
   it("rejects commit-phase trajectories when answer validation fails", () => {

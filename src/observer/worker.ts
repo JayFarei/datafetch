@@ -284,6 +284,12 @@ export class Observer {
         libraryResolver: resolver,
         codifierSkill: this.codifierSkill,
         allowOverwrite,
+        // iter 3.2: forward the convergence gate's accepted-shape hint so
+        // the new generic author (iter 3.3) can decide whether to fire.
+        // The five existing renderers ignore acceptedShape entirely.
+        ...(convergenceGate.ok && convergenceGate.acceptedShape
+          ? { acceptedShape: convergenceGate.acceptedShape }
+          : {}),
       });
       if (authored.kind === "skipped") {
         skipReasons.push(`${label}: ${authored.reason}`);

@@ -39,8 +39,19 @@ import type { TrajectoryRecord } from "../sdk/index.js";
 
 import type { LibrarySnapshot } from "./template.js";
 
+// iter 3.2: acceptedShape carries the gate's structural assessment of the
+// accepted trajectory. `hasInlineComputation: true` when the primitive call
+// sequence is short (e.g. a single db.* call) but the trajectory's source
+// snapshot indicates non-trivial inline TS work. The new generic author in
+// src/observer/authorFromSource.ts (iter 3.3) consults this hint to route;
+// the five existing renderers ignore the field. Shape-agnostic — no
+// benchmark identifiers anywhere.
+export type AcceptedShape = {
+  hasInlineComputation: boolean;
+};
+
 export type GateOutcome =
-  | { ok: true }
+  | { ok: true; acceptedShape?: AcceptedShape }
   | { ok: false; reason: string };
 
 export type ShouldCrystalliseArgs = {
@@ -363,7 +374,13 @@ export function shouldCrystallise(args: ShouldCrystalliseArgs): GateOutcome {
     }
   }
 
-  return { ok: true };
+  // iter 3.2: surface the structural assessment. hasInlineComputation
+  // is true exactly when the pure-compute opt-in path accepted a short
+  // call sequence with a numerical answer — that's the substrate's
+  // signal that the agent's actual work is in the source body, not in
+  // the recorded primitive calls. authorFromSource (iter 3.3) uses it
+  // as a routing hint; existing renderers ignore it.
+  return { ok: true, acceptedShape: { hasInlineComputation: pureComputeAllowed } };
 }
 
 function answerValidationAccepted(value: unknown): boolean {
