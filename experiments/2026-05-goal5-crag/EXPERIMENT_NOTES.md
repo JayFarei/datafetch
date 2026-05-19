@@ -441,4 +441,41 @@ iter7 substrate. The Goal 5 verification surface (paired-comparison.md
 at `eval/crag/results/small-n-1779157398395/`) covers a 50-question
 small-N — not the full 2,706 the goal requires.
 
+## 2026-05-19 11:35 [BLOCKED]
+
+**Blocked stage**: iter10 — full 2,706-question CRAG eval cannot be
+launched as the runner currently exists.
+
+**Attempted**: launched
+`pnpm tsx eval/crag/scripts/run-small-n.ts --manifest eval/crag/manifests/full-2706.json
+--workers 4 --timeout-ms 180000` twice. First attempt OOM'd at 4GB heap.
+Second attempt with `NODE_OPTIONS=--max-old-space-size=8192` also OOM'd
+during dataset load.
+
+**Evidence**:
+`eval/crag/reports/crag-full-2706-iter9f.log` shows the crash signature
+"FATAL ERROR: Ineffective mark-compacts near heap limit" during
+loadRecords. The runner's loadRecords builds a Map of all 2,706 records
+up-front, each with full search_results (5 HTML pages each, multi-MB).
+2,706 × ~2-5MB = 5-13GB of HTML in memory. Even 8GB heap can't hold it.
+
+**Generic-vs-benchmark-specific tension**: NONE. The fix (streaming
+record loader: pull each record's data only when a worker grabs the
+job) is generic eval-layer code. CRAG-specific or not, any large
+benchmark with embedded retrieval data has the same memory pressure.
+
+**Input that would unlock progress**:
+- Refactor `eval/crag/scripts/run-small-n.ts` loadRecords from
+  "load all at once" to "stream per worker." Roughly:
+  - Replace the Map<id, CragRecord> with a function (id) => Promise<CragRecord>
+    that re-streams the jsonl per question
+  - OR pre-index the jsonl with byte offsets per interaction_id and
+    seek directly per question (more efficient, more code)
+- Both approaches are ~1-2 hours focused work.
+
+**State at block**: 28 commits on `worktree-eval+crag`. Full 2,706
+manifest exists at `eval/crag/manifests/full-2706.json`. CLI `--manifest`
+flag works. Substrate fully operational on small-N (50). The blocker
+is harness-level memory management at scale.
+
 ### _(append next entry here)_
