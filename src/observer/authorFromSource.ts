@@ -126,7 +126,16 @@ export function renderFromAgentSource(args: RenderFromAgentSourceArgs): string |
     intent: deriveIntent(args.trajectory, promotedNames),
     intentSignature: `source(${fingerprint})`,
     sourceHash: args.trajectory.sourceHash ?? "unknown",
-    substrateVersion: args.substrateVersion ?? "unknown",
+    // iter 3.6: stamp the substrate commit sha into the helper header so
+    // the sweep script can identify helpers authored under older
+    // substrate versions and remove them on a `git revert + sweep`
+    // rollback. Caller can pass an explicit version via args.substrateVersion;
+    // otherwise the env var DATAFETCH_SUBSTRATE_VERSION is read; otherwise
+    // "unknown" (back-compat with pre-iter-3.6 callers that don't set it).
+    substrateVersion:
+      args.substrateVersion ??
+      process.env["DATAFETCH_SUBSTRATE_VERSION"] ??
+      "unknown",
     promotedNames,
     rewrittenBody: rewritten,
   });
