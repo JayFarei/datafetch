@@ -1,0 +1,10 @@
+{
+  "interactionId": "4afd82c6-af57-41b2-9848-f0ec9479efd5",
+  "arm": "substrate-on",
+  "query": "can you tell me what the lodger title was originally?",
+  "agentAnswer": ") {\n            var csaLatencyPlugin = window.csa(",
+  "goldAnswer": "the lodger",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}

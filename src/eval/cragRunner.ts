@@ -468,11 +468,12 @@ async function readAndReplay(
   // helpers. Skipping this in substrate-off honours the matched-arm
   // control. Cast required: installObserver expects a SnippetRuntime;
   // the harness passes a structural surrogate so we cast for the call.
+  let observerInstance: { observerPromise: Map<string, Promise<unknown>> } | null = null;
   if (arm === "substrate-on") {
     // installObserver expects a concrete DiskSnippetRuntime; we receive a
     // structural surrogate, so do the same cast skillcraftFullDatafetch.ts
     // does and rely on the duck-typed `onTrajectorySaved` assignment.
-    installObserver({
+    const installed = installObserver({
       baseDir: snippetBaseDir,
       tenantId,
       snippetRuntime: snippetRuntime as unknown as Parameters<typeof installObserver>[0] extends infer T
@@ -481,6 +482,7 @@ async function readAndReplay(
           : never
         : never,
     });
+    observerInstance = installed.observer as unknown as { observerPromise: Map<string, Promise<unknown>> };
   }
   const result = (await snippetRuntime.run({
     source,
@@ -501,6 +503,18 @@ async function readAndReplay(
   if (env && typeof env === "object" && "value" in env) {
     const v = env.value;
     agentAnswer = typeof v === "string" ? v : JSON.stringify(v);
+  }
+
+  // Iter9d (Goal-5): the observer's onTrajectorySaved hook fires
+  // observer.observe(id) as fire-and-forget. The promise lives on
+  // observerInstance.observerPromise. We MUST await it before
+  // returning, otherwise the next sibling question will start before
+  // this one's helper has crystallised — defeating R7 entirely.
+  if (observerInstance !== null && result.trajectoryId) {
+    const pending = observerInstance.observerPromise.get(result.trajectoryId);
+    if (pending) {
+      try { await pending; } catch { /* observer.observe catches its own */ }
+    }
   }
 
   // Count library calls from the trajectory.
