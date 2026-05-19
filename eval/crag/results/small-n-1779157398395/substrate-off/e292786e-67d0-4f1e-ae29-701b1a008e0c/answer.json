@@ -1,0 +1,10 @@
+{
+  "interactionId": "e292786e-67d0-4f1e-ae29-701b1a008e0c",
+  "arm": "substrate-off",
+  "query": "what movie won the academy award for best picture in 2012?",
+  "agentAnswer": "The Artist",
+  "goldAnswer": "argo",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}

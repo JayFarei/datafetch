@@ -1,0 +1,10 @@
+{
+  "tenantId": "crag-off-ad57a30d-0f77-41cf-ab69-350e7080a727",
+  "datasetDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/crag/results/small-n-1779157398395/substrate-off/ad57a30d-0f77-41cf-ab69-350e7080a727",
+  "datafetchHome": "/tmp/df-iter6-92778-1779157406508",
+  "bundles": [],
+  "toolRunnerPath": "",
+  "snippetTimeoutMs": 180000,
+  "mountId": "crag-ad57a30d-0f77-41cf-ab69-350e7080a727",
+  "family": "crag-sports-multi-hop"
+}

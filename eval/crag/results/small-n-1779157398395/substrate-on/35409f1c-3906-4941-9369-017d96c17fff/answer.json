@@ -1,0 +1,10 @@
+{
+  "interactionId": "35409f1c-3906-4941-9369-017d96c17fff",
+  "arm": "substrate-on",
+  "query": "who has more spotify plays, drake or taylor swift?",
+  "agentAnswer": "Taylor Swift",
+  "goldAnswer": "as of february 2024, taylor swift is the most-streamed artist of all time on spotify.",
+  "altAns": [],
+  "score": 1,
+  "scoreReason": "substring match (gold)"
+}

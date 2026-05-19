@@ -1,0 +1,10 @@
+{
+  "interactionId": "98890ab7-3e71-4e94-8b44-afd672c23662",
+  "arm": "substrate-on",
+  "query": "which date saw the final game of crystal palace in eng-premier league?",
+  "agentAnswer": "2024-03-09",
+  "goldAnswer": "2024-03-09",
+  "altAns": [],
+  "score": 1,
+  "scoreReason": "exact match (gold)"
+}

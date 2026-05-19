@@ -1,0 +1,10 @@
+{
+  "interactionId": "4ebbb760-c5ae-4307-9764-567a357f4cc1",
+  "arm": "substrate-off",
+  "query": "who is the first actress to play the bond girl?",
+  "agentAnswer": "",
+  "goldAnswer": "vesper lynd in 1953",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

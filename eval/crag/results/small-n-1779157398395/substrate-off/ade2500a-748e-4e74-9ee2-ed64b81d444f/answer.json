@@ -1,0 +1,10 @@
+{
+  "interactionId": "ade2500a-748e-4e74-9ee2-ed64b81d444f",
+  "arm": "substrate-off",
+  "query": "kendrick lamar won a pulitzer prize in 2018. which 2017 album of his won this award?",
+  "agentAnswer": "DAMN.",
+  "goldAnswer": "kendrick lamar won the 2018 pulitzer prize for music for his 2017 album, damn.",
+  "altAns": [],
+  "score": 1,
+  "scoreReason": "substring match (gold)"
+}

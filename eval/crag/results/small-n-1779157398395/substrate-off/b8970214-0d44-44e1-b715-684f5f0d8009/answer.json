@@ -1,0 +1,10 @@
+{
+  "interactionId": "b8970214-0d44-44e1-b715-684f5f0d8009",
+  "arm": "substrate-off",
+  "query": "how many number one hits did the beatles have?",
+  "agentAnswer": "20",
+  "goldAnswer": "20",
+  "altAns": [],
+  "score": 1,
+  "scoreReason": "exact match (gold)"
+}

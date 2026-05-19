@@ -1,0 +1,10 @@
+{
+  "tenantId": "crag-off-75dea36d-67fe-46df-be34-4003ba9d58ff",
+  "datasetDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/crag/results/small-n-1779157398395/substrate-off/75dea36d-67fe-46df-be34-4003ba9d58ff",
+  "datafetchHome": "/tmp/df-iter6-92778-1779157406508",
+  "bundles": [],
+  "toolRunnerPath": "",
+  "snippetTimeoutMs": 180000,
+  "mountId": "crag-75dea36d-67fe-46df-be34-4003ba9d58ff",
+  "family": "crag-open-comparison"
+}

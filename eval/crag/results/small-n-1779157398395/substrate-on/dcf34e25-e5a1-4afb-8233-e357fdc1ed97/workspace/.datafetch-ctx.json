@@ -1,0 +1,10 @@
+{
+  "tenantId": "crag-on-dcf34e25-e5a1-4afb-8233-e357fdc1ed97",
+  "datasetDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/crag/results/small-n-1779157398395/substrate-on/dcf34e25-e5a1-4afb-8233-e357fdc1ed97",
+  "datafetchHome": "/tmp/df-iter6-92778-1779157406508",
+  "bundles": [],
+  "toolRunnerPath": "",
+  "snippetTimeoutMs": 180000,
+  "mountId": "crag-dcf34e25-e5a1-4afb-8233-e357fdc1ed97",
+  "family": "crag-music-simple"
+}

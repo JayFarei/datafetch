@@ -1,0 +1,10 @@
+{
+  "interactionId": "ad57a30d-0f77-41cf-ab69-350e7080a727",
+  "arm": "substrate-on",
+  "query": "who was head coach of the lakers in kobe bryant's rookie year?",
+  "agentAnswer": "Del Harris",
+  "goldAnswer": "del harris",
+  "altAns": [],
+  "score": 1,
+  "scoreReason": "exact match (gold)"
+}

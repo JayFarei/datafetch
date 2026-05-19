@@ -1,0 +1,10 @@
+{
+  "interactionId": "94b8285c-0c08-428a-88ad-f9a08d73c8a6",
+  "arm": "substrate-off",
+  "query": "which five countries have adopted crypto as a legal tender?",
+  "agentAnswer": "invalid question",
+  "goldAnswer": "invalid question",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

@@ -1,0 +1,10 @@
+{
+  "interactionId": "ab54a7be-395b-4de1-9bfd-28bc0ee76d4f",
+  "arm": "substrate-off",
+  "query": "who was the vice president during president sonia sotomayor's administration?",
+  "agentAnswer": "invalid question",
+  "goldAnswer": "invalid question",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

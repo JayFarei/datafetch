@@ -1,0 +1,10 @@
+{
+  "interactionId": "461bb1ce-c717-4522-8ec0-cb20671c5bb1",
+  "arm": "substrate-on",
+  "query": "for how long did rihanna take a break from making music?",
+  "agentAnswer": "",
+  "goldAnswer": "she didn't release any music between 2017 and 2022, so 5 years.",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

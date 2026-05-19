@@ -1,0 +1,10 @@
+{
+  "interactionId": "adea74b3-41bf-411c-a6a2-217986c3020c",
+  "arm": "substrate-off",
+  "query": "what was the dividend distribution frequency for utah medical products in the year 2023?",
+  "agentAnswer": "quarterly",
+  "goldAnswer": "4",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}

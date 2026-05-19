@@ -1,0 +1,10 @@
+{
+  "interactionId": "a6f80f35-c75e-4433-9bc9-070af91afeeb",
+  "arm": "substrate-on",
+  "query": "what was amazon's average annual revenue for the past 3 years?",
+  "agentAnswer": "",
+  "goldAnswer": "$519.53 billion",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

@@ -57,7 +57,8 @@ SkillCraft full-126 at no worse than this:
 | P5    | E5 — claude-p driver single-question smoke              | ✅ done (PASSED plumbing / NOISY scoring; noted gold-label issue) |
 | P6    | E6 (smoke) — small-N runner infra + 4-record smoke      | ✅ done (PASSED infra; 8/8 hit timeout on finance-heavy slice) |
 | P6.1  | E6 (full) — small-N matched-arm (50 records × 2 arms)   | ✅ done (4-vector {NEUTRAL, NEUTRAL, PASS, PASS}; R7 FAIL; substrate-ON wins on every dynamism slice + 6/7 sports cells + R3/R4 axes) |
-| P7    | E7 — substrate render-function fix (renderDbFanOutSource) | ⏳ next; spec at iter7-substrate-fix-spec.md; requires SkillCraft re-run gate |
+| P7    | E7 — substrate render-function fix (renderDbFanOutSource) | ✅ implementation done (commit 9b20afb97); 1-task SkillCraft sanity PASSED; small-N R7 still FAIL due to per-question tenant harness gap |
+| P8    | E8 — harness fix: per-family tenants for R7 + SkillCraft full-126 + full 2,706 CRAG eval | ⏳ next |
 | P3    | Resolve mock-API modeling (df.db.* vs df.tool.*)       | pending    |
 | P4    | Build CRAG adapter (src/eval/cragFullDatafetch.ts)     | pending    |
 | P5    | Build CRAG tri-state scorer + R1-R10 normalizer         | pending    |

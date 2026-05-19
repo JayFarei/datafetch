@@ -1,0 +1,10 @@
+{
+  "tenantId": "crag-off-81e0fbd9-2bc7-4d57-a97c-d07127228f9e",
+  "datasetDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/crag/results/small-n-1779157398395/substrate-off/81e0fbd9-2bc7-4d57-a97c-d07127228f9e",
+  "datafetchHome": "/tmp/df-iter6-92778-1779157406508",
+  "bundles": [],
+  "toolRunnerPath": "",
+  "snippetTimeoutMs": 180000,
+  "mountId": "crag-81e0fbd9-2bc7-4d57-a97c-d07127228f9e",
+  "family": "crag-sports-comparison"
+}

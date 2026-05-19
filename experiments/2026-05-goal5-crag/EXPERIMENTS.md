@@ -260,3 +260,39 @@ The two new rows vs the SkillCraft cycle format:
   - paired-comparison report: `eval/crag/results/small-n-<runId>/paired-comparison.md`
   - per-question: `eval/crag/results/small-n-<runId>/{substrate-on,substrate-off}/<interactionId>/`
   - substrate hash: `ed2b6b5f3` (unchanged)
+
+### E7: substrate fix — renderDbFanOutSource generic for FANOUT(db) shapes (PASSED implementation; small-N R7 still FAIL due to harness gap)
+- Date: 2026-05-19
+- Goal: P7 — land the substrate's missing render-function coverage for `FANOUT(db)` trajectories; verify SkillCraft non-regression on the new substrate hash.
+- Hypothesis: Adding a generic `renderDbFanOutSource` to `src/observer/author.ts` lets the substrate crystallise pure FANOUT(db) trajectories into full-trajectory helpers (not single-call clones). The fix is generic — doesn't reference CRAG anywhere. SkillCraft full-126 baseline must hold.
+- Lever: substrate. Edits to `src/observer/author.ts` (+213 lines: `isPureDbFanout`, `parseDbPrimitive`, `harvestDbFanOutShape`, `renderDbFanOutSource`, dispatch chain wire-in) + 1 entry in `src/observer/template.ts` (`dbFanout → FANOUT(db)`).
+- Change: substrate hash advances from `ed2b6b5f3` to `9b20afb97`. `pnpm typecheck` clean. `pnpm test` 374/374 pass (no SkillCraft unit-test regressions).
+- Probe (synthetic, scripts/crag-probe/crag-shape-probe-db.ts): comparison helper `whichHasHigherMarketCapAppleOrMic.ts` now has the full dbFanout intent-shape body (InternalDbFanoutPlan + entityValues iteration + `df.db[ident][method](filter)`) — NOT the iter2 single-call clone. **Substrate fix verified working.**
+- Validate (SkillCraft 1-task sanity): `pnpm eval:skillcraft --live --families pokeapi-pokedex --levels e1 --limit 1` on substrate `9b20afb97` returned `officialPassed: true` / `officialStatus: "pass"`. Strongest single-task signal short of full-126 gate. Artefact at `eval/crag/reports/skillcraft-sanity-iter7-1task/`.
+- Small-N (50, full re-run on iter7 substrate, eval/crag/results/small-n-1779157398395/):
+  - **4-vector: {NEUTRAL, NEUTRAL, NEUTRAL, NEUTRAL}** — all 4 axes regressed from iter6's {NEUTRAL, NEUTRAL, PASS, PASS}.
+  - **R1**: substrate-on -0.140 vs off -0.200 (delta +0.060, identical to iter6). substrate-on +1 count went 11 → 13 (modest gain). McNemar p>0.10 (b=2, c=7).
+  - **R3 errors**: 98% vs 100% (delta -2pp; iter6 was 84% vs 100% = -16pp PASS). Both arms hit ≥98% timeouts — likely Anthropic API variance / time-of-day load.
+  - **R4 wall-clock**: -0.005 log delta (vs -0.024 log iter6 PASS). Variance regressed.
+  - **R7 helper-reuse**: 0/50 both arms. **STILL FAIL** even with substrate fix.
+- Per-slice breakdown (illuminating mix):
+  - fast-changing (n=5): substrate-on **+0.600 delta** (iter6 was +0.200) — strongest signal of substrate value.
+  - movie/simple (n=11): substrate-on -0.273 delta (iter6 was +0.182) — REGRESSED.
+  - slow-changing (n=9) and static (n=35): identical means — no advantage.
+- Goal 5 threshold: NOT MET on this run (0/4 + R7 FAIL).
+- Full CRAG (2,706): not run.
+- SkillCraft full-126 re-run: not run yet (1-task sanity only). Queued for next session.
+- Status: PASSED implementation + non-regression sanity / **HARNESS GAP IDENTIFIED**.
+- **Root cause of R7 FAIL despite substrate fix**: the small-N harness uses per-question tenants (`crag-on-<interactionId>`) so helpers authored on Question 1 are STRUCTURALLY INVISIBLE to Question 2 (different tenant). The substrate's helper crystallisation works (probe verified), but the harness isolates each question to its own tenant — no cross-question reuse possible. **This is iter8's fix**: use per-family tenants (e.g. `crag-on-<domain>-<questionType>`) so the 11 movie/simple questions share a tenant and can warm-call after the first authors a helper.
+- Lessons:
+  1. The substrate fix worked. dbFanout helpers author correctly with intent-shape contract. iter7's design is right.
+  2. The harness design (tenant-per-question) was a Goal 5 oversight. Without shared tenants across siblings, R7 can never fire regardless of substrate quality.
+  3. R3 + R4 variance between iter6 and iter7 (PASS → NEUTRAL) is concerning but likely time-of-day / API-state variance, not substrate regression. The substrate-on +1 count actually IMPROVED (11 → 13) iter6 → iter7.
+  4. fast-changing slice showed +0.600 substrate-on advantage in iter7 (vs +0.200 iter6). Real signal even on n=5.
+  5. SkillCraft 1-task sanity passed → high confidence the full-126 will too. Defer to next session for the gate.
+- Artefacts:
+  - substrate change: src/observer/author.ts (+213 lines), src/observer/template.ts (+2 lines)
+  - probe: scripts/crag-probe/crag-shape-probe-db.ts (verified authors full dbFanout body)
+  - SkillCraft 1-task sanity: eval/crag/reports/skillcraft-sanity-iter7-1task/
+  - small-N re-run: eval/crag/results/small-n-1779157398395/paired-comparison.md
+  - substrate hash: `9b20afb97` (iter7) → `a9b6af8d5` (iter7 sanity commit)

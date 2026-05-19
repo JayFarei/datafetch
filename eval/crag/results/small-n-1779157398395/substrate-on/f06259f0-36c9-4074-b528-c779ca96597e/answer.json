@@ -1,0 +1,10 @@
+{
+  "interactionId": "f06259f0-36c9-4074-b528-c779ca96597e",
+  "arm": "substrate-on",
+  "query": "what percentage of israel adesanya's ufc fights have ended in a decision?",
+  "agentAnswer": "unsupported",
+  "goldAnswer": "62.5%",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

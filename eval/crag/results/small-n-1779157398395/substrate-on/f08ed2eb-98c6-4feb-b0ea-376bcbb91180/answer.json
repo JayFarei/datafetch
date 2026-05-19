@@ -1,0 +1,10 @@
+{
+  "interactionId": "f08ed2eb-98c6-4feb-b0ea-376bcbb91180",
+  "arm": "substrate-on",
+  "query": "what was the price of inta at the end of the day yesterday?",
+  "agentAnswer": "1.866",
+  "goldAnswer": "$38.84",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}

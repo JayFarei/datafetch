@@ -1,0 +1,10 @@
+{
+  "interactionId": "af1ee3f6-d782-48ce-b7b9-eb4e229939ab",
+  "arm": "substrate-off",
+  "query": "in 2020, who was praised for best actor at the oscars?",
+  "agentAnswer": "Joaquin Phoenix",
+  "goldAnswer": "joaquin phoenix",
+  "altAns": [],
+  "score": 1,
+  "scoreReason": "exact match (gold)"
+}

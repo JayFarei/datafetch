@@ -1,0 +1,10 @@
+{
+  "interactionId": "429768c8-5b22-41ab-b95c-dd8b975dd596",
+  "arm": "substrate-on",
+  "query": "who was the comeback player of the year in the nfl?",
+  "agentAnswer": "",
+  "goldAnswer": "joe flacco",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

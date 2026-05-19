@@ -1,0 +1,10 @@
+{
+  "interactionId": "74519fa3-a8d1-4602-86a0-30f98ebb1ed6",
+  "arm": "substrate-off",
+  "query": "when did will smith's daughter first release music?",
+  "agentAnswer": "2010",
+  "goldAnswer": "2010",
+  "altAns": [],
+  "score": 1,
+  "scoreReason": "exact match (gold)"
+}
