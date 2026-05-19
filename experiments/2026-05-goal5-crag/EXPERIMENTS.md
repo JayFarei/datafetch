@@ -316,3 +316,27 @@ The two new rows vs the SkillCraft cycle format:
   - probe: eval/crag/scripts/run-iter8-sibling-probe.ts (3 movie/simple sequential)
   - probe results: eval/crag/results/iter8-sibling-probe-1779164177327/
   - substrate hash: still `9b20afb97` (no substrate change in iter8, just harness)
+
+### E9a: prompt-engineering — encourage multi-call trajectories (PASSED at the prompt level; reveals iter9b gate gap)
+- Date: 2026-05-19
+- Goal: P9 — agents must produce ≥2 df.db.* calls per CRAG question so the substrate has FANOUT(db) trajectories to crystallise from.
+- Hypothesis: Changing the AGENTS.md template to explicitly require multiple targeted searches per question (via `Promise.all([...])` with 2-4 search calls per distinct entity/concept) produces ≥2 trajectory calls; combined with iter7 (renderDbFanOutSource) + iter8 (per-family tenants), R7 should fire.
+- Lever: prompt-only. ~25-line edit to AGENTS_MD template in src/eval/cragRunner.ts (eval-layer, no substrate-runtime change).
+- Change: pnpm typecheck clean, pnpm test 374/374 pass.
+- Probe (re-ran iter8 sibling probe with new prompt, 3 movie/simple sequential):
+  - Q1: +1 (exact match), **trajCalls=3** (was 1 pre-iter9a)
+  - Q2: -1 (incorrect), **trajCalls=3**
+  - Q3: -1 (incorrect), **trajCalls=3**
+  - **R7: STILL 0/3** — multi-call trajectories happen, but no helpers crystallise.
+- Status: PARTIAL — prompt change works (3 calls per trajectory), but R7 still doesn't fire. **iter9b gap discovered**: the observer's gate has additional conditions beyond `≥2 distinct primitive calls`. Possible causes:
+  - The observer's gate checks for "trajectory is the current workspace HEAD" — but the CRAG harness doesn't go through the workspace-commit flow that SkillCraft uses; the snippet runs are one-shot.
+  - The gate may require the trajectory to have a `db→lib` boundary or specific scope.depth pattern that pure `Promise.all([cragWeb.search, cragWeb.search, cragWeb.search])` doesn't satisfy (all calls are top-level db.*, no lib.* call to make the trajectory a "consumer chain").
+  - The substrate's observer onTrajectorySaved hook may not fire because installObserver runs with default `tenantId` arg but the snippet runtime's tenantId path may differ.
+- Lessons:
+  1. iter9a prompt change is the right shape but insufficient alone. We have 3 stacked gaps: render-function (iter7 ✓), tenant scope (iter8 ✓), call-count (iter9a ✓), gate-firing (iter9b STILL OPEN).
+  2. iter9b requires reading the observer's gate.ts to understand WHY trajectories aren't authoring. Either fix the gate's CRAG-applicable conditions, or wire the harness to call authorFunction directly post-replay (bypassing the gate, like crag-shape-probe-db.ts does).
+  3. Direct authorFunction bypass is the more pragmatic short-term fix; gate refinement is the more architecturally-correct long-term fix.
+- Artefacts:
+  - prompt change: src/eval/cragRunner.ts (AGENTS_MD template, lines 171-200ish)
+  - probe results: eval/crag/results/iter8-sibling-probe-1779165067678/
+  - substrate hash: still `9b20afb97` (no substrate change)

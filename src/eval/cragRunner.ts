@@ -170,22 +170,39 @@ static_or_dynamic: ${record.staticOrDynamic})
 
 ## How to write your answer
 
-Write **scripts/answer.ts** with the SHAPE:
+Write **scripts/answer.ts** with the SHAPE. **Make multiple targeted
+searches**, one per distinct entity or key concept in the question. The
+substrate learns from repeated patterns; multiple focused searches give
+better retrieval than one broad search AND let the substrate amortise
+your search work across sibling questions.
 
 \`\`\`ts
-const pages = await df.db.cragWeb.search("relevant search terms", { limit: 5 });
-// inspect pages[i].pageSnippet and pages[i].pageResult to extract the answer
+// Decompose the question into 2-4 specific search queries (entities,
+// dates, key terms). Run them as separate calls — DO NOT collapse to
+// one big search.
+const hits = await Promise.all([
+  df.db.cragWeb.search("specific entity or term 1", { limit: 3 }),
+  df.db.cragWeb.search("specific entity or term 2", { limit: 3 }),
+  // df.db.cragWeb.search("specific entity or term 3", { limit: 3 }),
+]);
+
+// Inspect pageSnippet and pageResult across all hits to extract the
+// answer. Cross-reference if the question requires it.
+const pages = hits.flat();
 
 return df.answer({
   status: "answered",
   value: "the short answer string",
-  evidence: pages.slice(0, 2).map((p) => ({ pageUrl: p.pageUrl, pageName: p.pageName })),
+  evidence: pages.slice(0, 3).map((p) => ({ pageUrl: p.pageUrl, pageName: p.pageName })),
   derivation: "1-sentence note on how you derived the answer",
 });
 \`\`\`
 
 The \`return\` is REQUIRED — the answer envelope must be the resolved
-value of the snippet's top-level async IIFE.
+value of the snippet's top-level async IIFE. **Multiple search calls is
+required, not optional** — even if one search would suffice, decompose
+the question into 2-4 calls so the substrate can crystallise the
+retrieval pattern.
 
 ## Calibration rules
 
