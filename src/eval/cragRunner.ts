@@ -26,6 +26,25 @@ import { mkdir, writeFile, readFile, stat } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 
+// Snippet runtime overlays globalThis.df during run. Parallel runOneCragQuestion
+// calls would race; serialise the substrate-side replay (registerMount → run →
+// teardown) across all workers via a process-wide mutex. claude-p calls
+// outside the mutex remain parallel.
+let replayMutex: Promise<void> = Promise.resolve();
+async function withReplayLock<T>(fn: () => Promise<T>): Promise<T> {
+  const prev = replayMutex;
+  let release: () => void = () => undefined;
+  replayMutex = new Promise<void>((res) => {
+    release = res;
+  });
+  await prev;
+  try {
+    return await fn();
+  } finally {
+    release();
+  }
+}
+
 import {
   CragWebMount,
   scoreTriState,
@@ -472,8 +491,12 @@ export async function runOneCragQuestion(opts: CragRunOpts): Promise<CragRunResu
   const wallStart = performance.now();
   await mkdir(opts.runDir, { recursive: true });
   const { workspaceDir } = await setupWorkspace(opts);
-  const { mountId, teardown } = registerCragMount(opts.record);
+  // Note: mount registration is per-replay, not per-question — the mutex
+  // owns mount lifecycle so a second worker's mount-register doesn't
+  // overlap with another worker's globalThis.df overlay during snippet run.
   try {
+    // Claude-p runs OUTSIDE the mutex (independent subprocess; safe to
+    // parallelise across workers).
     const claudeResult = await runClaudeP({
       workspaceDir,
       prompt: CLAUDE_PROMPT_TEMPLATE(opts.record),
@@ -484,14 +507,25 @@ export async function runOneCragQuestion(opts: CragRunOpts): Promise<CragRunResu
       timeoutMs: opts.timeoutMs ?? 90_000,
     });
 
-    const replay = await readAndReplay(
-      workspaceDir,
-      opts.snippetRuntime,
-      mountId,
-      opts.snippetBaseDir,
-      opts.arm,
-      opts.record.interactionId,
-    );
+    // Snippet replay runs INSIDE the mutex (globalThis.df overlay is
+    // process-wide; parallel replays race).
+    const { replay, mountId } = await withReplayLock(async () => {
+      const { mountId, teardown } = registerCragMount(opts.record);
+      try {
+        const r = await readAndReplay(
+          workspaceDir,
+          opts.snippetRuntime,
+          mountId,
+          opts.snippetBaseDir,
+          opts.arm,
+          opts.record.interactionId,
+        );
+        return { replay: r, mountId };
+      } finally {
+        teardown();
+      }
+    });
+    void mountId; // suppress unused warning; useful for debugging
     const scored = scoreTriState(replay.agentAnswer, opts.record);
 
     // Write per-question artefacts.
@@ -538,7 +572,34 @@ export async function runOneCragQuestion(opts: CragRunOpts): Promise<CragRunResu
       agentError: claudeResult.error,
       totalWallClockMs: performance.now() - wallStart,
     };
-  } finally {
-    teardown();
+  } catch (err) {
+    // Catch-all so a single question failure doesn't crash the pool.
+    return {
+      interactionId: opts.record.interactionId,
+      arm: opts.arm,
+      domain: opts.record.domain,
+      questionType: opts.record.questionType,
+      staticOrDynamic: opts.record.staticOrDynamic,
+      query: opts.record.query,
+      goldAnswer: opts.record.answer,
+      agentAnswer: "",
+      score: -1 as TriStateScore,
+      scoreReason: `runner error: ${err instanceof Error ? err.message : String(err)}`,
+      exitCode: null,
+      trajectoryId: null,
+      trajectoryCalls: 0,
+      trajectoryHelperCalls: 0,
+      costTier: null,
+      costLlmCalls: null,
+      agentDurationMs: null,
+      agentInputTokens: null,
+      agentCachedInputTokens: null,
+      agentOutputTokens: null,
+      agentTotalCostUsd: null,
+      agentNumTurns: null,
+      agentTimedOut: false,
+      agentError: err instanceof Error ? err.message : String(err),
+      totalWallClockMs: performance.now() - wallStart,
+    };
   }
 }

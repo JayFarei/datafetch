@@ -156,3 +156,29 @@ The two new rows vs the SkillCraft cycle format:
   - smoke: `eval/crag/scripts/run-one-llm.ts` (~85 lines)
   - per-question artefacts: `eval/crag/results/iter5-7bb29eb4-substrate-on-1779147405527/7bb29eb4-12f9-45f9-bf8a-66832b3c8962/` containing answer.json, claude-result.json, workspace/{AGENTS.md, df.d.ts, scripts/{answer.ts, probe.ts}}
   - substrate hash: `ed2b6b5f3` (still unchanged)
+
+### E6 (smoke): small-N runner infrastructure + 4-record × 2-arm matched-arm dry run
+- Date: 2026-05-19
+- Goal: P6 — build the matched-arm runner + paired-comparison report generator, smoke at small scale before scaling to 50 records
+- Hypothesis: Parallel claude-p workers (k=3) with a process-wide mutex on the snippet-replay phase produces a clean per-question result + per-arm scorecard + paired-comparison.md.
+- Lever: harness-only. New files: `eval/crag/scripts/run-small-n.ts` (~270 lines), `eval/crag/scripts/build-paired-comparison.ts` (~310 lines, McNemar + paired-t + per-slice rollup + 4-vector verdict). Modified: `src/eval/cragRunner.ts` — added `withReplayLock` mutex and a runner-level try/catch so one question's failure doesn't crash the pool.
+- Change: 1 substrate-adjacent edit (mutex + try/catch in `src/eval/cragRunner.ts`; only the eval-layer runner, not the substrate). pnpm typecheck clean. pnpm test 374/374.
+- Probe (smoke, 4 records × 2 arms = 8 invocations, k=3 workers): wall-clock 553s (~9.2min). All 8 questions hit the 180s claude-p timeout because the random first-4 records were all finance/real-time questions whose answers aren't in the cached 2024 pages.
+  - substrate-on: 0 +1, 1 abstain, 3 incorrect, mean -0.750, mean wall 181s, 4 runtime errors (= 4 timeouts)
+  - substrate-off: 0 +1, 1 abstain, 3 incorrect, mean -0.750, mean wall 176s, 2 runtime errors
+- Validate: paired-comparison.md generated correctly. 4-vector: {NEUTRAL, NEUTRAL, NEUTRAL, NEUTRAL} (expected at n=4). R7: FAIL (0/4 helper reuse — expected because no sibling templates fired).
+- Small-N (50): not yet run; full small-N kicked off after this commit.
+- Full CRAG (2,706): not run.
+- SkillCraft re-run: not required for this iteration (cragRunner change is eval-layer only; substrate-runtime files in src/observer/, src/snippet/, src/sdk/, src/hooks/, src/adapter/, src/trajectory/ unchanged; 374/374 vitest still pass on ed2b6b5f3).
+- Status: PASSED (infrastructure proven; smoke results predictable for n=4 + finance-heavy random slice). Full small-N (50 records, mixed domains) is the real test of the substrate hypothesis.
+- Lessons:
+  1. **Race condition surfaced**: parallel `runOneCragQuestion` calls race on `globalThis.df` because `installSnippetRuntime` overlays it during each `snippetRuntime.run`. The first smoke (workers=3) hung with no live claude-p subprocesses but 98% CPU in tsx parent — the snippet runtime got into a globalThis.df interlock. Fix: process-wide replay mutex (`withReplayLock`) in cragRunner.ts that serialises ONLY the snippet replay; claude-p subprocesses remain parallel.
+  2. **Timeout budget**: 180s per claude-p is enough for most CRAG questions but real-time / fast-changing finance questions consistently hit timeout. The agent's stale cached pages (2024) don't contain "today's" answer; the agent searches multiple times before giving up. Acceptable trade-off for now; LLM-judge augmentation + better prompting could improve the abstention rate.
+  3. **Stratified random slice quirk**: the first 4 records of small-n-50.json happen to all be finance. Full small-N will be more balanced (manifest shows 18 movie, 8 finance, 8 music, 8 open, 8 sports; ≥1 instance per (domain × question_type) cell).
+  4. **Output streaming**: piping `pnpm tsx ... | tail -N` buffers stdout entirely until end-of-stream. For background runs, redirect directly without tail; let the monitor tool grep the live file.
+  5. **Cost so far**: $0 (Claude Max plan); 9 minutes of wall-clock for the smoke. Full small-N projected at ~100 minutes / $0.
+- Artefacts:
+  - infrastructure: `eval/crag/scripts/run-small-n.ts`, `eval/crag/scripts/build-paired-comparison.ts`, `src/eval/cragRunner.ts` (+mutex)
+  - smoke results: `eval/crag/results/small-n-1779148735566/results.json`, `paired-comparison.md`
+  - per-question artefacts: `eval/crag/results/small-n-1779148735566/{substrate-on,substrate-off}/<interactionId>/`
+  - substrate hash: `ed2b6b5f3` (cragRunner.ts is eval-layer; substrate-runtime unchanged)
