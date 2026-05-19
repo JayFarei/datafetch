@@ -60,7 +60,13 @@ SkillCraft full-126 at no worse than this:
 | P7    | E7 — substrate render-function fix (renderDbFanOutSource) | ✅ done (commit 9b20afb97); 1-task SkillCraft sanity PASSED; R7 still 0 (harness gap) |
 | P8    | E8 — harness fix: per-family tenants                    | ✅ done (commit 5312e5865); sibling probe revealed deeper iter9 gap |
 | P9    | E9a — prompt-engineering: produce ≥2 db.* calls per CRAG question | ✅ done (3 calls per traj); R7 still 0 — reveals iter9b gate gap |
-| P9b   | E9b — gate refinement OR direct authorFunction bypass (R7 unlock) | ⏳ next |
+| P9b   | E9b — gate.ts isPureDbFanout (2 rejection points)        | ✅ done (commit 92b61ec46) |
+| P9c   | E9c — installObserver was missing entirely               | ✅ done (commit 92b61ec46) |
+| P9d   | E9d — await observer per question (race fix)             | ✅ done (commit 09198f0c8); **HELPER CRYSTALLISED** in family tenant ✓ |
+| P9e   | E9e — apropos/manifest regeneration so agents discover authored helpers (R7 as warm-call) | ⏳ next; substrate-side already correct, this is harness polish |
+| P10   | E10 — SkillCraft full-126 non-regression on iter9d substrate | ⏳ launched in background as PID 61826 (~1-2h) |
+| P11   | E11 — CRAG small-N re-run on iter9d substrate (post SkillCraft) | ⏳ chained after P10 (~100min) |
+| P12   | E12 — Full 2,706-question CRAG eval                      | pending user authorization (~10-15h wall-clock) |
 | P10   | E10 — SkillCraft full-126 non-regression on iter7+ substrate (~1-2h wall-clock) | pending |
 | P11   | E11 — Full 2,706-question CRAG eval (~10-15h wall-clock)| pending  |
 | P3    | Resolve mock-API modeling (df.db.* vs df.tool.*)       | pending    |
