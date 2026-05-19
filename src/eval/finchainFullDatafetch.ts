@@ -546,10 +546,19 @@ async function runLiveEpisode(input: {
     ? await dropPreseedHelpers({ datafetchHome, tenantId, preseedDir: args.preseedHelperDir })
     : [];
 
+  // 3c. iter 3.5: discover authorFromSource helpers that prior episodes
+  // crystallised (and that the iter 3.4 quarantine validator promoted to
+  // @quarantined: false). These are the substrate-learned helpers a
+  // warm-tier agent should see in df.d.ts + AGENTS.md so it can call
+  // them. Indistinguishable from preseed helpers downstream: the runner
+  // surfaces both lists into the typed surface + mandate prose.
+  const validatedAuthored = await discoverValidatedAuthoredHelpers({ datafetchHome, tenantId });
+  const allAnnouncedHelpers = [...preseedHelpers, ...validatedAuthored];
+
   // 4. Write the workspace scaffolding
-  await writeFinchainAgentsMd(workspace, currentInstance, mountId, preseedHelpers);
+  await writeFinchainAgentsMd(workspace, currentInstance, mountId, allAnnouncedHelpers);
   await writeFinchainAnswerScaffold(workspace, currentInstance);
-  await writeDfDtsStub(workspace, preseedHelpers);
+  await writeDfDtsStub(workspace, allAnnouncedHelpers);
 
   // 5. Render the agent prompt + spawn claude-p
   const prompt = renderFinchainPrompt(currentInstance, mountId, preseedHelpers);
@@ -809,8 +818,15 @@ async function runClaudePAgent(args: {
 }
 
 function preseedStrength(): "recommend" | "mandate" {
-  const raw = (process.env["DATAFETCH_PRESEED_STRENGTH"] ?? "recommend").trim().toLowerCase();
-  return raw === "mandate" ? "mandate" : "recommend";
+  // Default flipped to "mandate" per the iter 3.0a probe finding: soft
+  // "prefer calling" prose is ignored by Sonnet 4.6 on FinChain-shape
+  // benchmarks where the agent can produce the answer inline. Mandate
+  // language ("MUST when intent matches; inline math is rejected") is
+  // the load-bearing lever for FinChain helper-call rate. Env var
+  // DATAFETCH_PRESEED_STRENGTH=recommend opts back to soft prose for
+  // diagnostic experiments.
+  const raw = (process.env["DATAFETCH_PRESEED_STRENGTH"] ?? "mandate").trim().toLowerCase();
+  return raw === "recommend" ? "recommend" : "mandate";
 }
 
 function renderFinchainPrompt(
@@ -1031,6 +1047,50 @@ interface PreseedHelperMeta {
 // agent sees the helper in its typed surface. No filtering by family — the
 // caller is responsible for pointing `preseedDir` at a directory whose
 // helpers fit the templates being probed.
+// iter 3.5: discover validated authorFromSource helpers (those that the
+// quarantine validator promoted from @quarantined: true → false on a
+// prior episode of this family). Returns metadata shaped identically to
+// preseedHelpers so the AGENTS.md + df.d.ts writers treat them the same.
+// Filters: only @author: authorFromSource files; only @quarantined: false.
+async function discoverValidatedAuthoredHelpers(input: {
+  datafetchHome: string;
+  tenantId: string;
+}): Promise<PreseedHelperMeta[]> {
+  const { datafetchHome, tenantId } = input;
+  const libDir = path.join(datafetchHome, "lib", tenantId);
+  let entries: string[];
+  try {
+    entries = await fsp.readdir(libDir);
+  } catch {
+    return [];
+  }
+  const meta: PreseedHelperMeta[] = [];
+  for (const file of entries) {
+    if (!file.endsWith(".ts")) continue;
+    const src = await fsp.readFile(path.join(libDir, file), "utf8").catch(() => "");
+    if (!src) continue;
+    if (!/@author: authorFromSource/.test(src)) continue;
+    if (!/@quarantined: false/.test(src)) continue;
+    const intentMatch = src.match(/intent:\s*(['"`])((?:\\.|[^\\])*?)\1/);
+    const exportMatch = src.match(/export\s+const\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*fn\(/);
+    const inputMatch = src.match(/input:\s*v\.object\(\s*\{([\s\S]*?)\}\s*\)/);
+    const inputKeys: string[] = [];
+    if (inputMatch) {
+      const body = inputMatch[1]!;
+      const keyRe = /(^|\n|,)\s*([A-Za-z_][A-Za-z0-9_]*)\s*:/g;
+      let m: RegExpExecArray | null;
+      while ((m = keyRe.exec(body)) !== null) {
+        const key = m[2]!;
+        if (!inputKeys.includes(key)) inputKeys.push(key);
+      }
+    }
+    const name = exportMatch ? exportMatch[1]! : file.slice(0, -3);
+    const intent = intentMatch ? intentMatch[2]!.replace(/\s+/g, " ").trim() : `(no intent string in ${file})`;
+    meta.push({ name, intent, inputKeys });
+  }
+  return meta;
+}
+
 async function dropPreseedHelpers(input: {
   datafetchHome: string;
   tenantId: string;
