@@ -174,6 +174,7 @@ export function extractTemplateFromCalls(
   const pickedTopic =
     pickRecordToolFanoutTopic(calls, intentSignature) ??
     pickPureToolFanoutTopic(calls, intentSignature) ??
+    pickPureDbFanoutTopic(calls, intentSignature) ??
     pickTopicForCalls(trajectory, calls);
   const preservesCanonicalName =
     isPureToolFanoutCalls(calls) || pickedTopic === "tool_fanout_enrichment";
@@ -720,6 +721,23 @@ function pickPureToolFanoutTopic(
   }
   if (!isPureToolFanoutCalls(calls)) return null;
   return /^FANOUT\(tool\)$/.test(intentSignature) ? "tool_fanout" : null;
+}
+
+// Iter9f (Goal-5 e9f): canonical topic for pure FANOUT(db) trajectories.
+// Mirrors pickPureToolFanoutTopic. Without this, the topic falls back to
+// pickTopicForCalls which derives a name from the agent's snippet text
+// (often producing cryptic names like "async" parsed from
+// "async function main()"). The canonical "db_fanout" topic produces
+// the helper name "dbFanout" via semanticName, which matches the
+// intent-signature dispatcher's `lib.dbFanout → FANOUT(db)` entry.
+function pickPureDbFanoutTopic(
+  calls: ReadonlyArray<PrimitiveCallRecord>,
+  intentSignature: string,
+): string | null {
+  if (!/^FANOUT\(db\)$/.test(intentSignature)) return null;
+  if (calls.length < 2) return null;
+  if (!calls.every((c) => c.primitive.startsWith("db."))) return null;
+  return "db_fanout";
 }
 
 // --- bindInputs ------------------------------------------------------------
