@@ -1,0 +1,10 @@
+{
+  "interactionId": "e93e3e85-68ce-4be9-ad5a-621f43f1b569",
+  "arm": "substrate-on",
+  "query": "can you tell me the date that randall wallace was born?",
+  "agentAnswer": "",
+  "goldAnswer": "1949-07-28",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

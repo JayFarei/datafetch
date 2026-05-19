@@ -171,11 +171,20 @@ static_or_dynamic: ${record.staticOrDynamic})
 
 ## How to write your answer
 
-Write **scripts/answer.ts** with the SHAPE. **Make multiple targeted
-searches**, one per distinct entity or key concept in the question. The
-substrate learns from repeated patterns; multiple focused searches give
-better retrieval than one broad search AND let the substrate amortise
-your search work across sibling questions.
+**FIRST, check df.d.ts for a "Learned helpers available in this tenant"
+banner at the top.** If you see a \`df.lib.<name>(input)\` listed there
+whose intent matches the kind of question you're answering, PREFER
+CALLING IT over rewriting the retrieval+extract chain. Usage:
+\`\`\`ts
+const result = await df.lib.<name>({ /* small intent-shape input */ });
+const items = (result as { value?: unknown }).value;
+\`\`\`
+
+If no learned helper fits, fall back to **multiple targeted searches**,
+one per distinct entity or key concept in the question. The substrate
+learns from repeated patterns; multiple focused searches give better
+retrieval than one broad search AND let the substrate amortise your
+search work across sibling questions.
 
 \`\`\`ts
 // Decompose the question into 2-4 specific search queries (entities,
@@ -235,6 +244,53 @@ console.log(pages.map((p) => p.pageName));
 return df.answer({ status: "answered", value: "probe", evidence: [], derivation: "probe" });
 `;
 
+// Iter9e (Goal-5): scan the tenant's lib dir for authored helpers and emit
+// type declarations + a `Learned helpers` banner. Generic — works for any
+// authored df.lib.* helper regardless of benchmark.
+async function buildDfDtsWithLearnedHelpers(
+  snippetBaseDir: string,
+  tenantId: string,
+): Promise<string> {
+  let banner = "";
+  let libDecls = "";
+  try {
+    const { readdir, readFile: rf } = await import("node:fs/promises");
+    const libDir = resolve(snippetBaseDir, "lib", tenantId);
+    const files = await readdir(libDir).catch(() => [] as string[]);
+    const helpers: Array<{ name: string; intent: string }> = [];
+    for (const file of files) {
+      if (!file.endsWith(".ts")) continue;
+      const name = file.replace(/\.ts$/, "");
+      let intent = "(authored helper)";
+      try {
+        const src = await rf(resolve(libDir, file), "utf8");
+        const m = src.match(/intent:\s*"([^"]+)"/);
+        if (m) intent = m[1]!.slice(0, 120);
+      } catch { /* ignore */ }
+      helpers.push({ name, intent });
+    }
+    if (helpers.length > 0) {
+      banner = `\n// === Learned helpers available in this tenant ===\n` +
+        helpers
+          .map(
+            (h) =>
+              `//   df.lib.${h.name}(input)\n//     ${h.intent}\n//     PREFER THIS over rewriting the retrieval+extract chain when it fits.`,
+          )
+          .join("\n") +
+        `\n// === end learned helpers ===\n`;
+      libDecls = `\n` + helpers
+        .map((h) => `    ${h.name}(input: unknown): Promise<{ value: unknown; error?: unknown }>;`)
+        .join("\n") + `\n`;
+    }
+  } catch { /* tenant not yet has helpers; emit base df.d.ts */ }
+  // Inject learned helpers into the lib record; banner at top.
+  const base = DF_D_TS.replace(
+    `    lib: Record<string, (input: unknown) => Promise<{ value: unknown }>>;`,
+    `    lib: Record<string, (input: unknown) => Promise<{ value: unknown }>> & {${libDecls}    };`,
+  );
+  return banner + base;
+}
+
 async function setupWorkspace(opts: CragRunOpts): Promise<{
   workspaceDir: string;
   ctxFile: string;
@@ -243,20 +299,22 @@ async function setupWorkspace(opts: CragRunOpts): Promise<{
   await mkdir(join(wsDir, "scripts"), { recursive: true });
   const mountId = `crag-${opts.record.interactionId}`;
 
-  await writeFile(join(wsDir, "df.d.ts"), DF_D_TS);
+  // Iter9e: derive the tenant id (same logic as below) so we can scan
+  // its lib dir before writing df.d.ts. Surface authored helpers to the
+  // agent's typed surface.
+  const family = `crag-${opts.record.domain}-${opts.record.questionType}`;
+  const tenantIdForSetup = opts.arm === "substrate-on" ? `crag-on-${family}` : `crag-off-${family}`;
+  const dfDtsContent = opts.arm === "substrate-on"
+    ? await buildDfDtsWithLearnedHelpers(opts.snippetBaseDir, tenantIdForSetup)
+    : DF_D_TS;
+  await writeFile(join(wsDir, "df.d.ts"), dfDtsContent);
   await writeFile(join(wsDir, "AGENTS.md"), AGENTS_MD(opts.record));
   await writeFile(join(wsDir, "scripts", "probe.ts"), SCRIPTS_PROBE_TEMPLATE);
 
   // .datafetch-ctx.json so `pnpm datafetch:run` in the workspace knows
-  // which tenant/mount/baseDir to use.
-  //
-  // Iter8 (Goal-5 e8): tenant id is per-(arm × domain × questionType), NOT
-  // per-question. This lets the dbFanout helper authored on the FIRST
-  // sibling question be warm-callable on subsequent sibling questions in
-  // the same cell. Iter7 verified the substrate authors the helper
-  // correctly; iter8 lets it actually be reused.
-  const family = `crag-${opts.record.domain}-${opts.record.questionType}`;
-  const tenantId = opts.arm === "substrate-on" ? `crag-on-${family}` : `crag-off-${family}`;
+  // which tenant/mount/baseDir to use. tenantId/family derived above
+  // for iter9e df.d.ts regeneration.
+  const tenantId = tenantIdForSetup;
   const ctx = {
     tenantId,
     datasetDir: opts.runDir,
