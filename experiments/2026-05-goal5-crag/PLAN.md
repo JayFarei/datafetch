@@ -142,4 +142,85 @@ results.
 - **2026-05-18:** Cycle started. Worktree at `.claude/worktrees/eval+crag/`
   from `main`. Branch `worktree-eval+crag`. Goal 5 condition string
   registered. Cycle dir + harness scaffolded.
-- _(next: iter1 result)_
+- **2026-05-19 iter1 (e1):** br/17 findings replicate as-written under main.
+  PASSED finding (A) — substrate gap is real and on main. Proceed.
+- **2026-05-19 iter2 (e2):** db.* modeling probe. INCONCLUSIVE. Pure tool.*
+  collapses to one toolFanout; pure db.* gets unique names but
+  single-call degenerate bodies. **Real gap = render-function coverage**
+  for non-FANOUT-tool shapes. Iter3+ stops further synthetic probes.
+- **2026-05-19 iter3 (e3):** vendor CRAG dataset. PASSED. 2,706 records.
+  popularity field MISSING — rubric updated.
+- **2026-05-19 iter4 (e4):** substrate plumbing smoke (hand-authored, no
+  LLM). PASSED 5/6 +1. CragWebMount + scoreTriState work; the smoke
+  proves the substrate composes against CRAG records end-to-end.
+- **2026-05-19 iter5 (e5):** claude-p driver single-question. PASSED
+  plumbing; -1 score (gold itself may be noisy per real NBA records).
+- **2026-05-19 iter6 (e6 smoke):** k=3 parallel runner with replay mutex.
+  PASSED infra; 8/8 hit 180s timeout (random first-4 records all finance/
+  real-time). Race condition discovered + fixed via process-wide mutex
+  on snippet replay phase.
+- **2026-05-19 iter6 (e6 full, running):** full 50-record small-N kicked
+  off, ETA ~100 min. Predicted outcome based on iter1+iter2 substrate
+  gap: 4-vector {NEUTRAL,NEUTRAL,NEUTRAL,NEUTRAL} + R7 FAIL because no
+  helpers crystallise under current substrate. Establishes baseline for
+  iter7's substrate-fix iteration.
+
+## Iter7+ planning (substrate render-function fix)
+
+Per iter1+iter2 findings, the substrate has render-function coverage for
+the 5 templates (toolFanout, toolFanoutEnrichment, recordToolFanout,
+recordToolEnrichment, recordToolLookup) but NONE matches the natural
+CRAG-shape trajectories (`FANOUT(db)`, `db→db`, `FANOUT(db)→compute`,
+`db→validate`). The result is either:
+- silent name-collision skip (tool.*-modeled trajectories), OR
+- single-call degenerate body (db.*-modeled trajectories)
+
+**Iter7 hypothesis:** Adding a generic `renderDbFanOutSource` (mirror
+toolFanout's full-trajectory render pattern but for db.* calls) lets the
+substrate crystallise FANOUT(db) trajectories into helpers that capture
+the full sequence + parameterise over entity values + emit intent-shape
+input contract per iter150+ pivot. This is a GENERIC fix (not CRAG-
+specific) and will benefit any future db.*-heavy benchmark.
+
+**Iter7 lever:** observer-side. Edit `src/observer/author.ts` to add
+`renderDbFanOutSource` mirroring `renderToolFanOutSource`'s structure
+(lines 1239-1370). Add `dbFanout` to the known-helper signature map
+in `src/observer/template.ts`.
+
+**Iter7 gate:** SkillCraft full-126 re-run on the new substrate hash
+must hold iter164/P1 baseline. The fix CANNOT regress R1 ≥ 0.929, R2
+tokens, R3 errors. If it does, the fix is benchmark-specific in
+behavior (even if the code looks generic) and must be rolled back.
+
+**Iter7 success:** small-N re-run on new substrate authors ≥ 1 helper
+on at least one CRAG sibling-template family. R7 > 0 minimal threshold.
+Then iter8+ measures the correctness/cost delta.
+
+## Iter8+ planning (LLM-judge augmentation)
+
+iter5/iter6 showed rule-based scorer brittleness (Nash 2.2 vs gold 4
+edge case; comparison questions with paraphrased answers). LLM-judge
+augmentation:
+- Take rule-based-tri-state as primary
+- For 0 / -1 questions, run a small claude-haiku-4-5 judge call asking
+  "is this answer semantically equivalent to the gold? +1/0/-1?"
+- Report BOTH rule-based and LLM-judge-augmented; rule-based is primary
+  for the paired-comparison test (no judge variance)
+- Cost: ~$0 on Max plan; ~5s per scoring call; ~100 calls for small-N
+
+Defer to iter8 because: (a) infrastructure dependency on small-N
+baseline, (b) doesn't change the substrate so doesn't need a SkillCraft
+re-run, (c) more useful when we know whether the substrate-ON arm is
+producing answers worth re-judging.
+
+## Iter9+ planning (full eval scale-up)
+
+When small-N stable on substrate-ON ≥ substrate-OFF and R7 > 0:
+
+- Scale to 2,706 questions (10x small-N).
+- Expected wall-clock: ~10-15 hours.
+- Cost: $0 on Max plan, but stress on Claude rate limits.
+- Use 3 workers + 180s timeout (proven config from small-N).
+- Generate final paired-comparison.md at eval/crag/results/<runId>/.
+- SkillCraft full-126 re-run on the SAME substrate hash to gate.
+- This is the Goal 5 verification surface.
