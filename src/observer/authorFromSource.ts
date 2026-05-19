@@ -88,8 +88,21 @@ export function renderFromAgentSource(args: RenderFromAgentSourceArgs): string |
   const body: ts.Block | null = ts.isBlock(mainFn.body) ? mainFn.body : null;
   if (!body) return null;
 
+  // Collect identifiers declared at the source-file's top level so the
+  // allowlist transform doesn't reject the agent body for referencing
+  // outer-scope helpers the snippet runtime injects (e.g.
+  // safeRecordsFindExact, the bare `answer` alias). These references are
+  // safe to leave in the agent body — the rewrite below will not strip
+  // them, but they will only resolve if the helper-body call site
+  // provides them. For the FinChain shape, the typical outer-scope helper
+  // is the safe-wrapper around df.db.records.findExact; calling it from
+  // the helper is harmless since the helper's body re-imports nothing
+  // and only references `df.db.records.findExact` via the safe wrapper —
+  // we'll inline it in the rewrite step (see rewriteBody).
+  const outerDeclared = collectTopLevelDeclaredNames(sf);
+
   // 2. Allowlist transform.
-  const allowlistResult = checkAllowlist(body, sf);
+  const allowlistResult = checkAllowlist(body, sf, outerDeclared);
   if (!allowlistResult.ok) return null;
 
   // 3. Mandatory parameter extraction.
@@ -103,7 +116,13 @@ export function renderFromAgentSource(args: RenderFromAgentSourceArgs): string |
   // 5. Build the helper body. Rewrite the agent's main() body so that:
   //    a) The `const <p> = <literal>;` declarations of promoted params are
   //       replaced with a single destructure from `input`.
-  //    b) The trailing `df.answer({value: <expr>, ...})` (or `answer(...)`)
+  //    b) Statements that depend on outer-declared (non-allowlisted)
+  //       runtime helpers — e.g. the `siblings = await safeRecordsFindExact(...)`
+  //       line that the snippet runtime injects — are stripped from the
+  //       helper body. The agent reads siblings for sibling-formula
+  //       inference; the helper has no need for them because the math
+  //       runs over the promoted-param literals.
+  //    c) The trailing `df.answer({value: <expr>, ...})` (or `answer(...)`)
   //       is replaced with `return <expr>` — the fn() wrapper at
   //       src/sdk/fn.ts:236 produces Result.value = <return> directly, no
   //       double-wrap.
@@ -114,6 +133,7 @@ export function renderFromAgentSource(args: RenderFromAgentSourceArgs): string |
     promotedNames: new Set(promotedNames),
     answerCallSpan: findAnswerCallSpan(body),
     answerValueExprText: answerValueExpr.text,
+    outerDeclared,
   });
 
   // 6. Formula fingerprint as intent signature.
@@ -168,7 +188,61 @@ function findMainFunction(sf: ts.SourceFile): ts.FunctionDeclaration | ts.Functi
 
 type AllowlistResult = { ok: true } | { ok: false; reason: string };
 
-function checkAllowlist(body: ts.Block, sf: ts.SourceFile): AllowlistResult {
+function collectTopLevelDeclaredNames(sf: ts.SourceFile): Set<string> {
+  const out = new Set<string>();
+  const visit = (node: ts.Node): void => {
+    if (ts.isVariableStatement(node)) {
+      for (const decl of node.declarationList.declarations) {
+        if (ts.isIdentifier(decl.name)) out.add(decl.name.text);
+        // Destructuring not handled — top-level FinChain agent code uses
+        // bare consts in practice; the iter 4 demonstration verifies.
+      }
+    }
+    if (ts.isFunctionDeclaration(node) && node.name) {
+      out.add(node.name.text);
+    }
+  };
+  // Walk only top-level statements (immediate children of the source
+  // file body); the snippet runtime's IIFE wrapper hoists everything
+  // declared inside the user's source up to the top level of the
+  // generated module before main() runs.
+  sf.statements.forEach(visit);
+  // Many DiskSnippetRuntime-generated modules expose the user's body
+  // inside an `export const __df_done = (async () => { ... })();` IIFE.
+  // Walk one level into that IIFE body too so outer helpers declared
+  // there (e.g. `safeRecordsFindExact`) are visible.
+  const visitDeep = (node: ts.Node): void => {
+    if (ts.isCallExpression(node)) {
+      const expr = node.expression;
+      if (
+        ts.isParenthesizedExpression(expr) &&
+        (ts.isArrowFunction(expr.expression) || ts.isFunctionExpression(expr.expression)) &&
+        expr.expression.body &&
+        ts.isBlock(expr.expression.body)
+      ) {
+        for (const stmt of expr.expression.body.statements) visit(stmt);
+      }
+    }
+    if (ts.isVariableStatement(node)) {
+      for (const decl of node.declarationList.declarations) {
+        if (decl.initializer) {
+          if (
+            ts.isArrowFunction(decl.initializer) ||
+            ts.isFunctionExpression(decl.initializer) ||
+            ts.isCallExpression(decl.initializer)
+          ) {
+            // Descend into IIFE bodies attached to variable initialisers
+            visitDeep(decl.initializer);
+          }
+        }
+      }
+    }
+  };
+  sf.statements.forEach(visitDeep);
+  return out;
+}
+
+function checkAllowlist(body: ts.Block, sf: ts.SourceFile, outerDeclared: Set<string>): AllowlistResult {
   void sf;
   let answerCalls = 0;
   let importStmts = 0;
@@ -218,7 +292,8 @@ function checkAllowlist(body: ts.Block, sf: ts.SourceFile): AllowlistResult {
         !isShorthand &&
         !ALLOWLIST_FREE_IDENTIFIERS.has(node.text) &&
         !ANSWER_CALL_NAMES.has(node.text) &&
-        !isBindingDeclaredInBody(body, node.text)
+        !isBindingDeclaredInBody(body, node.text) &&
+        !outerDeclared.has(node.text)
       ) {
         freeIdentRefs.push(node.text);
       }
@@ -379,6 +454,7 @@ function rewriteBody(input: {
   promotedNames: Set<string>;
   answerCallSpan: Span | null;
   answerValueExprText: string;
+  outerDeclared: Set<string>;
 }): string {
   void input.sourceFile;
   const lines: string[] = [];
@@ -388,7 +464,18 @@ function rewriteBody(input: {
     if (ts.isVariableStatement(stmt)) {
       const filteredDecls = stmt.declarationList.declarations.filter((d) => {
         if (!ts.isIdentifier(d.name)) return true;
-        return !input.promotedNames.has(d.name.text);
+        // Drop the promoted-param declarations (they're destructured above)
+        if (input.promotedNames.has(d.name.text)) return false;
+        // Drop declarations whose initializer references an outer-declared
+        // helper (e.g. `const siblings = await safeRecordsFindExact(...)`).
+        // These statements are agent scratchpad — they don't contribute to
+        // the math, and their dependencies don't exist outside the snippet
+        // runtime that injected them. Stripping them keeps the helper
+        // self-contained.
+        if (d.initializer && initializerReferencesOuter(d.initializer, input.outerDeclared, input.promotedNames)) {
+          return false;
+        }
+        return true;
       });
       if (filteredDecls.length === 0) continue;
       const kw = stmt.declarationList.flags & ts.NodeFlags.Const
@@ -406,9 +493,43 @@ function rewriteBody(input: {
       lines.push(`  return ${input.answerValueExprText};`);
       continue;
     }
+    // Strip expression-statements that call an outer-declared helper but
+    // don't bind a result (rare but possible). Keep everything else.
+    if (
+      ts.isExpressionStatement(stmt) &&
+      ts.isCallExpression(stmt.expression) &&
+      ts.isIdentifier(stmt.expression.expression) &&
+      input.outerDeclared.has(stmt.expression.expression.text)
+    ) {
+      continue;
+    }
     lines.push(`  ${stmt.getText()}`);
   }
   return lines.join("\n");
+}
+
+function initializerReferencesOuter(
+  expr: ts.Expression,
+  outer: Set<string>,
+  promoted: Set<string>,
+): boolean {
+  let found = false;
+  const visit = (node: ts.Node): void => {
+    if (found) return;
+    if (ts.isIdentifier(node) && outer.has(node.text) && !promoted.has(node.text)) {
+      // Skip property access right-side identifiers (e.g. obj.foo where
+      // `foo` is in outer just by name — but actually if outer has it,
+      // then the identifier IS the binding).
+      const parent = node.parent;
+      const isPropertyAccessName = ts.isPropertyAccessExpression(parent) && parent.name === node;
+      if (!isPropertyAccessName) {
+        found = true;
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(expr);
+  return found;
 }
 
 function formulaFingerprint(valueExprText: string, promotedNames: string[]): string {

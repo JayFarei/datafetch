@@ -173,6 +173,50 @@ check("rejects bodies with multiple df.answer calls", () => {
   assert.equal(out, null);
 });
 
+check("survives the snippet-runtime injected wrappers (safeRecordsFindExact + process.chdir at file scope)", () => {
+  // Mirrors the real shape of trajectory.sourceText after
+  // prepareAnswerSourceForRuntime + DiskSnippetRuntime.wrapSource: a
+  // top-level `const answer = df.answer.bind(df);`, a `process.chdir(...)`
+  // workspace pin, and a `const safeRecordsFindExact = ...` outer helper,
+  // all outside `async function main()`. The author MUST accept this
+  // shape (the agent's main body only uses df, Math, and the outer
+  // safeRecordsFindExact wrapper), strip the unused safeRecordsFindExact
+  // line, and emit the helper.
+  const realisticSource = [
+    'const answer = df.answer.bind(df);',
+    'process.chdir("/some/workspace");',
+    'const safeRecordsFindExact = async (filter, limit) => {',
+    '  try { return await df.db.records.findExact(filter, limit); }',
+    '  catch { return []; }',
+    '};',
+    '',
+    'async function main() {',
+    '  const siblings = await safeRecordsFindExact({}, 9);',
+    '  const principal = 2331;',
+    '  const ratePercentPhase1 = 4.94;',
+    '  const yearsPhase1 = 2;',
+    '  const ratePercentPhase2 = 9.75;',
+    '  const yearsPhase2 = 3;',
+    '  const n = 2;',
+    '  const a1 = principal * Math.pow(1 + ratePercentPhase1 / (100 * n), n * yearsPhase1);',
+    '  const a2Exact = a1 * Math.pow(1 + ratePercentPhase2 / (100 * n), n * yearsPhase2);',
+    '  const a2 = Math.round(a2Exact * 100) / 100;',
+    '  const ci = Math.round((a2 - principal) * 100) / 100;',
+    '  return answer({ status: "answered", value: ci, derivation: [], evidence: [] });',
+    '}',
+    'return await main();',
+  ].join("\n");
+  const out = renderFromAgentSource({
+    trajectory: { ...finchainTrajectory, sourceText: realisticSource },
+    template: finchainTemplate,
+    acceptedShape: { hasInlineComputation: true },
+  });
+  assert.ok(out, "expected helper source to be emitted despite outer-scope helpers");
+  // The unused siblings line should NOT appear in the rewritten body
+  assert.equal(/safeRecordsFindExact/.test(out!), false, "outer-helper-dependent declaration should be stripped from helper body");
+  assert.match(out!, /return ci;/);
+});
+
 check("formula fingerprint stays stable across cosmetic renames", () => {
   const variantSource = finchainSource.replaceAll("ratePercentPhase1", "r1").replaceAll("ratePercentPhase2", "r2");
   const a = renderFromAgentSource({
