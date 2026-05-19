@@ -118,14 +118,33 @@ export function shouldCrystallise(args: ShouldCrystalliseArgs): GateOutcome {
   //    the fan-out kind, >= 2 calls of the same primitive — pure fan-out
   //    where the agent loops the same tool over N entities is a valid
   //    crystallisation target).
-  if (slice.length < 2) {
+  //
+  //    Opt-in pure-compute exception (DATAFETCH_GATE_PURE_COMPUTE=1):
+  //    accept single-call db.* trajectories whose committed df.answer
+  //    carries a numerical value + derivation steps. This is the
+  //    composition-density lever for pure-computation benchmarks where
+  //    the agent reads records, computes inline, and commits a final
+  //    value without any df.lib.* call. Generic (no benchmark identifiers);
+  //    opt-in so SkillCraft + other tool-fanout benchmarks remain
+  //    unaffected. The crystallised helper captures the inline computation
+  //    so future siblings can call it instead of re-deriving.
+  const pureComputeOptIn =
+    (process.env["DATAFETCH_GATE_PURE_COMPUTE"] ?? "").trim().toLowerCase() === "1";
+  const singleIsDbStarWithNumericAnswer = (() => {
+    if (slice.length !== 1) return false;
+    if (!slice[0]!.primitive.startsWith("db.")) return false;
+    const answerValue = (trajectory.answer as { value?: unknown } | undefined)?.value;
+    return typeof answerValue === "number" && Number.isFinite(answerValue);
+  })();
+  const pureComputeAllowed = pureComputeOptIn && singleIsDbStarWithNumericAnswer;
+  if (slice.length < 2 && !pureComputeAllowed) {
     return {
       ok: false,
-      reason: `slice has ${slice.length} call(s); need at least 2`,
+      reason: `slice has ${slice.length} call(s); need at least 2 (DATAFETCH_GATE_PURE_COMPUTE=1 opt-in for single-call db.* + numerical-answer is permitted)`,
     };
   }
   const distinctPrimitives = new Set(slice.map((c) => c.primitive));
-  if (distinctPrimitives.size < 2 && !isSubGraph && !isPureToolFanout(slice)) {
+  if (distinctPrimitives.size < 2 && !isSubGraph && !isPureToolFanout(slice) && !pureComputeAllowed) {
     return {
       ok: false,
       reason: `trajectory has ${distinctPrimitives.size} distinct primitive(s); need at least 2`,
@@ -298,13 +317,16 @@ export function shouldCrystallise(args: ShouldCrystalliseArgs): GateOutcome {
         c.primitive.startsWith("lib."),
       );
       const directRecordToolFanout = isDirectRecordToolFanout(slice, firstDbIdx);
-      if (!downstreamLib && !directRecordToolFanout) {
+      if (!downstreamLib && !directRecordToolFanout && !pureComputeAllowed) {
         return {
           ok: false,
-          reason: "no lib.* call after the first db.* call",
+          reason: "no lib.* call after the first db.* call (DATAFETCH_GATE_PURE_COMPUTE=1 opt-in for db.* + inline-compute + numerical-answer is permitted)",
         };
       }
-      if (!consumesEarlierOutput(slice, firstDbIdx)) {
+      // Skip the data-flow consumer check for pure-compute opt-in: the
+      // single db.* call's output is consumed by inline TS computation,
+      // not by another recorded primitive call.
+      if (!pureComputeAllowed && !consumesEarlierOutput(slice, firstDbIdx)) {
         return {
           ok: false,
           reason: "no downstream call appears to consume the substrate output (data-flow check failed)",
