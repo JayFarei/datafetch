@@ -97,6 +97,30 @@ async function loadRecords(ids: string[]): Promise<CragRecord[]> {
   return ids.map((id) => found.get(id)).filter((r): r is CragRecord => r !== undefined);
 }
 
+// Iter10 (Goal-5 e10): streaming single-record loader. The full-2706
+// manifest can't fit all records in memory (5+ GB of HTML). Workers
+// call this per-job; the record is parsed, used, then GC'd before the
+// next job. Each fetch re-streams the jsonl up to the target id.
+async function loadOneRecord(id: string): Promise<CragRecord | null> {
+  const rl = createInterface({
+    input: createReadStream(JSONL_PATH, { encoding: "utf8" }),
+    crlfDelay: Infinity,
+  });
+  for await (const line of rl) {
+    if (line.length === 0) continue;
+    // Fast path: skip parsing if the line clearly doesn't contain the id.
+    // CRAG jsonl carries interaction_id as the first field; substring check
+    // is ~100x faster than JSON.parse on the 4.8GB file.
+    if (!line.includes(id)) continue;
+    const r = parseCragRecord(line);
+    if (r.interactionId === id) {
+      rl.close();
+      return r;
+    }
+  }
+  return null;
+}
+
 // ----- pool -----
 async function runPool<T, U>(
   items: T[],
@@ -143,10 +167,17 @@ async function main(): Promise<void> {
   process.stdout.write(`  records:  ${targetIds.length} (limit ${limit})\n`);
   process.stdout.write(`  total invocations: ${targetIds.length * args.arms.length}\n\n`);
 
-  const records = await loadRecords(targetIds);
-  if (records.length !== targetIds.length) {
-    process.stderr.write(`loaded ${records.length}/${targetIds.length} records; aborting\n`);
-    process.exit(1);
+  // Iter10: stream records per-job rather than pre-loading. Skip the
+  // upfront loadRecords for large manifests (>200 records) since the
+  // memory cost is prohibitive (search_results carry full HTML pages).
+  const STREAM_PER_JOB = targetIds.length > 200;
+  let records: CragRecord[] = [];
+  if (!STREAM_PER_JOB) {
+    records = await loadRecords(targetIds);
+    if (records.length !== targetIds.length) {
+      process.stderr.write(`loaded ${records.length}/${targetIds.length} records; aborting\n`);
+      process.exit(1);
+    }
   }
 
   const snippetBaseDir = resolve("/tmp", `df-iter6-${process.pid}-${Date.now()}`);
@@ -154,24 +185,42 @@ async function main(): Promise<void> {
   const { snippetRuntime } = await installSnippetRuntime({ baseDir: snippetBaseDir });
   await installFlueDispatcher({ baseDir: snippetBaseDir, skipSeedMirror: true });
 
-  // Build the full job list (record × arm).
-  type Job = { record: CragRecord; arm: CragArm };
+  // Build the full job list. For small manifests we hold the record
+  // inline; for large manifests we hold only the id and stream the
+  // record per worker job (iter10 streaming refactor).
+  type Job =
+    | { kind: "inline"; record: CragRecord; arm: CragArm }
+    | { kind: "stream"; id: string; arm: CragArm };
   const jobs: Job[] = [];
   for (const arm of args.arms) {
-    for (const record of records) {
-      jobs.push({ record, arm });
+    if (STREAM_PER_JOB) {
+      for (const id of targetIds) jobs.push({ kind: "stream", id, arm });
+    } else {
+      for (const record of records) jobs.push({ kind: "inline", record, arm });
     }
   }
 
   const wallStart = Date.now();
-  process.stdout.write(`Starting ${jobs.length} invocations across ${args.workers} workers...\n\n`);
+  process.stdout.write(
+    `Starting ${jobs.length} invocations across ${args.workers} workers (mode: ${STREAM_PER_JOB ? "stream" : "inline"})...\n\n`,
+  );
   const results = await runPool(
     jobs,
     args.workers,
     async (job): Promise<CragRunResult> => {
-      const runDir = resolve(runRoot, job.arm, job.record.interactionId);
+      let record: CragRecord;
+      if (job.kind === "inline") {
+        record = job.record;
+      } else {
+        const r = await loadOneRecord(job.id);
+        if (!r) {
+          throw new Error(`record ${job.id} not found in jsonl`);
+        }
+        record = r;
+      }
+      const runDir = resolve(runRoot, job.arm, record.interactionId);
       return await runOneCragQuestion({
-        record: job.record,
+        record,
         arm: job.arm,
         runDir,
         worktreeRoot: WT_ROOT,
