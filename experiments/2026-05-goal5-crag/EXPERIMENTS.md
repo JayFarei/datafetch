@@ -296,3 +296,23 @@ The two new rows vs the SkillCraft cycle format:
   - SkillCraft 1-task sanity: eval/crag/reports/skillcraft-sanity-iter7-1task/
   - small-N re-run: eval/crag/results/small-n-1779157398395/paired-comparison.md
   - substrate hash: `9b20afb97` (iter7) → `a9b6af8d5` (iter7 sanity commit)
+
+### E8: harness fix — per-family tenants for sibling helper reuse; reveals deeper iter9 gap
+- Date: 2026-05-19
+- Goal: P8 — fix the harness gap identified in iter7 (per-question tenants prevented R7) and verify R7 fires when the dbFanout helper can warm-call across siblings.
+- Hypothesis: Changing tenant id from `crag-on-<interactionId>` to `crag-on-<family>` (where family = `crag-<domain>-<questionType>`) lets the 11 movie/simple questions share a tenant. Helper authored on Q1 should be warm-callable on Q2-Q11.
+- Lever: harness-only. Edits to `src/eval/cragRunner.ts` (~6 lines): tenant id derivation changed in both setupWorkspace and readAndReplay; readAndReplay signature extended to take family.
+- Change: pnpm typecheck clean. pnpm test 374/374 pass. cragRunner.ts is eval-layer, no substrate-runtime impact.
+- Probe (3 movie/simple sequential, substrate-on only): all 3 questions ran end-to-end. Q1 got +1 (exact match), Q2 and Q3 got -1. **R7 still 0/3** — trajectory call count was 1 per question (single `df.db.cragWeb.search` call). The shared family tenant's lib directory was never created because no trajectory had ≥2 calls.
+- Status: PASSED implementation / **NEW GAP IDENTIFIED**.
+- **Root cause of R7 STILL FAIL**: the prompt template (AGENTS.md) shows agents doing ONE `df.db.cragWeb.search(query, {limit:5})` call to retrieve all 5 pages, then extracting locally. With trajCalls=1 per question, there's no FANOUT pattern to crystallise (substrate requires ≥2 calls for template extraction). The substrate fix works correctly; the harness fix works correctly; but the agent's natural call pattern doesn't produce FANOUT(db) trajectories.
+- Lessons:
+  1. Stacked gaps. Iter7 fixed render-function coverage. Iter8 fixed tenant sharing. Iter9 must fix agent call pattern.
+  2. The dbFanout helper assumes the agent will fan a single method over multiple entity values — that's the CRAG comparison/multi-hop shape. But the AGENTS.md prompt encourages single-call retrieval. Mismatch.
+  3. Possible iter9 levers: (a) change AGENTS.md to suggest multiple targeted searches per question ("search for each key term separately"), (b) pre-seed a `df.lib.cragMultiSearch` helper that fans `cragWeb.search` over multiple query strings, and trust the agent to discover it via apropos, (c) provide multiple specialised collections (`cragWebFinance.search`, `cragWebMovie.search`) so cross-collection FANOUT(db) emerges naturally.
+  4. Goal 5's R7 condition ("R7 fires on at least one sibling-template family") is structurally bounded by agent behaviour, not substrate quality. iter9's prompt-engineering work is unavoidable for Goal 5 to fully complete.
+- Artefacts:
+  - harness change: src/eval/cragRunner.ts (~6 lines around tenant id derivation)
+  - probe: eval/crag/scripts/run-iter8-sibling-probe.ts (3 movie/simple sequential)
+  - probe results: eval/crag/results/iter8-sibling-probe-1779164177327/
+  - substrate hash: still `9b20afb97` (no substrate change in iter8, just harness)

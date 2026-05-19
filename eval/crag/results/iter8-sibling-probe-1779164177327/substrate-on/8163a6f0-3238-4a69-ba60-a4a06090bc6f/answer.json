@@ -1,0 +1,10 @@
+{
+  "interactionId": "8163a6f0-3238-4a69-ba60-a4a06090bc6f",
+  "arm": "substrate-on",
+  "query": "in 2004, which animated film was recognized with the best animated feature film oscar?",
+  "agentAnswer": "Finding Nemo",
+  "goldAnswer": "finding nemo",
+  "altAns": [],
+  "score": 1,
+  "scoreReason": "exact match (gold)"
+}

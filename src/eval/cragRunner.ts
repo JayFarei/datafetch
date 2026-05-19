@@ -231,15 +231,23 @@ async function setupWorkspace(opts: CragRunOpts): Promise<{
 
   // .datafetch-ctx.json so `pnpm datafetch:run` in the workspace knows
   // which tenant/mount/baseDir to use.
+  //
+  // Iter8 (Goal-5 e8): tenant id is per-(arm × domain × questionType), NOT
+  // per-question. This lets the dbFanout helper authored on the FIRST
+  // sibling question be warm-callable on subsequent sibling questions in
+  // the same cell. Iter7 verified the substrate authors the helper
+  // correctly; iter8 lets it actually be reused.
+  const family = `crag-${opts.record.domain}-${opts.record.questionType}`;
+  const tenantId = opts.arm === "substrate-on" ? `crag-on-${family}` : `crag-off-${family}`;
   const ctx = {
-    tenantId: opts.arm === "substrate-on" ? `crag-on-${opts.record.interactionId}` : `crag-off-${opts.record.interactionId}`,
+    tenantId,
     datasetDir: opts.runDir,
     datafetchHome: opts.snippetBaseDir,
     bundles: [] as string[],
     toolRunnerPath: "",
     snippetTimeoutMs: opts.timeoutMs ?? 90_000,
     mountId,
-    family: `crag-${opts.record.domain}-${opts.record.questionType}`,
+    family,
   };
   const ctxFile = join(wsDir, ".datafetch-ctx.json");
   await writeFile(ctxFile, JSON.stringify(ctx, null, 2));
@@ -404,6 +412,7 @@ async function readAndReplay(
   snippetBaseDir: string,
   arm: CragArm,
   interactionId: string,
+  family: string,
 ): Promise<{
   agentAnswer: string;
   exitCode: number | null;
@@ -430,11 +439,15 @@ async function readAndReplay(
     };
   }
 
-  // Run the agent's snippet through the substrate.
+  // Run the agent's snippet through the substrate. Iter8 (Goal-5 e8):
+  // tenant id is per-family (arm × domain × questionType) so the dbFanout
+  // helper authored on the first sibling is warm-callable on subsequent
+  // siblings. interactionId param kept for per-question artefact paths.
+  void interactionId;
   const result = (await snippetRuntime.run({
     source,
     sessionCtx: {
-      tenantId: arm === "substrate-on" ? `crag-on-${interactionId}` : `crag-off-${interactionId}`,
+      tenantId: arm === "substrate-on" ? `crag-on-${family}` : `crag-off-${family}`,
       mountIds: [mountId],
       baseDir: snippetBaseDir,
     },
@@ -519,6 +532,7 @@ export async function runOneCragQuestion(opts: CragRunOpts): Promise<CragRunResu
           opts.snippetBaseDir,
           opts.arm,
           opts.record.interactionId,
+          `crag-${opts.record.domain}-${opts.record.questionType}`,
         );
         return { replay: r, mountId };
       } finally {
