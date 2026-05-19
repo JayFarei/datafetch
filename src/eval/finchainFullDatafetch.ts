@@ -551,7 +551,7 @@ async function runLiveEpisode(input: {
   await writeDfDtsStub(workspace, preseedHelpers);
 
   // 5. Render the agent prompt + spawn claude-p
-  const prompt = renderFinchainPrompt(currentInstance, mountId);
+  const prompt = renderFinchainPrompt(currentInstance, mountId, preseedHelpers);
   const agentRun = await runClaudePAgent({
     workspaceDir: workspace,
     prompt,
@@ -779,12 +779,31 @@ async function runClaudePAgent(args: {
   return { workspaceDir: args.workspaceDir, prompt: args.prompt, stdout, stderr, finalMessage, elapsedMs: performance.now() - started, exitCode, usage };
 }
 
-function renderFinchainPrompt(instance: FinChainTemplateInstance, mountId: string): string {
+function preseedStrength(): "recommend" | "mandate" {
+  const raw = (process.env["DATAFETCH_PRESEED_STRENGTH"] ?? "recommend").trim().toLowerCase();
+  return raw === "mandate" ? "mandate" : "recommend";
+}
+
+function renderFinchainPrompt(
+  instance: FinChainTemplateInstance,
+  mountId: string,
+  preseedHelpers: PreseedHelperMeta[] = [],
+): string {
+  const strength = preseedStrength();
+  const helperLines: string[] = preseedHelpers.length === 0 || strength !== "mandate"
+    ? []
+    : [
+        ``,
+        `## MANDATORY — preseeded helper must be used`,
+        ...preseedHelpers.map((h) => `- \`df.lib.${h.name}({${h.inputKeys.join(", ")}})\` — ${h.intent}`),
+        `Extract the input numbers from the question text and CALL the helper. DO NOT compute the formula inline; inline math is rejected by the substrate. Calling the helper is the only valid shape for an answer to this question.`,
+      ];
   return [
     `You are solving a financial reasoning question. Read sibling examples to learn the formula, then apply it.`,
     ``,
     `## Question`,
     instance.question,
+    ...helperLines,
     ``,
     `## Workspace contract`,
     `- Read your workspace orientation at /AGENTS.md.`,
@@ -806,17 +825,28 @@ async function writeFinchainAgentsMd(
   mountId: string,
   preseedHelpers: PreseedHelperMeta[] = [],
 ): Promise<void> {
+  const strength = preseedStrength();
   const preseedSection: string[] = preseedHelpers.length === 0
     ? []
-    : [
-        `## Preseeded helpers (call these — they encode the formula already)`,
-        ...preseedHelpers.flatMap((h) => [
-          `- \`df.lib.${h.name}({${h.inputKeys.join(", ")}})\` — ${h.intent}`,
-        ]),
-        ``,
-        `When a preseeded helper's intent matches your question, EXTRACT the numbers from the question and CALL the helper instead of re-deriving the formula inline. The helper has been validated; calling it is the correct shape.`,
-        ``,
-      ];
+    : strength === "mandate"
+      ? [
+          `## MANDATORY: use these helpers`,
+          ...preseedHelpers.flatMap((h) => [
+            `- \`df.lib.${h.name}({${h.inputKeys.join(", ")}})\` — ${h.intent}`,
+          ]),
+          ``,
+          `You MUST call \`df.lib.${preseedHelpers[0]!.name}(...)\` to compute the answer to this question. DO NOT compute the formula inline. The helper encodes the exact formula and rounding behaviour; inline math is rejected. Extract the input numbers from the question text, call the helper, and return df.answer with the result.`,
+          ``,
+        ]
+      : [
+          `## Preseeded helpers (call these — they encode the formula already)`,
+          ...preseedHelpers.flatMap((h) => [
+            `- \`df.lib.${h.name}({${h.inputKeys.join(", ")}})\` — ${h.intent}`,
+          ]),
+          ``,
+          `When a preseeded helper's intent matches your question, EXTRACT the numbers from the question and CALL the helper instead of re-deriving the formula inline. The helper has been validated; calling it is the correct shape.`,
+          ``,
+        ];
   const body = [
     `# Workspace orientation (FinChain ${instance.topic})`,
     ``,

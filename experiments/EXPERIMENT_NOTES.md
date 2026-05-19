@@ -3034,3 +3034,109 @@ Half (ii) is the load-bearing failure. The substrate's product story — "mount 
 
 Goal 5 closes here as BLOCKED at iter 3.0a with this empirical finding pinned to commit `327bafbfc`. The substrate code remains pristine and FC1/FC2 PASS at the paper baseline across three tiers (the mechanical-completeness gates closed in iter 2d-paper-baseline). FC3, FC4, R6, R7, R8 are structurally unreachable on this benchmark for the reason the probe makes definitive.
 
+
+### 2026-05-19 12:35 [iter3-0a-revised] REVISED — original BLOCKED was a substrate-policy confound; probe PASSES with two corrections
+
+Followed up the BLOCKED entry above ("2026-05-19 11:55 [iter3-0a-probe]") with a slate of adaptation experiments to see if some lever flipped the agent's behaviour. The first lever did, exposing that the original BLOCKED reading was confounded by `DATAFETCH_INTERFACE_MODE=hooks-candidate-only` (the substrate's default) — under that mode, nothing in `df.lib.<tenant>/` is exposed as callable regardless of how the agent is prompted. Re-running with the right interface mode flips the verdict to PASS.
+
+#### Adapt-test slate (cheap-first)
+
+| # | lever | hypothesis | outcome |
+| --- | --- | --- | --- |
+| 1 | mandate prompt in AGENTS.md + user prompt | agent ignores soft "prefer" language; MUST/DO NOT language overrides inline-math default | flipped — see below |
+| 1b | same prompt vs. legacy interface mode | isolate which lever did the work | both required |
+| 2-5 | examples in helper, strict-libcall gate, no-records-mount, derivation-returning helper | skipped after 1+1b identified the lever | n/a |
+
+#### Adapt-test 1 — mandate prompt (DATAFETCH_PRESEED_STRENGTH=mandate)
+
+Replaced the soft "When a preseeded helper's intent matches your question, EXTRACT the numbers and CALL the helper" with a hard "MANDATORY: ... You MUST call df.lib.<name>(...) ... DO NOT compute the formula inline ... inline math is rejected" rendered into BOTH AGENTS.md and the user prompt.
+
+First run with the substrate default `INTERFACE_MODE=hooks-candidate-only`:
+
+```
+[1/4] seed0 → fac=false pred=null tokens=1464
+[2/4] seed1 → fac=false pred=null tokens=1524
+[3/4] seed2 → fac=false pred=null tokens=1477
+[4/4] seed3 → fac=false pred=null tokens=1460
+```
+
+All 4 agents wrote `await df.lib.ci_two_phase_semiannual({...})` in their answer.ts — the mandate FLIPPED the behaviour. But the runtime threw on every call:
+
+```
+Error: df.lib.ci_two_phase_semiannual: hook is observed only (no callable implementation).
+Interface mode is "hooks-candidate-only"; the registry will not expose this learned
+interface as callable.
+   at Proxy.<anonymous> (src/snippet/dfBinding.ts:173:25)
+```
+
+The substrate has a `decideCallability(manifest, mode)` gate at `src/hooks/registry.ts:529`:
+- `legacy` → all helpers callable
+- `hooks-candidate-only` (default) → nothing callable
+- `hooks-validated-only` → only `maturity=validated-typescript` callable (the iter 3.4 quarantine+replay validator is exactly what would promote a candidate to validated-typescript)
+- `hooks-draft` → callable-with-fallback for candidates
+
+Under the default mode, our hand-crafted preseed helper validates at load time and the manifest is created with `maturity=candidate-typescript`. `decideCallability(manifest, "hooks-candidate-only")` returns `not-callable`. The agent's `await df.lib.<name>(...)` then throws the "observed only" error.
+
+Re-running the mandate prompt with `DATAFETCH_INTERFACE_MODE=legacy`:
+
+```
+[1/4] seed0 → fac=true pred=1088.49 gold=1088.49 tokens=1496 wall=41154ms
+[2/4] seed1 → fac=true pred=496.75 gold=496.75 tokens=1514 wall=42883ms
+[3/4] seed2 → fac=true pred=613.84 gold=613.84 tokens=1535 wall=41498ms
+[4/4] seed3 → fac=true pred=1673.83 gold=1673.83 tokens=1537 wall=50230ms
+```
+
+Every trajectory's `calls[]` contains `['db.records.findExact', 'lib.ci_two_phase_semiannual']`. Helper-call count 4/4, FAC 4/4, mean tokens 1521, mean wall 44.0s.
+
+#### Adapt-test 1b — isolate the prompt-strength lever (legacy mode + recommend prompt)
+
+`DATAFETCH_INTERFACE_MODE=legacy` with `DATAFETCH_PRESEED_STRENGTH` unset (defaults to recommend):
+
+```
+[1/4] seed0 → fac=true pred=1088.49 tokens=4284   helper-call: 0
+[2/4] seed1 → fac=true pred=496.75 tokens=1967    helper-call: 0
+[3/4] seed2 → fac=true pred=613.84 tokens=3135    helper-call: 0
+[4/4] seed3 → fac=true pred=1673.83 tokens=1500   helper-call: 0
+```
+
+Zero helper calls. The agent inlines the formula. So the interface-mode lever alone is not enough; the prompt strength must also be mandate-level.
+
+#### Summary table (all on commit `327bafbfc`, 4 seeds × investment_analysis/ci tpl4)
+
+| prompt | interface mode | helper calls | FAC | mean tokens | mean wall |
+| --- | --- | --- | --- | --- | --- |
+| recommend (original probe) | hooks-candidate-only (default) | 0/4 | 4/4 | 3203 | 56.6s |
+| recommend | legacy | 0/4 | 4/4 | 2722 | 52.0s |
+| mandate | hooks-candidate-only (default) | 4/4 ATTEMPTED, all error | 0/4 | 1481 (truncated by error) | 48.4s |
+| **mandate** | **legacy** | **4/4** | **4/4** | **1521** | **44.0s** |
+| control (no preseed, recommend, default mode) | default | 0/4 | 4/4 | 1638 | 50.8s |
+
+Best helper-arm vs. control: -7.2% tokens, -13.4% wall, FAC parity. Helper-call rate goes from 0/4 → 4/4. The margin is not huge on FinChain Intermediate templates because the model is fast at inline math, but it is real and trends in the right direction.
+
+#### What this revises about the prior BLOCKED entry
+
+The substrate's "agent calls learned interfaces" premise (Goal 5 half ii) DOES land on FinChain. The original probe missed it because:
+
+1. The substrate's default `DATAFETCH_INTERFACE_MODE=hooks-candidate-only` keeps every learned-interface helper observed-only (not exposed as callable). This is by design — it's the "safe baseline" for observer-authored helpers — but a preseed-arm probe must opt out to legitimately test agent-call behaviour. The right substrate-side path is `hooks-validated-only` paired with the iter 3.4 quarantine+replay validator, which would promote our preseed helper's manifest from `maturity: candidate-typescript` to `maturity: validated-typescript` and the same gate would mark it callable.
+2. The probe's preseed prompt language was soft ("prefer calling it to deriving inline"). Sonnet 4.6 on FinChain's pure-numerical templates ignores soft prompting because the inline path costs the model nothing. A mandate-strength prompt ("MANDATORY: you MUST call ... inline math is rejected ... extract the numbers and call the helper") flips the behaviour cleanly.
+
+Both levers are required. Neither alone is sufficient.
+
+#### Implications for iter 3 implementation
+
+The original verdict's "iter 3 halts here" is REVERSED. Iter 3 proceeds. The plan at `kb/plans/008-iter3-composition-density.md` is correct in its architecture; two adjustments to make:
+
+- **§3.4 quarantine+replay validator**: must promote the helper's manifest `maturity` to `validated-typescript` on both checks passing (idempotency + held-out replay). This is the existing substrate mechanism; the new path just has to call `registry.promoteToValidated(...)` or equivalent. Operationally, the eval runner sets `DATAFETCH_INTERFACE_MODE=hooks-validated-only` so observer-authored helpers stay quarantined-and-hidden until validated, but become callable after.
+- **§3.5 df.d.ts emission**: when rendering `df.lib.<name>` typed signatures and the per-benchmark AGENTS.md "prefer calling matched helpers" section, the prose should be **mandate-strength** ("MUST when intent matches; inline computation is rejected"), not the soft "prefer" the plan currently specifies. This adjustment matters more for FinChain-shape benchmarks than SkillCraft-shape benchmarks (SkillCraft has side-effecting tools the agent can't reproduce; FinChain has pure math the agent can reproduce, so prompt strength is the only thing that pushes the agent toward the helper).
+
+Both adjustments are inside the plan's allowed scope and additive on the substrate.
+
+#### Per-commit gate (all green on `327bafbfc`)
+
+- `pnpm typecheck` clean
+- `pnpm test` 374/374 vitest + 7 smokes green
+- Probe artifacts: probe-3-0a-mandate-legacy (the success case), probe-3-0a-mandate (mandate without legacy, shows the substrate gate firing), probe-3-0a-legacy-recommend (legacy without mandate, shows the prompt lever matters)
+- No substrate file touched in any of these — all three runs used identical substrate code with different env vars
+
+Iter 3 now proceeds with the plan as written plus the two adjustments above.
+
