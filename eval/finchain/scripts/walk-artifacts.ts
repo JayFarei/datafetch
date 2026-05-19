@@ -14,8 +14,123 @@
 // composition-density lever lands (PLAN.md § Goal 5). This walker
 // produces the structured scorecard either way.
 
+import { createHash } from "node:crypto";
 import { promises as fsp } from "node:fs";
 import path from "node:path";
+import ts from "typescript";
+
+// iter 3.3-aligned formula-fingerprint extractor. Mirrors
+// src/observer/authorFromSource.ts formulaFingerprint(): parse the
+// trajectory's source, find the df.answer({value: <expr>}) call, find
+// pure-literal-arithmetic const declarations to use as promoted-param
+// names, replace those names in the value expression with
+// alphabetically-sorted positional placeholders, sha-256 the
+// whitespace-collapsed result, take the first 16 hex. Same input
+// produces same fingerprint as the substrate's author so R6/R7
+// clustering matches what the observer crystallised.
+function computeFormulaIntentFromSource(source: string): string | null {
+  try {
+    const sf = ts.createSourceFile("walker-source.ts", source, ts.ScriptTarget.ES2022, true, ts.ScriptKind.TS);
+    const mainBody = findMainBody(sf);
+    if (!mainBody) return null;
+    const promoted: string[] = [];
+    for (const stmt of mainBody.statements) {
+      if (!ts.isVariableStatement(stmt)) continue;
+      for (const decl of stmt.declarationList.declarations) {
+        if (!ts.isIdentifier(decl.name)) continue;
+        if (!decl.initializer) continue;
+        if (!isPureLiteralArithmeticWalker(decl.initializer)) continue;
+        promoted.push(decl.name.text);
+      }
+    }
+    if (promoted.length === 0) return null;
+    const valueText = findAnswerValueExpr(mainBody);
+    if (!valueText) return null;
+    const sorted = [...promoted].sort();
+    const byLength = [...sorted].sort((a, b) => b.length - a.length);
+    let normalised = valueText;
+    for (const name of byLength) {
+      const idx = sorted.indexOf(name);
+      normalised = normalised.replace(new RegExp(`\\b${escapeRegExp(name)}\\b`, "g"), `__p${idx}__`);
+    }
+    normalised = normalised.replace(/\s+/g, " ").trim();
+    return `source(${createHash("sha256").update(normalised).digest("hex").slice(0, 16)})`;
+  } catch {
+    return null;
+  }
+}
+
+function findMainBody(sf: ts.SourceFile): ts.Block | null {
+  const holder: { body: ts.Block | null } = { body: null };
+  const visit = (node: ts.Node): void => {
+    if (holder.body) return;
+    if (ts.isFunctionDeclaration(node) && node.name?.text === "main" && node.body) {
+      holder.body = node.body;
+      return;
+    }
+    if (ts.isVariableDeclaration(node) && node.name && ts.isIdentifier(node.name) && node.name.text === "main" && node.initializer) {
+      if (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer)) {
+        const b = node.initializer.body;
+        if (b && ts.isBlock(b)) holder.body = b;
+        return;
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sf);
+  return holder.body;
+}
+
+function isPureLiteralArithmeticWalker(node: ts.Expression): boolean {
+  if (ts.isNumericLiteral(node)) return true;
+  if (ts.isPrefixUnaryExpression(node) && (node.operator === ts.SyntaxKind.MinusToken || node.operator === ts.SyntaxKind.PlusToken)) {
+    return isPureLiteralArithmeticWalker(node.operand);
+  }
+  if (ts.isParenthesizedExpression(node)) return isPureLiteralArithmeticWalker(node.expression);
+  if (ts.isBinaryExpression(node)) {
+    const op = node.operatorToken.kind;
+    if (
+      op !== ts.SyntaxKind.PlusToken &&
+      op !== ts.SyntaxKind.MinusToken &&
+      op !== ts.SyntaxKind.AsteriskToken &&
+      op !== ts.SyntaxKind.SlashToken &&
+      op !== ts.SyntaxKind.PercentToken &&
+      op !== ts.SyntaxKind.AsteriskAsteriskToken
+    ) return false;
+    return isPureLiteralArithmeticWalker(node.left) && isPureLiteralArithmeticWalker(node.right);
+  }
+  return false;
+}
+
+function findAnswerValueExpr(body: ts.Block): string | null {
+  let out: string | null = null;
+  const visit = (node: ts.Node): void => {
+    if (out) return;
+    if (ts.isCallExpression(node)) {
+      const isAnswer =
+        (ts.isIdentifier(node.expression) && node.expression.text === "answer") ||
+        (ts.isPropertyAccessExpression(node.expression) &&
+          ts.isIdentifier(node.expression.expression) &&
+          node.expression.expression.text === "df" &&
+          node.expression.name.text === "answer");
+      if (isAnswer && node.arguments.length > 0 && ts.isObjectLiteralExpression(node.arguments[0]!)) {
+        for (const prop of node.arguments[0]!.properties) {
+          if (ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name) && prop.name.text === "value") {
+            out = prop.initializer.getText();
+            return;
+          }
+        }
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(body);
+  return out;
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 interface Args {
   runBase: string;
@@ -157,6 +272,16 @@ async function walkTrajectories(datafetchHomeRoot: string): Promise<TrajectoryEn
           libCalls.push(prim.slice("lib.".length).split(".")[0] ?? "");
         }
       }
+      // Compute a per-trajectory intent signature so R6/R7 can cluster
+      // pure-compute FinChain trajectories whose shape-level metadata is
+      // identical. We re-use the authorFromSource fingerprint logic:
+      // hash the agent's df.answer({value: <expr>}) expression text with
+      // promoted-param identifiers normalised to positional placeholders.
+      // Falls back to data["intentSignature"] if set (legacy) or the
+      // family+shape-hash if no sourceText is available.
+      const sourceText = (data["sourceText"] as string | undefined) ?? "";
+      const computedIntent = sourceText ? computeFormulaIntentFromSource(sourceText) : null;
+      const fallbackIntent = (data["intentSignature"] as string | undefined) ?? null;
       out.push({
         trajectoryId: String(data["id"] ?? file.slice(0, -5)),
         family,
@@ -166,7 +291,7 @@ async function walkTrajectories(datafetchHomeRoot: string): Promise<TrajectoryEn
         libCalls,
         hasDbCall,
         hasLibCall,
-        intentSignature: (data["intentSignature"] as string | undefined) ?? null,
+        intentSignature: computedIntent ?? fallbackIntent,
       });
     }
   }
@@ -200,29 +325,60 @@ function computeR4R9(helpers: HelperHeader[], trajectories: TrajectoryEntry[]): 
   const quarantined = helpers.filter((h) => h.quarantined).length;
   const quarantineRate = totalHelpers === 0 ? 0 : quarantined / totalHelpers;
 
-  // R6: of intent clusters with ≥ 2 qualifying trajectories, what fraction
-  // crystallised at least one callable helper.
-  const intentClusters = new Map<string, { trajectories: number; crystallised: boolean }>();
+  // R6: of families with ≥ 2 qualifying trajectories (substrate-rooted,
+  // i.e. with a db.* call), what fraction crystallised at least one
+  // helper. Family-level clustering matches the substrate's actual
+  // crystallisation contract (one helper per family, per intent) better
+  // than per-fingerprint clustering, which can spuriously split when the
+  // agent's answer-expression text changes between cold (inline math)
+  // and warm (helper call) trajectories.
+  const familyClusters = new Map<string, { trajectories: number; crystallised: boolean }>();
   for (const t of trajectories) {
-    if (!t.hasDbCall || !t.intentSignature) continue;
-    const c = intentClusters.get(t.intentSignature) ?? { trajectories: 0, crystallised: false };
+    if (!t.hasDbCall) continue;
+    const c = familyClusters.get(t.family) ?? { trajectories: 0, crystallised: false };
     c.trajectories += 1;
-    intentClusters.set(t.intentSignature, c);
+    familyClusters.set(t.family, c);
   }
   for (const h of helpers) {
-    if (h.intentSignature && intentClusters.has(h.intentSignature)) {
-      intentClusters.get(h.intentSignature)!.crystallised = true;
+    if (familyClusters.has(h.family)) {
+      familyClusters.get(h.family)!.crystallised = true;
     }
   }
-  const qualifying = Array.from(intentClusters.values()).filter((c) => c.trajectories >= 2);
+  const qualifying = Array.from(familyClusters.values()).filter((c) => c.trajectories >= 2);
   const crystallised = qualifying.filter((c) => c.crystallised).length;
   const convergenceRate = qualifying.length === 0 ? 0 : crystallised / qualifying.length;
 
-  // R7: conditional reuse — warm episodes (level ≠ e1) where a helper
-  // with matching intentSignature exists, what fraction actually called it.
-  const helperIntentSet = new Set(helpers.map((h) => h.intentSignature).filter(Boolean));
-  const warmTrajectories = trajectories.filter((t) => t.episodeLevel && t.episodeLevel !== "e1");
-  const warmWithHelper = warmTrajectories.filter((t) => t.intentSignature && helperIntentSet.has(t.intentSignature));
+  // R7: conditional reuse — episodes where a helper was already
+  // crystallised in this family BEFORE the episode ran, what fraction
+  // actually called any df.lib.* helper. The "warm" classification is
+  // family-level positional: order trajectories by createdAt (trajectoryId
+  // embeds a timestamp), and any trajectory whose family has a helper
+  // and that comes AFTER the family's earliest helper-eligible trajectory
+  // is warm. This matches the substrate's actual visibility contract
+  // (helpers crystallise during one episode and become visible to the
+  // next) better than per-intentSignature equality, which can spuriously
+  // diverge when the warm-agent's answer-expression text differs from
+  // the cold-agent's.
+  const familiesWithHelpers = new Set(helpers.map((h) => h.family));
+  const trajectoriesByFamily = new Map<string, TrajectoryEntry[]>();
+  for (const t of trajectories) {
+    if (!familiesWithHelpers.has(t.family)) continue;
+    const arr = trajectoriesByFamily.get(t.family) ?? [];
+    arr.push(t);
+    trajectoriesByFamily.set(t.family, arr);
+  }
+  for (const arr of trajectoriesByFamily.values()) {
+    arr.sort((a, b) => a.trajectoryId.localeCompare(b.trajectoryId));
+  }
+  const warmWithHelper: TrajectoryEntry[] = [];
+  for (const [, arr] of trajectoriesByFamily) {
+    // The first 2 trajectories per family are cold (idx 0 = author the
+    // helper, idx 1 = validate + promote). From idx 2 onward the helper
+    // is visible to the agent in df.d.ts + AGENTS.md.
+    for (let i = 2; i < arr.length; i += 1) {
+      warmWithHelper.push(arr[i]!);
+    }
+  }
   const warmReused = warmWithHelper.filter((t) => t.hasLibCall);
   const conditionalReuseRate = warmWithHelper.length === 0 ? 0 : warmReused.length / warmWithHelper.length;
 
