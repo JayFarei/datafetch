@@ -107,6 +107,11 @@ export class DiskSnippetRuntime implements SnippetRuntime {
       question,
       ...(sessionCtx.trajectoryId ? { id: sessionCtx.trajectoryId } : {}),
     });
+    // iter 3.1: immutable source snapshot. Captured BEFORE the snippet
+    // executes so the observer and downstream consumers (authorFromSource,
+    // replay validators) have authoritative source metadata on the
+    // trajectory record, not a racy disk read of <artifactDir>/source.ts.
+    recorder.setSourceSnapshot(source);
     const dispatchCtx: DispatchContext = {
       tenant: sessionCtx.tenantId,
       mount: sessionCtx.mountIds[0] ?? "<no-mount>",

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
@@ -68,6 +69,16 @@ export type TrajectoryRecord = {
   artifactDir?: string;
   answer?: unknown;
   answerValidation?: unknown;
+  // iter 3.1: immutable source snapshot — the post-prepareAnswerSourceForRuntime
+  // source the snippet runtime actually executed, plus a sha-256 hash for
+  // dedup and cache invalidation. Populated synchronously in
+  // src/snippet/runtime.ts BEFORE onTrajectorySaved fires so every
+  // substrate consumer (observer, author paths, replay validators) reads
+  // authoritative metadata instead of doing a racy disk read against
+  // <artifactDir>/source.ts. Strictly additive: pre-iter-3.1 callers that
+  // don't set these get undefined, which is the legacy behaviour.
+  sourceText?: string;
+  sourceHash?: string;
 };
 
 export function datafetchHome(): string {
@@ -160,6 +171,11 @@ export class TrajectoryRecorder {
 
   setProvenance(provenance: TrajectoryProvenance): void {
     this.record.provenance = provenance;
+  }
+
+  setSourceSnapshot(source: string): void {
+    this.record.sourceText = source;
+    this.record.sourceHash = createHash("sha256").update(source).digest("hex");
   }
 
   setExecutionMetadata(metadata: {
