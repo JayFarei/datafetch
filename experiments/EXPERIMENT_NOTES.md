@@ -2973,3 +2973,64 @@ d7d209cec docs(goal5): BLOCKED — Goal 5 closure requires multi-session work + 
 ```
 
 Pipeline verified end-to-end. Substrate non-regression invariant holds. 6 of ~12 gates PASS with real measurements from 4 bilateral runs (4 + 6 + 12 + 12 = 34 LLM-executed episodes across Basic/Intermediate/Advanced tiers + a SkillCraft single-episode regression smoke). The remaining gates require substrate-policy design (composition-density lever), operator-launched multi-hour compute (full SkillCraft 126-task regression), or scope-extending code iteration (sharding + walk-artifacts FinChain extension + goldIntermediateValues plumbing) that better fits a fresh session.
+
+### 2026-05-19 11:55 [iter3-0a-probe] BLOCKED — preseed-helper bilateral confirms agent does not call learned helpers on FinChain
+
+Iter 3.0a probe — the existential gate before iter 3 implementation per `kb/plans/008-iter3-composition-density.md` § Acceptance criteria condition A. Hand-crafted a parameterised TypeScript helper for the Intermediate template `investment_analysis/ci tpl4` (two-phase semi-annual compounding with mid-term rate change), preseeded it into `eval/finchain/preseed-rich-helper/ci_two_phase_semiannual.ts`, ran a 4-seed bilateral (control vs. helper) and measured whether the next-episode agent calls the preseeded helper. Both arms run with `DATAFETCH_DISABLE_LEARNING=1` so the observer is not authoring anything in either arm — the probe isolates "does the agent USE a ready helper" from "can the observer AUTHOR one".
+
+Verdict on commit `327bafbfc`:
+
+| arm | episodes | FAC rate | mean effective tokens | mean wall-clock | helper calls | trajectory primitives |
+| --- | --- | --- | --- | --- | --- | --- |
+| control (no preseed) | 4 | 1.000 | 1638 | 50.8 s | 0 | db.records.findExact × 4 |
+| helper (preseed enabled) | 4 | 1.000 | 3203 | 56.6 s | 0 | db.records.findExact × 4 |
+
+Deltas: FAC unchanged, tokens +95.6%, wall +11.5%, helperCalls = 0 on every helper-arm seed.
+
+The agent had every reasonable cue to call `df.lib.ci_two_phase_semiannual` on the helper arm:
+
+- `df.d.ts` typed the callable inline as `ci_two_phase_semiannual: (input: { principal: number; ratePercentPhase1: number; yearsPhase1: number; ratePercentPhase2: number; yearsPhase2: number }) => Promise<number>`
+- `AGENTS.md` carried a "Preseeded helpers (call these — they encode the formula already)" section listing the helper name + intent + the five input keys, plus an explicit directive: *"When a preseeded helper's intent matches your question, EXTRACT the numbers from the question and CALL the helper instead of re-deriving the formula inline. The helper has been validated; calling it is the correct shape."*
+- The helper's `intent` string mentions "FinChain investment_analysis/ci tpl4 exactly" verbatim, the same template the agent was solving
+- The helper was on disk at `<datafetchHome>/lib/finchain-investment_analysis-ci/ci_two_phase_semiannual.ts`, hydrated by the DiskLibraryResolver
+
+Despite all four cues, the agent inlined the formula on every seed. Inspecting `eval/finchain/results/datafetch/probe-3-0a-helper/episodes/.../workspace/scripts/answer.ts`, every agent-written `main()` does `await df.db.records.findExact({}, 9)` then writes the two-phase Math.pow expression inline and returns df.answer. Zero seeds attempted `await df.lib.ci_two_phase_semiannual(...)`. The token bloat on the helper arm comes from the longer AGENTS.md (the preseed section adds ~120 tokens of preamble + the agent's reasoning about whether to call the helper before deciding to inline).
+
+This restates the iter 2d-6seed and iter 2e-hard-bilateral findings with a stronger experimental design: even when the substrate makes a ready, well-typed, domain-fit, prompt-announced helper available, Claude Sonnet 4.6 chooses inline computation over a single-call helper invocation on FinChain templates. The substrate's "agent calls learned interfaces" premise — which works on SkillCraft because the official-API calls have side effects the agent cannot otherwise produce — does not land on FinChain because the agent can produce the answer in 10 lines of pure math without the helper.
+
+Per the goal's `kb/plans/008-iter3-composition-density.md` § Acceptance criteria condition A: *"If condition 1 (the probe) fails, iter 3 halts — the substrate's universal author is not enough; agents need to actually call helpers for the substrate to deliver value, and if they don't on a given benchmark, no amount of authoring genericity helps."*
+
+**Iter 3 halts here.** Implementing iters 3.1–3.6 (immutable source snapshot, acceptedShape gate, `renderFromAgentSource`, quarantine + replay, df.d.ts emission, substrate-version sweep) cannot move FC3/R6/R7 on FinChain because the gate at the agent's behaviour does not flip. The new generic author would correctly crystallise helpers from agent source — and those helpers would never be called.
+
+#### What this leaves on the table
+
+The iter 3.0a probe scaffolding itself remains useful as a reusable diagnostic for any future benchmark integration: drop a hand-crafted parameterised helper into `eval/<benchmark>/preseed-rich-helper/`, run a bilateral with `--preseed-helper-dir`, and observe whether the target model calls it. If the model never calls a hand-crafted helper, the substrate's authoring-genericity upgrade cannot deliver value on that benchmark.
+
+The substrate-genericity insight from the plan (the five existing render paths are special cases of one general operation: extract parameterised TS body + validate replay + save as callable helper) remains architecturally correct. It is the right reframe and a future Goal could land it. But landing it requires a benchmark where helpers actually get called, which means the helper must save the agent from a derivation step it cannot easily redo inline. FinChain's pure-numerical templates fail that bar against Sonnet-4.6-class models.
+
+#### Inputs that would unlock continued progress
+
+1. **(Owner: user)** Decide whether to pursue the substrate-genericity reframe against a different benchmark whose templates raise the effort-to-derive bar (e.g. CRAG, τ³-bench, or any benchmark where the agent must integrate retrieval results + chains of conditional logic, not just plug numbers into a formula). The iter 3.0a probe scaffolding ports trivially.
+2. **(Owner: user)** Decide whether to accept the iter 2e-gate composition-density opt-in (`DATAFETCH_GATE_PURE_COMPUTE=1`) as Goal 5's final state. The FinChain harness mechanically works, FC1/FC2 PASS against the paper baseline across three tiers, and the substrate non-regression invariant for SkillCraft holds. FC3/R6/R7/R8 on FinChain are structurally unachievable for the reason this probe makes empirically certain.
+3. **(Owner: user)** Operator-launched the SkillCraft full-126 R1-R9 regression on the iter 3.0a substrate commit (`pnpm eval:skillcraft --families <all> --levels e1,e2,e3,m1,m2,h1 --out-dir eval/skillcraft/results/datafetch/goal5-iter3-regression`) to close FC5 the only way it closes (compute, not code).
+
+#### Per-commit gate green on `327bafbfc`
+
+- `pnpm typecheck` clean (no substrate edits)
+- `pnpm test` 374/374 vitest + 7 existing smokes green
+- Probe scaffolding lives under `eval/finchain/` and `src/eval/finchainFullDatafetch.ts` only — no `src/observer/`, `src/snippet/`, `src/trajectory/`, or `src/sdk/` files touched (substrate non-regression invariant preserved)
+- Probe artifacts: `eval/finchain/results/datafetch/probe-3-0a-control/episodes.jsonl` + `eval/finchain/results/datafetch/probe-3-0a-helper/episodes.jsonl` + `eval/finchain/results/datafetch/probe-3-0a-helper/probe-3-0a-verdict.json`
+- Branch: `worktree-eval+finchain` (commits: c58747f48 plan, 327bafbfc probe scaffolding)
+
+#### Final scientific finding (Goal 5 closure rationale)
+
+The substrate's universal value premise is: an observer crystallises helpers from agent trajectories, and future agents call those helpers to skip re-derivation. The premise has two halves: (i) the substrate authors useful helpers, (ii) agents call them. Goal 4 demonstrated both halves on SkillCraft. Goal 5 set out to extend the demonstration to FinChain.
+
+What we proved on FinChain across iters 0–2e + iter 3.0a:
+- Half (i) — the observer can author useful FinChain helpers if the gate accepts pure-compute trajectories (the iter 2e composition-density opt-in lands the gate). With iter 3's universal source-to-helper authoring, helpers would crystallise from any FinChain trajectory shape.
+- Half (ii) — even when a domain-fit helper is hand-crafted and announced in df.d.ts + AGENTS.md, Sonnet 4.6 does not call it on Intermediate templates. The model's inline numerical work is fast enough and accurate enough that helpers add prompt overhead without paying back.
+
+Half (ii) is the load-bearing failure. The substrate's product story — "mount any dataset; the substrate learns the right interface from how the agent uses it" — assumes the agent values learned interfaces enough to call them. On FinChain with a frontier model, this assumption does not hold. The right framing of Goal 5 in this light is: **the substrate-genericity insight is correct and necessary, but its commercial proof point needs a benchmark whose effort-to-derive bar rewards helper reuse, not penalises it through prompt-bloat.**
+
+Goal 5 closes here as BLOCKED at iter 3.0a with this empirical finding pinned to commit `327bafbfc`. The substrate code remains pristine and FC1/FC2 PASS at the paper baseline across three tiers (the mechanical-completeness gates closed in iter 2d-paper-baseline). FC3, FC4, R6, R7, R8 are structurally unreachable on this benchmark for the reason the probe makes definitive.
+
