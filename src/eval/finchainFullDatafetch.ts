@@ -29,6 +29,7 @@ import path from "node:path";
 
 import { getMountRuntimeRegistry, type MountRuntime } from "../adapter/runtime.js";
 import { installObserver } from "../observer/install.js";
+import { validateAuthoredFromSourceHelpers } from "../observer/quarantineValidator.js";
 import { installSnippetRuntime } from "../snippet/install.js";
 
 import {
@@ -621,6 +622,34 @@ async function runLiveEpisode(input: {
       if (observePromise) {
         const deadline = new Promise<void>((resolve) => setTimeout(resolve, 5_000));
         await Promise.race([observePromise.then(() => undefined), deadline]);
+      }
+    }
+    // iter 3.4: after the observer settles, run the quarantine + replay
+    // validator. Any helper that authorFromSource (iter 3.3) wrote with
+    // @quarantined: true gets idempotency + held-out genericity checks;
+    // on both passing, its header flips and its hook manifest is
+    // promoted to validated-typescript so it becomes callable under
+    // hooks-validated-only. Best-effort: validator failures don't bring
+    // down the episode.
+    if (armId !== "datafetch-control") {
+      try {
+        const validations = await validateAuthoredFromSourceHelpers({
+          baseDir: datafetchHome,
+          tenantId,
+        });
+        if (validations.length > 0) {
+          await fsp.writeFile(
+            path.join(artifactDir, "quarantine-validations.json"),
+            `${JSON.stringify(validations, null, 2)}\n`,
+            "utf8",
+          );
+        }
+      } catch (err) {
+        await fsp.appendFile(
+          path.join(artifactDir, "snippet-stderr.txt"),
+          `\n[quarantineValidator] error: ${err instanceof Error ? err.message : String(err)}\n`,
+          "utf8",
+        );
       }
     }
     await fsp.writeFile(path.join(artifactDir, "snippet-stdout.txt"), run.stdout);
