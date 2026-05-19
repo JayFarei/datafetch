@@ -26,6 +26,8 @@ import {
   type TrajectoryRecord,
 } from "../sdk/index.js";
 
+import { renderFromAgentSource } from "./authorFromSource.js";
+
 import type {
   CallTemplate,
   TemplateParameter,
@@ -104,9 +106,15 @@ export async function authorFunction(
     template,
     trajectory,
   });
+  // iter 3.3: ONE-LINE dispatch — falls through to the generic
+  // source-to-helper author only when all five existing renderers above
+  // return null AND the gate's acceptedShape hint says the trajectory has
+  // inline computation (i.e. work that lives in source, not in primitive
+  // calls). The existing five renderers are unmodified above this line.
+  const generic = pureSource ?? renderFromAgentSource({ trajectory, template, acceptedShape: args.acceptedShape });
 
-  let source: string | null = pureSource;
-  let pathTaken: "pure" | "codifier" = "pure";
+  let source: string | null = generic;
+  let pathTaken: "pure" | "codifier" | "from-source" = pureSource === null && generic !== null ? "from-source" : "pure";
 
   if (source === null) {
     // Fallback: dispatch the codifier skill via the registered Flue
