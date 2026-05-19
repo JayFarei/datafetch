@@ -95,7 +95,8 @@ export async function authorFunction(
     renderToolFanoutEnrichmentSource({ template, trajectory }) ??
     renderRecordToolEnrichmentSource({ template, trajectory }) ??
     renderRecordToolFanOutSource({ template, trajectory }) ??
-    renderFanOutSource({ template, trajectory });
+    renderFanOutSource({ template, trajectory }) ??
+    renderDbFanOutSource({ template, trajectory });  // iter7 (Goal-5 e7)
   const pureSource = fanOutSource ?? generatePureSource({
     template,
     trajectory,
@@ -294,6 +295,21 @@ function isPureToolFanout(template: CallTemplate): boolean {
   return template.steps.every((s) => s.primitive.startsWith("tool."));
 }
 
+// Iter7 (Goal-5 e7): a pure FANOUT(db) trajectory is two or more
+// consecutive db.* calls with no downstream tool.* or lib.* call. Shape
+// appears naturally on benchmarks where the agent looks up multiple
+// entities by name from a typed collection (the comparison case;
+// extraction-and-rebind multi-hop where each lookup is a separate db
+// call). This iter7 implementation handles the SAME-collection
+// single-method shape (all steps share collectionIdent + method).
+// Iter7b extends to multi-collection FANOUT(db) chains.
+function isPureDbFanout(template: CallTemplate): boolean {
+  if (template.steps.length < 2) return false;
+  if (!template.steps.every((s) => s.primitive.startsWith("db."))) return false;
+  const firstPrim = template.steps[0]!.primitive;
+  return template.steps.every((s) => s.primitive === firstPrim);
+}
+
 function isRecordToolFanout(
   template: CallTemplate,
   trajectory: TrajectoryRecord,
@@ -365,6 +381,98 @@ function parseToolPrimitive(
   const toolName = rest.slice(dot + 1);
   if (!bundle || !toolName) return null;
   return { bundle, toolName };
+}
+
+// Iter7 (Goal-5 e7): parse a db.* primitive into its collection ident
+// (the symbol the agent typed in `df.db.<ident>`) and the method name
+// (findExact / search / findSimilar / hybrid). Mirror of parseToolPrimitive.
+function parseDbPrimitive(
+  primitive: string,
+): { collectionIdent: string; method: string } | null {
+  const rest = primitive.slice("db.".length);
+  const dot = rest.indexOf(".");
+  if (dot < 0) return null;
+  const collectionIdent = rest.slice(0, dot);
+  const method = rest.slice(dot + 1);
+  if (!collectionIdent || !method) return null;
+  return { collectionIdent, method };
+}
+
+// Iter7 (Goal-5 e7): harvest the db-fanout's capability slots from the
+// originating trajectory. Mirror of harvestToolFanOutShape. Returns the
+// shared collection ident + method, the varying field's param name,
+// distinct entity values, and any constant shared input fields.
+function harvestDbFanOutShape(
+  steps: ReadonlyArray<TemplateStep>,
+  trajectory: TrajectoryRecord,
+): {
+  collectionIdent: string;
+  method: string;
+  paramName: string;
+  entityValues: Array<string | number>;
+  sharedInput: Record<string, unknown>;
+} | null {
+  if (steps.length < 2) return null;
+  const idents = new Set<string>();
+  const methods = new Set<string>();
+  for (const step of steps) {
+    const parsed = parseDbPrimitive(step.primitive);
+    if (!parsed) return null;
+    idents.add(parsed.collectionIdent);
+    methods.add(parsed.method);
+  }
+  if (idents.size !== 1 || methods.size !== 1) return null;
+  const collectionIdent = [...idents][0]!;
+  const method = [...methods][0]!;
+
+  const slice = callsForSteps(steps, trajectory);
+  if (slice.length !== steps.length) return null;
+  const fieldValues = new Map<string, Set<string>>();
+  const fieldExample = new Map<string, unknown>();
+  for (const call of slice) {
+    const input = call.input;
+    if (input === null || typeof input !== "object" || Array.isArray(input)) continue;
+    for (const [k, val] of Object.entries(input as Record<string, unknown>)) {
+      const set = fieldValues.get(k) ?? new Set<string>();
+      try { set.add(JSON.stringify(val)); } catch { set.add(String(val)); }
+      fieldValues.set(k, set);
+      if (!fieldExample.has(k)) fieldExample.set(k, val);
+    }
+  }
+  let paramName: string | null = null;
+  let maxDistinct = 1;
+  for (const [k, vals] of fieldValues) {
+    if (vals.size > maxDistinct) {
+      maxDistinct = vals.size;
+      paramName = k;
+    }
+  }
+  if (paramName === null) return null;
+
+  const seenEntities = new Set<string>();
+  const entityValues: Array<string | number> = [];
+  for (const call of slice) {
+    const input = call.input;
+    if (input === null || typeof input !== "object" || Array.isArray(input)) continue;
+    const v = (input as Record<string, unknown>)[paramName];
+    if (typeof v !== "string" && typeof v !== "number") continue;
+    const key = String(v);
+    if (seenEntities.has(key)) continue;
+    seenEntities.add(key);
+    entityValues.push(v);
+  }
+  if (entityValues.length < 2) return null;
+
+  const sharedInput: Record<string, unknown> = {};
+  for (const [k, vals] of fieldValues) {
+    if (k === paramName) continue;
+    if (vals.size === 1) {
+      const ex = fieldExample.get(k);
+      if (ex !== undefined) sharedInput[k] = ex;
+    }
+  }
+
+  return { collectionIdent, method, paramName, entityValues, sharedInput };
 }
 
 // Harvest the fan-out's capability slots from the originating
@@ -1371,6 +1479,109 @@ function renderFanOutSource(args: GenerateArgs): string | null {
     `        catch (err) { perTool[toolName] = { error: String(err) }; rawTools[toolName] = perTool[toolName]; }`,
     `      }`,
     `      results.push({ id: entityValue, entity: entityValue, entityId: entityValue, entityValue, ...perTool, tools: perTool, rawTools });`,
+    `    }`,
+    `    return results;`,
+    `  },`,
+    `});`,
+    "",
+  ].join("\n");
+}
+
+// Iter7 (Goal-5 e7): render a pure FANOUT(db) trajectory as an
+// intent-shape helper. Mirrors renderFanOutSource's structure but emits
+// a body that fans out db.<collectionIdent>.<method>(...) calls over
+// entity values. Generic — applies to ANY benchmark with db.* trajectories.
+// Returns null when the trajectory is not pure-db-fanout (caller falls
+// back to generatePureSource).
+function renderDbFanOutSource(args: GenerateArgs): string | null {
+  const { template, trajectory } = args;
+  if (!isPureDbFanout(template)) return null;
+  const shape = harvestDbFanOutShape(template.steps, trajectory);
+  if (shape === null) return null;
+
+  const example = {
+    intent: "repeated db lookup over entities",
+    limit: shape.entityValues.length,
+  };
+  // Sample output: the first call's output, shaped like the body returns.
+  const exampleOutputJson = safeJsonStringify({
+    id: shape.entityValues[0] ?? null,
+    entityValue: shape.entityValues[0] ?? null,
+    value: null,
+  });
+
+  const sdkUrl = sdkIndexUrl();
+  const valibotUrl = valibotEntryUrl();
+  const fm = fanOutFrontmatter({ template, trajectory });
+  const header = headerComment({ template, trajectory });
+  return [
+    fm,
+    header,
+    `import { fn } from "${sdkUrl}";`,
+    `import * as v from "${valibotUrl}";`,
+    "",
+    `// Goal-5 iter7 learned db fan-out interface. Mirrors the tool-fanout`,
+    `// shape but iterates a single db collection + method over an entity`,
+    `// list. The public surface is intent-shaped; planner/executor`,
+    `// internals provide collection ident, method, and param name through`,
+    `// loose, non-public fields.`,
+    `declare const df: {`,
+    `  db: Record<string, Record<string, (filter: Record<string, unknown>, limit?: number) => Promise<unknown[]>>>;`,
+    `};`,
+    "",
+    `type Input = {`,
+    `  intent?: "repeated db lookup over entities";`,
+    `  limit?: number;`,
+    `};`,
+    "",
+    `type InternalDbFanoutPlan = {`,
+    `  entityValues?: Array<string | number>;`,
+    `  collectionIdent?: string;`,
+    `  method?: string;`,
+    `  paramName?: string;`,
+    `  sharedInput?: Record<string, unknown>;`,
+    `};`,
+    "",
+    `export const ${template.name} = fn<Input, unknown>({`,
+    `  intent: ${JSON.stringify("reusable learned db fan-out: iterate one collection + method over a list of entity values, returning per-entity results")},`,
+    `  examples: [`,
+    `    {`,
+    `      input: ${safeJsonStringify(example)},`,
+    `      output: ${exampleOutputJson},`,
+    `    },`,
+    `  ],`,
+    `  input: v.looseObject({`,
+    `    intent: v.optional(v.string()),`,
+    `    limit: v.optional(v.number()),`,
+    `    entityValues: v.optional(v.array(v.union([v.string(), v.number()]))),`,
+    `    collectionIdent: v.optional(v.string()),`,
+    `    method: v.optional(v.string()),`,
+    `    paramName: v.optional(v.string()),`,
+    `    sharedInput: v.optional(v.record(v.string(), v.unknown())),`,
+    `  }),`,
+    `  output: v.unknown(),`,
+    `  body: async (input: Input): Promise<unknown> => {`,
+    `    const plan = input as Input & InternalDbFanoutPlan;`,
+    `    const entityValues = Array.isArray(plan.entityValues) ? plan.entityValues : [];`,
+    `    const collectionIdent = typeof plan.collectionIdent === "string" ? plan.collectionIdent : "";`,
+    `    const method = typeof plan.method === "string" ? plan.method : "";`,
+    `    const paramName = typeof plan.paramName === "string" ? plan.paramName : "";`,
+    `    if (!collectionIdent || !method || !paramName || entityValues.length === 0) {`,
+    `      return { error: "missing_internal_plan" };`,
+    `    }`,
+    `    const collection = df.db[collectionIdent];`,
+    `    if (!collection) return { error: "unknown_collection", collectionIdent };`,
+    `    const fn = collection[method];`,
+    `    if (typeof fn !== "function") return { error: "unknown_method", collectionIdent, method };`,
+    `    const results: Array<Record<string, unknown>> = [];`,
+    `    for (const entityValue of entityValues.slice(0, input.limit ?? entityValues.length)) {`,
+    `      const filter: Record<string, unknown> = { ...(plan.sharedInput ?? {}), [paramName]: entityValue };`,
+    `      try {`,
+    `        const value = await fn(filter);`,
+    `        results.push({ id: entityValue, entity: entityValue, entityId: entityValue, entityValue, value });`,
+    `      } catch (err) {`,
+    `        results.push({ id: entityValue, entityValue, error: String(err) });`,
+    `      }`,
     `    }`,
     `    return results;`,
     `  },`,

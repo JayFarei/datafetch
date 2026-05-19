@@ -310,6 +310,8 @@ function knownLearnedHelperIntentSignature(primitive: string): string | null {
   switch (primitive) {
     case "lib.toolFanout":
       return "FANOUT(tool)";
+    case "lib.dbFanout":
+      return "FANOUT(db)";
     case "lib.recordToolLookup":
       return "FANOUT(db)→FANOUT(tool)";
     case "lib.recordToolFanout":
