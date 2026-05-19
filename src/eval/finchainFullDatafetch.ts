@@ -28,6 +28,7 @@ import { performance } from "node:perf_hooks";
 import path from "node:path";
 
 import { getMountRuntimeRegistry, type MountRuntime } from "../adapter/runtime.js";
+import { installObserver } from "../observer/install.js";
 import { installSnippetRuntime } from "../snippet/install.js";
 
 import {
@@ -471,12 +472,18 @@ async function runLiveEpisode(input: {
   const startedAt = performance.now();
   const { episode, paths, args, armId } = input;
 
-  // 1. Workspace setup
+  // 1. Workspace setup. Per-episode workspace, per-FAMILY datafetch-home so
+  // observer-crystallised helpers in <datafetchHome>/lib/<tenantId>/ persist
+  // across episodes of the same family — this is the "lib-cache" affordance
+  // for iter 2d (a stronger explicit lib-cache hydrate/persist with cross-
+  // run promotion lands later).
   const artifactDir = path.join(args.outDir, "episodes", episode.family, episode.level, `seed${episode.seedIndex}`);
   const workspace = path.join(artifactDir, "workspace");
-  const datafetchHome = path.join(artifactDir, "datafetch-home");
+  // Per-family datafetch-home (shared across episodes within the same arm)
+  const familyDatafetchHome = path.join(args.outDir, "datafetch-home", episode.family);
+  const datafetchHome = familyDatafetchHome;
   const tenantId = `finchain-${episode.family}`;
-  await fsp.rm(artifactDir, { recursive: true, force: true });
+  await fsp.rm(workspace, { recursive: true, force: true });
   await fsp.mkdir(path.join(workspace, "scripts"), { recursive: true });
   await fsp.mkdir(path.join(datafetchHome, "lib", tenantId), { recursive: true });
 
@@ -547,6 +554,14 @@ async function runLiveEpisode(input: {
       baseDir: datafetchHome,
       skipSeedMirror: true,
     });
+    // Iter 2d minimal: install observer for substrate-ON arm. Observer's
+    // onTrajectorySaved hook fires post-snippet and crystallises helpers
+    // into <datafetchHome>/lib/<tenantId>/<name>.ts. Helpers persist across
+    // episodes because datafetchHome is per-family (shared). Substrate-OFF
+    // arm skips this — no observer, no crystallisation, no warm reuse.
+    const observerHandle = armId === "datafetch-control"
+      ? { observerPromise: new Map<string, Promise<unknown>>() }
+      : installObserver({ baseDir: datafetchHome, tenantId, snippetRuntime }).observer;
     const run = await snippetRuntime.run({
       source,
       sourcePath: answerPath,
@@ -559,6 +574,17 @@ async function runLiveEpisode(input: {
       },
     });
     snippetExitCode = run.exitCode;
+    // Wait for observer to settle on this trajectory (mirrors skillcraft's
+    // race; the observer is fire-and-forget, so without awaiting,
+    // crystallised helpers may not land on disk before the next episode
+    // hydrates).
+    if (run.trajectoryId) {
+      const observePromise = observerHandle.observerPromise.get(run.trajectoryId);
+      if (observePromise) {
+        const deadline = new Promise<void>((resolve) => setTimeout(resolve, 5_000));
+        await Promise.race([observePromise.then(() => undefined), deadline]);
+      }
+    }
     await fsp.writeFile(path.join(artifactDir, "snippet-stdout.txt"), run.stdout);
     await fsp.writeFile(path.join(artifactDir, "snippet-stderr.txt"), run.stderr);
     await fsp.writeFile(path.join(artifactDir, "snippet-result.json"), `${JSON.stringify({
@@ -577,8 +603,16 @@ async function runLiveEpisode(input: {
     await fsp.writeFile(path.join(artifactDir, "snippet-stderr.txt"), `runLiveEpisode: ${String(err)}`);
   }
 
-  // 7. Compute FAC + cleanup
+  // 7. Compute FAC + cleanup. Count helpers visible in lib/<tenant>/ as
+  // libFunctionsAvailable for the NEXT episode (the observer dropped them
+  // there if this is the substrate-ON arm).
   getMountRuntimeRegistry().unregister(mountId);
+  const libDir = path.join(datafetchHome, "lib", tenantId);
+  let libFunctionsAvailableCount = 1;  // per_entity seed
+  try {
+    const entries = await fsp.readdir(libDir);
+    libFunctionsAvailableCount = entries.filter((e) => e.endsWith(".ts")).length + 1;  // +1 for seed
+  } catch { /* empty */ }
   const goldFinalValue = currentInstance.goldFinalValue;
   const facMatch = goldFinalValue !== null && predictedFinalValue !== null
     && isFacMatch(predictedFinalValue, goldFinalValue);
@@ -616,9 +650,9 @@ async function runLiveEpisode(input: {
     agentElapsedMs: Math.round(agentRun.elapsedMs),
     wallClockMs: Math.round(elapsedMs),
     llmCalls: agentRun.usage.llmCalls,
-    libFunctionsAvailable,
+    libFunctionsAvailable: libFunctionsAvailableCount,
     libFunctionsUsed,
-    libFunctionsCreated: 0,
+    libFunctionsCreated: Math.max(0, libFunctionsAvailableCount - libFunctionsAvailable),
     reuseRate: null,
     artifactPath: path.relative(process.cwd(), artifactDir),
   };
