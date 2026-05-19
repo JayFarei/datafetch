@@ -1,0 +1,21 @@
+You are solving one official SkillCraft task inside a Datafetch workspace.
+
+Task: scaled_tasks/pokeapi-pokedex/e1
+
+Read task.md, AGENTS.md, df.d.ts, and any initial workspace files.
+Edit scripts/answer.ts so it completes the task.
+Stay inside the current episode workspace. Do not read or write repo-root files via absolute paths, and do not create output files outside this workspace. The required output JSON must be written in the current workspace only.
+Cost matters: use `task.md`, `AGENTS.md`, and `df.d.ts` as the primary context. Do not dump full `tool_manifest.json`, full tool responses, or the full generated `scripts/answer.ts` back into the transcript unless a specific failure requires it; inspect targeted sections instead.
+When df.d.ts declares df.db.records, the entities for this task are mounted as a substrate-rooted record store. Each record carries `id` (the raw, tool-callable identifier — e.g. "Siamese", 169, "the-office"), `recordKey` (the cross-family-unique key, NOT a tool argument), `entity` (same as `id`), `label`, and an `attributes` map. Prefer an intent-shaped learned record-backed helper listed in df.d.ts when its description matches the task; call it with record scope such as `{ recordFilter, recordLimit }`. The planner/executor handles record-field mapping, tool params, same-entity slot pruning, and dependent routing internally. Use `df.lib.per_entity({ entityIds, toolBundle, toolNames, paramName, extraInput? })` only as the cold-start fallback when no learned helper fits. Never pass `recordKey` to tools because it carries a `<family>:` prefix tools don't recognise.
+Learned fan-out helpers return `(await df.lib.<name>({...})).value` as an array. Record-backed rows include `entityId`, `entityValue`, `label`, `attributes`, `record`, a nested `tools` map keyed by tool name, and top-level keys for each tool name. You may read either `item.tools[toolName]` or `item[toolName]`.
+REQUIRED when df.d.ts declares df.db.records: scripts/answer.ts MUST reach the answer through df.db.* plus df.tool.* or through df.lib.*. A script that only fan-outs with raw df.tool.* or only touches df.db.* without using tool/helper outputs will be auto-rewritten to `{status: "unsupported"}` and scored 0.
+If a learned helper (anything other than `per_entity`) is listed in df.d.ts under df.lib, prefer it over recomposing the chain. Call it the same way: `const r = (await df.lib.<name>({...})).value`.
+When a record-backed learned helper is listed, call it with intent-level record scope (`recordFilter`/`recordLimit`) rather than passing entity values, tool params, or record-field maps; it covers lookup and fan-out in one learned interface.
+Use existing df.lib helpers when they fit. If no learned helper is listed for a repeated entity/tool fan-out, use the `per_entity` seed to complete scripts/answer.ts; any new helper you write under lib/ is for later episodes, not the current call path. Use raw df.tool calls only for one-off calls that are not a fan-out.
+When creating or updating a helper, make it parameterized over the task's tool names where practical so later levels in this family can reuse it.
+Use df.tool calls for the official local tools. Use bracket notation for hyphenated tool names.
+Do not run live tool probes from Codex. In this sandbox, probe-time tool/network failures can be misleading and expensive. Use `df.d.ts` response-shape notes, write guarded parsing logic, and let the harness run the final `scripts/answer.ts` once after you finish.
+Tool responses can be missing fields or be shaped differently than you expect. Always guard nested property access with optional chaining (`resp?.foo?.bar`) or an explicit `if (resp && resp.foo)` check. If a field is missing, write a sensible default (empty string, 0, empty array) to the output file rather than throwing.
+Wrap the body of main() in a try/catch. On error, write a best-effort partial result to the expected output JSON file (using whatever data you have collected so far, with empty defaults for the missing pieces) before letting the error propagate. A partial output usually scores some credit; a thrown error scores zero.
+The evaluator will run scripts/answer.ts after you finish; do not execute a long benchmark yourself.
+Do not write prose as the answer. The file content is the deliverable.

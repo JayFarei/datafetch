@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-05-19T02:35:29.028Z",
+  "adapterReady": false,
+  "skillcraftDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/skillcraft/vendor/skillcraft",
+  "outDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/skillcraft/results/datafetch/run_20260519_023528",
+  "libCacheDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/skillcraft/results/datafetch/run_20260519_023528/lib-cache",
+  "selectedTasks": 1,
+  "mode": "live-agent-experimental",
+  "agent": "codex",
+  "promptMode": "workspace",
+  "interfaceMode": "hooks-candidate-only",
+  "codexDirectCacheIsolation": null,
+  "model": "gpt-5.4-mini",
+  "reasoningEffort": "low",
+  "snippetTimeoutMs": 300000,
+  "armId": "datafetch-learned",
+  "disableLearning": false
+}

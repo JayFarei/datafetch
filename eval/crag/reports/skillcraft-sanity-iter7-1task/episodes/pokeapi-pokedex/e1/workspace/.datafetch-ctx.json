@@ -1,0 +1,13 @@
+{
+  "tenantId": "skillcraft-full",
+  "skillcraftDir": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/skillcraft/vendor/skillcraft",
+  "datafetchHome": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/skillcraft/results/datafetch/run_20260519_023528/episodes/pokeapi-pokedex/e1/datafetch-home",
+  "bundles": [
+    "pokemon_tools"
+  ],
+  "skillcraftToolRunnerPath": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/eval+crag/eval/skillcraft/scripts/invoke-skillcraft-tool.py",
+  "snippetTimeoutMs": 300000,
+  "family": "pokeapi-pokedex",
+  "mountId": "skillcraft-pokeapi-pokedex",
+  "records": []
+}

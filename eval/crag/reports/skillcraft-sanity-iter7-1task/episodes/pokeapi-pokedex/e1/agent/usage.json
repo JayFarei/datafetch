@@ -1,0 +1,11 @@
+{
+  "elapsedMs": 32300,
+  "exitCode": 0,
+  "usage": {
+    "inputTokens": 248805,
+    "cachedInputTokens": 174336,
+    "outputTokens": 3200,
+    "reasoningOutputTokens": 561,
+    "llmCalls": 1
+  }
+}

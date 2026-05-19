@@ -1,0 +1,9 @@
+Implemented `scripts/answer.ts` to:
+
+- fetch details, moves, and abilities for Pokémon `25`, `6`, and `445`
+- normalize the returned data into the required `pokemon` array
+- compute `summary.total_pokemon` and `summary.avg_base_stat_total`
+- write `pokedex_entries.json` in the current workspace
+- return `df.answer({ status: "answered", ... })`
+
+I did not run the episode harness here; the script is set up to fail safely and still write a partial JSON file if one of the tool calls errors.

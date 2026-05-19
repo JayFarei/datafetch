@@ -1,0 +1,99 @@
+[
+  {
+    "bundle": "pokemon_tools",
+    "tools": [
+      {
+        "name": "local-pokemon_get_details",
+        "description": "Get Pokemon details including types, abilities, stats, and sprite.\n\n**Input:** pokemon_id (int | str) - Pokemon ID number or name (e.g., 25 or 'pikachu')\n\n**Returns:** dict:\n{\n  \"success\": bool,\n  \"pokemon\": {\n    \"id\": int, \"name\": str,\n    \"height\": int, \"height_meters\": float,\n    \"weight\": int, \"weight_kg\": float,\n    \"base_experience\": int,\n    \"types\": [str],  // e.g., [\"electric\"]\n    \"abilities\": [{\"name\": str, \"is_hidden\": bool}],\n    \"stats\": {\"hp\": int, \"attack\": int, \"defense\": int, \"special-attack\": int, \"special-defense\": int, \"speed\": int},\n    \"stat_total\": int,\n    \"sprite_url\": str,\n    \"moves_count\": int\n  }\n}",
+        "params_json_schema": {
+          "type": "object",
+          "properties": {
+            "pokemon_id": {
+              "type": [
+                "integer",
+                "string"
+              ],
+              "description": "Pokemon ID number or name (e.g., 25 or 'pikachu')"
+            }
+          },
+          "required": [
+            "pokemon_id"
+          ]
+        }
+      },
+      {
+        "name": "local-pokemon_get_species",
+        "description": "Get Pokemon species information including genus, generation, legendary status, and evolution chain ID.\n\n**Input:** pokemon_id (int | str) - Pokemon ID number or name (e.g., 25 or 'pikachu')\n\n**Returns:** dict:\n{\n  \"success\": bool,\n  \"species\": {\n    \"id\": int, \"name\": str,\n    \"genus\": str,  // e.g., \"Mouse Pokémon\"\n    \"generation\": str,  // e.g., \"generation-i\"\n    \"is_legendary\": bool, \"is_mythical\": bool, \"is_baby\": bool,\n    \"color\": str, \"shape\": str, \"habitat\": str,\n    \"capture_rate\": int, \"base_happiness\": int, \"gender_rate\": int,\n    \"evolution_chain_id\": int,  // Use this for pokemon_get_evolution\n    \"evolves_from_species\": str | null\n  }\n}",
+        "params_json_schema": {
+          "type": "object",
+          "properties": {
+            "pokemon_id": {
+              "type": [
+                "integer",
+                "string"
+              ],
+              "description": "Pokemon ID number or name (e.g., 25 or 'pikachu')"
+            }
+          },
+          "required": [
+            "pokemon_id"
+          ]
+        }
+      },
+      {
+        "name": "local-pokemon_get_evolution",
+        "description": "Get evolution chain data.\n\n**Input:** chain_id (int) - Evolution chain ID (from pokemon_get_species)\n\n**Returns:** dict:\n{\n  \"success\": bool,\n  \"evolution_chain\": {\n    \"id\": int,\n    \"stages_count\": int,\n    \"total_pokemon\": int,\n    \"chain\": [{\n      \"species_name\": str,       // e.g., \"pikachu\" - use this to match by name\n      \"species_id\": int,         // e.g., 25 - use this to match pokemon.id from get_details\n      \"stage\": int,              // 1=base, 2=first evo, 3=final evo\n      \"evolves_from\": str | null,\n      \"evolution_trigger\": str | null,  // e.g., \"level 16\", \"use thunder-stone\"\n      \"min_level\": int | null\n    }]\n  }\n}\n\n**TIP:** To find current Pokemon in chain, match `chain[].species_id` with `pokemon.id` from get_details (NOT the input parameter).",
+        "params_json_schema": {
+          "type": "object",
+          "properties": {
+            "chain_id": {
+              "type": "integer",
+              "description": "Evolution chain ID (from pokemon_get_species)"
+            }
+          },
+          "required": [
+            "chain_id"
+          ]
+        }
+      },
+      {
+        "name": "local-pokemon_get_moves",
+        "description": "Get Pokemon move counts by learning method (summary only, not full move lists).\n\n**Input:** pokemon_id (int | str) - Pokemon ID number or name (e.g., 25 or 'pikachu')\n\n**Returns:** dict:\n{\n  \"success\": bool,\n  \"pokemon_name\": str,\n  \"pokemon_id\": int,\n  \"moves_summary\": {\n    \"total_unique_moves\": int,\n    \"level_up_count\": int,\n    \"machine_count\": int,  // TM/HM moves\n    \"tutor_count\": int,\n    \"egg_count\": int,\n    \"other_count\": int\n  }\n}",
+        "params_json_schema": {
+          "type": "object",
+          "properties": {
+            "pokemon_id": {
+              "type": [
+                "integer",
+                "string"
+              ],
+              "description": "Pokemon ID number or name (e.g., 25 or 'pikachu')"
+            }
+          },
+          "required": [
+            "pokemon_id"
+          ]
+        }
+      },
+      {
+        "name": "local-pokemon_get_abilities",
+        "description": "Get ability information.\n\n**Input:** ability_names (list[str]) - List of ability names (e.g., ['static', 'lightning-rod'])\n\n**Returns:** dict:\n{\n  \"success\": bool,\n  \"abilities\": [{\n    \"name\": str,\n    \"id\": int,\n    \"short_effect\": str,  // e.g., \"Has a 30% chance of paralyzing attacking Pokemon on contact.\"\n    \"is_main_series\": bool,\n    \"generation\": str,\n    \"pokemon_count\": int  // Number of Pokemon with this ability\n  }]\n}",
+        "params_json_schema": {
+          "type": "object",
+          "properties": {
+            "ability_names": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of ability names (e.g., ['static', 'lightning-rod'])"
+            }
+          },
+          "required": [
+            "ability_names"
+          ]
+        }
+      }
+    ]
+  }
+]

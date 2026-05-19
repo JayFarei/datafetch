@@ -1,0 +1,64 @@
+=== SCORE_JSON_START ===
+{
+  "passed": true,
+  "status": "pass",
+  "score": {
+    "achieved": 100.0,
+    "max": 100,
+    "percent": 100.0
+  },
+  "items": [
+    {
+      "name": "output_file",
+      "score": 10.0,
+      "max_score": 10,
+      "status": "pass",
+      "details": "Output file found"
+    },
+    {
+      "name": "valid_json",
+      "score": 10.0,
+      "max_score": 10,
+      "status": "pass",
+      "details": "Valid JSON"
+    },
+    {
+      "name": "no_fake_data",
+      "score": 10.0,
+      "max_score": 10,
+      "status": "pass",
+      "details": "No fake data"
+    },
+    {
+      "name": "count",
+      "score": 15.0,
+      "max_score": 15,
+      "status": "pass",
+      "details": "3/3 Pokemon"
+    },
+    {
+      "name": "ids",
+      "score": 15.0,
+      "max_score": 15,
+      "status": "pass",
+      "details": "3/3 IDs matched"
+    },
+    {
+      "name": "data",
+      "score": 20.0,
+      "max_score": 20,
+      "status": "pass",
+      "details": "3 valid"
+    },
+    {
+      "name": "completeness",
+      "score": 20.0,
+      "max_score": 20,
+      "status": "pass",
+      "details": "Field completeness"
+    }
+  ],
+  "errors": [],
+  "warnings": []
+}
+=== SCORE_JSON_END ===

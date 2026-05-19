@@ -1,0 +1,29 @@
+[
+  {
+    "taskKey": "scaled_tasks/pokeapi-pokedex/e1",
+    "family": "pokeapi-pokedex",
+    "level": "e1",
+    "taskName": "pokeapi-pokedex-e1",
+    "difficulty": "easy",
+    "subtaskCount": 3,
+    "callsPerSubtask": 3,
+    "toolsUsed": [
+      "pokemon_get_details",
+      "pokemon_get_moves",
+      "pokemon_get_abilities"
+    ],
+    "neededLocalTools": [
+      "pokemon_tools",
+      "skill_cache",
+      "claim_done"
+    ],
+    "neededMcpServers": [
+      "filesystem"
+    ],
+    "hasInitialWorkspace": false,
+    "hasGroundtruthWorkspace": false,
+    "expectedOutputFiles": [
+      "pokedex_entries.json"
+    ]
+  }
+]
