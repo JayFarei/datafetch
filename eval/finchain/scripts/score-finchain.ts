@@ -72,6 +72,7 @@ interface NormalizedRow {
   facMatch: boolean | null;
   predictedFinalValue: number | null;
   goldFinalValue: number | null;
+  goldIntermediateValues: number[];
   derivationSteps: number[];
   effectiveTokens: number;
   wallClockMs: number;
@@ -156,8 +157,15 @@ function perTierAggregates(
   const out: Record<string, PerTierMetric> = {};
   for (const [tier, tierRows] of Object.entries(tiers)) {
     const facRate = meanOrNull(tierRows.map((r) => (r.facMatch ? 1 : 0)));
+    // Use the full goldIntermediateValues list when present (iter 2e
+     plumbing); fall back to single-element [goldFinalValue] for older runs.
     const stepScores = tierRows
-      .map((r) => stepAlignmentScore(r.derivationSteps ?? [], r.goldFinalValue !== null ? [r.goldFinalValue] : []))
+      .map((r) => {
+        const gold = (r.goldIntermediateValues && r.goldIntermediateValues.length > 0)
+          ? r.goldIntermediateValues
+          : (r.goldFinalValue !== null ? [r.goldFinalValue] : []);
+        return stepAlignmentScore(r.derivationSteps ?? [], gold);
+      })
       .filter((s): s is number => s !== null);
     const stepAlignment = meanOrNull(stepScores);
     // paperBaseline shape: { Basic: { "claude-sonnet-4-5": 0.83 }, ... }

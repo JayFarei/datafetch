@@ -51,6 +51,7 @@ interface EpisodeRow {
   answerStatus?: string | null;
   predictedFinalValue?: number | null;
   goldFinalValue?: number | null;
+  goldIntermediateValues?: number[];
   passed?: boolean;
   facMatch?: boolean;
   scorePercent?: number;
@@ -100,6 +101,7 @@ function normalize(row: EpisodeRow): Record<string, unknown> {
     answerStatus: row.answerStatus ?? null,
     predictedFinalValue: row.predictedFinalValue ?? null,
     goldFinalValue: row.goldFinalValue ?? null,
+    goldIntermediateValues: row.goldIntermediateValues ?? [],
     facMatch: row.facMatch ?? null,
     passed: row.passed ?? Boolean(row.facMatch),
     scorePercent: row.scorePercent ?? (row.facMatch ? 100 : 0),

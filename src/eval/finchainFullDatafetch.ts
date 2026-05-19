@@ -89,6 +89,8 @@ interface Args {
   disableLearning: boolean;
   resume: boolean;
   label?: string;
+  shards: number;       // total shard count (default 1 = no sharding)
+  shardIndex: number;   // this process's shard index, 0..(shards-1)
 }
 
 function runStamp(): string {
@@ -121,6 +123,8 @@ function parseArgs(argv: string[]): Args {
     noLibCache: false,
     disableLearning: resolveDisableLearning(),
     resume: false,
+    shards: 1,
+    shardIndex: 0,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index]!;
@@ -156,6 +160,10 @@ function parseArgs(argv: string[]): Args {
     else if (arg.startsWith("--lib-cache-dir=")) args.libCacheDir = path.resolve(arg.slice("--lib-cache-dir=".length));
     else if (arg === "--no-lib-cache") args.noLibCache = true;
     else if (arg === "--resume") args.resume = true;
+    else if (arg === "--shards") args.shards = Math.max(1, Number(argv[++index]!));
+    else if (arg.startsWith("--shards=")) args.shards = Math.max(1, Number(arg.slice("--shards=".length)));
+    else if (arg === "--shard-index") args.shardIndex = Math.max(0, Number(argv[++index]!));
+    else if (arg.startsWith("--shard-index=")) args.shardIndex = Math.max(0, Number(arg.slice("--shard-index=".length)));
     else throw new Error(`unknown argument: ${arg}`);
   }
   if (args.label) {
@@ -212,14 +220,14 @@ async function planEpisodes(args: Args): Promise<PlannedEpisode[]> {
   const selectedSeeds = args.seedIndices.length > 0
     ? args.seedIndices
     : Array.from({ length: args.seedCount }, (_unused, i) => i);
-  const out: PlannedEpisode[] = [];
+  const all: PlannedEpisode[] = [];
   for (const topic of selectedTopics) {
     const [domain, topicBasename] = topic.split("/", 2) as [string, string];
     const family = familyForTopic(topic);
     for (const templatePosition of selectedTemplates) {
       const level = LEVEL_BY_TEMPLATE_POSITION[templatePosition] ?? `t${templatePosition}`;
       for (const seedIndex of selectedSeeds) {
-        out.push({
+        all.push({
           taskKey: `${topic}:tpl${templatePosition}:seed${seedIndex}`,
           topic,
           topicBasename,
@@ -229,11 +237,23 @@ async function planEpisodes(args: Args): Promise<PlannedEpisode[]> {
           templatePosition,
           seedIndex,
         });
-        if (args.limit && out.length >= args.limit) return out;
+        if (args.limit && all.length >= args.limit) break;
       }
+      if (args.limit && all.length >= args.limit) break;
     }
+    if (args.limit && all.length >= args.limit) break;
   }
-  return out;
+  // Family-sequential shard assignment: episodes within the same family
+  // stay on the same shard (so per-family lib-cache hydration / observer
+  // helper crystallisation persists). The shard a family lands on is
+  // determined by hashing the family name modulo shard count.
+  if (args.shards <= 1) return all;
+  const families = Array.from(new Set(all.map((e) => e.family))).sort();
+  const familyToShard = new Map<string, number>();
+  for (let i = 0; i < families.length; i += 1) {
+    familyToShard.set(families[i]!, i % args.shards);
+  }
+  return all.filter((e) => familyToShard.get(e.family) === args.shardIndex);
 }
 
 function planSummary(episode: PlannedEpisode): Record<string, unknown> {
@@ -437,6 +457,7 @@ interface LiveEpisodeRow {
   answerStatus: string;
   predictedFinalValue: number | null;
   goldFinalValue: number | null;
+  goldIntermediateValues: number[];
   derivationSteps: number[];
   facMatch: boolean;
   passed: boolean;
@@ -636,6 +657,7 @@ async function runLiveEpisode(input: {
     answerStatus,
     predictedFinalValue,
     goldFinalValue,
+    goldIntermediateValues: currentInstance.goldIntermediateValues ?? [],
     derivationSteps,
     facMatch,
     passed,
