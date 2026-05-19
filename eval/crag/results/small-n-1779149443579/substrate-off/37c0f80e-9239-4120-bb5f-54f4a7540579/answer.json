@@ -1,0 +1,10 @@
+{
+  "interactionId": "37c0f80e-9239-4120-bb5f-54f4a7540579",
+  "arm": "substrate-off",
+  "query": "who won the nobel prize in physics in 2022 from usa",
+  "agentAnswer": "John F. Clauser",
+  "goldAnswer": "john f clauser",
+  "altAns": [],
+  "score": 1,
+  "scoreReason": "exact match (gold)"
+}

@@ -1,0 +1,10 @@
+{
+  "interactionId": "d9d614b1-76e2-49f8-a3a8-2b6ffacc4dca",
+  "arm": "substrate-off",
+  "query": "what grammy award did edgar barrera win this year?",
+  "agentAnswer": "Edgar Barrera leads the 2023 Latin Grammy nominations : NPR</title><meta id=\"speakable\" itemprop=\"cssSelector\" content=\"[data-is-speakable]\" /><meta id=\"google-site-verification\" name=\"google-site-verification\" content=\"1VqzbDm4ukeFVHOoq5LjIKA2fVKZD-EYv8cXZhKXSfU\" /><meta charset=\"utf-8\" /><meta name=\"robots\" content=\"noarchive,index,follow,max-image-preview:large\" /><meta name=\"apple-itunes-app\" content=\"app-id=324906251, app-argument=https://www",
+  "goldAnswer": "invalid question",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "false-premise: answered when abstention expected"
+}

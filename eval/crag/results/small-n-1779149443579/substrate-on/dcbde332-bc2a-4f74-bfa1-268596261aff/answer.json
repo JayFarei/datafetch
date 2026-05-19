@@ -1,0 +1,10 @@
+{
+  "interactionId": "dcbde332-bc2a-4f74-bfa1-268596261aff",
+  "arm": "substrate-on",
+  "query": "what's the total number of floors in burj khalifa, including all floors above and below ground, can you tell me that?",
+  "agentAnswer": "163 above ground + 2 below ground = 165 total floors",
+  "goldAnswer": "165",
+  "altAns": [],
+  "score": 1,
+  "scoreReason": "substring match (gold)"
+}

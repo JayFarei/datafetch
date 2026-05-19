@@ -1,0 +1,10 @@
+{
+  "interactionId": "c7f3a697-2294-4864-bef1-9d1a39cde614",
+  "arm": "substrate-on",
+  "query": "which company's stock has been traded more frequently this week, tris or  cycc?",
+  "agentAnswer": "I don't know",
+  "goldAnswer": "cycc",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

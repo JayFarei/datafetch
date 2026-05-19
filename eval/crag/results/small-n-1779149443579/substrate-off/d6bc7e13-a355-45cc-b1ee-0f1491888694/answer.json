@@ -1,0 +1,10 @@
+{
+  "interactionId": "d6bc7e13-a355-45cc-b1ee-0f1491888694",
+  "arm": "substrate-off",
+  "query": "which teams have won against phoenix suns during 2022-12?",
+  "agentAnswer": "Dallas Mavericks, Sacramento Kings, Memphis Grizzlies, Golden State Warriors, Minnesota Timberwolves, Los Angeles Lakers, New Orleans Pelicans",
+  "goldAnswer": "boston celtics, dallas mavericks, denver nuggets, houston rockets, memphis grizzlies, new orleans pelicans, toronto raptors, washington wizards",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}

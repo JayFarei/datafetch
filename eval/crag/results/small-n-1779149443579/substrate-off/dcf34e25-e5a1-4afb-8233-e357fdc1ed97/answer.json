@@ -1,0 +1,10 @@
+{
+  "interactionId": "dcf34e25-e5a1-4afb-8233-e357fdc1ed97",
+  "arm": "substrate-off",
+  "query": "when did one for all start performing together?",
+  "agentAnswer": "1997",
+  "goldAnswer": "1993",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}

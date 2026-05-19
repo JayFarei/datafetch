@@ -1,0 +1,10 @@
+{
+  "interactionId": "fd2b5298-b3ba-48c1-9c21-9a9f7443929d",
+  "arm": "substrate-on",
+  "query": "can you tell me when lloyd a. simandl entered this world as a baby?",
+  "agentAnswer": "unknown",
+  "goldAnswer": "1948-01-01",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

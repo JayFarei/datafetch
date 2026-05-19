@@ -1,0 +1,10 @@
+{
+  "interactionId": "91b6ffcf-428f-4ce1-b452-d85196654780",
+  "arm": "substrate-on",
+  "query": "is chris evans most famouse for iron man role?",
+  "agentAnswer": "No, Chris Evans is most famous for his role as Captain America, not Iron Man.",
+  "goldAnswer": "no, robert downey jr's iron man and chris evans' captain america",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}

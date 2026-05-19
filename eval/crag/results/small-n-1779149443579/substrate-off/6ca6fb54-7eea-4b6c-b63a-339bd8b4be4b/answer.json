@@ -1,0 +1,10 @@
+{
+  "interactionId": "6ca6fb54-7eea-4b6c-b63a-339bd8b4be4b",
+  "arm": "substrate-off",
+  "query": "where did the lead designer of yorick (programming language) receive his ph.d.?",
+  "agentAnswer": "",
+  "goldAnswer": "massachusetts institute of technology",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

@@ -1,0 +1,10 @@
+{
+  "interactionId": "1432c6b2-640a-4b67-9a48-3f4b02331d47",
+  "arm": "substrate-on",
+  "query": "do you know who directed black plague?",
+  "agentAnswer": "Christopher Smith",
+  "goldAnswer": "alberto sciamma",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}

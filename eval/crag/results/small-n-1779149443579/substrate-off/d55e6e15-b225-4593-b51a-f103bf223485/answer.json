@@ -1,0 +1,10 @@
+{
+  "interactionId": "d55e6e15-b225-4593-b51a-f103bf223485",
+  "arm": "substrate-off",
+  "query": "what was the total amount of corporate bonds issued in the united states in 2020?",
+  "agentAnswer": "$1.2 trillion",
+  "goldAnswer": "the total amount of corporate bonds issued in the united states in 2020 was $1.189 trillion.",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}

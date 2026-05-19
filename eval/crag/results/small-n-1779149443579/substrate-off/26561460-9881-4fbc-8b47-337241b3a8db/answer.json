@@ -1,0 +1,10 @@
+{
+  "interactionId": "26561460-9881-4fbc-8b47-337241b3a8db",
+  "arm": "substrate-off",
+  "query": "do you know who the director of your sister's sister is?",
+  "agentAnswer": "",
+  "goldAnswer": "lynn shelton",
+  "altAns": [],
+  "score": 0,
+  "scoreReason": "abstained"
+}

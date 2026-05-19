@@ -1,0 +1,10 @@
+{
+  "interactionId": "f8929d77-fd9f-46c2-8e1f-d2745f226b08",
+  "arm": "substrate-on",
+  "query": "what are the names of all the movies in the bourne franchise?",
+  "agentAnswer": "The Bourne Identity, The Bourne Supremacy, The Bourne Ultimatum, The Bourne Legacy, Jason Bourne, Jason Bourne: Treadstone (TV)",
+  "goldAnswer": "the names of the movies in the bourne franchise are \"the bourne identity\", \"the bourne supremecy\", \"the bourne ultimatum\", \"the bourne legacy\", and \"jason bourne\".",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}

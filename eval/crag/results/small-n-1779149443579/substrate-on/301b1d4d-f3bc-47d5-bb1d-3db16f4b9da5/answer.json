@@ -1,0 +1,10 @@
+{
+  "interactionId": "301b1d4d-f3bc-47d5-bb1d-3db16f4b9da5",
+  "arm": "substrate-on",
+  "query": "is level 16 how that movie was officially named at first?",
+  "agentAnswer": "no",
+  "goldAnswer": "yes",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}

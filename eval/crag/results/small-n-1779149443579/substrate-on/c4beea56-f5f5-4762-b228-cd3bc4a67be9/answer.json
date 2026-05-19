@@ -1,0 +1,10 @@
+{
+  "interactionId": "c4beea56-f5f5-4762-b228-cd3bc4a67be9",
+  "arm": "substrate-on",
+  "query": "which film had the bigger budget, inside out or finding dory?",
+  "agentAnswer": "Inside Out",
+  "goldAnswer": "finding dory",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}

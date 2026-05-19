@@ -1,0 +1,10 @@
+{
+  "interactionId": "81e0fbd9-2bc7-4d57-a97c-d07127228f9e",
+  "arm": "substrate-off",
+  "query": "which team ended the last epl season with more points, manchester united or tottenham?",
+  "agentAnswer": "Tottenham",
+  "goldAnswer": "manchester united",
+  "altAns": [],
+  "score": -1,
+  "scoreReason": "incorrect"
+}

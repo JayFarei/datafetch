@@ -1,0 +1,10 @@
+{
+  "interactionId": "1a1005cb-07f6-4a64-97e7-4760cde1884a",
+  "arm": "substrate-on",
+  "query": "in what language was dead meat released?",
+  "agentAnswer": "English",
+  "goldAnswer": "en",
+  "altAns": [],
+  "score": 1,
+  "scoreReason": "substring match (gold)"
+}
