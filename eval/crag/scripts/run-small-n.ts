@@ -32,7 +32,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const WT_ROOT = resolve(__dirname, "..", "..", "..");
 const JSONL_PATH = resolve(WT_ROOT, "eval/crag/vendor/raw/crag_task_1_and_2_dev_v4.jsonl");
-const MANIFEST_PATH = resolve(WT_ROOT, "eval/crag/manifests/small-n-50.json");
+const DEFAULT_MANIFEST = resolve(WT_ROOT, "eval/crag/manifests/small-n-50.json");
+let MANIFEST_PATH = DEFAULT_MANIFEST;
 
 // ----- args -----
 interface CliArgs {
@@ -61,6 +62,8 @@ function parseArgs(argv: string[]): CliArgs {
       out.arms = ["substrate-off"];
     } else if (a === "--timeout-ms" && i + 1 < argv.length) {
       out.timeoutMs = Math.max(60_000, parseInt(argv[++i] ?? "180000", 10));
+    } else if (a === "--manifest" && i + 1 < argv.length) {
+      MANIFEST_PATH = resolve(WT_ROOT, argv[++i]!);
     }
   }
   return out;
