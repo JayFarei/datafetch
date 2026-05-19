@@ -91,6 +91,13 @@ interface Args {
   label?: string;
   shards: number;       // total shard count (default 1 = no sharding)
   shardIndex: number;   // this process's shard index, 0..(shards-1)
+  // iter 3.0a probe surface: when set, *.ts files in this directory are
+  // copied into each episode's per-family lib dir BEFORE the agent runs.
+  // The runner also announces the preseed helpers in AGENTS.md and df.d.ts
+  // so the agent sees them in its typed surface and prose orientation.
+  // Used by eval/finchain/scripts/run-probe-3-0a.sh to measure whether the
+  // substrate's "agent calls learned helpers" premise lands on FinChain.
+  preseedHelperDir?: string;
 }
 
 function runStamp(): string {
@@ -164,6 +171,8 @@ function parseArgs(argv: string[]): Args {
     else if (arg.startsWith("--shards=")) args.shards = Math.max(1, Number(arg.slice("--shards=".length)));
     else if (arg === "--shard-index") args.shardIndex = Math.max(0, Number(argv[++index]!));
     else if (arg.startsWith("--shard-index=")) args.shardIndex = Math.max(0, Number(arg.slice("--shard-index=".length)));
+    else if (arg === "--preseed-helper-dir") args.preseedHelperDir = path.resolve(argv[++index]!);
+    else if (arg.startsWith("--preseed-helper-dir=")) args.preseedHelperDir = path.resolve(arg.slice("--preseed-helper-dir=".length));
     else throw new Error(`unknown argument: ${arg}`);
   }
   if (args.label) {
@@ -528,10 +537,18 @@ async function runLiveEpisode(input: {
   // 3. Drop per_entity seed (substrate-level, generic; same as skillcraft)
   await dropGenericSeed(datafetchHome);
 
+  // 3b. iter 3.0a probe: copy hand-crafted helpers from preseed-helper-dir
+  // into the per-family tenant lib dir BEFORE the agent runs. The runner
+  // does not parse v.object internals; intent + helper name come from a
+  // simple regex over the source file.
+  const preseedHelpers = args.preseedHelperDir
+    ? await dropPreseedHelpers({ datafetchHome, tenantId, preseedDir: args.preseedHelperDir })
+    : [];
+
   // 4. Write the workspace scaffolding
-  await writeFinchainAgentsMd(workspace, currentInstance, mountId);
+  await writeFinchainAgentsMd(workspace, currentInstance, mountId, preseedHelpers);
   await writeFinchainAnswerScaffold(workspace, currentInstance);
-  await writeDfDtsStub(workspace);
+  await writeDfDtsStub(workspace, preseedHelpers);
 
   // 5. Render the agent prompt + spawn claude-p
   const prompt = renderFinchainPrompt(currentInstance, mountId);
@@ -783,7 +800,23 @@ function renderFinchainPrompt(instance: FinChainTemplateInstance, mountId: strin
   ].join("\n");
 }
 
-async function writeFinchainAgentsMd(workspace: string, instance: FinChainTemplateInstance, mountId: string): Promise<void> {
+async function writeFinchainAgentsMd(
+  workspace: string,
+  instance: FinChainTemplateInstance,
+  mountId: string,
+  preseedHelpers: PreseedHelperMeta[] = [],
+): Promise<void> {
+  const preseedSection: string[] = preseedHelpers.length === 0
+    ? []
+    : [
+        `## Preseeded helpers (call these — they encode the formula already)`,
+        ...preseedHelpers.flatMap((h) => [
+          `- \`df.lib.${h.name}({${h.inputKeys.join(", ")}})\` — ${h.intent}`,
+        ]),
+        ``,
+        `When a preseeded helper's intent matches your question, EXTRACT the numbers from the question and CALL the helper instead of re-deriving the formula inline. The helper has been validated; calling it is the correct shape.`,
+        ``,
+      ];
   const body = [
     `# Workspace orientation (FinChain ${instance.topic})`,
     ``,
@@ -793,6 +826,7 @@ async function writeFinchainAgentsMd(workspace: string, instance: FinChainTempla
     `- \`df.db.records\` (mount id: \`${mountId}\`) — 9 sibling seed instances of the SAME template. Each record carries: id (seed_index), attributes.question (the sibling's question text), attributes.gold_final_value (the sibling's correct answer), attributes.template_position, attributes.difficulty, plus parameter-shaped fields.`,
     `- Use \`await df.db.records.findExact({}, 9)\` to read all siblings.`,
     ``,
+    ...preseedSection,
     `## Library`,
     `- \`df.lib.per_entity\` is the generic substrate-level seed (fan-out helper for entity-list tasks). NOT directly useful here — FinChain is pure-computation.`,
     `- Any \`df.lib.*\` helper created on a prior episode of the same family is hydrated into \`<lib>/\` and visible via \`df.d.ts\`.`,
@@ -845,10 +879,14 @@ async function writeFinchainAnswerScaffold(workspace: string, instance: FinChain
   await fsp.writeFile(path.join(workspace, "scripts", "answer.ts"), body);
 }
 
-async function writeDfDtsStub(workspace: string): Promise<void> {
+async function writeDfDtsStub(workspace: string, preseedHelpers: PreseedHelperMeta[] = []): Promise<void> {
   // Minimal df.d.ts that documents the FinChain surface. Iter 2d will hook
   // into the full df.d.ts renderer (src/sdk/schemaRender.ts) to surface
   // hydrated lib helpers; for now this is a stub for agent readability.
+  const preseedLibTypes = preseedHelpers.map((h) => {
+    const inputFields = h.inputKeys.map((k) => `${k}: number`).join("; ");
+    return `    ${h.name}: (input: { ${inputFields} }) => Promise<number>;`;
+  });
   const body = [
     `// Auto-generated type surface for this FinChain episode.`,
     `declare const df: {`,
@@ -879,6 +917,7 @@ async function writeDfDtsStub(workspace: string): Promise<void> {
     `      toolNames: string[];`,
     `      paramName: string;`,
     `    }) => Promise<unknown>;`,
+    ...preseedLibTypes,
     `    [name: string]: unknown;`,
     `  };`,
     `  tool: Record<string, Record<string, (input: Record<string, unknown>) => Promise<unknown>>>;`,
@@ -918,6 +957,61 @@ async function dropGenericSeed(datafetchHome: string): Promise<void> {
   const seedDir = path.join(datafetchHome, "lib", "__seed__");
   await fsp.mkdir(seedDir, { recursive: true });
   await fsp.writeFile(path.join(seedDir, `${PER_ENTITY_SEED_NAME}.ts`), renderPerEntitySeed(), "utf8");
+}
+
+interface PreseedHelperMeta {
+  name: string;
+  intent: string;
+  inputKeys: string[];
+}
+
+// iter 3.0a probe helper. Copies *.ts files from `preseedDir` into the
+// tenant lib dir at <datafetchHome>/lib/<tenantId>/, parses the `intent`
+// string and `v.object({...})` input keys via a deliberately tiny regex,
+// and returns metadata used by the AGENTS.md / df.d.ts writers so the
+// agent sees the helper in its typed surface. No filtering by family — the
+// caller is responsible for pointing `preseedDir` at a directory whose
+// helpers fit the templates being probed.
+async function dropPreseedHelpers(input: {
+  datafetchHome: string;
+  tenantId: string;
+  preseedDir: string;
+}): Promise<PreseedHelperMeta[]> {
+  const { datafetchHome, tenantId, preseedDir } = input;
+  let entries: string[];
+  try {
+    entries = await fsp.readdir(preseedDir);
+  } catch (err) {
+    console.warn(`[finchain-datafetch] preseed-helper-dir not readable: ${preseedDir}: ${String(err)}`);
+    return [];
+  }
+  const libDir = path.join(datafetchHome, "lib", tenantId);
+  await fsp.mkdir(libDir, { recursive: true });
+  const meta: PreseedHelperMeta[] = [];
+  for (const file of entries) {
+    if (!file.endsWith(".ts")) continue;
+    const srcPath = path.join(preseedDir, file);
+    const destPath = path.join(libDir, file);
+    const source = await fsp.readFile(srcPath, "utf8");
+    await fsp.writeFile(destPath, source, "utf8");
+    const intentMatch = source.match(/intent:\s*(['"`])((?:\\.|[^\\])*?)\1/);
+    const exportMatch = source.match(/export\s+const\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*fn\(/);
+    const inputMatch = source.match(/input:\s*v\.object\(\s*\{([\s\S]*?)\}\s*\)/);
+    const inputKeys: string[] = [];
+    if (inputMatch) {
+      const body = inputMatch[1]!;
+      const keyRe = /(^|\n|,)\s*([A-Za-z_][A-Za-z0-9_]*)\s*:/g;
+      let m: RegExpExecArray | null;
+      while ((m = keyRe.exec(body)) !== null) {
+        const key = m[2]!;
+        if (!inputKeys.includes(key)) inputKeys.push(key);
+      }
+    }
+    const name = exportMatch ? exportMatch[1]! : file.slice(0, -3);
+    const intent = intentMatch ? intentMatch[2]!.replace(/\s+/g, " ").trim() : `(no intent string in ${file})`;
+    meta.push({ name, intent, inputKeys });
+  }
+  return meta;
 }
 
 function extractNumericValue(value: unknown): number | null {
