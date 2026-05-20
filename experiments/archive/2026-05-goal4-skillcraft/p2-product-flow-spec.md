@@ -36,8 +36,8 @@ convergence, warm snippet directly calls the helper by name. P2
 MUST NOT do any of these.
 
 Read in order:
-- `docs/experiment-history.md`
-- `docs/intent-shape-interface.md`
+- `experiments/experiment-history.md`
+- `kb/docs/intent-shape-interface.md`
 - `src/observer/__smoke__/novel-tenant.ts` (understand what to NOT
   do, and what setup mechanics are reusable)
 
@@ -290,5 +290,5 @@ STOP and DECLARE NEUTRAL if:
 - `src/server/manifest.ts`
 - `src/discovery/librarySearch.ts`
 - `kb/product-design.md` (sections 1-4 for canonical mount/run/commit)
-- `docs/experiment-history.md`
-- `docs/intent-shape-interface.md`
+- `experiments/experiment-history.md`
+- `kb/docs/intent-shape-interface.md`

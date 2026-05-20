@@ -116,3 +116,21 @@ cat-facts-collector is the only family where neither arm passes any episode (all
 - Arm B normalized rows: `eval/skillcraft/results/datafetch/goal4-p1-armB-substrate-off-20260517/normalized.jsonl`
 
 Verdict classifier: PASS (≥10% & p<0.05), MARGINAL (2-10% & p<0.10), NEUTRAL (|Δ|<2% & p≥0.10), REGRESSION (B wins >2% & p<0.05).
+
+---
+
+## Addendum (2026-05-18): the three anti-patterns are now fixed in substrate
+
+Each of the three families that regressed by one episode in this paired comparison was root-caused to a specific substrate defect and addressed by a follow-up commit landed on main 2026-05-18. See `experiments/EXPERIMENT_NOTES.md` § "2026-05-18, post-P1 substrate fixes" for the full investigation.
+
+| Family / level | Root cause | Fix commit |
+|---|---|---|
+| random-user-database/m2 | Esbuild rejected `String([...].filter().join(" ") \|\| u?.full_name ?? "")` — the prior regex `??`/`\|\|` rewriter missed mixed-operator expressions nested inside `String(...)` calls and `.push(...)` arguments | `14bae808` (AST-based `rewriteMixedNullishLogicalExpressions`) |
+| recipe-cookbook-builder/e3 | Same class as above (`cuisinesList.push(cuisine \|\| dishNames[...]?.split().pop() ?? "")`) | `14bae808` (same fix) |
+| pokeapi-pokedex/m1 | Tool response shape `{pokemon: {id, name, ...}}` was not unwrapped — the substrate's envelope-keys allowlist didn't cover entity-named single-key wrappers (benchmark identifiers like `pokemon`/`species` had been correctly removed earlier as benchmark-bleed) | `4555f968` (generic single-key wrapper unwrap rule in `unwrapToolPayload`) |
+
+Each fix is smoke-validated end-to-end on the originally-failing task. pokeapi-pokedex/m1 re-runs at score 91.4 with the fix in place (was 68.6 in this report). The other two are esbuild-compile-clean after the rewriter swap, validated against a 15-case regression suite including the exact failing source.
+
+Projected re-eval after fixes: Arm A R1 climbs from 92.9% to ~95.2%, matching Arm B. The 4-vector likely shifts from `{NEUTRAL, PASS, PASS, NEUTRAL}` to `{NEUTRAL-leaning-positive, PASS, PASS, NEUTRAL}` or `{MARGINAL, PASS, PASS, NEUTRAL}`. The cost (-41% effective tokens) and wall-clock (-17%) PASS verdicts should at minimum be preserved because the fixes reduce failed-then-retried agent loops on the same three episodes.
+
+Numbers above this addendum reflect the pre-fix run (2026-05-17) and remain the authoritative record of what the substrate measured before the followups. The next definitive evidence is the P1 re-eval (planned as B1 in `experiments/PLAN.md`).

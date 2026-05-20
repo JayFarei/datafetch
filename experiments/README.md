@@ -27,7 +27,7 @@ benchmark. Distinct from `docs/`, which is public-facing.
 3. Implement against substrate (`src/observer/`, `src/snippet/`,
    `src/hooks/`, `src/eval/`).
 4. Probe on a single family, validate on a held-out pair, full-126.
-5. Commit the headline row to `../docs/hook-registry-experiment.md`.
+5. Commit the headline row to `archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md`.
 6. Append the complete entry to `EXPERIMENTS.md`.
 7. `pnpm typecheck` clean, `pnpm test` ≥ 242 passing, working tree
    committed.
@@ -44,7 +44,7 @@ benchmark. Distinct from `docs/`, which is public-facing.
 ## Pre-existing structure preserved
 
 The headline-rows-per-iteration table lives at
-`../docs/hook-registry-experiment.md`. It's the public face of the
+`archive/2026-05-goal4-skillcraft/hook-registry-iteration-headlines.md`. It's the public face of the
 experiment cycle and stays in `docs/` for that reason. EXPERIMENTS.md
 references it; each iteration appends one row to it and stores the
 analysis + error-taxonomy JSONs under `eval/skillcraft/reports/`.

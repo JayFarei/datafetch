@@ -257,9 +257,9 @@ Local generated state stays ignored: `.datafetch/`, `.atlasfs/`,
 
 ## Docs
 
-- [How datafetch works](./docs/how-it-works.md)
-- [How datafetch improves over time](./docs/improvement-loop.md)
-- [Benchmarking the datafetch thesis](./docs/benchmarking.md)
+- [How datafetch works](./kb/docs/how-it-works.md)
+- [How datafetch improves over time](./kb/docs/improvement-loop.md)
+- [Benchmarking the datafetch thesis](./kb/docs/benchmarking.md)
 
 ## Status
 

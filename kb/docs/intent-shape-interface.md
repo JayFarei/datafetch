@@ -259,4 +259,4 @@ planner.
   (`src/eval/skillcraftFullDatafetch.ts:3587-3640`), not by a learned
   policy. That stub is the next thing to fold into the loop honestly
   (paper 6's "compositional skill" framing — see
-  `docs/post-iter164-research.md`).
+  `../../experiments/archive/2026-05-goal4-skillcraft/post-iter164-paper-digests.md`).
