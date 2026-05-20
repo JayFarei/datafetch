@@ -27,7 +27,7 @@ run_shard() {
   mkdir -p "$out_dir"
   env DATAFETCH_AGENT=claude DATAFETCH_INTERFACE_MODE=hooks-draft ANTHROPIC_LOG_LEVEL=error \
     pnpm eval:skillcraft \
-      --skillcraft-dir /tmp/skillcraft-official \
+      --dataset-dir /tmp/skillcraft-official \
       --out-dir "$out_dir" \
       --families "$fams_csv" \
       --live --model claude-sonnet-4-6 --reasoning low --no-lib-cache \

@@ -12,6 +12,20 @@ import ts from "typescript";
 
 import { getMountRuntimeRegistry, type MountRuntime } from "../adapter/runtime.js";
 import { installObserver } from "../observer/install.js";
+import {
+  ANSWER_KIT_HELPERS,
+  ANSWER_KIT_IMPORT,
+  applyGenericSyntaxFixes,
+  renderAnswerKitSource,
+  rewriteMixedNullishLogicalExpressions,
+  rewriteUnsafeStringCoercionCalls,
+} from "../runtime/answerKit.js";
+import {
+  flattenToolCatalogNames,
+  writeToolManifest,
+  type ToolCatalogEntry,
+  type ToolDescriptor,
+} from "../runtime/toolCatalog.js";
 import { readFrontmatterHead } from "../sdk/frontmatter.js";
 import { readTrajectory, type TrajectoryRecord } from "../sdk/index.js";
 import { installSnippetRuntime } from "../snippet/install.js";
@@ -148,17 +162,6 @@ interface AdapterEpisode {
   armId?: "datafetch-control" | "datafetch-learned";
 }
 
-interface ToolDescriptor {
-  name: string;
-  description: string;
-  params_json_schema: Record<string, unknown>;
-}
-
-interface ToolCatalogEntry {
-  bundle: string;
-  tools: ToolDescriptor[];
-}
-
 interface AgentRun {
   workspaceDir: string;
   prompt: string;
@@ -196,8 +199,8 @@ function parseArgs(argv: string[]): Args {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--") continue;
-    if (arg === "--skillcraft-dir") args.skillcraftDir = path.resolve(argv[++index]);
-    else if (arg.startsWith("--skillcraft-dir=")) args.skillcraftDir = path.resolve(arg.slice("--skillcraft-dir=".length));
+    if (arg === "--dataset-dir") args.skillcraftDir = path.resolve(argv[++index]);
+    else if (arg.startsWith("--dataset-dir=")) args.skillcraftDir = path.resolve(arg.slice("--dataset-dir=".length));
     else if (arg === "--out-dir") args.outDir = path.resolve(argv[++index]);
     else if (arg.startsWith("--out-dir=")) args.outDir = path.resolve(arg.slice("--out-dir=".length));
     else if (arg === "--task") args.task = normalizeTaskKey(argv[++index]);
@@ -631,10 +634,10 @@ async function runLiveExperimental(input: {
     path.join(workspace, ".datafetch-ctx.json"),
     `${JSON.stringify({
       tenantId,
-      skillcraftDir: input.skillcraftDir,
+      datasetDir: input.skillcraftDir,
       datafetchHome,
       bundles: taskToolBundles(input.task),
-      skillcraftToolRunnerPath: path.resolve("eval/skillcraft/scripts/invoke-skillcraft-tool.py"),
+      toolRunnerPath: path.resolve("eval/skillcraft/scripts/invoke-tool.py"),
       snippetTimeoutMs: input.snippetTimeoutMs,
       family: input.task.family,
       mountId,
@@ -678,7 +681,18 @@ async function runLiveExperimental(input: {
     // crystallises into df.lib for later episodes.
     const observer = input.disableLearning
       ? { observerPromise: new Map<string, Promise<unknown>>() }
-      : installObserver({ baseDir: datafetchHome, tenantId, snippetRuntime }).observer;
+      : installObserver({
+          baseDir: datafetchHome,
+          tenantId,
+          snippetRuntime,
+          // SkillCraft families like countries-explorer and random-user-database
+          // expose 2-3 char identifier columns (country_code "US", "UK";
+          // nationality_code "USA") that the generic short-string filter
+          // would otherwise drop. Listing them here keeps SkillCraft's
+          // record-backed-tool detection intact while leaving the
+          // substrate's defaults at the generic id/entity/code/slug set.
+          identifierAttributeKeys: ["id", "entity", "code", "slug", "country_code", "nationality_code"],
+        }).observer;
     const run = await snippetRuntime.run({
       source,
       sourcePath: answerPath,
@@ -691,10 +705,10 @@ async function runLiveExperimental(input: {
         // answer through the substrate (df.db.* or df.lib.*) rather
         // than bare df.tool.* fan-out. Non-mounted tenants are unaffected.
         ...(mountedRuntime ? { requireSubstrateRootedChain: true } : {}),
-        skillcraftToolBridge: {
-          skillcraftDir: input.skillcraftDir,
+        toolBridge: {
+          datasetDir: input.skillcraftDir,
           bundles: taskToolBundles(input.task),
-          runnerPath: path.resolve("eval/skillcraft/scripts/invoke-skillcraft-tool.py"),
+          runnerPath: path.resolve("eval/skillcraft/scripts/invoke-tool.py"),
         },
         snippetTimeoutMs: input.snippetTimeoutMs,
       },
@@ -1405,258 +1419,9 @@ function stripLocalDatafetchRuntimeImports(source: string): string {
 
 function rewriteGeneratedSyntaxSlips(source: string): string {
   const restParam = /(?:const|let|var)\s+[A-Za-z_$][\w$]*\s*=\s*\([^)]*\.\.\.\s*([A-Za-z_$][\w$]*)[^)]*\)\s*=>\s*\{/.exec(source)?.[1];
-  let out = source
-    .replace(/\)\s*\.\s*\[/g, ")[")
-    .replace(/\bconst\s+\(\s*([A-Za-z_$][\w$]*)\s*:\s*([^)]+?)\s*\)\s*=/g, "const $1: $2 =");
-  out = rewriteDottedIndicatorOptionalAccess(out);
-  out = rewriteMixedNullishLogicalExpressions(out);
-  out = rewriteSnakeCaseObjectShorthandAliases(out);
-  out = rewriteUnsafeStringCoercionCalls(out);
+  const out = applyGenericSyntaxFixes(source);
   if (!restParam) return out;
   return out.replace(/arguments\s*\[\s*arguments\.length\s*-\s*1\s*\]/g, `${restParam}[${restParam}.length - 1]`);
-}
-
-// AST-based rewriter (May 2026, replaces a regex implementation).
-// Wraps calls like `(x ?? "").toLowerCase()` in `String(...)` coercion
-// and pre-coerces nullish-fallback variable initialisations whose RHS
-// ends with `""`. Catches the common agent patterns:
-//   (value ?? other ?? "").toLowerCase()
-//   const entity = r.intentEntity ?? r.label ?? "";  // then entity.toLowerCase()
-// where `value`/`other`/`r.intentEntity` can turn out to be a number
-// or boolean — `??` short-circuits before the empty-string fallback,
-// and `.toLowerCase()` then throws `TypeError: <x>.toLowerCase is not
-// a function`. Generic substrate hardening; no benchmark identifiers.
-//
-// The AST swap follows the same "parse + range-patch (no printer)"
-// approach as `rewriteMixedNullishLogicalExpressions`. The prior
-// regex implementation's negative-lookbehind `(?<!String)` is replaced
-// by an explicit AST check that the receiver is not already a
-// `String(...)` CallExpression.
-export function rewriteUnsafeStringCoercionCalls(source: string): string {
-  const sourceFile = ts.createSourceFile(
-    "answer.ts",
-    source,
-    ts.ScriptTarget.Latest,
-    /*setParentNodes*/ true,
-    ts.ScriptKind.TS,
-  );
-
-  // Generic JS string-surface methods commonly called on values that a
-  // `??`-chain can leave as a non-string. Not benchmark-specific.
-  const UNSAFE_METHODS = new Set([
-    "toLowerCase", "toUpperCase", "includes", "startsWith", "endsWith",
-    "trim", "trimStart", "trimEnd", "slice", "indexOf", "lastIndexOf",
-    "split", "replace", "replaceAll", "match", "search",
-    "padStart", "padEnd", "repeat", "charAt", "codePointAt", "normalize",
-  ]);
-
-  const NULLISH = ts.SyntaxKind.QuestionQuestionToken;
-
-  function containsNullish(node: ts.Node): boolean {
-    if (ts.isBinaryExpression(node) && node.operatorToken.kind === NULLISH) return true;
-    let found = false;
-    node.forEachChild((c) => { if (!found) found = containsNullish(c); });
-    return found;
-  }
-
-  function isStringCall(node: ts.Node): boolean {
-    return (
-      ts.isCallExpression(node) &&
-      ts.isIdentifier(node.expression) &&
-      node.expression.text === "String"
-    );
-  }
-
-  function isEmptyStringLiteral(node: ts.Node): boolean {
-    return ts.isStringLiteral(node) && node.text === "";
-  }
-
-  interface Edit { start: number; end: number; replacement: string }
-  const edits: Edit[] = [];
-  const seenRanges = new Set<string>();
-
-  function pushEdit(start: number, end: number, replacement: string): void {
-    const key = `${start}:${end}`;
-    if (seenRanges.has(key)) return;
-    seenRanges.add(key);
-    edits.push({ start, end, replacement });
-  }
-
-  function walk(node: ts.Node): void {
-    // Rule 1 — parenthesised receiver:  (X ?? Y).METHOD(...)  →
-    // String(X ?? Y).METHOD(...). The ParenthesizedExpression's
-    // source range INCLUDES its outer parens; we replace that whole
-    // range with `String(<inner-text>)` so the result has no extra
-    // grouping noise.
-    if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)) {
-      const propAccess = node.expression;
-      const method = propAccess.name.text;
-      const receiver = propAccess.expression;
-      if (
-        UNSAFE_METHODS.has(method) &&
-        ts.isParenthesizedExpression(receiver) &&
-        containsNullish(receiver.expression) &&
-        !isStringCall(receiver.expression)
-      ) {
-        const innerText = receiver.expression.getText(sourceFile);
-        pushEdit(
-          receiver.getStart(sourceFile),
-          receiver.getEnd(),
-          `String(${innerText})`,
-        );
-      }
-    }
-
-    // Rule 2 — variable-init coercion:  `const x = a ?? b ?? "";`  →
-    // `const x = String(a ?? b ?? "");`. Pre-coerces the variable so
-    // later bare `x.METHOD(...)` calls are safe. The check targets
-    // the topmost `??` BinaryExpression whose right operand is the
-    // empty-string literal `""` — `??` is left-associative so
-    // `a ?? b ?? ""` parses as `((a ?? b) ?? "")` and the topmost
-    // .right is the `""` literal. Initialisers already wrapped in
-    // `String(...)` are skipped.
-    if (ts.isVariableStatement(node)) {
-      for (const decl of node.declarationList.declarations) {
-        const init = decl.initializer;
-        if (!init) continue;
-        if (isStringCall(init)) continue;
-        if (!ts.isBinaryExpression(init)) continue;
-        if (init.operatorToken.kind !== NULLISH) continue;
-        if (!isEmptyStringLiteral(init.right)) continue;
-        const initText = init.getText(sourceFile);
-        pushEdit(
-          init.getStart(sourceFile),
-          init.getEnd(),
-          `String(${initText})`,
-        );
-      }
-    }
-
-    ts.forEachChild(node, walk);
-  }
-  walk(sourceFile);
-
-  if (edits.length === 0) return source;
-  edits.sort((a, b) => b.start - a.start);
-  let out = source;
-  for (const edit of edits) {
-    out = out.slice(0, edit.start) + edit.replacement + out.slice(edit.end);
-  }
-  return out;
-}
-
-function rewriteDottedIndicatorOptionalAccess(source: string): string {
-  return source.replace(
-    /\?\.([A-Z]{2,}(?:\.[A-Z0-9]{2,}){2,})/g,
-    (_match, indicator: string) => `?.[${JSON.stringify(indicator)}]`,
-  );
-}
-
-function rewriteSnakeCaseObjectShorthandAliases(source: string): string {
-  const declarations = new Set<string>();
-  const declarationPattern = /\b(?:const|let|var|function|class)\s+([A-Za-z_$][\w$]*)/g;
-  for (const match of source.matchAll(declarationPattern)) {
-    if (match[1]) declarations.add(match[1]);
-  }
-  const aliases = new Map<string, string>();
-  for (const declaration of declarations) {
-    const snake = declaration.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
-    if (snake !== declaration && !declarations.has(snake)) {
-      aliases.set(snake, declaration);
-    }
-  }
-  if (aliases.size === 0) return source;
-  return source
-    .split("\n")
-    .map((line) => {
-      const lineMatch = /^(\s*)([A-Za-z_$][\w$]*)(\s*,\s*)$/.exec(line);
-      if (lineMatch && aliases.has(lineMatch[2]!)) {
-        return `${lineMatch[1]}${lineMatch[2]}: ${aliases.get(lineMatch[2]!)},`;
-      }
-      return line.replace(
-        /([,{]\s*)([A-Za-z_$][\w$]*)(\s*[,}])/g,
-        (match, prefix: string, identifier: string, suffix: string) =>
-          aliases.has(identifier)
-            ? `${prefix}${identifier}: ${aliases.get(identifier)}${suffix}`
-            : match,
-      );
-    })
-    .join("\n");
-}
-
-// AST-based replacement (May 2026). Replaces the prior regex/depth-walk
-// implementation that missed mixed `??`/`||` expressions buried inside
-// `String(...)` arguments, `.push(...)` arguments, object literal
-// properties, ternary branches, array elements, callback bodies, etc.
-// Codex review verified TypeScript's parser recovers cleanly from
-// these invalid-but-LLM-typical inputs, producing a BinaryExpression
-// tree we can walk.
-//
-// Strategy: parse the source, walk for every BinaryExpression whose
-// operator is `??`/`||`/`&&` and whose left or right child is also a
-// BinaryExpression in the OTHER operator family, then wrap that
-// child's source range with parentheses. Insertions are applied
-// back-to-front so earlier edits don't shift later positions. We do
-// NOT use the TypeScript printer — that would reflow the whole file
-// and break downstream regex rewriters in `prepareAnswerSourceForRuntime`.
-// See tests/skillcraft-full-datafetch-planner.test.ts for the regression
-// surface, and the 15-case prototype (now retired) for the wider
-// coverage that motivated this swap.
-export function rewriteMixedNullishLogicalExpressions(source: string): string {
-  const sourceFile = ts.createSourceFile(
-    "answer.ts",
-    source,
-    ts.ScriptTarget.Latest,
-    /*setParentNodes*/ true,
-    ts.ScriptKind.TS,
-  );
-
-  const NULLISH = ts.SyntaxKind.QuestionQuestionToken;
-  const LOGICAL_KINDS = new Set<ts.SyntaxKind>([
-    ts.SyntaxKind.BarBarToken,
-    ts.SyntaxKind.AmpersandAmpersandToken,
-  ]);
-
-  type Family = "nullish" | "logical";
-  function operatorFamily(node: ts.BinaryExpression): Family | null {
-    if (node.operatorToken.kind === NULLISH) return "nullish";
-    if (LOGICAL_KINDS.has(node.operatorToken.kind)) return "logical";
-    return null;
-  }
-
-  const seenRanges = new Set<string>();
-  const insertions: Array<{ pos: number; text: string; priority: number }> = [];
-
-  function maybeWrap(child: ts.Node, parentFamily: Family): void {
-    if (!ts.isBinaryExpression(child)) return;
-    const childFamily = operatorFamily(child);
-    if (!childFamily || childFamily === parentFamily) return;
-    const key = `${child.getStart(sourceFile)}:${child.getEnd()}`;
-    if (seenRanges.has(key)) return;
-    seenRanges.add(key);
-    insertions.push({ pos: child.getStart(sourceFile), text: "(", priority: 0 });
-    insertions.push({ pos: child.getEnd(), text: ")", priority: 1 });
-  }
-
-  function walk(node: ts.Node): void {
-    if (ts.isBinaryExpression(node)) {
-      const family = operatorFamily(node);
-      if (family) {
-        maybeWrap(node.left, family);
-        maybeWrap(node.right, family);
-      }
-    }
-    ts.forEachChild(node, walk);
-  }
-  walk(sourceFile);
-
-  if (insertions.length === 0) return source;
-  insertions.sort((a, b) => (b.pos - a.pos) || (a.priority - b.priority));
-  let out = source;
-  for (const ins of insertions) {
-    out = out.slice(0, ins.pos) + ins.text + out.slice(ins.pos);
-  }
-  return out;
 }
 
 export function rewriteHyphenatedLocalPropertyAccess(source: string): string {
@@ -1887,21 +1652,6 @@ function rewriteDfAnswerKitPropertyCalls(source: string): string {
   return out;
 }
 
-const ANSWER_KIT_IMPORT = "./datafetch_answer_kit.ts";
-const ANSWER_KIT_HELPERS = [
-  "g",
-  "arr",
-  "asArr",
-  "num",
-  "pickNum",
-  "avg",
-  "r1",
-  "firstVal",
-  "text",
-  "rowsOf",
-  "writeJson",
-] as const;
-
 function renameLateLocalAnswerKitHelperShadows(source: string): string {
   let out = source;
   for (const name of ["g"] as const) {
@@ -2004,10 +1754,7 @@ async function prepareLiveWorkspace(input: {
     await fsp.copyFile(input.task.agentPromptPath, path.join(input.workspace, "agent_system_prompt.md"));
   }
   await fsp.copyFile(input.task.taskConfigPath, path.join(input.workspace, "task_config.json"));
-  await fsp.writeFile(
-    path.join(input.workspace, "tool_manifest.json"),
-    `${JSON.stringify(toolCatalog, null, 2)}\n`,
-  );
+  await writeToolManifest(input.workspace, toolCatalog);
   const allLibFunctions = Array.from(new Set([
     ...(input.seededLibFunctions ?? []),
     ...input.availableLibFunctions,
@@ -2257,118 +2004,6 @@ export function renderAnswerScaffold(task: SkillCraftTask): string {
     "// or call a reusable df.lib.* helper from lib/ when one fits the task,",
     "// then return df.answer(...).",
     `// Expected output file(s): ${task.expectedOutputFiles.join(", ") || "see task.md/evaluator"}`,
-    "",
-  ].join("\n");
-}
-
-export function renderAnswerKitSource(): string {
-  return [
-    "import { writeFile } from \"node:fs/promises\";",
-    "const envelopeKeys = [\"value\", \"data\", \"result\", \"record\", \"entity\", \"item\", \"payload\"];",
-    "const envelopeMetaKeys = new Set([\"success\", \"ok\", \"status\", \"error\", \"message\", \"code\", \"errors\", \"warnings\", \"elapsedMs\", \"elapsed_ms\", \"took\"]);",
-    "const isErrorLike = (x: any) => x != null && typeof x === \"object\" && !Array.isArray(x) && x.success === false && (typeof x.error === \"string\" || typeof x.message === \"string\");",
-    "export const unwrap = (x: any) => {",
-    "  if (x == null || typeof x !== \"object\" || Array.isArray(x)) return x;",
-    "  if (isErrorLike(x)) return undefined;",
-    "  if (typeof x.success === \"boolean\" || typeof x.ok === \"boolean\") {",
-    "    const payloadKeys = Object.keys(x).filter((k) => !envelopeMetaKeys.has(k) && x[k] != null);",
-    "    if (payloadKeys.length === 1) return x[payloadKeys[0]];",
-    "  }",
-    "  for (const key of envelopeKeys) { if (x?.[key] != null) return x[key]; }",
-    "  // Generic single-key wrapper: tool responses like {pokemon: {...}} or {show: {...}} that wrap their",
-    "  // payload under an entity-named key (no success/ok flag, no envelope key) get unwrapped here. Avoids",
-    "  // smuggling benchmark identifiers into the envelope allowlist while still matching the prompt's",
-    "  // documented promise that unwrap() strips single-key wrappers.",
-    "  const wrapperKeys = Object.keys(x).filter((k) => !envelopeMetaKeys.has(k) && x[k] != null);",
-    "  if (wrapperKeys.length === 1 && typeof x[wrapperKeys[0]] === \"object\" && !Array.isArray(x[wrapperKeys[0]])) return x[wrapperKeys[0]];",
-    "  return x;",
-    "};",
-    "const listEnvelopeKeys = [\"value\", \"data\", \"results\", \"items\", \"records\", \"rows\", \"entries\", \"list\"];",
-    "export const rowsOf = (x: any): any[] => {",
-    "  if (Array.isArray(x)) return x;",
-    "  if (x == null || typeof x !== \"object\") return [];",
-    "  for (const key of listEnvelopeKeys) { if (Array.isArray(x[key])) return x[key]; }",
-    "  const u = unwrap(x);",
-    "  if (Array.isArray(u)) return u;",
-    "  if (u != null && typeof u === \"object\" && u !== x) {",
-    "    for (const key of listEnvelopeKeys) { if (Array.isArray((u as any)[key])) return (u as any)[key]; }",
-    "  }",
-    "  return [];",
-    "};",
-    "const parts = (name: string) => String(name).replace(/\\[[\"']?([^\"'\\]]+)[\"']?\\]/g, \".$1\").split(\".\").filter(Boolean);",
-    "const identityKeys = new Set([\"id\", \"entity\", \"entityId\", \"entityValue\", \"value\"]);",
-    "const readKeyDirect = (value: any, key: string) => {",
-    "  if ((value == null || typeof value !== \"object\") && identityKeys.has(key)) return value;",
-    "  if (isErrorLike(value)) return undefined;",
-    "  return value?.tools?.[key] ?? value?.[key] ?? value?.attributes?.[key] ?? value?.record?.[key] ?? value?.record?.attributes?.[key];",
-    "};",
-    "const readKey = (value: any, key: string) => {",
-    "  const direct = readKeyDirect(value, key);",
-    "  if (direct != null && !isErrorLike(direct)) return direct;",
-    "  const v = unwrap(value);",
-    "  return v === value ? undefined : readKeyDirect(v, key);",
-    "};",
-    "const readPath = (value: any, path: string) => {",
-    "  if (String(path).trim() === \"\") return undefined;",
-    "  const direct = readKey(value, path);",
-    "  if (direct != null) return direct;",
-    "  let cur = value;",
-    "  for (const part of parts(path)) {",
-    "    cur = readKey(cur, part);",
-    "    if (cur == null) return undefined;",
-    "  }",
-    "  return cur;",
-    "};",
-    "export const g = (row: any, ...choices: any[]) => {",
-    "  const last = choices[choices.length - 1];",
-    "  const simpleStringDefault = choices.length >= 3 && typeof last === \"string\" && !/[.\\[\\]]/.test(last) ? last : undefined;",
-    "  if (choices.length > 1 && choices.every((choice) => typeof choice === \"string\")) {",
-    "    let cur = row;",
-    "    for (const choice of choices) { cur = readPath(cur, choice); if (cur == null) break; }",
-    "    if (cur != null && !isErrorLike(cur)) return cur;",
-    "  }",
-    "  for (const choice of choices) {",
-    "    if (typeof choice !== \"string\") { if (choice != null && !isErrorLike(choice)) return choice; continue; }",
-    "    if (choice === \"\") return \"\";",
-    "    const value = readPath(row, choice);",
-    "    if (value != null && !isErrorLike(value)) return value;",
-    "  }",
-    "  return simpleStringDefault;",
-    "};",
-    "export const arr = (x: any, keys: string[] = []) => {",
-    "  const v = unwrap(x);",
-    "  if (Array.isArray(v)) return v;",
-    "  for (const key of [...keys, \"items\", \"results\", \"records\", \"rows\", \"values\", \"data\", \"entries\", \"list\"]) {",
-    "    if (Array.isArray(v?.[key])) return v[key];",
-    "  }",
-    "  return [];",
-    "};",
-    "export const asArr = (x: any, keys: string[] = []) => arr(x, keys);",
-    "export const num = (x: any, d = 0) => {",
-    "  const v = typeof x === \"number\" ? x : Number(x?.average ?? x);",
-    "  return Number.isFinite(v) ? v : d;",
-    "};",
-    "export const pickNum = (...xs: any[]) => {",
-    "  for (const x of xs) {",
-    "    const v = num(x, NaN);",
-    "    if (Number.isFinite(v)) return v;",
-    "  }",
-    "  return 0;",
-    "};",
-    "export const avg = (xs: number[]) => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;",
-    "export const r1 = (x: any, d = 0) => Number(num(x, d).toFixed(1));",
-    "export const firstVal = (obj: any, paths: string[] = [], d?: any) => {",
-    "  for (const path of paths) {",
-    "    const v = g(obj, path);",
-    "    if (v != null) return v;",
-    "  }",
-    "  return d;",
-    "};",
-    "export const text = (x: any, d = \"\") => {",
-    "  const v = typeof x === \"string\" ? x : g(x, \"name\", \"title\", \"label\", \"person.name\", \"character.name\");",
-    "  return v == null ? d : String(v);",
-    "};",
-    "export const writeJson = (file: any, value?: unknown) => value === undefined ? file : writeFile(String(file), JSON.stringify(value), \"utf8\");",
     "",
   ].join("\n");
 }
@@ -4000,10 +3635,10 @@ async function listSkillcraftTools(input: {
   skillcraftDir: string;
   bundle: string;
 }): Promise<ToolDescriptor[]> {
-  const runnerPath = path.resolve("eval/skillcraft/scripts/invoke-skillcraft-tool.py");
-  const proc = await spawnProcess(process.env["SKILLCRAFT_TOOL_PYTHON"] ?? "python3", [
+  const runnerPath = path.resolve("eval/skillcraft/scripts/invoke-tool.py");
+  const proc = await spawnProcess(process.env["DATAFETCH_TOOL_PYTHON"] ?? "python3", [
     runnerPath,
-    "--skillcraft-dir",
+    "--dataset-dir",
     input.skillcraftDir,
     "--bundle",
     input.bundle,
@@ -4028,10 +3663,6 @@ async function collectToolCatalog(
     });
   }
   return catalog;
-}
-
-function flattenToolCatalogNames(toolCatalog: ToolCatalogEntry[]): string[] {
-  return toolCatalog.flatMap((entry) => entry.tools.map((tool) => tool.name));
 }
 
 function taskToolBundles(task: SkillCraftTask): string[] {

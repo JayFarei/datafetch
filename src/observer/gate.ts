@@ -303,8 +303,8 @@ export function shouldCrystallise(args: ShouldCrystalliseArgs): GateOutcome {
     if (firstDbIdx === -1) {
       if (isPureToolFanout(slice)) {
         // Pure tool fan-out is a legitimate reusable helper family for
-        // SkillCraft tenants without mounted records, or for dependent
-        // enrichment tails. It still needs the no-error, composition-mode,
+        // tenants without mounted records, or for dependent enrichment
+        // tails. It still needs the no-error, composition-mode,
         // shape-dedup, and convergence checks below.
       } else if (hasLearnedToolFanoutWithDependentToolTail(slice, existing)) {
         // A learned pure tool fan-out helper can be followed by a dependent

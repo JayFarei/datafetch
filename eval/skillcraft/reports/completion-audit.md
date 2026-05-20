@@ -65,7 +65,7 @@ CLAW_CODEX_REQUEST_TIMEOUT_SECONDS=300 \
 SKILLCRAFT_NATIVE_TASK_TIMEOUT_CAP=300 \
 SKILLCRAFT_NATIVE_REUSE_EVAL_RES=1 \
 pnpm eval:skillcraft:native:claw -- \
-  --skillcraft-dir /tmp/skillcraft-official \
+  --dataset-dir /tmp/skillcraft-official \
   --mode base,skill \
   --out-dir eval/skillcraft/results/native/claw-full-126-20260510213113 \
   --continue-run eval/skillcraft/results/native/claw-full-126-20260510213113/run_20260510_213115

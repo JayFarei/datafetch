@@ -77,7 +77,7 @@ BUNDLE_MAP = {
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--skillcraft-dir", required=True)
+    parser.add_argument("--dataset-dir", required=True)
     parser.add_argument("--bundle", required=True)
     parser.add_argument("--tool")
     parser.add_argument("--args", default="{}")
@@ -86,7 +86,7 @@ def main() -> None:
 
     install_agents_shim()
     install_requests_shim()
-    skillcraft_dir = Path(args.skillcraft_dir).resolve()
+    skillcraft_dir = Path(args.dataset_dir).resolve()
     sys.path.insert(0, str(skillcraft_dir))
 
     tools = load_bundle(args.bundle)

@@ -105,9 +105,8 @@ export type CallTemplate = {
   // Two trajectories doing structurally
   // identical work over DIFFERENT data shapes share an `intentSignature`
   // even when their `shapeHash` differs. The pinned spec v2 lives in
-  // experiments/PLAN.md § Goal 4 Change 1; the offline reference impl
-  // is `eval/skillcraft/scripts/intent-cluster-analysis.ts`. iter 3
-  // computes this as metadata; iter 4 keys the convergence gate on it.
+  // experiments/PLAN.md § Goal 4 Change 1. iter 3 computes this as
+  // metadata; iter 4 keys the convergence gate on it.
   intentSignature: string;
 };
 
@@ -198,8 +197,7 @@ export function extractTemplateFromCalls(
 //
 // Data-shape-agnostic crystallisation key. Validated offline over the
 // iter14 full-126 + iter15 subset (146 trajectories → 55 clusters, 22
-// multi-trajectory, 17 cross-family, 0 incoherent). Reference impl:
-// eval/skillcraft/scripts/intent-cluster-analysis.ts.
+// multi-trajectory, 17 cross-family, 0 incoherent).
 
 type PrimitiveCategory = "db" | "lib" | "tool" | "other";
 
@@ -380,11 +378,11 @@ export function extractNestedTemplates(
 // from contiguous slices of the trajectory in addition to the whole.
 //
 // Goal-3 iter 10: today the observer crystallises one helper per trajectory
-// (via `extractTemplate`). For SkillCraft-shaped trajectories where the
-// agent's snippet did `db.records.findExact -> [tool.A, tool.B, ...] -> lib.<seed>`,
-// the whole-trajectory shape collapses to a single shape-hash and a single
-// authored helper. To lift `avgLearnedInterfacesAvailable` above 1, we also
-// propose:
+// (via `extractTemplate`). For trajectories where the agent's snippet did
+// `db.records.findExact -> [tool.A, tool.B, ...] -> lib.<seed>`, the
+// whole-trajectory shape collapses to a single shape-hash and a single
+// authored helper. To lift `avgLearnedInterfacesAvailable` above 1, we
+// also propose:
 //
 //   - A "lookup + first consumer" sub-graph: from the first db.* call to the
 //     first downstream lib.* / tool.* that consumes its output. Reusable as
@@ -469,10 +467,9 @@ export function extractSubGraphTemplates(
 
   // Sub-graph A: [db .. first consumer] inclusive. Skip when it equals the
   // whole trajectory or is too short to be a meaningful pattern. The
-  // ≥ 3-call minimum keeps the demo's 4-call FinQA trajectory from
-  // spawning a noisy `[db, firstHelper]` 2-call sibling while still
-  // letting longer SkillCraft fan-out trajectories produce a useful
-  // sub-graph helper.
+  // ≥ 3-call minimum keeps short 4-call trajectories from spawning a
+  // noisy `[db, firstHelper]` 2-call sibling while still letting longer
+  // fan-out trajectories produce a useful sub-graph helper.
   if (consumerIdx < calls.length - 1) {
     const slice = calls.slice(firstDbIdx, consumerIdx + 1);
     if (slice.length >= 3) {

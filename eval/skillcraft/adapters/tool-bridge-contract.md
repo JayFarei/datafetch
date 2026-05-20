@@ -18,7 +18,7 @@ The bridge must document any tool that cannot be represented faithfully.
 
 Current implementation slice:
 
-- `eval/skillcraft/scripts/invoke-skillcraft-tool.py` can list and invoke
+- `eval/skillcraft/scripts/invoke-tool.py` can list and invoke
   official SkillCraft local-tool bundles outside the native runner.
 - It shims the minimal `agents.tool.FunctionTool` import surface and a small
   `requests.get` surface so schema listing and simple HTTP-backed tools work

@@ -76,6 +76,11 @@ export type ObserverOpts = {
   // The observer waits briefly for result/HEAD.json before deciding whether
   // this commit is still the current worktree HEAD.
   workspaceHeadTimeoutMs?: number;
+  // Attribute keys that the record-value signature extractor allows as
+  // short-string identifiers. Defaults (id/entity/code/slug) cover the
+  // generic case; dataset evals whose records use additional identifier
+  // columns set this list. See author.ts DEFAULT_RECORD_IDENTIFIER_KEYS.
+  identifierAttributeKeys?: readonly string[];
 };
 
 // --- Observer --------------------------------------------------------------
@@ -92,6 +97,7 @@ export class Observer {
   private readonly codifierSkill: string | null;
   private readonly resolverOverride: LibraryResolver | null;
   private readonly workspaceHeadTimeoutMs: number;
+  private readonly identifierAttributeKeys: readonly string[] | undefined;
 
   // Test-friendly: every `observe(id)` call records its in-flight Promise
   // here so smoke tests can `await observer.observerPromise.get(id)`.
@@ -107,6 +113,7 @@ export class Observer {
       opts.codifierSkill ?? process.env["DATAFETCH_CODIFIER_SKILL"] ?? null;
     this.resolverOverride = opts.libraryResolver ?? null;
     this.workspaceHeadTimeoutMs = opts.workspaceHeadTimeoutMs ?? 2_000;
+    this.identifierAttributeKeys = opts.identifierAttributeKeys;
   }
 
   async observe(trajectoryId: string): Promise<ObserveResult> {
@@ -289,6 +296,12 @@ export class Observer {
         // The five existing renderers ignore acceptedShape entirely.
         ...(convergenceGate.ok && convergenceGate.acceptedShape
           ? { acceptedShape: convergenceGate.acceptedShape }
+          : {}),
+        // substrate-decouple: forward the dataset's declared identifier
+        // columns to the record-value signature extractor. Orthogonal to
+        // acceptedShape above.
+        ...(this.identifierAttributeKeys !== undefined
+          ? { identifierAttributeKeys: this.identifierAttributeKeys }
           : {}),
       });
       if (authored.kind === "skipped") {

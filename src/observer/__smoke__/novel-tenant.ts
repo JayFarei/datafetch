@@ -39,7 +39,7 @@ import { installSnippetRuntime } from "../../snippet/install.js";
 
 import { installObserver } from "../install.js";
 
-// --- Stub dataset (no FinQA, no SkillCraft) --------------------------------
+// --- Stub dataset (no dataset-specific fixtures) ---------------------------
 
 interface BookRecord {
   id: string;
@@ -187,7 +187,7 @@ function makeBookRuntime(): MountRuntime {
 // of records and returns a summary. The seed lives outside the per-
 // tenant prohibition (which targets <baseDir>/lib/<tenantId>/) and the
 // body is family-agnostic; this matches the same `__seed__/` convention
-// the SkillCraft harness uses.
+// the production harnesses use.
 
 async function writeSummariseSeed(baseDir: string): Promise<void> {
   const seedDir = path.join(baseDir, "lib", "__seed__");

@@ -2,10 +2,10 @@ export type AnswerStatus = "answered" | "partial" | "unsupported";
 
 // Soft warning attached to the answer envelope when the recursive
 // value scan finds too many placeholder strings ("Unknown", "None",
-// "null", "N/A", "") or zero numeric fields. Mirrors the
-// LOW_QUALITY_VALUES heuristic SkillCraft uses; doesn't block the
-// answer (the evaluator still scores it), just surfaces a signal the
-// agent can see on rehearsal runs through `pnpm datafetch:run`.
+// "null", "N/A", "") or zero numeric fields. Mirrors the low-quality
+// output heuristic common to extraction-style task scorers; doesn't
+// block the answer (the evaluator still scores it), just surfaces a
+// signal the agent can see on rehearsal runs through `pnpm datafetch:run`.
 export type AnswerQualityWarning = {
   code: "low_quality_output";
   message: string;
@@ -66,9 +66,10 @@ export type AnswerValidation = {
 const ANSWER_ENVELOPE_SYMBOL = Symbol.for("datafetch.answer");
 
 // Strings that almost always indicate the agent's extraction logic
-// missed the field rather than the field genuinely being absent. Ported
-// from SkillCraft's `LOW_QUALITY_VALUES`. Treats the empty string as a
-// placeholder too — a real string answer should never be "".
+// missed the field rather than the field genuinely being absent. The
+// LOW_QUALITY_VALUES set is convention across extraction-style task
+// scorers. Treats the empty string as a placeholder too — a real
+// string answer should never be "".
 const PLACEHOLDER_STRINGS = new Set([
   "Unknown", "unknown", "UNKNOWN",
   "None", "none", "NONE",
@@ -152,7 +153,7 @@ function checkAnswerQuality(value: unknown): AnswerQualityWarning[] {
   if (scan.totalFields === 0) return [];
   const problematic = scan.placeholderFields + scan.zeroNumericFields;
   const ratio = problematic / scan.totalFields;
-  // Two trip conditions, matching the SkillCraft heuristic:
+  // Two trip conditions:
   //   1. Over half the fields are problematic.
   //   2. Almost every field is a placeholder string (extraction
   //      clearly missed; even one good value isn't enough to disprove).

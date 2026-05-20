@@ -17,7 +17,7 @@ Useful options:
 bash eval/skillcraft/scripts/prepare-skillcraft.sh \
   --repo https://github.com/shiqichen17/SkillCraft \
   --ref 0a9ba8808ba49bbc7bd40ad2e853896b8c3d4764 \
-  --skillcraft-dir /path/to/skillcraft \
+  --dataset-dir /path/to/skillcraft \
   --skip-install
 ```
 
@@ -59,7 +59,7 @@ Provider notes:
 
   ```bash
   pnpm eval:skillcraft:native:claw -- \
-    --skillcraft-dir /tmp/skillcraft-official \
+    --dataset-dir /tmp/skillcraft-official \
     --mode base,skill
   ```
 
@@ -74,7 +74,7 @@ Provider notes:
   SKILLCRAFT_NATIVE_TASK_TIMEOUT_CAP=300 \
   SKILLCRAFT_NATIVE_REUSE_EVAL_RES=1 \
   pnpm eval:skillcraft:native:claw -- \
-    --skillcraft-dir /tmp/skillcraft-official \
+    --dataset-dir /tmp/skillcraft-official \
     --mode base,skill \
     --out-dir eval/skillcraft/results/native/claw-full-126-20260510213113 \
     --continue-run eval/skillcraft/results/native/claw-full-126-20260510213113/run_20260510_213115
@@ -137,8 +137,8 @@ marked ready by the harness verifier.
 Full 126-task Datafetch command:
 
 ```bash
-SKILLCRAFT_TOOL_TIMEOUT_MS=60000 pnpm eval:skillcraft -- \
-  --skillcraft-dir /tmp/skillcraft-official \
+DATAFETCH_TOOL_TIMEOUT_MS=60000 pnpm eval:skillcraft -- \
+  --dataset-dir /tmp/skillcraft-official \
   --live \
   --out-dir eval/skillcraft/results/datafetch/full-126-20260510192951 \
   --timeout-ms 300000
@@ -148,8 +148,8 @@ If the long run is interrupted, continue from the rows already written to
 `episodes.jsonl`:
 
 ```bash
-SKILLCRAFT_TOOL_TIMEOUT_MS=60000 pnpm eval:skillcraft -- \
-  --skillcraft-dir /tmp/skillcraft-official \
+DATAFETCH_TOOL_TIMEOUT_MS=60000 pnpm eval:skillcraft -- \
+  --dataset-dir /tmp/skillcraft-official \
   --live \
   --out-dir eval/skillcraft/results/datafetch/full-126-20260510192951 \
   --timeout-ms 300000 \
@@ -159,8 +159,8 @@ SKILLCRAFT_TOOL_TIMEOUT_MS=60000 pnpm eval:skillcraft -- \
 Representative pilot command used during harness development:
 
 ```bash
-SKILLCRAFT_TOOL_TIMEOUT_MS=60000 pnpm eval:skillcraft -- \
-  --skillcraft-dir /tmp/skillcraft-official \
+DATAFETCH_TOOL_TIMEOUT_MS=60000 pnpm eval:skillcraft -- \
+  --dataset-dir /tmp/skillcraft-official \
   --live \
   --families cat-facts-collector,jsonplaceholder-blog-analyzer,countries-encyclopedia,openmeteo-weather,university-directory-builder,world-bank-economic-snapshot \
   --levels e1,e2 \
@@ -175,13 +175,13 @@ coverage, reuse accounting, and runtime failure modes, not for thesis claims.
 Tool bridge diagnostic:
 
 ```bash
-eval/skillcraft/scripts/invoke-skillcraft-tool.py \
-  --skillcraft-dir /path/to/SkillCraft \
+eval/skillcraft/scripts/invoke-tool.py \
+  --dataset-dir /path/to/SkillCraft \
   --bundle catfacts_api \
   --list
 
-eval/skillcraft/scripts/invoke-skillcraft-tool.py \
-  --skillcraft-dir /path/to/SkillCraft \
+eval/skillcraft/scripts/invoke-tool.py \
+  --dataset-dir /path/to/SkillCraft \
   --bundle catfacts_api \
   --tool local-catfacts_breed_profile \
   --args '{"breed_name":"Persian"}'

@@ -160,12 +160,12 @@ export class DiskSnippetRuntime implements SnippetRuntime {
         });
         effectiveReturnValue = rewritten;
         substrateChainRewriteApplied = true;
-      } else if (sessionCtx.skillcraftToolBridge && !hasLibCall && !hasToolCall) {
+      } else if (sessionCtx.toolBridge && !hasLibCall && !hasToolCall) {
         const rewritten: AnswerEnvelope = makeAnswerEnvelope({
           status: "unsupported",
           reason:
             "tool-backed chain absent: trajectory touched df.db.* but contained neither df.lib.* nor df.tool.* calls. " +
-            "SkillCraft tool-backed episodes must derive outputs through a learned/seed helper or official tool call; " +
+            "Tool-backed episodes must derive outputs through a learned/seed helper or official tool call; " +
             "db-only placeholder contact is rejected.",
         });
         effectiveReturnValue = rewritten;

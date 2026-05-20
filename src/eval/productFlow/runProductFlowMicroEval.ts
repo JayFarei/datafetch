@@ -980,7 +980,7 @@ async function runAnswerScript(input: {
       mountIds: [],
       baseDir: input.handles.baseDir,
       snippetTimeoutMs: SNIPPET_TIMEOUT_MS,
-      skillcraftToolBridge: bridge,
+      toolBridge: bridge,
     },
   });
 

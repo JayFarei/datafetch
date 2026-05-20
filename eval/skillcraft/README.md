@@ -42,7 +42,7 @@ run through a local OpenAI-compatible `claw-codex` server:
 claw-codex auth status || claw-codex auth login --open-browser
 CLAW_CODEX_HOST=127.0.0.1 CLAW_CODEX_PORT=1455 claw-codex serve
 pnpm eval:skillcraft:native:claw -- \
-  --skillcraft-dir /tmp/skillcraft-official \
+  --dataset-dir /tmp/skillcraft-official \
   --mode base,skill
 ```
 
@@ -52,7 +52,7 @@ For long native runs, cap task stalls and continue into the same run directory:
 SKILLCRAFT_NATIVE_TASK_TIMEOUT_CAP=300 \
 SKILLCRAFT_NATIVE_REUSE_EVAL_RES=1 \
 pnpm eval:skillcraft:native:claw -- \
-  --skillcraft-dir /tmp/skillcraft-official \
+  --dataset-dir /tmp/skillcraft-official \
   --mode base,skill \
   --out-dir eval/skillcraft/results/native/claw-full-126-20260510213113 \
   --continue-run eval/skillcraft/results/native/claw-full-126-20260510213113/run_20260510_213115
@@ -65,8 +65,8 @@ The current full paired run uses all 126 official `tasks/scaled_tasks/*` tasks.
 Datafetch arm:
 
 ```bash
-SKILLCRAFT_TOOL_TIMEOUT_MS=60000 pnpm eval:skillcraft -- \
-  --skillcraft-dir /tmp/skillcraft-official \
+DATAFETCH_TOOL_TIMEOUT_MS=60000 pnpm eval:skillcraft -- \
+  --dataset-dir /tmp/skillcraft-official \
   --live \
   --out-dir eval/skillcraft/results/datafetch/full-126-20260510192951 \
   --timeout-ms 300000
@@ -75,8 +75,8 @@ SKILLCRAFT_TOOL_TIMEOUT_MS=60000 pnpm eval:skillcraft -- \
 Long runs can resume from the same `episodes.jsonl`:
 
 ```bash
-SKILLCRAFT_TOOL_TIMEOUT_MS=60000 pnpm eval:skillcraft -- \
-  --skillcraft-dir /tmp/skillcraft-official \
+DATAFETCH_TOOL_TIMEOUT_MS=60000 pnpm eval:skillcraft -- \
+  --dataset-dir /tmp/skillcraft-official \
   --live \
   --out-dir eval/skillcraft/results/datafetch/full-126-20260510192951 \
   --timeout-ms 300000 \
@@ -87,7 +87,7 @@ Native SkillCraft base/skill arm:
 
 ```bash
 pnpm eval:skillcraft:native:claw -- \
-  --skillcraft-dir /tmp/skillcraft-official \
+  --dataset-dir /tmp/skillcraft-official \
   --mode base,skill \
   --out-dir eval/skillcraft/results/native/claw-full-126-20260510213113
 ```

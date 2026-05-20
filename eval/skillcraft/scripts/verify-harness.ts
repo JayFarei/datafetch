@@ -28,11 +28,11 @@ async function main(): Promise<void> {
     "scripts/run-native-claw-codex.sh",
     "scripts/run-datafetch-skillcraft.sh",
     "scripts/check-native-readiness.ts",
-    "scripts/index-skillcraft-tasks.ts",
+    "scripts/index-tasks.ts",
     "scripts/normalize-results.ts",
     "scripts/analyze-results.ts",
     "scripts/build-report.ts",
-    "scripts/invoke-skillcraft-tool.py",
+    "scripts/invoke-tool.py",
   ]) {
     const ok = await exists(path.join(root, file));
     checks.push({ name: `file:${file}`, ok, detail: ok ? "present" : "missing", severity: ok ? "pass" : "fail" });

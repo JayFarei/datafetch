@@ -49,7 +49,7 @@ run_shard() {
   mkdir -p "$out_dir"
   env DATAFETCH_AGENT="$DATAFETCH_AGENT" DATAFETCH_INTERFACE_MODE=hooks-draft ANTHROPIC_LOG_LEVEL=error \
     pnpm eval:skillcraft \
-      --skillcraft-dir /tmp/skillcraft-official \
+      --dataset-dir /tmp/skillcraft-official \
       --out-dir "$out_dir" \
       --families "$fams_csv" \
       --live --model "$DF_SKILLCRAFT_MODEL" --reasoning "$DF_SKILLCRAFT_REASONING" \

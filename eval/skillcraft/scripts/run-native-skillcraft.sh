@@ -16,7 +16,7 @@ ALLOW_MISSING_TASK_DOCS=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --skillcraft-dir)
+    --dataset-dir)
       SKILLCRAFT_DIR="$2"
       shift 2
       ;;
@@ -90,7 +90,7 @@ fi
 
 mkdir -p "${OUT_DIR}"
 
-preflight=(pnpm tsx eval/skillcraft/scripts/check-native-readiness.ts --skillcraft-dir "${SKILLCRAFT_DIR}" --provider "${PROVIDER}")
+preflight=(pnpm tsx eval/skillcraft/scripts/check-native-readiness.ts --dataset-dir "${SKILLCRAFT_DIR}" --provider "${PROVIDER}")
 if [[ ${ALLOW_MISSING_TASK_DOCS} -eq 1 ]]; then
   preflight+=(--allow-missing-task-docs)
 fi
