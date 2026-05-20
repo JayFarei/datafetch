@@ -229,34 +229,54 @@ local setups.
 
 ## Source Layout
 
+The substrate (`src/`) is dataset-neutral. Each dataset/benchmark lives
+under its own `eval/<dataset>/` directory and plugs into the substrate
+through the documented contracts (tool bridge, adapter profile, answer
+kit). Adding a dataset should not require a `src/` change. See
+[architecture.md § the substrate / dataset boundary](./kb/docs/architecture.md).
+
 ```text
 bin/                  CLI binary shim
-docs/                 product, runtime, learning-loop, and eval docs
+kb/docs/              product, runtime, learning-loop, architecture, eval docs
+kb/                   knowledge base (plans, prd, background research, archive)
 skills/datafetch/     installable client-agent skill
 seeds/generic/        provider-neutral seed functions and Flue skills
 seeds/domains/        optional domain/demo seed packs
-scripts/acceptance/   end-to-end shell harnesses
-tests/                vitest/unit/integration tests
+scripts/              acceptance harnesses + iteration launch scripts
+tests/                vitest unit/integration tests
+experiments/          experiment log, status, and plans
 
+eval/skillcraft/      SkillCraft benchmark harness (21 families x 6 levels)
+eval/productFlow/     non-benchmark product-flow cross-eval
+eval/finchain/        FinChain benchmark harness
+                      (each: scripts/invoke-tool.py runner, prepare script,
+                       results/ — gitignored)
+
+src/runtime/          cross-cutting substrate utilities: answer-kit emitter
+                      + generic syntax-slip rewriters, tool catalog types
+src/snippet/          TypeScript snippet runtime + df.* binding + tool bridge
+src/observer/         trajectory gate and learned-interface authoring
+src/hooks/            VFS hook registry (df.lib.<name> contract surface)
 src/adapter/          dataset substrate adapters
 src/bootstrap/        sample, infer, synthesize, manifest emit
 src/bash/             just-bash session integration
 src/cli/              CLI command implementations
 src/demo/             FinQA two-question demo
 src/discovery/        library search / apropos
+src/eval/             eval entrypoints (per-dataset harness drivers)
 src/flue/             Flue dispatcher and skill loading
-src/observer/         trajectory gate and learned-interface authoring
 src/sdk/              public TypeScript SDK primitives
 src/server/           Hono data plane and catalog routes
-src/snippet/          TypeScript snippet runtime
 src/trajectory/       call-scope and lineage recording
 ```
 
 Local generated state stays ignored: `.datafetch/`, `.atlasfs/`,
-`.snippet-cache/`, `artifacts/`, and `dist/`.
+`.snippet-cache/`, `artifacts/`, `dist/`, and every
+`eval/<dataset>/results/`.
 
 ## Docs
 
+- [Architecture + the substrate / dataset boundary](./kb/docs/architecture.md)
 - [How datafetch works](./kb/docs/how-it-works.md)
 - [How datafetch improves over time](./kb/docs/improvement-loop.md)
 - [Benchmarking the datafetch thesis](./kb/docs/benchmarking.md)
