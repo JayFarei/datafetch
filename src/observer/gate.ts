@@ -136,8 +136,8 @@ export function shouldCrystallise(args: ShouldCrystalliseArgs): GateOutcome {
   //    composition-density lever for pure-computation benchmarks where
   //    the agent reads records, computes inline, and commits a final
   //    value without any df.lib.* call. Generic (no benchmark identifiers);
-  //    opt-in so SkillCraft + other tool-fanout benchmarks remain
-  //    unaffected. The crystallised helper captures the inline computation
+  //    opt-in so tool-fanout-shaped benchmarks remain unaffected.
+  //    The crystallised helper captures the inline computation
   //    so future siblings can call it instead of re-deriving.
   const pureComputeOptIn =
     (process.env["DATAFETCH_GATE_PURE_COMPUTE"] ?? "").trim().toLowerCase() === "1";

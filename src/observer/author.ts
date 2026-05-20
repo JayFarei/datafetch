@@ -110,8 +110,8 @@ export async function authorFunction(
   // for tool-fanout and record-tool shapes; on a single-db.* trajectory
   // they would emit a placeholder helper that misses the inline-math
   // payload (generatePureSource wraps the single primitive). When
-  // hasInlineComputation is false (every legacy SkillCraft-shape
-  // trajectory), the order reverts to the existing cascade and
+  // hasInlineComputation is false (every legacy tool-fanout/record-tool
+  // shape trajectory), the order reverts to the existing cascade and
   // renderFromAgentSource is unreached — the new author is DORMANT on
   // those shapes (verified by walk-artifacts in iter 4).
   //
