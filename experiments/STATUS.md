@@ -180,8 +180,8 @@ Just-completed tidying landed 10 commits (`ca8a2707` → `cd7450e1`):
 - `tests/skillcraft-full-datafetch-planner.test.ts` — 125+ tests
   guarding the four substrate patches.
 - `experiments/archive/2026-05-goal4-skillcraft/academic-design-directions.md`,
-  `experiments/goal4-battle-of-ideas-goal.md` — research direction notes
-  for the next phase.
+  `experiments/archive/2026-05-goal4-skillcraft/goal4-battle-of-ideas-goal.md` —
+  research direction notes for the next phase.
 - This narrative-sync commit + four new docs:
   `intent-shape-interface.md`, `eval-rubric.md`,
   `archive/2026-05-goal4-skillcraft/post-iter164-paper-digests.md`, `experiment-history.md`.
@@ -308,4 +308,4 @@ runtime, hook registry, intent signatures).
 | [`../eval/skillcraft/rubric.md`](../eval/skillcraft/rubric.md) | honest R1-R9 + qualifications description |
 | [`archive/2026-05-goal4-skillcraft/post-iter164-paper-digests.md`](archive/2026-05-goal4-skillcraft/post-iter164-paper-digests.md) | 3 new paper digests (Memory Transfer / f(g(x)) composition / UCT critic) |
 | [`archive/2026-05-goal4-skillcraft/academic-design-directions.md`](archive/2026-05-goal4-skillcraft/academic-design-directions.md) | ReGAL / PSN / SkillX translations |
-| [`goal4-battle-of-ideas-goal.md`](goal4-battle-of-ideas-goal.md) | candidate framings for goal 5 |
+| [`archive/2026-05-goal4-skillcraft/goal4-battle-of-ideas-goal.md`](archive/2026-05-goal4-skillcraft/goal4-battle-of-ideas-goal.md) | Goal-4 Battle-of-Ideas bootstrap (archived) |

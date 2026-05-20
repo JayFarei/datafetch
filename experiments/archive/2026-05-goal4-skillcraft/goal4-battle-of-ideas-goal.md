@@ -372,7 +372,7 @@ diagnose and revise the same winning assumption family, then re-qualify before
 rerunning full-126.
 
 First recover context:
-- Read experiments/goal4-battle-of-ideas-goal.md.
+- Read experiments/archive/2026-05-goal4-skillcraft/goal4-battle-of-ideas-goal.md (this file).
 - Read experiments/archive/2026-05-goal4-skillcraft/academic-design-directions.md.
 - Read experiments/EXPERIMENT_NOTES.md iter76-78.
 - Inspect iter78 artifacts under
@@ -404,7 +404,7 @@ Rules:
 - No SkillCraft family/task-id prompt branches, scorer relaxation, seed-only
   reuse, or reward-hacky prompt steering.
 - Keep exact official scoring and zero cache-token dependence.
-- Use small evals from experiments/goal4-battle-of-ideas-goal.md. Generate normalized,
+- Use small evals from experiments/archive/2026-05-goal4-skillcraft/goal4-battle-of-ideas-goal.md. Generate normalized,
   helper instrumentation, intent clusters, fanout diagnostics, runtime-error
   classes, and R1-R9 for every run.
 - Advance to full-126 only if the qualification suite passes all gates in the

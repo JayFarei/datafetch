@@ -11,7 +11,7 @@
 > `experiments/PLAN.md`, `experiments/goal.md`, `experiments/STATUS.md`,
 > `kb/docs/intent-shape-interface.md`, `eval/skillcraft/rubric.md`,
 > `experiments/archive/2026-05-goal4-skillcraft/post-iter164-paper-digests.md`, `experiments/archive/2026-05-goal4-skillcraft/academic-design-directions.md`,
-> `experiments/goal4-battle-of-ideas-goal.md`, and the full git log.
+> `experiments/archive/2026-05-goal4-skillcraft/goal4-battle-of-ideas-goal.md`, and the full git log.
 
 ## 1. What this project is
 
@@ -277,7 +277,8 @@ interface + ReGAL promotion gate"):
 ### 5.4 Iters 49-78 — the "Battle of Ideas" era
 
 After iter49 the work split into parallel attack arms. The framing
-doc is `experiments/goal4-battle-of-ideas-goal.md`. Four assumption arms
+doc is `experiments/archive/2026-05-goal4-skillcraft/goal4-battle-of-ideas-goal.md`.
+Four assumption arms
 were tested in parallel via small evals:
 
 - **A. Contract-aware tool admissibility** — `recordToolFanout` should

@@ -9,6 +9,7 @@ Goal-4-specific working documents archived 2026-05-18 after the substrate fixes 
 - [`academic-design-directions.md`](./academic-design-directions.md) — planning note that turned the ReGAL / PSN / SkillX academic ideas into concrete substrate/SkillCraft probes during the Goal 4 attack loop.
 - [`post-iter164-paper-digests.md`](./post-iter164-paper-digests.md) — four-paper research digest (Memory Transfer / f(g(x)) composition / UCT critic / SkillCraft) collected after iter164 closed.
 - [`hook-registry-iteration-headlines.md`](./hook-registry-iteration-headlines.md) — committed headline-row table per SkillCraft iteration across the full Goal 1-4 arc. The append-one-row-per-iter pattern closed at iter167; future evidence lives in [`../../experiment-history.md`](../../experiment-history.md) and per-eval reports under `../../../eval/`.
+- [`goal4-battle-of-ideas-goal.md`](./goal4-battle-of-ideas-goal.md) — Goal-4 "Battle of Ideas" bootstrap doc (2026-05-15): parallel small-eval attack assumptions for finding a learning loop that scales across SkillCraft without reward hacking. Authored against iter78 evidence; superseded by the iter150-167 arc and the post-iter164 reframe.
 
 ## Why these were archived
 
