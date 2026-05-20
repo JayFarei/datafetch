@@ -1,0 +1,411 @@
+{
+  "name": "small-n-50",
+  "description": "Stratified small-N manifest for iter4 paired comparison. 5 domains × 8 question_types, ≈1-2 per cell, total 50. Drawn from CRAG validation split (split==0). Deterministic via seed 20260519.",
+  "source": "eval/crag/vendor/raw/crag_task_1_and_2_dev_v4.jsonl",
+  "seed": 20260519,
+  "count": 50,
+  "interaction_ids": [
+    "f08ed2eb-98c6-4feb-b0ea-376bcbb91180",
+    "d55e6e15-b225-4593-b51a-f103bf223485",
+    "c7f3a697-2294-4864-bef1-9d1a39cde614",
+    "adea74b3-41bf-411c-a6a2-217986c3020c",
+    "94b8285c-0c08-428a-88ad-f9a08d73c8a6",
+    "0706fe40-1baf-4ceb-a0c2-3156b9af015d",
+    "318361f8-af94-4b0b-8017-c0f04ec1755c",
+    "a6f80f35-c75e-4433-9bc9-070af91afeeb",
+    "301b1d4d-f3bc-47d5-bb1d-3db16f4b9da5",
+    "e292786e-67d0-4f1e-ae29-701b1a008e0c",
+    "c4beea56-f5f5-4762-b228-cd3bc4a67be9",
+    "47859020-9974-4c81-a897-96594beca8fb",
+    "6bfc8de1-cb1f-44cb-9f95-afae35f81bcd",
+    "f8929d77-fd9f-46c2-8e1f-d2745f226b08",
+    "4ebbb760-c5ae-4307-9764-567a357f4cc1",
+    "1033305a-2c5c-4ccb-9b9c-b8a7e9e43113",
+    "dcf34e25-e5a1-4afb-8233-e357fdc1ed97",
+    "ade2500a-748e-4e74-9ee2-ed64b81d444f",
+    "35409f1c-3906-4941-9369-017d96c17fff",
+    "b8970214-0d44-44e1-b715-684f5f0d8009",
+    "d9d614b1-76e2-49f8-a3a8-2b6ffacc4dca",
+    "c26d3df3-666f-4d2c-9099-4363b8546e84",
+    "74519fa3-a8d1-4602-86a0-30f98ebb1ed6",
+    "461bb1ce-c717-4522-8ec0-cb20671c5bb1",
+    "91b6ffcf-428f-4ce1-b452-d85196654780",
+    "37c0f80e-9239-4120-bb5f-54f4a7540579",
+    "75dea36d-67fe-46df-be34-4003ba9d58ff",
+    "dcbde332-bc2a-4f74-bfa1-268596261aff",
+    "ab54a7be-395b-4de1-9bfd-28bc0ee76d4f",
+    "2b26da89-6f9e-49d9-8d25-e75528ae297d",
+    "6ca6fb54-7eea-4b6c-b63a-339bd8b4be4b",
+    "a9ba91ac-6192-4b11-ab81-2ac78d812cea",
+    "429768c8-5b22-41ab-b95c-dd8b975dd596",
+    "98890ab7-3e71-4e94-8b44-afd672c23662",
+    "81e0fbd9-2bc7-4d57-a97c-d07127228f9e",
+    "2aa174aa-8f25-483d-a3db-ce38098ee190",
+    "e4953aa2-ee3a-40ac-93ba-70209e4c708f",
+    "d6bc7e13-a355-45cc-b1ee-0f1491888694",
+    "ad57a30d-0f77-41cf-ab69-350e7080a727",
+    "f06259f0-36c9-4074-b528-c779ca96597e",
+    "af1ee3f6-d782-48ce-b7b9-eb4e229939ab",
+    "9b770c69-f54f-46d8-bbb4-d89e098d82fb",
+    "26561460-9881-4fbc-8b47-337241b3a8db",
+    "1a1005cb-07f6-4a64-97e7-4760cde1884a",
+    "20bdd3d1-9613-4ec7-9d17-b2349bea3fa4",
+    "dc4ed1b5-208d-4b79-9e7f-1076d6eb6857",
+    "63cfd6f2-c5e5-4df0-956e-00fc2f19853d",
+    "1432c6b2-640a-4b67-9a48-3f4b02331d47",
+    "27923312-7d64-4fd8-961e-cce7d620b458",
+    "fd2b5298-b3ba-48c1-9c21-9a9f7443929d"
+  ],
+  "records": [
+    {
+      "interaction_id": "f08ed2eb-98c6-4feb-b0ea-376bcbb91180",
+      "domain": "finance",
+      "question_type": "simple",
+      "static_or_dynamic": "real-time",
+      "query": "what was the price of inta at the end of the day yesterday?"
+    },
+    {
+      "interaction_id": "d55e6e15-b225-4593-b51a-f103bf223485",
+      "domain": "finance",
+      "question_type": "simple_w_condition",
+      "static_or_dynamic": "static",
+      "query": "what was the total amount of corporate bonds issued in the united states in 2020?"
+    },
+    {
+      "interaction_id": "c7f3a697-2294-4864-bef1-9d1a39cde614",
+      "domain": "finance",
+      "question_type": "comparison",
+      "static_or_dynamic": "fast-changing",
+      "query": "which company's stock has been traded more frequently this week, tris or  cycc?"
+    },
+    {
+      "interaction_id": "adea74b3-41bf-411c-a6a2-217986c3020c",
+      "domain": "finance",
+      "question_type": "aggregation",
+      "static_or_dynamic": "static",
+      "query": "what was the dividend distribution frequency for utah medical products in the year 2023?"
+    },
+    {
+      "interaction_id": "94b8285c-0c08-428a-88ad-f9a08d73c8a6",
+      "domain": "finance",
+      "question_type": "false_premise",
+      "static_or_dynamic": "slow-changing",
+      "query": "which five countries have adopted crypto as a legal tender?"
+    },
+    {
+      "interaction_id": "0706fe40-1baf-4ceb-a0c2-3156b9af015d",
+      "domain": "finance",
+      "question_type": "set",
+      "static_or_dynamic": "static",
+      "query": "what companies were added to the dow jones industrial average in august 2020?"
+    },
+    {
+      "interaction_id": "318361f8-af94-4b0b-8017-c0f04ec1755c",
+      "domain": "finance",
+      "question_type": "multi-hop",
+      "static_or_dynamic": "slow-changing",
+      "query": "what company in the dow jones has the largest market capitalization?"
+    },
+    {
+      "interaction_id": "a6f80f35-c75e-4433-9bc9-070af91afeeb",
+      "domain": "finance",
+      "question_type": "post-processing",
+      "static_or_dynamic": "static",
+      "query": "what was amazon's average annual revenue for the past 3 years?"
+    },
+    {
+      "interaction_id": "301b1d4d-f3bc-47d5-bb1d-3db16f4b9da5",
+      "domain": "movie",
+      "question_type": "simple",
+      "static_or_dynamic": "static",
+      "query": "is level 16 how that movie was officially named at first?"
+    },
+    {
+      "interaction_id": "e292786e-67d0-4f1e-ae29-701b1a008e0c",
+      "domain": "movie",
+      "question_type": "simple_w_condition",
+      "static_or_dynamic": "static",
+      "query": "what movie won the academy award for best picture in 2012?"
+    },
+    {
+      "interaction_id": "c4beea56-f5f5-4762-b228-cd3bc4a67be9",
+      "domain": "movie",
+      "question_type": "comparison",
+      "static_or_dynamic": "static",
+      "query": "which film had the bigger budget, inside out or finding dory?"
+    },
+    {
+      "interaction_id": "47859020-9974-4c81-a897-96594beca8fb",
+      "domain": "movie",
+      "question_type": "aggregation",
+      "static_or_dynamic": "static",
+      "query": "how many family movies were there that came out in 1994?"
+    },
+    {
+      "interaction_id": "6bfc8de1-cb1f-44cb-9f95-afae35f81bcd",
+      "domain": "movie",
+      "question_type": "false_premise",
+      "static_or_dynamic": "static",
+      "query": "is prelude 31 the original title of the movie?"
+    },
+    {
+      "interaction_id": "f8929d77-fd9f-46c2-8e1f-d2745f226b08",
+      "domain": "movie",
+      "question_type": "set",
+      "static_or_dynamic": "slow-changing",
+      "query": "what are the names of all the movies in the bourne franchise?"
+    },
+    {
+      "interaction_id": "4ebbb760-c5ae-4307-9764-567a357f4cc1",
+      "domain": "movie",
+      "question_type": "multi-hop",
+      "static_or_dynamic": "static",
+      "query": "who is the first actress to play the bond girl?"
+    },
+    {
+      "interaction_id": "1033305a-2c5c-4ccb-9b9c-b8a7e9e43113",
+      "domain": "movie",
+      "question_type": "post-processing",
+      "static_or_dynamic": "static",
+      "query": "how much did each toy story movie gross on average?"
+    },
+    {
+      "interaction_id": "dcf34e25-e5a1-4afb-8233-e357fdc1ed97",
+      "domain": "music",
+      "question_type": "simple",
+      "static_or_dynamic": "static",
+      "query": "when did one for all start performing together?"
+    },
+    {
+      "interaction_id": "ade2500a-748e-4e74-9ee2-ed64b81d444f",
+      "domain": "music",
+      "question_type": "simple_w_condition",
+      "static_or_dynamic": "static",
+      "query": "kendrick lamar won a pulitzer prize in 2018. which 2017 album of his won this award?"
+    },
+    {
+      "interaction_id": "35409f1c-3906-4941-9369-017d96c17fff",
+      "domain": "music",
+      "question_type": "comparison",
+      "static_or_dynamic": "fast-changing",
+      "query": "who has more spotify plays, drake or taylor swift?"
+    },
+    {
+      "interaction_id": "b8970214-0d44-44e1-b715-684f5f0d8009",
+      "domain": "music",
+      "question_type": "aggregation",
+      "static_or_dynamic": "static",
+      "query": "how many number one hits did the beatles have?"
+    },
+    {
+      "interaction_id": "d9d614b1-76e2-49f8-a3a8-2b6ffacc4dca",
+      "domain": "music",
+      "question_type": "false_premise",
+      "static_or_dynamic": "static",
+      "query": "what grammy award did edgar barrera win this year?"
+    },
+    {
+      "interaction_id": "c26d3df3-666f-4d2c-9099-4363b8546e84",
+      "domain": "music",
+      "question_type": "set",
+      "static_or_dynamic": "static",
+      "query": "who were the original members of the band the rolling stones during their \"beggars banquet\" era?"
+    },
+    {
+      "interaction_id": "74519fa3-a8d1-4602-86a0-30f98ebb1ed6",
+      "domain": "music",
+      "question_type": "multi-hop",
+      "static_or_dynamic": "static",
+      "query": "when did will smith's daughter first release music?"
+    },
+    {
+      "interaction_id": "461bb1ce-c717-4522-8ec0-cb20671c5bb1",
+      "domain": "music",
+      "question_type": "post-processing",
+      "static_or_dynamic": "slow-changing",
+      "query": "for how long did rihanna take a break from making music?"
+    },
+    {
+      "interaction_id": "91b6ffcf-428f-4ce1-b452-d85196654780",
+      "domain": "open",
+      "question_type": "simple",
+      "static_or_dynamic": "static",
+      "query": "is chris evans most famouse for iron man role?"
+    },
+    {
+      "interaction_id": "37c0f80e-9239-4120-bb5f-54f4a7540579",
+      "domain": "open",
+      "question_type": "simple_w_condition",
+      "static_or_dynamic": "static",
+      "query": "who won the nobel prize in physics in 2022 from usa"
+    },
+    {
+      "interaction_id": "75dea36d-67fe-46df-be34-4003ba9d58ff",
+      "domain": "open",
+      "question_type": "comparison",
+      "static_or_dynamic": "slow-changing",
+      "query": "who has a larger social media following, selena gomez or kylie jenner?"
+    },
+    {
+      "interaction_id": "dcbde332-bc2a-4f74-bfa1-268596261aff",
+      "domain": "open",
+      "question_type": "aggregation",
+      "static_or_dynamic": "static",
+      "query": "what's the total number of floors in burj khalifa, including all floors above and below ground, can you tell me that?"
+    },
+    {
+      "interaction_id": "ab54a7be-395b-4de1-9bfd-28bc0ee76d4f",
+      "domain": "open",
+      "question_type": "false_premise",
+      "static_or_dynamic": "static",
+      "query": "who was the vice president during president sonia sotomayor's administration?"
+    },
+    {
+      "interaction_id": "2b26da89-6f9e-49d9-8d25-e75528ae297d",
+      "domain": "open",
+      "question_type": "set",
+      "static_or_dynamic": "static",
+      "query": "what are the 5 most spoken languages in the world?"
+    },
+    {
+      "interaction_id": "6ca6fb54-7eea-4b6c-b63a-339bd8b4be4b",
+      "domain": "open",
+      "question_type": "multi-hop",
+      "static_or_dynamic": "static",
+      "query": "where did the lead designer of yorick (programming language) receive his ph.d.?"
+    },
+    {
+      "interaction_id": "a9ba91ac-6192-4b11-ab81-2ac78d812cea",
+      "domain": "open",
+      "question_type": "post-processing",
+      "static_or_dynamic": "static",
+      "query": "how many goldfish should i keep in an aquarium at once?"
+    },
+    {
+      "interaction_id": "429768c8-5b22-41ab-b95c-dd8b975dd596",
+      "domain": "sports",
+      "question_type": "simple",
+      "static_or_dynamic": "slow-changing",
+      "query": "who was the comeback player of the year in the nfl?"
+    },
+    {
+      "interaction_id": "98890ab7-3e71-4e94-8b44-afd672c23662",
+      "domain": "sports",
+      "question_type": "simple_w_condition",
+      "static_or_dynamic": "fast-changing",
+      "query": "which date saw the final game of crystal palace in eng-premier league?"
+    },
+    {
+      "interaction_id": "81e0fbd9-2bc7-4d57-a97c-d07127228f9e",
+      "domain": "sports",
+      "question_type": "comparison",
+      "static_or_dynamic": "slow-changing",
+      "query": "which team ended the last epl season with more points, manchester united or tottenham?"
+    },
+    {
+      "interaction_id": "2aa174aa-8f25-483d-a3db-ce38098ee190",
+      "domain": "sports",
+      "question_type": "aggregation",
+      "static_or_dynamic": "static",
+      "query": "how many olympic gold medals does usain bolt hold across his career in sprinting events?"
+    },
+    {
+      "interaction_id": "e4953aa2-ee3a-40ac-93ba-70209e4c708f",
+      "domain": "sports",
+      "question_type": "false_premise",
+      "static_or_dynamic": "fast-changing",
+      "query": "can you tell me the latest score of lille's game today?"
+    },
+    {
+      "interaction_id": "d6bc7e13-a355-45cc-b1ee-0f1491888694",
+      "domain": "sports",
+      "question_type": "set",
+      "static_or_dynamic": "static",
+      "query": "which teams have won against phoenix suns during 2022-12?"
+    },
+    {
+      "interaction_id": "ad57a30d-0f77-41cf-ab69-350e7080a727",
+      "domain": "sports",
+      "question_type": "multi-hop",
+      "static_or_dynamic": "static",
+      "query": "who was head coach of the lakers in kobe bryant's rookie year?"
+    },
+    {
+      "interaction_id": "f06259f0-36c9-4074-b528-c779ca96597e",
+      "domain": "sports",
+      "question_type": "post-processing",
+      "static_or_dynamic": "fast-changing",
+      "query": "what percentage of israel adesanya's ufc fights have ended in a decision?"
+    },
+    {
+      "interaction_id": "af1ee3f6-d782-48ce-b7b9-eb4e229939ab",
+      "domain": "movie",
+      "question_type": "simple",
+      "static_or_dynamic": "static",
+      "query": "in 2020, who was praised for best actor at the oscars?"
+    },
+    {
+      "interaction_id": "9b770c69-f54f-46d8-bbb4-d89e098d82fb",
+      "domain": "movie",
+      "question_type": "simple",
+      "static_or_dynamic": "static",
+      "query": "do you know who the director of katherine ryan: in trouble is?"
+    },
+    {
+      "interaction_id": "26561460-9881-4fbc-8b47-337241b3a8db",
+      "domain": "movie",
+      "question_type": "simple",
+      "static_or_dynamic": "static",
+      "query": "do you know who the director of your sister's sister is?"
+    },
+    {
+      "interaction_id": "1a1005cb-07f6-4a64-97e7-4760cde1884a",
+      "domain": "movie",
+      "question_type": "simple",
+      "static_or_dynamic": "slow-changing",
+      "query": "in what language was dead meat released?"
+    },
+    {
+      "interaction_id": "20bdd3d1-9613-4ec7-9d17-b2349bea3fa4",
+      "domain": "movie",
+      "question_type": "simple",
+      "static_or_dynamic": "slow-changing",
+      "query": "can you tell me the original language of the pact?"
+    },
+    {
+      "interaction_id": "dc4ed1b5-208d-4b79-9e7f-1076d6eb6857",
+      "domain": "movie",
+      "question_type": "simple",
+      "static_or_dynamic": "static",
+      "query": "can you tell me the date of birth of kasper holten, the renowned moviemaker?"
+    },
+    {
+      "interaction_id": "63cfd6f2-c5e5-4df0-956e-00fc2f19853d",
+      "domain": "movie",
+      "question_type": "simple",
+      "static_or_dynamic": "static",
+      "query": "at what time did the switch first premiere in theaters?"
+    },
+    {
+      "interaction_id": "1432c6b2-640a-4b67-9a48-3f4b02331d47",
+      "domain": "movie",
+      "question_type": "simple",
+      "static_or_dynamic": "static",
+      "query": "do you know who directed black plague?"
+    },
+    {
+      "interaction_id": "27923312-7d64-4fd8-961e-cce7d620b458",
+      "domain": "movie",
+      "question_type": "simple",
+      "static_or_dynamic": "static",
+      "query": "is algae the original title of the movie?"
+    },
+    {
+      "interaction_id": "fd2b5298-b3ba-48c1-9c21-9a9f7443929d",
+      "domain": "movie",
+      "question_type": "simple",
+      "static_or_dynamic": "static",
+      "query": "can you tell me when lloyd a. simandl entered this world as a baby?"
+    }
+  ]
+}
