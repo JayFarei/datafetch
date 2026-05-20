@@ -18,6 +18,7 @@ data/
 .opentraces/
 eval/skillcraft/results/
 eval/finchain/results/
+eval/productFlow/results/
 
 # Root-level scratch artefacts that agents drop during probes.
 # These are eval outputs and should never be committed.
