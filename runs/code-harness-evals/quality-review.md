@@ -440,3 +440,43 @@ Thirty issues were found and fixed during review:
 
 Decision: acceptable as a narrow architecture slice. Broader helper-maturity or
 promotion-policy changes should be separate eval-backed iterations.
+
+## Independent review of the maturity-contract slice (Attempt 47)
+
+This review re-examined the committed discovery-evidence and maturity-contract
+commits (`6b7fc90e9`, `82d544c41`) from a fresh session and ran the live
+end-to-end proof. Findings:
+
+- `src/eval/codeModeDiscoveryEvidence.ts` is a single pure function with small
+  named helpers, no I/O, and a conservative default: `status` is `proven` only
+  when an ordered event trace shows code-surface inspection before a helper
+  call, otherwise `blocked`. It does not infer discovery from the mere
+  existence of `df.d.ts`. Clean and not gameable.
+- The walker's contract handling cleanly separates two tiers:
+  `declared-frontmatter` (constant boilerplate the author paths emit for
+  `man`/`apropos` code-native discovery) versus `validated-header` (the
+  `@`-prefixed evidence the quarantine validator stamps only after origin and
+  held-out replay pass). `contractSource` records which tier applies, and the
+  scorer credits `helpersWithContracts` only for `validated-header`. This is
+  the correct anti-gaming boundary: boilerplate cannot inflate maturity.
+- `buildMaturityContractLines`/`applyMaturityContract` are pure string
+  transforms, unit-tested, and used only on the validator's promotion branch,
+  so the contract evidence cannot be written without a passing replay.
+- The new walker helpers (`scalarFrontmatter`, `annotationValue`) reuse the
+  existing `escapeRegExp` and `parseFrontmatterFields`; no new store, registry,
+  or duplicate parser was introduced. `HelperHeader` gained nine fields, which
+  is verbose but each is independently inspectable in `artifact-walk.json`.
+- No file crossed the 1k-line threshold from this slice; no benchmark-specific
+  branch, scorer relaxation, prompt metric steering, or hook/quarantine bypass
+  was added.
+
+Residual risk: `libraryMaturity: proven` on the Attempt 47 slice rests on a
+single replay-validated helper. The `proven` status is honest for that helper's
+contract evidence, but maturity at scale (many helpers, all contracted) and the
+safety/compression/learning-loop layers still require larger paired/warm-reuse
+runs, which is why those layers correctly stayed blocked/weak.
+
+Decision: the discovery-evidence and maturity-contract slices stayed simple and
+maintainable, and the live run proves the promotion-time contract path
+end-to-end. Accept. Remaining FC3/FC4/R8 and full-bilateral proof are documented
+blockers, not quality defects.
