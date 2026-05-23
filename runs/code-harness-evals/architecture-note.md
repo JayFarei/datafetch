@@ -22,10 +22,12 @@ The agent-facing contract is now more truthful and inspectable.
 - productFlow now creates `$DATAFETCH_HOME/df.d.ts` before the substrate-on
   prompt asks the agent to read it. The previous prompt could claim that
   `df.d.ts` listed `df.tool.*` even when the generated manifest did not.
-- Learned helpers now carry replay/change/verifier/rollback metadata in their
-  existing frontmatter, and `datafetch man` renders that metadata as a
-  `CONTRACT` section. That makes warm reuse easier to inspect without adding a
-  host-owned registry.
+- Learned helpers now separate declared replay/change/verifier/rollback
+  frontmatter from validator-stamped `@...` contract evidence. `datafetch man`
+  can render the declared contract for discovery, while eval maturity only
+  counts replay-backed validated-header annotations. That makes warm reuse
+  easier to inspect without adding a host-owned registry or rewarding
+  boilerplate.
 - `df.answer(...)` now has a typed optional `assumptions` field, and workspace
   replay records whether assumptions were present. This makes uncertainty part
   of the commit contract instead of hiding it inside prose.
@@ -143,8 +145,9 @@ The agent-facing contract is now more truthful and inspectable.
 - Trajectory JSON remains persistence, not the product abstraction.
 - `graph.txt` remains a derived view over typed calls, not a parallel
   authority.
-- Learned helper contracts are frontmatter on tenant TypeScript files; hook
-  manifests still decide callability and quarantine.
+- Learned helper declarations are frontmatter on tenant TypeScript files;
+  replay-backed maturity contracts are validator-stamped header annotations;
+  hook manifests still decide callability and quarantine.
 - Assumptions are optional and replay-visible; existing accepted answers do not
   need to change when no uncertainty remains.
 - `tests/replay.txt` is a readable projection of replay evidence, not a second
@@ -438,7 +441,7 @@ The agent-facing contract is now more truthful and inspectable.
 - Latest `bun run typecheck`, `bun run eval:skillcraft:verify`, and
   `bun run eval:finchain:verify`: passed. SkillCraft verify still reports the
   existing adapter-readiness warning.
-- Latest full `bun run test`: passed with `52` test files and `428` tests.
+- Latest full `bun run test`: passed with `55` test files and `433` tests.
 
 ## Remaining Proof Gap
 

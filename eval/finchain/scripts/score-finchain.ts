@@ -510,6 +510,7 @@ function codeModeHarnessAssessment(input: {
   );
   const helpers = input.finchainWalk?.helpers ?? [];
   const helpersWithContracts = helpers.filter((helper) =>
+    helper["contractSource"] === "validated-header" &&
     typeof helper["replayContract"] === "string" &&
     typeof helper["changeContract"] === "string" &&
     typeof helper["verifier"] === "string" &&
@@ -669,6 +670,7 @@ function codeModeHarnessAssessment(input: {
         helpers: helpers.length,
         helpersWithContracts,
         requiredContractFields: ["replayContract", "changeContract", "verifier", "rollback"],
+        requiredContractSource: "validated-header",
         requirement: "learned helpers stay inside hook/quarantine governance and expose replay/change/verifier/rollback contracts",
       },
       generality: {

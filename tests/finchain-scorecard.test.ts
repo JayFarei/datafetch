@@ -107,6 +107,7 @@ async function writeFixture(input: {
       helpers: [
         {
           helperName: "toolFanout",
+          contractSource: "validated-header",
           replayContract: "origin-and-heldout-replay-before-validation",
           changeContract: "preserve-public-schema-call-graph-and-evidence-semantics",
           verifier: "validate-examples-and-replay-before-promotion",

@@ -20,6 +20,7 @@ import path from "node:path";
 import ts from "typescript";
 
 import { analyzeCodeModeDiscoveryEvidence } from "../../../src/eval/codeModeDiscoveryEvidence.js";
+import { parseFrontmatterFields } from "../../../src/sdk/frontmatter.js";
 
 // iter 3.3-aligned formula-fingerprint extractor. Mirrors
 // src/observer/authorFromSource.ts formulaFingerprint(): parse the
@@ -161,6 +162,15 @@ interface HelperHeader {
   intentSignature: string | null;
   shapeHash: string | null;
   originTrajectory: string | null;
+  replayContract: string | null;
+  changeContract: string | null;
+  verifier: string | null;
+  rollback: string | null;
+  contractSource: "validated-header" | "declared-frontmatter" | null;
+  declaredReplayContract: string | null;
+  declaredChangeContract: string | null;
+  declaredVerifier: string | null;
+  declaredRollback: string | null;
   quarantined: boolean;
 }
 
@@ -256,6 +266,25 @@ async function walkLibHelpers(datafetchHomeRoot: string): Promise<HelperHeader[]
         const shapeMatch = /@shape-hash:\s*(.+)/i.exec(content);
         const originMatch = /@origin-trajectory:\s*(.+)/i.exec(content);
         const quarantineMatch = /@quarantined:\s*(true|yes|1)/i.exec(content);
+        const frontmatter = parseFrontmatterFields(content);
+        const declaredReplayContract = scalarFrontmatter(frontmatter, "replay-contract");
+        const declaredChangeContract = scalarFrontmatter(frontmatter, "change-contract");
+        const declaredVerifier = scalarFrontmatter(frontmatter, "verifier");
+        const declaredRollback = scalarFrontmatter(frontmatter, "rollback");
+        const replayContract = annotationValue(content, "replay-contract");
+        const changeContract = annotationValue(content, "change-contract");
+        const verifier = annotationValue(content, "verifier");
+        const rollback = annotationValue(content, "rollback");
+        const hasValidatedContract =
+          replayContract !== null &&
+          changeContract !== null &&
+          verifier !== null &&
+          rollback !== null;
+        const hasDeclaredContract =
+          declaredReplayContract !== null &&
+          declaredChangeContract !== null &&
+          declaredVerifier !== null &&
+          declaredRollback !== null;
         out.push({
           filePath,
           family,
@@ -263,12 +292,41 @@ async function walkLibHelpers(datafetchHomeRoot: string): Promise<HelperHeader[]
           intentSignature: intentMatch?.[1]?.trim() ?? null,
           shapeHash: shapeMatch?.[1]?.trim() ?? null,
           originTrajectory: originMatch?.[1]?.trim() ?? null,
+          replayContract,
+          changeContract,
+          verifier,
+          rollback,
+          contractSource: hasValidatedContract
+            ? "validated-header"
+            : hasDeclaredContract
+              ? "declared-frontmatter"
+              : null,
+          declaredReplayContract,
+          declaredChangeContract,
+          declaredVerifier,
+          declaredRollback,
           quarantined: Boolean(quarantineMatch),
         });
       }
     }
   }
   return out;
+}
+
+function scalarFrontmatter(
+  fields: Record<string, string>,
+  key: string,
+): string | null {
+  const value = fields[key];
+  if (value === undefined) return null;
+  const trimmed = value.trim();
+  if (trimmed.length === 0 || trimmed === "|") return null;
+  return trimmed;
+}
+
+function annotationValue(content: string, key: string): string | null {
+  const match = new RegExp(`@${escapeRegExp(key)}:\\s*(.+)`, "i").exec(content);
+  return match?.[1]?.trim() ?? null;
 }
 
 async function walkTrajectories(datafetchHomeRoot: string): Promise<TrajectoryEntry[]> {

@@ -115,6 +115,14 @@ check("emits a fn() module with v.object input + numeric-return body", () => {
   });
   assert.ok(out, "expected helper source to be emitted");
   // header
+  assert.match(out!, /name: derived_finchain_ci_tpl4_smoke/);
+  assert.match(out!, /trajectory: traj_smoke_001/);
+  assert.match(out!, /shape-hash: shape_smoke_001/);
+  assert.match(out!, /source-hash: deadbeef/);
+  assert.match(out!, /replay-contract: origin-and-heldout-replay-before-validation/);
+  assert.match(out!, /change-contract: preserve-public-schema-call-graph-and-evidence-semantics/);
+  assert.match(out!, /verifier: validate-examples-and-replay-before-promotion/);
+  assert.match(out!, /rollback: quarantine-or-supersede-through-workspace-head/);
   assert.match(out!, /@author: authorFromSource \(iter 3\.3\)/);
   assert.match(out!, /@status: candidate/);
   assert.match(out!, /@quarantined: true/);

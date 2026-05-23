@@ -145,6 +145,7 @@ export function renderFromAgentSource(args: RenderFromAgentSourceArgs): string |
     shapeHash: args.template.shapeHash,
     intent: deriveIntent(args.trajectory, promotedNames),
     intentSignature: `source(${fingerprint})`,
+    trajectoryId: args.trajectory.id,
     sourceHash: args.trajectory.sourceHash ?? "unknown",
     // iter 3.6: stamp the substrate commit sha into the helper header so
     // the sweep script can identify helpers authored under older
@@ -591,6 +592,7 @@ function renderHelperSource(input: {
   shapeHash: string;
   intent: string;
   intentSignature: string;
+  trajectoryId: string;
   sourceHash: string;
   substrateVersion: string;
   promotedNames: string[];
@@ -600,7 +602,23 @@ function renderHelperSource(input: {
   const inputType = `{ ${input.promotedNames.map((n) => `${n}: number`).join("; ")} }`;
   const intentEscaped = input.intent.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   const intentSigEscaped = input.intentSignature.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  const description = [
+    "Source-authored learned datafetch helper for a numeric formula shape.",
+    `Call with typed numeric inputs: ${input.promotedNames.join(", ")}.`,
+    "Use only when the replay, change, verifier, and rollback contracts below still hold.",
+  ].map((line) => `  ${line}`).join("\n");
   return `/* ---
+name: ${input.templateName}
+status: candidate
+description: |
+${description}
+trajectory: ${input.trajectoryId}
+shape-hash: ${input.shapeHash}
+source-hash: ${input.sourceHash}
+replay-contract: origin-and-heldout-replay-before-validation
+change-contract: preserve-public-schema-call-graph-and-evidence-semantics
+verifier: validate-examples-and-replay-before-promotion
+rollback: quarantine-or-supersede-through-workspace-head
 @author: authorFromSource (iter 3.3)
 @status: candidate
 @quarantined: true

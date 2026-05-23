@@ -223,8 +223,10 @@ Thirty issues were found and fixed during review:
 - Tool declarations moved into `src/runtime/toolCatalog.ts`, the canonical
   tool-catalog module, and SkillCraft now reuses that renderer instead of
   carrying a bespoke copy.
-- Learned-helper contracts reuse existing frontmatter and `datafetch man`
-  rendering. This is an incremental read path, not a new metadata store.
+- Learned-helper contracts reuse source headers rather than a new metadata
+  store: declared frontmatter remains the `datafetch man`/discovery surface,
+  and validator-stamped `@...` annotations are the only fields the eval counts
+  as maturity evidence.
 - Answer assumptions extend the existing `df.answer(...)` type and replay
   summary. They are optional and do not add validation branches or evaluator
   exceptions.

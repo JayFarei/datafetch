@@ -480,6 +480,18 @@ do not fan out. Continue locally on small work or stop and record the blocker.
     but no prior ordered inspection trace. That is the right conservative
     result.
 
+38. Helper maturity now separates declared contracts from validated contracts.
+    Source-authored helpers can expose ordinary frontmatter fields for
+    code-mode discovery and `datafetch man`, but FinChain library maturity only
+    counts replay/change/verifier/rollback fields that the quarantine validator
+    stamps as `@...` annotations after both origin and held-out replay pass.
+    `artifact-walk.json` therefore surfaces declared frontmatter separately and
+    sets `contractSource: "validated-header"` only for replay-backed contracts.
+    Re-running the current pure-compute slice still leaves
+    `helpersWithContracts: 0` because its historical helper predates this
+    stamping path. That keeps the rubric non-gameable: frontmatter can describe
+    intent, but replay evidence earns maturity.
+
 Together, these slices give agents and vendors a clearer view of a run's
 read/compute/tool/write shape and the governed tool surface while keeping the
 authoritative state as executable TypeScript source, typed calls, replay

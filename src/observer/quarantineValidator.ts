@@ -48,6 +48,40 @@ export interface QuarantineValidationResult {
   };
 }
 
+// Evidence-carrying maturity contracts. These are the inspectable
+// replay/change/verifier/rollback fields a mature tenant helper must expose
+// (see eval/finchain/rubric.md `codeModeHarness.libraryMaturity`). They are
+// emitted as `@`-prefixed header annotations — distinct from the constant
+// `replay-contract:`-style frontmatter some author paths write — precisely so
+// the artifact walker counts only helpers that actually passed origin and
+// held-out replay, not decorative boilerplate.
+export function buildMaturityContractLines(
+  evidence: QuarantineValidationResult["evidence"],
+): string[] {
+  const origin = evidence.originating;
+  const sibling = evidence.sibling;
+  // Both replays are required for promotion, so both should be present here.
+  // Guard anyway: without per-helper replay evidence there is no contract to
+  // stamp, and the walker must leave the maturity fields empty.
+  if (!origin || !sibling) return [];
+  return [
+    `@replay-contract: origin=${origin.trajectoryId} exp=${origin.expected} got=${origin.got}; heldout=${sibling.trajectoryId} exp=${sibling.expected} got=${sibling.got}`,
+    `@change-contract: held-out replay matched on ${sibling.trajectoryId}; public schema and answer semantics preserved`,
+    `@verifier: quarantineValidator idempotency+genericity replay pass`,
+    `@rollback: hook-manifest quarantine/supersede on regression`,
+  ];
+}
+
+// Flip the quarantine flag and, when evidence-backed contract lines exist,
+// insert them directly after it so they live inside the helper's header
+// comment block. A pure string transform: keeps the validator's promotion
+// branch readable and lets the format be unit-tested without a live replay.
+export function applyMaturityContract(source: string, lines: string[]): string {
+  const flip = "@quarantined: false";
+  const replacement = lines.length === 0 ? flip : `${flip}\n${lines.join("\n")}`;
+  return source.replace(/@quarantined: true/, replacement);
+}
+
 // 1% relative tolerance — matches the FAC contract used by the FinChain
 // scorer at src/eval/finchainFullDatafetch.ts:isFacMatch.
 const FAC_REL_TOLERANCE = 1e-2;
@@ -213,7 +247,12 @@ async function validateOne(input: {
   }
 
   // --- Promote ------------------------------------------------------------
-  const flipped = helper.source.replace(/@quarantined: true/, "@quarantined: false");
+  // Stamp evidence-carrying maturity contracts alongside the quarantine flip.
+  // The contract lines are only written here, on the promotion path, so they
+  // can never be boilerplate: reaching this branch means both the origin and
+  // held-out replays already matched within FAC tolerance.
+  const contractLines = buildMaturityContractLines(evidence);
+  const flipped = applyMaturityContract(helper.source, contractLines);
   await fsp.writeFile(helper.filePath, flipped, "utf8");
   const registry = getHookRegistry();
   let promoted = false;

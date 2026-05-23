@@ -80,6 +80,14 @@ metadata with four generic fields: `replayContract`, `changeContract`,
 promotion behavior, not decorative text. Then update artifact walking so
 `helpersWithContracts` reflects real helper metadata.
 
+Progress to date: Attempt 46 added declared frontmatter for source-authored
+helpers and validator-stamped `@replay-contract`, `@change-contract`,
+`@verifier`, and `@rollback` lines on successful promotion. The walker now
+surfaces declared fields separately and only counts `contractSource:
+"validated-header"` for `helpersWithContracts`. The current historical
+FinChain probe remains weak because its helper was promoted before this
+evidence stamping existed.
+
 Verification:
 - Focused tests show helper authoring includes the contract fields.
 - Quarantine validation or replay tests exercise at least one contract path.

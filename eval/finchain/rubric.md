@@ -161,7 +161,7 @@ cross-benchmark same-signature transfer. FC4 remains the same-signature gate.
       },
       "libraryMaturity": {
         "status": "proven|weak|blocked",
-        "requirement": "learned helpers stay inside hook/quarantine governance and expose replay/change/verifier/rollback contracts"
+        "requirement": "learned helpers stay inside hook/quarantine governance and expose validator-stamped replay/change/verifier/rollback contracts"
       },
       "generality": {
         "status": "proven|weak|blocked",
