@@ -290,6 +290,14 @@ interface SkillCraftInstrumentationRow {
 
 interface FinChainArtifactWalk {
   helpers?: Array<Record<string, unknown>>;
+  discoveryEvidence?: {
+    status?: string | null;
+    inspectedSurfaces?: string[];
+    helperCallSeen?: boolean;
+    inspectedBeforeHelper?: boolean;
+    events?: Array<Record<string, unknown>>;
+    note?: string;
+  };
   trajectories?: Array<{
     trajectoryId: string;
     family: string;
@@ -538,6 +546,11 @@ function codeModeHarnessAssessment(input: {
       : "weak";
   const crossBenchmarkStatus = passFailConditional(input.fc4["passes"] as boolean | null | undefined);
   const withinBenchmarkStatus = passFailConditional(r9?.pass);
+  const discoveryEvidence = input.finchainWalk?.discoveryEvidence ?? null;
+  const filesystemDiscoveredStatus: HarnessStatus =
+    discoveryEvidence?.status === "proven" && libCallTrajectories.length > 0
+      ? "proven"
+      : "blocked";
   const generalityStatus: HarnessStatus =
     crossBenchmarkStatus === "proven" || withinBenchmarkStatus === "proven"
       ? "proven"
@@ -546,7 +559,11 @@ function codeModeHarnessAssessment(input: {
         : "weak";
   const reuseEvidenceStatus: HarnessStatus = libCallTrajectories.length === 0
     ? "blocked"
-    : "weak";
+    : filesystemDiscoveredStatus === "proven"
+      && warmOpportunities >= CODE_MODE_MIN_WARM_REUSE_OPPORTUNITIES
+      && r7?.pass === true
+      ? "proven"
+      : "weak";
   const layerStatuses = [
     benchmarkSafetyStatus,
     "weak" as HarnessStatus, // codeModeContract is external to this scorecard.
@@ -617,8 +634,12 @@ function codeModeHarnessAssessment(input: {
           note: "A helper call in a run whose prompt may mandate helpers proves directed reuse, not natural discovery.",
         },
         filesystemDiscovered: {
-          status: "blocked" as HarnessStatus,
-          note: "Requires prompt/trace evidence that the agent inspected AGENTS.md, df.d.ts, lib/, man, or apropos before selecting the helper.",
+          status: filesystemDiscoveredStatus,
+          inspectedSurfaces: discoveryEvidence?.inspectedSurfaces ?? [],
+          helperCallSeen: Boolean(discoveryEvidence?.helperCallSeen),
+          inspectedBeforeHelper: Boolean(discoveryEvidence?.inspectedBeforeHelper),
+          eventCount: discoveryEvidence?.events?.length ?? 0,
+          note: discoveryEvidence?.note ?? "Requires ordered agent evidence that the agent inspected AGENTS.md, df.d.ts, lib/, man, or apropos before selecting the helper.",
         },
         heldOutDiscovered: {
           status: warmOpportunities >= CODE_MODE_MIN_WARM_REUSE_OPPORTUNITIES && r7?.pass === true

@@ -12,6 +12,12 @@ evidence, and decision.
 
 ## 1. Record Filesystem-Discovered Reuse Evidence
 
+Status after Attempt 45: the generic parser/scorer evidence path exists, and
+current FinChain Claude artifacts correctly remain blocked because they expose
+no ordered inspection events before the helper call. The remaining experiment
+is to run or capture an eventful agent trace that can prove or falsify actual
+workspace inspection.
+
 Hypothesis: the current `codeModeHarness.reuseEvidence.filesystemDiscovered`
 layer is blocked because the scorecard can see helper calls, but not whether
 the agent inspected `AGENTS.md`, `df.d.ts`, `lib/`, `datafetch apropos`, or

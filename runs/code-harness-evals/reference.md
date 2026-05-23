@@ -469,6 +469,17 @@ do not fan out. Continue locally on small work or stop and record the blocker.
     This keeps the diagnostic useful without letting it become a way to route
     around failed benchmark gates.
 
+37. Filesystem-discovered reuse now has an evidence path, but not a free pass.
+    `artifact-walk.json` can carry ordered non-prompt agent evidence showing
+    inspection of `AGENTS.md`, `df.d.ts`, `lib/`, `datafetch apropos`, or
+    `datafetch man` before a `df.lib.*` helper selection. The scorer only marks
+    `reuseEvidence.filesystemDiscovered` as `proven` when that ordered evidence
+    and an actual trajectory helper call are both present. Re-running the
+    current FinChain pure-compute slice still leaves filesystem discovery
+    `blocked`: the ignored Claude artifacts show a helper call in final output,
+    but no prior ordered inspection trace. That is the right conservative
+    result.
+
 Together, these slices give agents and vendors a clearer view of a run's
 read/compute/tool/write shape and the governed tool surface while keeping the
 authoritative state as executable TypeScript source, typed calls, replay

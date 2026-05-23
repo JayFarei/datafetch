@@ -52,6 +52,7 @@ async function runScorecard(runBase: string, skillcraftRunBase: string): Promise
 async function writeFixture(input: {
   finchainIntent: string | null;
   finchainLibCalls: string[];
+  discoveryEvidence?: Record<string, unknown>;
 }): Promise<{ runBase: string; skillcraftRunBase: string }> {
   const root = await mkdtemp(path.join(os.tmpdir(), "df-finchain-score-"));
   tempDirs.push(root);
@@ -112,6 +113,7 @@ async function writeFixture(input: {
           rollback: "quarantine-or-supersede-through-workspace-head",
         },
       ],
+      discoveryEvidence: input.discoveryEvidence,
       trajectories: [0, 1, 2].map((seedIndex) => ({
         trajectoryId: `traj_finchain_${seedIndex}`,
         family: "accounting_and_financial_reporting-balance_sheets",
@@ -155,6 +157,18 @@ describe("FinChain FC scorecard", () => {
     const passing = await writeFixture({
       finchainIntent: "FANOUT(tool)",
       finchainLibCalls: ["toolFanout"],
+      discoveryEvidence: {
+        status: "proven",
+        inspectedSurfaces: ["df.d.ts", "lib/"],
+        helperCallSeen: true,
+        inspectedBeforeHelper: true,
+        events: [
+          { index: 0, kind: "inspect", surface: "df.d.ts" },
+          { index: 1, kind: "inspect", surface: "lib/" },
+          { index: 2, kind: "helper-call", surface: "df.lib.toolFanout" },
+        ],
+        note: "Ordered agent evidence shows inspection before helper selection.",
+      },
     });
     const passRun = await runScorecard(passing.runBase, passing.skillcraftRunBase);
     expect(passRun.exitCode).toBe(0);
@@ -167,11 +181,21 @@ describe("FinChain FC scorecard", () => {
     expect(passScorecard.codeModeHarness.layers.learningLoop.status).toBe("proven");
     expect(passScorecard.codeModeHarness.layers.compression.status).toBe("proven");
     expect(passScorecard.codeModeHarness.layers.libraryMaturity.status).toBe("proven");
+    expect(passScorecard.codeModeHarness.layers.reuseEvidence.status).toBe("proven");
+    expect(passScorecard.codeModeHarness.layers.reuseEvidence.filesystemDiscovered.status).toBe("proven");
     expect(passScorecard.codeModeHarness.layers.generality.crossBenchmarkSameSignature.status).toBe("proven");
 
     const failing = await writeFixture({
       finchainIntent: "FANOUT(tool)",
       finchainLibCalls: [],
+      discoveryEvidence: {
+        status: "blocked",
+        inspectedSurfaces: [],
+        helperCallSeen: false,
+        inspectedBeforeHelper: false,
+        events: [],
+        note: "No non-prompt agent event artifacts were available.",
+      },
     });
     const failRun = await runScorecard(failing.runBase, failing.skillcraftRunBase);
     expect(failRun.exitCode).toBe(0);
@@ -183,6 +207,8 @@ describe("FinChain FC scorecard", () => {
     expect(failScorecard.codeModeHarness.layers.benchmarkSafety.status).toBe("proven");
     expect(failScorecard.codeModeHarness.layers.learningLoop.status).toBe("weak");
     expect(failScorecard.codeModeHarness.layers.compression.status).toBe("weak");
+    expect(failScorecard.codeModeHarness.layers.reuseEvidence.status).toBe("blocked");
+    expect(failScorecard.codeModeHarness.layers.reuseEvidence.filesystemDiscovered.status).toBe("blocked");
     expect(failScorecard.codeModeHarness.layers.generality.crossBenchmarkSameSignature.status).toBe("weak");
   });
 });

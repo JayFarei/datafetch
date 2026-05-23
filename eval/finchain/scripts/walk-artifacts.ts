@@ -19,6 +19,8 @@ import { promises as fsp } from "node:fs";
 import path from "node:path";
 import ts from "typescript";
 
+import { analyzeCodeModeDiscoveryEvidence } from "../../../src/eval/codeModeDiscoveryEvidence.js";
+
 // iter 3.3-aligned formula-fingerprint extractor. Mirrors
 // src/observer/authorFromSource.ts formulaFingerprint(): parse the
 // trajectory's source, find the df.answer({value: <expr>}) call, find
@@ -180,6 +182,40 @@ async function readJsonOrNull(filePath: string): Promise<unknown> {
   } catch {
     return null;
   }
+}
+
+async function collectAgentEventTexts(root: string): Promise<Array<{ source: string; text: string }>> {
+  const out: Array<{ source: string; text: string }> = [];
+  const wanted = new Set(["events.jsonl", "agent-stdout.txt", "agent-run.json", "run.json"]);
+  const walk = async (dir: string): Promise<void> => {
+    let entries: import("node:fs").Dirent[];
+    try {
+      entries = await fsp.readdir(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const filePath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        await walk(filePath);
+        continue;
+      }
+      if (!wanted.has(entry.name)) continue;
+      const raw = await fsp.readFile(filePath, "utf8").catch(() => "");
+      const rel = path.relative(root, filePath);
+      if (entry.name.endsWith(".jsonl")) {
+        raw
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .forEach((line, index) => out.push({ source: `${rel}:${index + 1}`, text: line }));
+      } else if (raw.trim()) {
+        out.push({ source: rel, text: raw });
+      }
+    }
+  };
+  await walk(path.join(root, "episodes"));
+  return out;
 }
 
 async function walkLibHelpers(datafetchHomeRoot: string): Promise<HelperHeader[]> {
@@ -441,6 +477,9 @@ async function main(): Promise<void> {
   const datafetchHomeRoot = path.join(args.runBase, "datafetch-home");
   const helpers = await walkLibHelpers(datafetchHomeRoot);
   const trajectories = await walkTrajectories(datafetchHomeRoot);
+  const discoveryEvidence = analyzeCodeModeDiscoveryEvidence(
+    await collectAgentEventTexts(args.runBase),
+  );
   const r4r9 = computeR4R9(helpers, trajectories);
   const out = {
     generatedAt: new Date().toISOString(),
@@ -450,6 +489,7 @@ async function main(): Promise<void> {
     trajectories,
     trajectoryCount: trajectories.length,
     libCallTotal: trajectories.reduce((s, t) => s + t.libCalls.length, 0),
+    discoveryEvidence,
     R4R9: r4r9,
   };
   const outPath = args.out ?? path.join(args.runBase, "artifact-walk.json");
