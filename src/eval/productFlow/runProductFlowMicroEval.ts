@@ -32,10 +32,8 @@
 // BEFORE importing the observer. The observer reads this once via
 // `convergenceThreshold()`; setting it after the import is a no-op.
 
-import { spawn } from "node:child_process";
 import { promises as fsp } from "node:fs";
 import path from "node:path";
-import { performance } from "node:perf_hooks";
 
 // Lock the convergence threshold to 1 (every gate-clearing trajectory
 // triggers crystallisation on its first occurrence). MUST happen before
@@ -55,10 +53,25 @@ import {
 import { renderPerEntitySeed } from "../evalRecords.js";
 
 import {
-  JSONPLACEHOLDER_BUNDLE_NAME,
-  JSONPLACEHOLDER_TOOLS,
   buildJsonplaceholderBridgeConfig,
+  jsonplaceholderToolCatalog,
 } from "./jsonplaceholderTools.js";
+import {
+  assertNoHelperNameLeak,
+  renderEpisodePrompt,
+  type ProductFlowArm,
+  type ProductFlowEpisodeId,
+  type ProductFlowEpisodeSpec,
+} from "./prompt.js";
+import {
+  answersEqual,
+  selectAnswerValue,
+  unwrapFireAndForgetIife,
+} from "./answerContract.js";
+import {
+  runClaudeAgent,
+  type AgentRun,
+} from "./agentInvocation.js";
 
 // --- Constants -------------------------------------------------------------
 
@@ -68,14 +81,19 @@ const CONVERGENCE_N = 1;
 const AGENT_TIMEOUT_MS = 8 * 60 * 1000;
 const SNIPPET_TIMEOUT_MS = 60 * 1000;
 const OBSERVER_AWAIT_MS = 5_000;
+const TOOL_CATALOG = jsonplaceholderToolCatalog();
 
-type Arm = "substrate-on" | "substrate-off";
-type EpisodeId = "e1" | "e2" | "e3" | "e4";
+type Arm = ProductFlowArm;
+type EpisodeId = ProductFlowEpisodeId;
 
-interface EpisodeSpec {
-  id: EpisodeId;
-  question: string;
-  gold: unknown;
+type EpisodeSpec = ProductFlowEpisodeSpec;
+
+async function regenerateProductFlowManifest(baseDir: string): Promise<void> {
+  await regenerateManifest({
+    baseDir,
+    tenantId: TENANT_ID,
+    toolCatalog: TOOL_CATALOG,
+  });
 }
 
 const EPISODES: readonly EpisodeSpec[] = [
@@ -132,25 +150,6 @@ const EPISODES: readonly EpisodeSpec[] = [
     ],
   },
 ] as const;
-
-// --- Tool catalogue --------------------------------------------------------
-
-// Per-tool one-line signature for the "Available tool bundles" section.
-// Hand-derived from the runner contract; kept short on purpose so the
-// agent gets the surface without prose padding.
-const TOOL_SIGNATURES: Record<string, { args: string; returns: string }> = {
-  getUsers: { args: "()", returns: "{ success, users: Array<User> }" },
-  getUser: { args: "({ id: number })", returns: "{ success, user: User }" },
-  getPosts: { args: "()", returns: "{ success, posts: Array<Post> }" },
-  getPostsByUser: {
-    args: "({ userId: number })",
-    returns: "{ success, posts: Array<Post> }",
-  },
-  getCommentsByPost: {
-    args: "({ postId: number })",
-    returns: "{ success, comments: Array<Comment> }",
-  },
-};
 
 // --- CLI args --------------------------------------------------------------
 
@@ -254,225 +253,6 @@ function parseArgs(argv: string[]): Args {
   };
 }
 
-// --- Prompt rendering ------------------------------------------------------
-
-function renderToolBundlesSection(): string {
-  const lines: string[] = [];
-  lines.push("# Available tool bundles");
-  lines.push("");
-  lines.push(`Bundle: \`${JSONPLACEHOLDER_BUNDLE_NAME}\` (HTTP-backed, JSONPlaceholder REST API)`);
-  lines.push("");
-  for (const name of JSONPLACEHOLDER_TOOLS) {
-    const sig = TOOL_SIGNATURES[name];
-    if (!sig) {
-      throw new Error(`missing tool signature for '${name}'`);
-    }
-    lines.push(
-      `- \`df.tool.${JSONPLACEHOLDER_BUNDLE_NAME}.${name}${sig.args}\` -> Promise<${sig.returns}>`,
-    );
-  }
-  return lines.join("\n");
-}
-
-function renderSubstratePrimitivesSection(): string {
-  return [
-    "# Available substrate primitives",
-    "",
-    "- `df.tool.<bundle>.<name>(input) -> { success, ...payload }` — call a registered tool.",
-    "- `df.lib.<helperName>(input) -> { value, ...meta }` — call a learned/seed helper. Unwrap with `(await df.lib.<helperName>(input)).value`.",
-    "- `df.answer(value)` — return the final answer envelope; useful when running inside the substrate runner.",
-  ].join("\n");
-}
-
-// workspace-lib variant: a one-line pointer to the lib/ dir that the
-// harness mirrored from the substrate's overlay into the workspace.
-// No MUST, no helper names, no special "discovery surfaces" — the
-// agent uses its native repo-exploration instincts (ls/cat/read code).
-function renderWorkspaceLibPointer(): string {
-  return [
-    "",
-    "Your workspace also contains a `lib/` directory with helper modules other agents have left here. You may call any of them via `df.lib.<helperName>(input)` if one matches your task; if none do, just use the tool primitives directly.",
-  ].join("\n");
-}
-
-function renderWorkspaceSection(): string {
-  // CRITICAL: the snippet runtime wraps your file's body as
-  //   `export const __df_done = (async () => { <your-body> })();`
-  // and the host awaits `__df_done`. Top-level `await` lives directly
-  // inside that wrapper — those promises ARE awaited. But a
-  // fire-and-forget IIFE `(async () => { await ... })();` returns
-  // immediately and its inner awaits run AFTER the host has already
-  // finalised the trajectory. Hence the explicit instruction below.
-  return [
-    "# Workspace",
-    "",
-    "Write your solution to `scripts/answer.ts`. The file must be a self-contained TypeScript module that uses `df.*` and ends by printing the answer JSON on stdout. The harness runs your file directly; do not invoke it yourself.",
-    "",
-    "**IMPORTANT — your file MUST use top-level `await`.** Do NOT wrap your work in a fire-and-forget IIFE like `(async () => { ... })();` — the inner awaits will not run inside the harness's snippet runtime.",
-    "",
-    "Skeleton — use top-level statements directly:",
-    "",
-    "```ts",
-    "// scripts/answer.ts",
-    "const result = await df.tool.jsonplaceholder.getUser({ id: 1 });",
-    "// ... compose your answer here ...",
-    "console.log(JSON.stringify({ /* your answer */ }));",
-    "```",
-    "",
-    "If you prefer naming a function, declare and `await` it at the top level:",
-    "",
-    "```ts",
-    "async function main() {",
-    "  const result = await df.tool.jsonplaceholder.getUser({ id: 1 });",
-    "  console.log(JSON.stringify({ name: result.user.name, email: result.user.email }));",
-    "}",
-    "await main();",
-    "```",
-  ].join("\n");
-}
-
-function renderLearnedInterfacesSection(): string {
-  // Mentions df.d.ts (primary), apropos, man — never a concrete helper
-  // name. The literal `df.lib.<helper-name>` here is a schematic
-  // placeholder; the leak validator allows the bare token `df.lib` but
-  // rejects any `df.lib.<concrete>`. We use the angle-bracketed
-  // `<helper-name>` form (not parseable as an identifier) so the regex
-  // passes cleanly. The discovery commands are the REAL CLI verbs:
-  // `cat $DATAFETCH_HOME/df.d.ts` is plain file read; `pnpm exec
-  // datafetch apropos`/`man` use the in-repo CLI shim at bin/datafetch.mjs.
-  return [
-    "# Learned interfaces — MANDATORY pre-flight check",
-    "",
-    "Prior episodes in this workspace may have crystallised reusable helpers under `$DATAFETCH_HOME/lib/<tenant>/`. Calling one when its intent matches is strictly cheaper than calling raw tool primitives, because the substrate records ONE trajectory step for a `df.lib.*` call regardless of how many internal tool calls it makes.",
-    "",
-    "**Step 1 — BEFORE writing answer.ts, you MUST run this Bash command and read the output:**",
-    "",
-    "```bash",
-    "cat \"$DATAFETCH_HOME/df.d.ts\"",
-    "```",
-    "",
-    "It is a TypeScript declaration file listing every callable `df.lib.*` and `df.tool.*` with JSDoc describing intent, input schema, and a usage example.",
-    "",
-    "**Step 2 — decide:**",
-    "",
-    "- If any `df.lib.<name>` entry's JSDoc intent matches your task (e.g. a helper described as `\"repeated tool fan-out\"` or `\"per-entity tool call\"` matches a task that fetches multiple entities by id with the same tool), you MUST call THAT helper instead of looping raw tool calls. Look at its JSDoc example for input shape.",
-    "- If no `df.lib.<name>` matches, use the tool primitives directly.",
-    "",
-    "**Step 3 — when reusing a `df.lib.<name>` helper, ALWAYS inspect its source first** to learn its exact OUTPUT shape (the manifest only shows `Promise<Result<unknown>>` for the return). The source lives at one of these paths:",
-    "",
-    "```bash",
-    "cat \"$DATAFETCH_HOME/lib/__seed__/<name>.ts\"        # seed helpers shipped with the substrate",
-    "cat \"$DATAFETCH_HOME/lib/<tenant>/<name>.ts\"        # helpers learned from prior episodes",
-    "```",
-    "",
-    "Use the literal file path you see, substituting the helper's name (and tenant id, found in df.d.ts's `Tenant:` header comment). Read the function's `async body(input)` to see exactly what shape it returns; the substrate wraps that under the `result.value` field of the Result envelope.",
-    "",
-    "Optional secondary discovery: `pnpm exec datafetch apropos '<intent words>'` and `pnpm exec datafetch man <name>`. But reading `df.d.ts` is the contract.",
-    "",
-    "Do NOT invent helper names. Only call `df.lib.<name>` if you saw `<name>` declared in df.d.ts.",
-  ].join("\n");
-}
-
-function renderEpisodePrompt(input: {
-  arm: Arm;
-  episode: EpisodeSpec;
-  manifestInline: boolean;
-  workspaceLib: boolean;
-  inlinedManifest?: string;
-}): string {
-  const sections: string[] = [];
-  sections.push("# Task");
-  sections.push("");
-  sections.push(input.episode.question);
-  sections.push("");
-  sections.push(
-    input.workspaceLib
-      ? renderWorkspaceSection() + renderWorkspaceLibPointer()
-      : renderWorkspaceSection(),
-  );
-  sections.push("");
-  sections.push(renderToolBundlesSection());
-  sections.push("");
-  sections.push(renderSubstratePrimitivesSection());
-  if (input.arm === "substrate-on" && !input.workspaceLib) {
-    sections.push("");
-    if (input.manifestInline && input.inlinedManifest !== undefined) {
-      sections.push(renderInlinedManifestSection(input.inlinedManifest));
-    } else {
-      sections.push(renderLearnedInterfacesSection());
-    }
-  }
-  return sections.join("\n") + "\n";
-}
-
-// Inline-manifest variant: the prompt embeds the current df.d.ts
-// contents directly. The agent gets the same discoverability without
-// needing 10+ turns of Bash `cat` round-trips. Source-inspection hint
-// remains because helper output shapes are typed `unknown` in the
-// manifest; the agent still needs to peek at the .ts body for specifics.
-function renderInlinedManifestSection(manifestText: string): string {
-  return [
-    "# Learned interfaces — manifest inlined",
-    "",
-    "The substrate's TypeScript manifest of every callable `df.lib.*` and `df.tool.*` for this workspace is reproduced below. Read it once; do not `cat` it again. If any `df.lib.<name>` entry's JSDoc intent matches your task (e.g. `\"repeated tool fan-out\"` matches multi-id fetches), call THAT helper instead of looping raw tool calls. If no entry matches, use the tool primitives directly. Do NOT invent helper names — only call names you see below.",
-    "",
-    "```ts",
-    manifestText.trimEnd(),
-    "```",
-    "",
-    "Note: the manifest declares helper return types as `Promise<Result<unknown>>`. If you decide to call a `df.lib.<name>` whose output shape isn't obvious from the JSDoc example, you MAY `cat \"$DATAFETCH_HOME/lib/__seed__/<name>.ts\"` (seed helpers) or `cat \"$DATAFETCH_HOME/lib/<tenant>/<name>.ts\"` (learned helpers) to inspect the function body's exact return shape — but only AFTER you've decided to use it. Don't browse the catalogue twice.",
-  ].join("\n");
-}
-
-// --- Helper-name leak guard ------------------------------------------------
-
-// Match `df.lib.<identifier>` where <identifier> starts with a letter or
-// underscore (real callable) and is NOT an angle-bracketed placeholder.
-// The schematic phrase `df.lib.<helperName>` in the substrate-primitives
-// block and `df.lib.<helper-name>` in the learned-interfaces section both
-// fail this regex because `<` is not a valid identifier start.
-const DF_LIB_NAMED_RE = /\bdf\.lib\.([A-Za-z_][A-Za-z0-9_]*)\b/g;
-
-// Tokens that name specific helpers. `__seed__` was previously in this
-// list, but it's a substrate-shipped DIRECTORY (where seed helpers live),
-// not a helper name itself. Mentioning the directory path in the
-// discovery section is part of the legitimate discovery contract.
-const FORBIDDEN_NAME_TOKENS: readonly string[] = [
-  "per_entity",
-  "learnedHelper",
-];
-
-function assertNoHelperNameLeak(
-  prompt: string,
-  episodeId: EpisodeId,
-  arm: Arm,
-  manifestInline: boolean,
-): void {
-  // When manifest is inlined, the substrate-rendered df.d.ts legitimately
-  // contains every helper name. The leak check then becomes: "the harness
-  // author did not HARDCODE any helper name OUTSIDE the inlined manifest
-  // block." We strip the fenced ```ts ... ``` block (which holds the
-  // manifest verbatim) and run the existing checks on what remains.
-  let scanned = prompt;
-  if (manifestInline) {
-    scanned = prompt.replace(/```ts\n[\s\S]*?\n```/g, "");
-  }
-  for (const token of FORBIDDEN_NAME_TOKENS) {
-    if (scanned.includes(token)) {
-      throw new Error(
-        `[helper-name-leak] prompt for ${arm}/${episodeId} contains forbidden token '${token}' OUTSIDE the inlined manifest.`,
-      );
-    }
-  }
-  const named = [...scanned.matchAll(DF_LIB_NAMED_RE)];
-  if (named.length > 0) {
-    const names = named.map((m) => m[1]).join(", ");
-    throw new Error(
-      `[helper-name-leak] prompt for ${arm}/${episodeId} contains explicit df.lib.<name> reference(s) OUTSIDE the inlined manifest: ${names}`,
-    );
-  }
-}
-
 // --- Substrate setup -------------------------------------------------------
 
 interface SubstrateHandles {
@@ -528,160 +308,6 @@ async function setupArm(input: {
   return { baseDir, awaitObserve };
 }
 
-// --- Claude invocation -----------------------------------------------------
-
-interface AgentRun {
-  stdout: string;
-  stderr: string;
-  exitCode: number;
-  elapsedMs: number;
-  finalMessage: string;
-  usage: {
-    inputTokens: number;
-    cachedInputTokens: number;
-    outputTokens: number;
-  };
-  totalCostUsd: number;
-}
-
-function spawnProcess(
-  command: string,
-  args: string[],
-  options: { cwd: string; env?: NodeJS.ProcessEnv; timeoutMs?: number; input?: string },
-): Promise<{ stdout: string; stderr: string; exitCode: number }> {
-  return new Promise((resolve) => {
-    const child = spawn(command, args, {
-      cwd: options.cwd,
-      env: options.env ?? process.env,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-    const stdout: Buffer[] = [];
-    const stderr: Buffer[] = [];
-    let timedOut = false;
-    let closed = false;
-    const timer = options.timeoutMs
-      ? setTimeout(() => {
-          timedOut = true;
-          child.kill("SIGTERM");
-          setTimeout(() => {
-            if (!closed) child.kill("SIGKILL");
-          }, 2_000).unref();
-        }, options.timeoutMs)
-      : undefined;
-    child.stdout.on("data", (chunk: Buffer) => stdout.push(chunk));
-    child.stderr.on("data", (chunk: Buffer) => stderr.push(chunk));
-    child.on("error", (err) => {
-      if (timer) clearTimeout(timer);
-      resolve({
-        stdout: Buffer.concat(stdout).toString("utf8"),
-        stderr: `${Buffer.concat(stderr).toString("utf8")}${String(err)}`,
-        exitCode: 1,
-      });
-    });
-    child.on("close", (code, signal) => {
-      closed = true;
-      if (timer) clearTimeout(timer);
-      const sBuf = Buffer.concat(stderr).toString("utf8");
-      resolve({
-        stdout: Buffer.concat(stdout).toString("utf8"),
-        stderr: timedOut
-          ? `${sBuf}\n[timed out after ${options.timeoutMs}ms signal=${signal ?? ""}]\n`
-          : sBuf,
-        exitCode: typeof code === "number" ? code : 1,
-      });
-    });
-    if (options.input !== undefined) {
-      child.stdin.end(options.input);
-    } else {
-      child.stdin.end();
-    }
-  });
-}
-
-async function runClaudeAgent(input: {
-  workspaceDir: string;
-  prompt: string;
-  model: string;
-  baseDir: string;
-}): Promise<AgentRun> {
-  const claudeBin = process.env["CLAUDE_CLI"] ?? "claude-p";
-  // claude-p drives the interactive TUI via PTY and is the default per
-  // the existing skillcraft harness. It accepts the prompt as either
-  // stdin or a positional; we keep behaviour parallel to the skillcraft
-  // path (positional prompt) so caching / system-prompt shape matches.
-  const isClaudeP = /(?:^|\/)claude-p$/.test(claudeBin);
-  const cliArgs = isClaudeP
-    ? [
-        "--output-format", "json",
-        "--model", input.model,
-        "--dangerously-skip-permissions",
-        "--timeout", String(Math.max(60, Math.ceil(AGENT_TIMEOUT_MS / 1000))),
-        input.prompt,
-      ]
-    : [
-        "--print",
-        "--output-format", "json",
-        "--model", input.model,
-        "--dangerously-skip-permissions",
-        "--no-session-persistence",
-        input.prompt,
-      ];
-
-  const started = performance.now();
-  const env: NodeJS.ProcessEnv = {
-    ...process.env,
-    DATAFETCH_HOME: input.baseDir,
-  };
-  const run = await spawnProcess(claudeBin, cliArgs, {
-    cwd: input.workspaceDir,
-    env,
-    timeoutMs: AGENT_TIMEOUT_MS,
-  });
-  const elapsedMs = performance.now() - started;
-
-  let finalMessage = "";
-  const usage = { inputTokens: 0, cachedInputTokens: 0, outputTokens: 0 };
-  let totalCostUsd = 0;
-  try {
-    const parsed = JSON.parse(run.stdout) as Record<string, unknown>;
-    const result = parsed["result"];
-    if (typeof result === "string") {
-      finalMessage = result;
-    } else if (result !== undefined) {
-      finalMessage = JSON.stringify(result);
-    }
-    const cost = parsed["total_cost_usd"];
-    if (typeof cost === "number" && Number.isFinite(cost)) {
-      totalCostUsd = cost;
-    }
-    const rawUsage = parsed["usage"];
-    if (rawUsage && typeof rawUsage === "object") {
-      const u = rawUsage as Record<string, unknown>;
-      usage.inputTokens = numberField(u, "input_tokens");
-      usage.cachedInputTokens =
-        numberField(u, "cache_read_input_tokens") +
-        numberField(u, "cache_creation_input_tokens");
-      usage.outputTokens = numberField(u, "output_tokens");
-    }
-  } catch {
-    finalMessage = run.stdout.trim();
-  }
-  return {
-    stdout: run.stdout,
-    stderr: run.stderr,
-    exitCode: run.exitCode,
-    elapsedMs,
-    finalMessage,
-    usage,
-    totalCostUsd,
-  };
-}
-
-function numberField(record: Record<string, unknown>, key: string): number {
-  const v = record[key];
-  return typeof v === "number" && Number.isFinite(v) ? v : 0;
-}
-
 // --- Episode runner --------------------------------------------------------
 
 interface EpisodeResult {
@@ -727,10 +353,12 @@ async function runEpisode(input: {
   // discovery channel in the task prompt. Runtime still routes through
   // df.lib.<name> against the substrate's overlay; the mirror is
   // read-only documentation for the agent.
+  if (input.arm === "substrate-on") {
+    await regenerateProductFlowManifest(input.handles.baseDir);
+  }
   if (input.workspaceLib && input.arm === "substrate-on") {
-    // Regenerate df.d.ts and AGENTS.md BEFORE the mirror so they
-    // reflect any preseeded helpers + the current lib state.
-    await regenerateManifest({ baseDir: input.handles.baseDir, tenantId: TENANT_ID });
+    // Regenerate AGENTS.md BEFORE the mirror so it reflects any preseeded
+    // helpers + the current lib state.
     await regenerateWorkspaceMemory({ baseDir: input.handles.baseDir, tenantId: TENANT_ID });
     await mirrorLibIntoWorkspace({
       baseDir: input.handles.baseDir,
@@ -756,7 +384,6 @@ async function runEpisode(input: {
   // rather than spending output-token turns on `cat`.
   let inlinedManifest: string | undefined;
   if (input.manifestInline && input.arm === "substrate-on") {
-    await regenerateManifest({ baseDir: input.handles.baseDir, tenantId: TENANT_ID });
     try {
       inlinedManifest = await fsp.readFile(
         path.join(input.handles.baseDir, "df.d.ts"),
@@ -797,6 +424,7 @@ async function runEpisode(input: {
       prompt,
       model: input.model,
       baseDir: input.handles.baseDir,
+      timeoutMs: AGENT_TIMEOUT_MS,
     });
     await fsp.writeFile(
       path.join(agentDir, "run.json"),
@@ -873,7 +501,7 @@ async function runEpisode(input: {
     libCallsInTrajectory = run.libCalls;
     answerGot = run.parsedAnswer;
     answerCorrect = run.parsedAnswer !== undefined
-      ? deepEqual(canonicalise(run.parsedAnswer), canonicalise(input.episode.gold))
+      ? answersEqual(run.parsedAnswer, input.episode.gold)
       : false;
   }
 
@@ -1010,7 +638,7 @@ async function runAnswerScript(input: {
 
   // Re-generate df.d.ts so the next episode's `cat df.d.ts` shows the
   // freshly learned helper. Cheap and idempotent; safe in both arms.
-  await regenerateManifest({ baseDir: input.handles.baseDir, tenantId: TENANT_ID });
+  await regenerateProductFlowManifest(input.handles.baseDir);
 
   let primitives: string[] = [];
   let libCalls: string[] = [];
@@ -1035,130 +663,16 @@ async function runAnswerScript(input: {
     }
   }
 
-  const parsedAnswer = parseAnswerFromStdout(run.stdout);
+  const parsedAnswer = selectAnswerValue({
+    stdout: run.stdout,
+    answerEnvelope: run.answer,
+  });
   return {
     exitCode: run.exitCode,
     primitives,
     libCalls,
     parsedAnswer,
   };
-}
-
-// --- Defensive source transform -------------------------------------------
-
-// Rewrite the agent's fire-and-forget IIFE pattern into top-level statements
-// so DiskSnippetRuntime's `export const __df_done = (async () => { <body>
-// })();` wrapper actually awaits the work.
-//
-// Matches the trailing `})();` (with optional `.catch(...)` and trailing
-// semicolons / whitespace) and an opening `(async () => {` (or
-// `(async function() {`). Whitespace-tolerant; rejects nested IIFEs (only
-// touches the OUTER fire-and-forget wrapper).
-export function unwrapFireAndForgetIife(source: string): string {
-  // Strip a `void` prefix if present: `void (async () => {...})()`.
-  let s = source.trimStart().startsWith("void ")
-    ? source.replace(/^[\s]*void\s+/, "")
-    : source;
-  // Match `(async () => {` OR `(async function ...() {` at the start.
-  const openRe = /^\s*\(\s*async\s*(?:\(\s*\)\s*=>|function\s*[A-Za-z_$]*\s*\(\s*\))\s*\{\s*/;
-  const m = openRe.exec(s);
-  if (!m) return source;
-  const bodyStart = m[0].length;
-  // Match the trailing `}\s*\)\s*(...optional `.catch(...)`...)\s*;?\s*$`.
-  const closeRe = /\}\s*\)\s*\(\s*\)(?:\s*\.\s*catch\s*\([^)]*\))?\s*;?\s*$/;
-  const cm = closeRe.exec(s);
-  if (!cm) return source;
-  const bodyEnd = cm.index;
-  if (bodyEnd <= bodyStart) return source;
-  const inner = s.slice(bodyStart, bodyEnd);
-  // Light dedent: drop one level of leading two-space indent on each line.
-  const dedented = inner
-    .split("\n")
-    .map((ln) => (ln.startsWith("  ") ? ln.slice(2) : ln))
-    .join("\n");
-  return dedented;
-}
-
-// --- Gold-answer parsing ---------------------------------------------------
-
-// Pull the last JSON-looking line out of stdout. The agent's answer.ts
-// is instructed to end with `console.log(JSON.stringify(answer))`, so
-// the last line containing a balanced `{...}` or `[...]` is the answer.
-function parseAnswerFromStdout(stdout: string): unknown {
-  const lines = stdout.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
-  for (let i = lines.length - 1; i >= 0; i -= 1) {
-    const line = lines[i] ?? "";
-    if (!(line.startsWith("{") || line.startsWith("["))) continue;
-    try {
-      return JSON.parse(line);
-    } catch {
-      continue;
-    }
-  }
-  return undefined;
-}
-
-// Canonicalise an object/array tree for deep comparison: arrays of
-// objects with an `id` field get sorted by id ascending; plain
-// arrays stay in-order. This handles e2 where the agent might return
-// users in any order.
-function canonicalise(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    const items = value.map(canonicalise);
-    // Detect arrays of objects with stable scalar `id`s and sort.
-    if (
-      items.length > 0 &&
-      items.every(
-        (v) =>
-          v !== null &&
-          typeof v === "object" &&
-          !Array.isArray(v) &&
-          "id" in (v as Record<string, unknown>) &&
-          ["string", "number"].includes(typeof (v as Record<string, unknown>)["id"]),
-      )
-    ) {
-      items.sort((a, b) => {
-        const ai = (a as Record<string, unknown>)["id"];
-        const bi = (b as Record<string, unknown>)["id"];
-        return String(ai).localeCompare(String(bi));
-      });
-    }
-    return items;
-  }
-  if (value !== null && typeof value === "object") {
-    const out: Record<string, unknown> = {};
-    for (const key of Object.keys(value as Record<string, unknown>).sort()) {
-      out[key] = canonicalise((value as Record<string, unknown>)[key]);
-    }
-    return out;
-  }
-  return value;
-}
-
-function deepEqual(a: unknown, b: unknown): boolean {
-  if (a === b) return true;
-  if (typeof a !== typeof b) return false;
-  if (a === null || b === null) return a === b;
-  if (Array.isArray(a) || Array.isArray(b)) {
-    if (!Array.isArray(a) || !Array.isArray(b)) return false;
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i += 1) {
-      if (!deepEqual(a[i], b[i])) return false;
-    }
-    return true;
-  }
-  if (typeof a === "object" && typeof b === "object") {
-    const aKeys = Object.keys(a as Record<string, unknown>);
-    const bKeys = Object.keys(b as Record<string, unknown>);
-    if (aKeys.length !== bKeys.length) return false;
-    for (const k of aKeys) {
-      if (!deepEqual((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k])) {
-        return false;
-      }
-    }
-    return true;
-  }
-  return false;
 }
 
 // --- Utilities -------------------------------------------------------------

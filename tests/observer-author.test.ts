@@ -164,6 +164,15 @@ describe("authorFunction", () => {
     expect(authored.source).toContain("for (const candidate of candidates)");
     expect(authored.source).toContain("filing: candidate");
     expect(authored.source).toContain("missing_year_coverage");
+    expect(authored.source).toContain(
+      "replay-contract: origin-and-heldout-replay-before-validation",
+    );
+    expect(authored.source).toContain(
+      "change-contract: preserve-public-schema-call-graph-and-evidence-semantics",
+    );
+    expect(authored.source).toContain(
+      "rollback: quarantine-or-supersede-through-workspace-head",
+    );
   });
 
   it("can supersede an existing learned interface file when the workspace HEAD advances", async () => {
@@ -260,8 +269,8 @@ describe("authorFunction", () => {
     const fmEnd = authored.source.indexOf("--- */");
     const fm = fmEnd >= 0 ? authored.source.slice(0, fmEnd) : authored.source;
     expect(fm).toContain("Transferable learned datafetch fan-out helper");
-    expect(fm).toContain('intent-shaped: { intent?: "repeated tool fan-out"; limit? }');
-    expect(fm).toContain("Planner/executor internals infer entity values, tool names, and tool params");
+    expect(fm).toContain("{ entityValues, toolBundle, toolNames, paramName, paramByTool?, limit? }");
+    expect(fm).toContain("Keep these capability slots supplied by the caller");
     expect(fm).not.toContain("tvmaze_api");
     expect(fm).not.toContain("analyse these shows");
     // The capability slots are INPUT PARAMETERS, never frozen into the
@@ -269,6 +278,7 @@ describe("authorFunction", () => {
     expect(authored.source).toContain("toolBundle?: string");
     expect(authored.source).toContain("toolNames?: string[]");
     expect(authored.source).toContain("paramName?: string");
+    expect(authored.source).toContain("entityValues?: Array<string | number>");
     expect(authored.source).toContain("df.tool[toolBundle]");
     // The concrete bundle name from the trajectory must NOT be frozen
     // into the body as `df.tool.tvmaze_api[...]`.
@@ -823,6 +833,8 @@ describe("authorFunction", () => {
     expect(authored.source).toContain("type InternalToolEnrichmentPlan");
     expect(authored.source).toContain("dependentValuePathsByTool?: Record<string, string[]>");
     expect(authored.source).toContain("intent: v.optional(v.string())");
+    expect(authored.source).toContain("dependentToolBundle: v.optional(v.string())");
+    expect(authored.source).toContain("dependentValuePathsByTool: v.optional(v.record(v.string(), v.array(v.string())))");
     expect(authored.source).toContain("findValueForParam");
     expect(authored.source).toContain("dependentTools");
   });

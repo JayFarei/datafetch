@@ -8,6 +8,7 @@
 import { defineCommand, type Command } from "just-bash";
 
 import {
+  renderAproposMatches,
   searchLibrary,
   type RankedFunction,
 } from "../../discovery/librarySearch.js";
@@ -20,26 +21,6 @@ export type AproposCommandDeps = {
   resolveTenant: () => string;
   resolveLibrary: () => LibraryResolver | null;
 };
-
-// --- Output formatting -----------------------------------------------------
-
-function renderMatches(
-  matches: RankedFunction[],
-): string {
-  if (matches.length === 0) {
-    return "(no matches above 0.5)\n";
-  }
-  // Pad name column to align the dash, capped to keep terse layouts tidy.
-  const maxName = Math.min(
-    24,
-    matches.reduce((m, x) => Math.max(m, x.name.length), 0),
-  );
-  const lines = matches.map((m) => {
-    const padded = m.name.padEnd(maxName, " ");
-    return `${padded} (${m.kind}) - ${m.intent}`;
-  });
-  return `${lines.join("\n")}\n`;
-}
 
 // --- Command factory -------------------------------------------------------
 
@@ -57,7 +38,7 @@ export function createAproposCommand(deps: AproposCommandDeps): Command {
     const resolver = deps.resolveLibrary();
     if (!resolver) {
       return {
-        stdout: "(no matches above 0.5)\n",
+        stdout: renderAproposMatches([]),
         stderr: "",
         exitCode: 0,
       };
@@ -82,7 +63,7 @@ export function createAproposCommand(deps: AproposCommandDeps): Command {
     }
 
     return {
-      stdout: renderMatches(scored),
+      stdout: renderAproposMatches(scored),
       stderr: "",
       exitCode: 0,
     };

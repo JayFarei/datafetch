@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
@@ -148,6 +148,21 @@ describe("resolveWorkspaceHeadForTrajectory", () => {
     await expect(observer.observe(stale.id)).resolves.toMatchObject({
       kind: "skipped",
       reason: expect.stringContaining("workspace HEAD is traj_newer"),
+    });
+    const decisions = await readFile(
+      path.join(baseDir, "observer", stale.tenantId, "decisions.jsonl"),
+      "utf8",
+    );
+    const [decision] = decisions.trim().split("\n").map((line) => JSON.parse(line));
+    expect(decision).toMatchObject({
+      version: 1,
+      trajectoryId: stale.id,
+      tenantId: stale.tenantId,
+      observerTenantId: null,
+      result: {
+        kind: "skipped",
+        reason: expect.stringContaining("workspace HEAD is traj_newer"),
+      },
     });
   });
 });

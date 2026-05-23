@@ -26,10 +26,12 @@ import { promises as fsp } from "node:fs";
 import os from "node:os";
 import { performance } from "node:perf_hooks";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { getMountRuntimeRegistry, type MountRuntime } from "../adapter/runtime.js";
 import { installObserver } from "../observer/install.js";
 import { validateAuthoredFromSourceHelpers } from "../observer/quarantineValidator.js";
+import { readTrajectory } from "../sdk/index.js";
 import { installSnippetRuntime } from "../snippet/install.js";
 
 import {
@@ -561,7 +563,7 @@ async function runLiveEpisode(input: {
   await writeDfDtsStub(workspace, allAnnouncedHelpers);
 
   // 5. Render the agent prompt + spawn claude-p
-  const prompt = renderFinchainPrompt(currentInstance, mountId, preseedHelpers);
+  const prompt = renderFinchainPrompt(currentInstance, mountId, allAnnouncedHelpers);
   const agentRun = await runClaudePAgent({
     workspaceDir: workspace,
     prompt,
@@ -585,7 +587,7 @@ async function runLiveEpisode(input: {
   let derivationSteps: number[] = [];
   let answerStatus = "unsupported";
   let libFunctionsUsed = 0;
-  const libFunctionsAvailable = 1;  // per_entity seed
+  const libFunctionsAvailable = allAnnouncedHelpers.length + 1;  // +1 for per_entity seed
   try {
     const rawSource = await fsp.readFile(answerPath, "utf8");
     let source = prepareAnswerSourceForRuntime(rawSource, workspace);
@@ -661,6 +663,16 @@ async function runLiveEpisode(input: {
         );
       }
     }
+    if (run.trajectoryId) {
+      try {
+        const trajectory = await readTrajectory(run.trajectoryId, datafetchHome);
+        libFunctionsUsed = trajectory.calls.filter((call) =>
+          call.primitive.startsWith("lib."),
+        ).length;
+      } catch {
+        libFunctionsUsed = 0;
+      }
+    }
     await fsp.writeFile(path.join(artifactDir, "snippet-stdout.txt"), run.stdout);
     await fsp.writeFile(path.join(artifactDir, "snippet-stderr.txt"), run.stderr);
     await fsp.writeFile(path.join(artifactDir, "snippet-result.json"), `${JSON.stringify({
@@ -727,7 +739,7 @@ async function runLiveEpisode(input: {
     agentElapsedMs: Math.round(agentRun.elapsedMs),
     wallClockMs: Math.round(elapsedMs),
     llmCalls: agentRun.usage.llmCalls,
-    libFunctionsAvailable: libFunctionsAvailableCount,
+    libFunctionsAvailable,
     libFunctionsUsed,
     libFunctionsCreated: Math.max(0, libFunctionsAvailableCount - libFunctionsAvailable),
     reuseRate: null,
@@ -817,7 +829,7 @@ async function runClaudePAgent(args: {
   return { workspaceDir: args.workspaceDir, prompt: args.prompt, stdout, stderr, finalMessage, elapsedMs: performance.now() - started, exitCode, usage };
 }
 
-function preseedStrength(): "recommend" | "mandate" {
+function helperUseStrength(): "recommend" | "mandate" {
   // Default flipped to "mandate" per the iter 3.0a probe finding: soft
   // "prefer calling" prose is ignored by Sonnet 4.6 on FinChain-shape
   // benchmarks where the agent can produce the answer inline. Mandate
@@ -829,19 +841,26 @@ function preseedStrength(): "recommend" | "mandate" {
   return raw === "recommend" ? "recommend" : "mandate";
 }
 
+function helperCallExample(helper: PreseedHelperMeta): string {
+  const input = helper.inputKeys.length > 0
+    ? `{ ${helper.inputKeys.join(", ")} }`
+    : "{}";
+  return `(await df.lib.${helper.name}(${input})).value`;
+}
+
 function renderFinchainPrompt(
   instance: FinChainTemplateInstance,
   mountId: string,
-  preseedHelpers: PreseedHelperMeta[] = [],
+  availableHelpers: PreseedHelperMeta[] = [],
 ): string {
-  const strength = preseedStrength();
-  const helperLines: string[] = preseedHelpers.length === 0 || strength !== "mandate"
+  const strength = helperUseStrength();
+  const helperLines: string[] = availableHelpers.length === 0 || strength !== "mandate"
     ? []
     : [
         ``,
-        `## MANDATORY — preseeded helper must be used`,
-        ...preseedHelpers.map((h) => `- \`df.lib.${h.name}({${h.inputKeys.join(", ")}})\` — ${h.intent}`),
-        `Extract the input numbers from the question text and CALL the helper. DO NOT compute the formula inline; inline math is rejected by the substrate. Calling the helper is the only valid shape for an answer to this question.`,
+        `## MANDATORY — validated helper must be used`,
+        ...availableHelpers.map((h) => `- \`${helperCallExample(h)}\` — ${h.intent}`),
+        `Extract the input numbers from the question text and CALL the matching helper. Use the helper result's \`.value\`. DO NOT compute the formula inline; inline math is rejected by the substrate. Calling the helper is the only valid shape for an answer to this question.`,
       ];
   return [
     `You are solving a financial reasoning question. Read sibling examples to learn the formula, then apply it.`,
@@ -858,7 +877,7 @@ function renderFinchainPrompt(
     `- Commit by RETURNING df.answer: \`return df.answer({status: "answered", value: <numerical_answer>, derivation: [{step: 1, label: "...", value: <intermediate>}, ...], evidence: []})\`. The runtime captures the snippet's return value as the answer. The harness scores Final Answer Correctness (numerical equality within 1%) and Step Alignment (numerical alignment of derivation steps).`,
     ``,
     `## How to write scripts/answer.ts`,
-    `Write a complete, self-contained TypeScript snippet. Read records, infer the formula from sibling examples, compute, commit via df.answer({...}). Call \`answer\` directly (NOT \`df.answer\`) — the harness injects \`import { answer } from "@datafetch/...\` automatically. No external tools; computation is pure-symbolic.`,
+    `Write a complete, self-contained TypeScript snippet. Read records, infer the formula from sibling examples, compute, and return \`df.answer({...})\`. No external tools; computation is pure-symbolic.`,
     ``,
     `Reply by editing scripts/answer.ts in the workspace. The harness will execute it.`,
   ].join("\n");
@@ -870,26 +889,26 @@ async function writeFinchainAgentsMd(
   mountId: string,
   preseedHelpers: PreseedHelperMeta[] = [],
 ): Promise<void> {
-  const strength = preseedStrength();
+  const strength = helperUseStrength();
   const preseedSection: string[] = preseedHelpers.length === 0
     ? []
     : strength === "mandate"
       ? [
           `## MANDATORY: use these helpers`,
           ...preseedHelpers.flatMap((h) => [
-            `- \`df.lib.${h.name}({${h.inputKeys.join(", ")}})\` — ${h.intent}`,
+            `- \`${helperCallExample(h)}\` — ${h.intent}`,
           ]),
           ``,
-          `You MUST call \`df.lib.${preseedHelpers[0]!.name}(...)\` to compute the answer to this question. DO NOT compute the formula inline. The helper encodes the exact formula and rounding behaviour; inline math is rejected. Extract the input numbers from the question text, call the helper, and return df.answer with the result.`,
+          `You MUST call \`df.lib.${preseedHelpers[0]!.name}(...)\` and use its \`.value\` to compute the answer to this question. DO NOT compute the formula inline. The helper encodes the exact formula and rounding behaviour; inline math is rejected. Extract the input numbers from the question text, call the helper, and return df.answer with the unwrapped result.`,
           ``,
         ]
       : [
-          `## Preseeded helpers (call these — they encode the formula already)`,
+          `## Available helpers (call these when the intent matches)`,
           ...preseedHelpers.flatMap((h) => [
-            `- \`df.lib.${h.name}({${h.inputKeys.join(", ")}})\` — ${h.intent}`,
+            `- \`${helperCallExample(h)}\` — ${h.intent}`,
           ]),
           ``,
-          `When a preseeded helper's intent matches your question, EXTRACT the numbers from the question and CALL the helper instead of re-deriving the formula inline. The helper has been validated; calling it is the correct shape.`,
+          `When a helper's intent matches your question, extract the numbers from the question and call the helper instead of re-deriving the formula inline. The helper has been validated; calling it is the correct shape.`,
           ``,
         ];
   const body = [
@@ -960,7 +979,7 @@ async function writeDfDtsStub(workspace: string, preseedHelpers: PreseedHelperMe
   // hydrated lib helpers; for now this is a stub for agent readability.
   const preseedLibTypes = preseedHelpers.map((h) => {
     const inputFields = h.inputKeys.map((k) => `${k}: number`).join("; ");
-    return `    ${h.name}: (input: { ${inputFields} }) => Promise<number>;`;
+    return `    ${h.name}: (input: { ${inputFields} }) => Promise<{ value: number }>;`;
   });
   const body = [
     `// Auto-generated type surface for this FinChain episode.`,
@@ -1164,11 +1183,20 @@ function isFacMatch(predicted: number, gold: number): boolean {
   return Math.abs(predicted - gold) / denom <= FAC_RELATIVE_TOLERANCE;
 }
 
-main().catch((err) => {
-  console.error(err instanceof Error ? err.message : String(err));
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((err) => {
+    console.error(err instanceof Error ? err.message : String(err));
+    process.exit(1);
+  });
+}
 
 // expose internals for tests + iter 2c
-export { parseArgs, planEpisodes, discoverTopics, LEVEL_BY_TEMPLATE_POSITION };
+export {
+  parseArgs,
+  planEpisodes,
+  discoverTopics,
+  renderFinchainPrompt,
+  writeDfDtsStub,
+  LEVEL_BY_TEMPLATE_POSITION,
+};
 export type { Args, PlannedEpisode, RunInfo };

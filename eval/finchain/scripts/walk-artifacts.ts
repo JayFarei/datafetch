@@ -447,6 +447,7 @@ async function main(): Promise<void> {
     runBase: args.runBase,
     datafetchHomeRoot,
     helpers,
+    trajectories,
     trajectoryCount: trajectories.length,
     libCallTotal: trajectories.reduce((s, t) => s + t.libCalls.length, 0),
     R4R9: r4r9,

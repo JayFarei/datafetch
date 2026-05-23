@@ -27,12 +27,17 @@ import { DiskLibraryResolver } from "../snippet/library.js";
 import { listManifests } from "../hooks/manifest.js";
 import type { VfsHookManifest } from "../hooks/types.js";
 import { hooksEnabled } from "../hooks/mode.js";
+import {
+  renderToolCatalogDtsLines,
+  type ToolCatalogEntry,
+} from "../runtime/toolCatalog.js";
 
 // --- Public ----------------------------------------------------------------
 
 export type RegenerateManifestOpts = {
   baseDir: string;
   tenantId: string;
+  toolCatalog?: ToolCatalogEntry[];
 };
 
 // Write `<baseDir>/df.d.ts` reflecting the current workspace state.
@@ -90,26 +95,27 @@ async function renderManifest(opts: RegenerateManifestOpts): Promise<string> {
         .map((m: VfsHookManifest) => m.name),
     );
   }
-  const filteredEntries = callableNames
-    ? entries.filter((e) => callableNames!.has(e.name))
-    : entries;
-
   // Partition entries into tools (frontmatter present in the tenant
-  // overlay) and primitives. One bounded read per entry.
-  const annotated = await Promise.all(
-    filteredEntries.map(async (e) => {
-      const head = await readFrontmatterHead(
-        path.join(baseDir, "lib", tenantId, `${e.name}.ts`),
-      );
+  // overlay) and primitives. One bounded read per entry. Seed primitives
+  // remain visible under hook modes because they are runtime-callable
+  // fallback code, not tenant-authored hook candidates.
+  const annotatedAll = await Promise.all(
+    entries.map(async (e) => {
+      const source = await resolveLibrarySourcePath(baseDir, tenantId, e.name);
+      const head = await readFrontmatterHead(source.path);
       return {
         name: e.name,
         spec: e.spec,
         description: head.description,
         isTool: head.isTool,
+        isSeed: source.isSeed,
         manifest: manifestIndex.get(e.name) ?? null,
       };
     }),
   );
+  const annotated = callableNames
+    ? annotatedAll.filter((e) => e.isSeed || callableNames!.has(e.name))
+    : annotatedAll;
   // Goal-3 iter 11: re-rank by (maturity, success_count, recency).
   // The previous ordering was resolver.list() order (effectively mtime),
   // which buried high-confidence helpers under fresher candidates the
@@ -147,6 +153,10 @@ async function renderManifest(opts: RegenerateManifestOpts): Promise<string> {
   }
   out.push("  };");
   out.push("");
+  if (opts.toolCatalog !== undefined && opts.toolCatalog.length > 0) {
+    out.push(...renderToolCatalogDtsLines(opts.toolCatalog, "  "));
+    out.push("");
+  }
   out.push(`  /** Library for tenant "${tenantId}". Tools first, then primitives. */`);
   out.push("  lib: {");
 
@@ -177,7 +187,9 @@ async function renderManifest(opts: RegenerateManifestOpts): Promise<string> {
 }
 
 function renderEntry(entry: ManifestEntry, asTool: boolean): string[] {
-  const inputType = renderSchemaInline(entry.spec.input, { optional: "union" });
+  const inputType =
+    learnedHelperInputType(entry) ??
+    renderSchemaInline(entry.spec.input, { optional: "union" });
   // Output schema is informational only; the runtime always wraps in Result<T>.
   // Render `Result<unknown>` for the return type and let the JSDoc carry detail.
   const lines = buildJSDoc(entry, asTool).map((l) => `    ${l}`);
@@ -197,8 +209,13 @@ function buildJSDoc(entry: ManifestEntry, asTool: boolean): string[] {
   }
   // An example call gives the model a concrete shape to mimic, not just
   // a type signature. Bounded so a giant fixture doesn't bloat the file.
-  const example = entry.spec.examples?.[0];
-  if (example !== undefined) {
+  const learnedExample = learnedHelperExample(entry);
+  if (learnedExample !== null) {
+    lines.push(" *");
+    lines.push(" * @example");
+    lines.push(` *   ${learnedExample}`);
+  } else if (entry.spec.examples?.[0] !== undefined) {
+    const example = entry.spec.examples[0];
     const inputJson = jsonOneLine(example.input);
     if (inputJson.length < 240) {
       lines.push(" *");
@@ -210,6 +227,38 @@ function buildJSDoc(entry: ManifestEntry, asTool: boolean): string[] {
   return lines;
 }
 
+function learnedHelperInputType(entry: ManifestEntry): string | null {
+  const description = entry.description ?? "";
+  const intent = entry.spec.intent ?? "";
+  const haystack = `${entry.name}\n${description}\n${intent}`;
+  if (
+    entry.name === "toolFanout" &&
+    haystack.includes("repeated per-entity tool calls") &&
+    haystack.includes("entityValues")
+  ) {
+    return "{ intent?: \"repeated tool fan-out\"; limit?: number; entityValues: Array<string | number>; toolBundle: string; toolNames: string[]; paramName: string; paramByTool?: Record<string, string>; sharedInput?: Record<string, unknown> }";
+  }
+  if (
+    entry.name === "toolFanoutEnrichment" &&
+    haystack.includes("dependent enrichment") &&
+    haystack.includes("entityValues")
+  ) {
+    return "{ intent?: \"repeated tool fan-out dependent enrichment\"; limit?: number; entityValues: Array<string | number>; toolBundle: string; toolNames: string[]; paramName: string; paramByTool?: Record<string, string>; sharedInput?: Record<string, unknown>; dependentToolBundle: string; dependentToolNames: string[]; dependentParamName?: string; dependentParamByTool?: Record<string, string>; dependentValuePaths?: string[]; dependentValuePathsByTool?: Record<string, string[]>; dependentSharedInput?: Record<string, unknown> }";
+  }
+  return null;
+}
+
+function learnedHelperExample(entry: ManifestEntry): string | null {
+  if (learnedHelperInputType(entry) === null) return null;
+  if (entry.name === "toolFanout") {
+    return "await df.lib.toolFanout({ intent: \"repeated tool fan-out\", entityValues: [/* ids or names */], toolBundle: \"<df.tool bundle>\", toolNames: [\"<tool name>\"], paramName: \"<tool input field>\" })";
+  }
+  if (entry.name === "toolFanoutEnrichment") {
+    return "await df.lib.toolFanoutEnrichment({ intent: \"repeated tool fan-out dependent enrichment\", entityValues: [/* ids or names */], toolBundle: \"<df.tool bundle>\", toolNames: [\"<base tool>\"], paramName: \"<base input field>\", dependentToolBundle: \"<df.tool bundle>\", dependentToolNames: [\"<dependent tool>\"], dependentParamByTool: { \"<dependent tool>\": \"<dependent input field>\" } })";
+  }
+  return null;
+}
+
 // --- Helpers ---------------------------------------------------------------
 
 type ManifestEntry = {
@@ -217,6 +266,7 @@ type ManifestEntry = {
   spec: FnSpec<unknown, unknown>;
   description: string | null;
   isTool: boolean;
+  isSeed: boolean;
   manifest: VfsHookManifest | null;
 };
 
@@ -259,6 +309,27 @@ async function safeList(
     return await resolver.list(tenantId);
   } catch {
     return [];
+  }
+}
+
+async function resolveLibrarySourcePath(
+  baseDir: string,
+  tenantId: string,
+  name: string,
+): Promise<{ path: string; isSeed: boolean }> {
+  const tenantPath = path.join(baseDir, "lib", tenantId, `${name}.ts`);
+  if (await fileExists(tenantPath)) return { path: tenantPath, isSeed: false };
+  const seedPath = path.join(baseDir, "lib", "__seed__", `${name}.ts`);
+  if (await fileExists(seedPath)) return { path: seedPath, isSeed: true };
+  return { path: tenantPath, isSeed: false };
+}
+
+async function fileExists(file: string): Promise<boolean> {
+  try {
+    const stat = await fsp.stat(file);
+    return stat.isFile();
+  } catch {
+    return false;
   }
 }
 
@@ -329,6 +400,7 @@ interface AnswerInput {
   evidence?: unknown;
   coverage?: unknown;
   derivation?: unknown;
+  assumptions?: unknown;
   missing?: unknown;
   reason?: string;
 }

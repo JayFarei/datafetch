@@ -1157,9 +1157,9 @@ function renderToolFanoutEnrichmentSource(args: GenerateArgs): string | null {
     `import { fn } from "${sdkUrl}";`,
     `import * as v from "${valibotUrl}";`,
     "",
-    `// Goal-4 learned pure fan-out dependent enrichment interface. The public`,
-    `// surface is intent-shaped; planner/executor internals provide the base`,
-    `// fan-out and dependent-tool plan through loose, non-public fields.`,
+    `// Goal-4 learned pure fan-out dependent enrichment interface. The callable`,
+    `// surface is typed and parameterised: callers provide entity values plus`,
+    `// base/dependent tool slots, while the body stays data-shape-agnostic.`,
     `declare const df: {`,
     `  lib: {`,
     `    toolFanout(input: Record<string, unknown>): Promise<{ value?: unknown }>;`,
@@ -1170,6 +1170,19 @@ function renderToolFanoutEnrichmentSource(args: GenerateArgs): string | null {
     `type Input = {`,
     `  intent?: "repeated tool fan-out dependent enrichment";`,
     `  limit?: number;`,
+    `  entityValues?: Array<string | number>;`,
+    `  toolBundle?: string;`,
+    `  toolNames?: string[];`,
+    `  paramName?: string;`,
+    `  paramByTool?: Record<string, string>;`,
+    `  sharedInput?: Record<string, unknown>;`,
+    `  dependentToolBundle?: string;`,
+    `  dependentToolNames?: string[];`,
+    `  dependentParamName?: string;`,
+    `  dependentParamByTool?: Record<string, string>;`,
+    `  dependentValuePaths?: string[];`,
+    `  dependentValuePathsByTool?: Record<string, string[]>;`,
+    `  dependentSharedInput?: Record<string, unknown>;`,
     `};`,
     "",
     `type InternalToolEnrichmentPlan = {`,
@@ -1199,6 +1212,19 @@ function renderToolFanoutEnrichmentSource(args: GenerateArgs): string | null {
     `  input: v.looseObject({`,
     `    intent: v.optional(v.string()),`,
     `    limit: v.optional(v.number()),`,
+    `    entityValues: v.optional(v.array(v.union([v.string(), v.number()]))),`,
+    `    toolBundle: v.optional(v.string()),`,
+    `    toolNames: v.optional(v.array(v.string())),`,
+    `    paramName: v.optional(v.string()),`,
+    `    paramByTool: v.optional(v.record(v.string(), v.string())),`,
+    `    sharedInput: v.optional(v.record(v.string(), v.unknown())),`,
+    `    dependentToolBundle: v.optional(v.string()),`,
+    `    dependentToolNames: v.optional(v.array(v.string())),`,
+    `    dependentParamName: v.optional(v.string()),`,
+    `    dependentParamByTool: v.optional(v.record(v.string(), v.string())),`,
+    `    dependentValuePaths: v.optional(v.array(v.string())),`,
+    `    dependentValuePathsByTool: v.optional(v.record(v.string(), v.array(v.string()))),`,
+    `    dependentSharedInput: v.optional(v.record(v.string(), v.unknown())),`,
     `  }),`,
     `  output: v.unknown(),`,
     `  body: async (input: Input): Promise<unknown> => {`,
@@ -1351,9 +1377,9 @@ function renderFanOutSource(args: GenerateArgs): string | null {
     `import { fn } from "${sdkUrl}";`,
     `import * as v from "${valibotUrl}";`,
     "",
-    `// Goal-4 learned tool fan-out interface. The public surface is`,
-    `// intent-shaped; planner/executor internals provide entity values and`,
-    `// tool slots through loose, non-public fields.`,
+    `// Goal-4 learned tool fan-out interface. The callable surface is typed`,
+    `// and parameterised: callers provide entity values plus tool slots, while`,
+    `// the body stays data-shape-agnostic across families.`,
     `// Results include entityId/entityValue, top-level per-tool keys, and`,
     `// a nested tools map for compatibility with different answer styles.`,
     `declare const df: {`,
@@ -1363,6 +1389,12 @@ function renderFanOutSource(args: GenerateArgs): string | null {
     `type Input = {`,
     `  intent?: "repeated tool fan-out";`,
     `  limit?: number;`,
+    `  entityValues?: Array<string | number>;`,
+    `  toolBundle?: string;`,
+    `  toolNames?: string[];`,
+    `  paramName?: string;`,
+    `  paramByTool?: Record<string, string>;`,
+    `  sharedInput?: Record<string, unknown>;`,
     `};`,
     "",
     `type InternalToolFanoutPlan = {`,
@@ -1996,7 +2028,7 @@ function intentString(template: CallTemplate): string {
 function fanOutIntentString(): string {
   return [
     "reusable learned fan-out interface for repeated per-entity tool calls",
-    "caller-facing input is intent-shaped while planner/executor internals provide tool and entity slots",
+    "caller-facing input supplies entityValues, toolBundle, toolNames, and paramName so the helper remains transferable",
   ].join("; ");
 }
 
@@ -2081,6 +2113,7 @@ function frontmatter(args: {
     description,
     `trajectory: ${args.trajectory.id}`,
     `shape-hash: ${args.template.shapeHash}`,
+    ...contractFrontmatterLines(args),
     "--- */",
     "",
   ].join("\n");
@@ -2093,10 +2126,10 @@ function fanOutFrontmatter(args: {
   const descLines = [
     `Transferable learned datafetch fan-out helper for repeated per-entity tool calls.`,
     `Use when the task has an entity set and needs the same tool bundle plus`,
-    `one or more tool names called for each entity. The caller-facing input is`,
-    `intent-shaped: { intent?: "repeated tool fan-out"; limit? }.`,
-    `Planner/executor internals infer entity values, tool names, and tool params`,
-    `before invoking the runtime implementation.`,
+    `one or more tool names called for each entity. Call with typed fields:`,
+    `{ entityValues, toolBundle, toolNames, paramName, paramByTool?, limit? }.`,
+    `Keep these capability slots supplied by the caller; do not freeze them`,
+    `from the originating trajectory into the helper body.`,
     `the runtime returns one result object per entity with entityId, entityValue,`,
     `top-level per-tool keys, and a nested tools map keyed by tool name.`,
   ];
@@ -2110,6 +2143,7 @@ function fanOutFrontmatter(args: {
     description,
     `trajectory: ${args.trajectory.id}`,
     `shape-hash: ${args.template.shapeHash}`,
+    ...contractFrontmatterLines(args),
     "--- */",
     "",
   ].join("\n");
@@ -2139,6 +2173,7 @@ function recordFanOutFrontmatter(args: {
     description,
     `trajectory: ${args.trajectory.id}`,
     `shape-hash: ${args.template.shapeHash}`,
+    ...contractFrontmatterLines(args),
     "--- */",
     "",
   ].join("\n");
@@ -2169,6 +2204,7 @@ function recordEnrichmentFrontmatter(args: {
     description,
     `trajectory: ${args.trajectory.id}`,
     `shape-hash: ${args.template.shapeHash}`,
+    ...contractFrontmatterLines(args),
     "--- */",
     "",
   ].join("\n");
@@ -2182,10 +2218,10 @@ function toolEnrichmentFrontmatter(args: {
     `Transferable learned datafetch helper for pure tool fan-out dependent enrichment.`,
     `Use when the task first needs repeated same-entity tool calls and then`,
     `needs dependent follow-up tool calls using fields from those rows.`,
-    `The caller-facing input is intent-shaped:`,
-    `{ intent?: "repeated tool fan-out dependent enrichment", limit? }.`,
-    `Planner/executor internals infer entity values, base tools, dependent`,
-    `tools, and dependent input extraction before invoking the runtime implementation.`,
+    `Call with typed fields: { entityValues, toolBundle, toolNames, paramName,`,
+    `dependentToolBundle, dependentToolNames, dependentParamByTool?, limit? }.`,
+    `Keep base/dependent capability slots supplied by the caller; do not freeze`,
+    `them from the originating trajectory into the helper body.`,
     `the runtime returns base fan-out rows enriched with dependentTools`,
     `and a combined tools map.`,
   ];
@@ -2199,9 +2235,23 @@ function toolEnrichmentFrontmatter(args: {
     description,
     `trajectory: ${args.trajectory.id}`,
     `shape-hash: ${args.template.shapeHash}`,
+    ...contractFrontmatterLines(args),
     "--- */",
     "",
   ].join("\n");
+}
+
+function contractFrontmatterLines(args: {
+  template: CallTemplate;
+  trajectory: TrajectoryRecord;
+}): string[] {
+  return [
+    `source-hash: ${args.trajectory.sourceHash ?? "unknown"}`,
+    `replay-contract: origin-and-heldout-replay-before-validation`,
+    `change-contract: preserve-public-schema-call-graph-and-evidence-semantics`,
+    `verifier: validate-examples-and-replay-before-promotion`,
+    `rollback: quarantine-or-supersede-through-workspace-head`,
+  ];
 }
 
 function callGraphDescription(template: CallTemplate): string {

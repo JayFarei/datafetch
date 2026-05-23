@@ -7,11 +7,18 @@ import { jsonRequest, resolveServerUrl } from "./httpClient.js";
 import { readClientConfigSync } from "./clientConfig.js";
 import { ensureCatalogSourceMounted } from "./catalog.js";
 import { writeActiveSession, type SessionRecord } from "./session.js";
+import {
+  buildWorkspaceHead,
+  hashSourceText,
+  validationAccepted,
+  writeCommitSnapshot,
+  writeRunSnapshot,
+  type WorkspaceSnippetResponse,
+} from "./workspaceArtifacts.js";
 import type { Flags } from "./types.js";
 import {
   DEFAULT_DATAFETCHIGNORE,
   ensureDatafetchIgnore,
-  writeWorkspaceSnapshot,
 } from "./workspaceSnapshot.js";
 
 type WorkspaceConfig = {
@@ -26,47 +33,9 @@ type WorkspaceConfig = {
   createdAt: string;
 };
 
-type SnippetResponse = {
-  stdout: string;
-  stderr: string;
-  exitCode: number;
-  trajectoryId?: string;
-  cost?: unknown;
-  mode?: string;
-  functionName?: string;
-  callPrimitives?: string[];
-  clientCallPrimitives?: string[];
-  nestedCallPrimitives?: string[];
-  nestedCalls?: Array<{
-    primitive: string;
-    parent: string;
-    root: string;
-    depth: number;
-  }>;
-  nestedByRoot?: Array<{ root: string; count: number }>;
-  phase?: string;
-  crystallisable?: boolean;
-  artifactDir?: string;
-  answer?: unknown;
-  validation?: unknown;
-};
+type SnippetResponse = WorkspaceSnippetResponse;
 
-type WorkspaceHead = {
-  version: 1;
-  commit: string;
-  trajectoryId?: string;
-  intent: string;
-  committedIntent?: unknown;
-  tenantId: string;
-  dataset: string;
-  source: string;
-  updatedAt: string;
-  answerPath: string;
-  validationPath: string;
-  lineagePath: string;
-  replayTestPath: string;
-  workspaceSnapshotPath: string;
-};
+const DF_DTS_REFERENCE = '/// <reference path="../df.d.ts" />';
 
 function flagString(flags: Flags, key: string): string | undefined {
   const v = flags[key];
@@ -261,10 +230,29 @@ async function writeAgentMemory(
     "- `scripts/scratch.ts` is for exploratory code.",
     "- `scripts/answer.ts` is the visible intent program to commit.",
     "- `tmp/runs/N/` contains notebook-style outputs from `datafetch run`.",
-    "- `result/` contains the final committed answer from `datafetch commit`.",
+    "- `result/` contains the current accepted answer from `datafetch commit`.",
     "- `result/commits/N/` is append-only commit history for this intent worktree.",
     "- `result/HEAD.json` points at the current accepted commit that supersedes earlier attempts.",
+    "- Rejected commit attempts stay in `result/commits/N/` and do not replace the accepted `result/` view.",
+    "- `result/source.ts` is the exact TypeScript source snapshot for the current accepted commit.",
+    "- `result/graph.txt` is the readable read/compute/tool/write trajectory graph for the current accepted commit.",
+    "- `result/report.md` is the readable aggregate report for the current accepted commit.",
     "- `result/tests/replay.json` is the replay test generated from the current HEAD.",
+    "- `result/tests/replay.txt` is the readable replay summary for the current HEAD.",
+    "- Observer learning decisions are append-only under the datafetch home at `observer/<tenant>/decisions.jsonl`; hook manifests remain the final callability authority.",
+    "",
+    "Code-native discovery:",
+    "- Treat this workspace like a small codebase: use `ls`, `find`, `rg`, `cat`, TypeScript symbols, and LSP/IDE references when available.",
+    "- `df.d.ts` is the source of truth for callable `df.db.*`, `df.tool.*`, `df.lib.*`, and `df.answer(...)` shapes.",
+    "- Prefer reusing a matching `df.lib.*` workflow; compose directly from `df.db.*` or `df.tool.*` when no helper fits.",
+    "- For helper code needed only by the current answer, write `scripts/helpers.ts` and import it from `scripts/answer.ts`; do not create nested `lib/<tenant>/...` paths inside this workspace.",
+    "- Treat `lib/` as the mounted tenant library root. New durable `df.lib.*` callability comes from validated observer promotion plus hook manifests, not from assuming a fresh file is immediately callable.",
+    "",
+    "Namespace boundaries:",
+    "- `df.db.*` is the mounted system/provider data surface for cold reads, search, sampling, and fallback composition.",
+    "- `df.lib.*` is tenant-local TypeScript and the warm path for learned workflows visible in `df.d.ts`.",
+    "- `df.tool.*` is a governed adapter bridge for explicit external tool catalogs.",
+    "- `df.answer(...)` is the typed commit boundary for the final answer, evidence, derivation, and assumptions.",
     "",
     "Intent discipline:",
     "- Treat this folder's `Intent:` line as the worktree purpose.",
@@ -276,7 +264,7 @@ async function writeAgentMemory(
     "1. Inspect `df.d.ts`, `db/`, `lib/`, `datafetch apropos`, and `datafetch man`.",
     "2. Use `datafetch run scripts/scratch.ts` to sample and test ideas.",
     "3. Put the repeatable answer logic in `scripts/answer.ts`.",
-    "4. `scripts/answer.ts` must return `df.answer(...)` with status, evidence, coverage, and derivation.",
+    "4. `scripts/answer.ts` must return `df.answer(...)` with status, evidence, coverage, derivation, and assumptions when any uncertainty remains.",
     "5. Run `datafetch commit scripts/answer.ts` and answer from `result/answer.json`.",
     "",
     "The system only learns from committed visible code that passes validation.",
@@ -306,6 +294,7 @@ async function writeScriptTemplates(
   await fsp.writeFile(
     path.join(root, "scripts", "helpers.ts"),
     [
+      DF_DTS_REFERENCE,
       "export function range(values: number[]) {",
       "  return Math.max(...values) - Math.min(...values);",
       "}",
@@ -317,6 +306,7 @@ async function writeScriptTemplates(
     path.join(templateDir, "scratch.ts"),
     path.join(root, "scripts", "scratch.ts"),
     [
+      DF_DTS_REFERENCE,
       `const candidates = await df.db.${defaultIdent}.search(${JSON.stringify(config.intent)}, { limit: 10 });`,
       "console.log(JSON.stringify({ candidates: candidates.length }, null, 2));",
       "",
@@ -326,6 +316,7 @@ async function writeScriptTemplates(
     path.join(templateDir, "answer.ts"),
     path.join(root, "scripts", "answer.ts"),
     [
+      DF_DTS_REFERENCE,
       "// Replace this with the visible, repeatable trajectory for the intent.",
       "// Commit will reject answers that do not return df.answer(...).",
       "return df.answer({",
@@ -394,22 +385,15 @@ async function writeWorkspaceResult(args: {
 }): Promise<void> {
   if (args.phase === "run") {
     const dir = await nextRunDir(path.join(args.root, "tmp", "runs"));
-    await fsp.mkdir(dir, { recursive: true });
-    await fsp.writeFile(path.join(dir, "source.ts"), args.source, "utf8");
-    await fsp.writeFile(
-      path.join(dir, "result.json"),
-      `${JSON.stringify(args.response, null, 2)}\n`,
-      "utf8",
-    );
-    await fsp.writeFile(
-      path.join(dir, "result.md"),
-      renderRunMarkdown(args.response),
-      "utf8",
-    );
-    await copyLineage(args.response, path.join(dir, "lineage.json"));
+    await writeRunSnapshot({
+      dir,
+      source: args.source,
+      response: args.response,
+    });
     return;
   }
 
+  const workspace = await readWorkspaceConfig(args.root);
   const resultDir = path.join(args.root, "result");
   const commitsRoot = path.join(resultDir, "commits");
   const commitDir = await nextRunDir(commitsRoot);
@@ -418,204 +402,44 @@ async function writeWorkspaceResult(args: {
     args.sourcePath === undefined
       ? "<inline>"
       : path.relative(args.root, args.sourcePath);
+  const sourceHash = hashSourceText(args.source);
   await writeCommitSnapshot({
     root: args.root,
     dir: commitDir,
     commitId,
     sourceLabel,
+    sourceHash,
     source: args.source,
     response: args.response,
-  });
-
-  // Keep result/* as the easy-to-read current view for the client agent,
-  // while result/commits/* keeps the append-only worktree history.
-  await writeCommitSnapshot({
-    root: args.root,
-    dir: resultDir,
-    commitId,
-    sourceLabel,
-    source: args.source,
-    response: args.response,
+    workspace,
   });
 
   if (validationAccepted(args.response.validation)) {
-    const workspace = await readWorkspaceConfig(args.root);
-    const committedIntent = answerIntent(args.response.answer);
-    const head: WorkspaceHead = {
-      version: 1,
-      commit: commitId,
-      trajectoryId: args.response.trajectoryId,
-      intent: workspace.intent,
-      ...(committedIntent !== undefined ? { committedIntent } : {}),
-      tenantId: workspace.tenantId,
-      dataset: workspace.dataset,
-      source: sourceLabel,
-      updatedAt: new Date().toISOString(),
-      answerPath: "answer.json",
-      validationPath: "validation.json",
-      lineagePath: "lineage.json",
-      replayTestPath: path.join("tests", "replay.json"),
-      workspaceSnapshotPath: path.join("workspace", "manifest.json"),
-    };
+    // Keep result/* as the easy-to-read accepted HEAD view for the client
+    // agent. Rejected attempts remain in result/commits/* for inspection.
+    await writeCommitSnapshot({
+      root: args.root,
+      dir: resultDir,
+      commitId,
+      sourceLabel,
+      sourceHash,
+      source: args.source,
+      response: args.response,
+      workspace,
+    });
+    const head = buildWorkspaceHead({
+      commitId,
+      sourceLabel,
+      sourceHash,
+      response: args.response,
+      workspace,
+    });
     await fsp.writeFile(
       path.join(resultDir, "HEAD.json"),
       `${JSON.stringify(head, null, 2)}\n`,
       "utf8",
     );
   }
-}
-
-async function writeCommitSnapshot(args: {
-  root: string;
-  dir: string;
-  commitId: string;
-  sourceLabel: string;
-  source: string;
-  response: SnippetResponse;
-}): Promise<void> {
-  const { root, dir, commitId, sourceLabel, source, response } = args;
-  await fsp.mkdir(dir, { recursive: true });
-  await fsp.writeFile(path.join(dir, "source.ts"), source, "utf8");
-  await fsp.writeFile(
-    path.join(dir, "answer.json"),
-    `${JSON.stringify(response.answer ?? null, null, 2)}\n`,
-    "utf8",
-  );
-  await fsp.writeFile(
-    path.join(dir, "validation.json"),
-    `${JSON.stringify(response.validation ?? null, null, 2)}\n`,
-    "utf8",
-  );
-  await fsp.writeFile(path.join(dir, "answer.md"), renderAnswerMarkdown(response), "utf8");
-  await copyLineage(response, path.join(dir, "lineage.json"));
-  const replay = await buildReplayTest({
-    root,
-    commitId,
-    source: sourceLabel,
-    response,
-  });
-  const testsDir = path.join(dir, "tests");
-  await fsp.mkdir(testsDir, { recursive: true });
-  await fsp.writeFile(
-    path.join(testsDir, "replay.json"),
-    `${JSON.stringify(replay, null, 2)}\n`,
-    "utf8",
-  );
-  await writeWorkspaceSnapshot({
-    root,
-    targetDir: path.join(dir, "workspace"),
-  });
-}
-
-async function copyLineage(
-  response: SnippetResponse,
-  target: string,
-): Promise<void> {
-  await fsp.mkdir(path.dirname(target), { recursive: true });
-  if (response.artifactDir) {
-    try {
-      await fsp.copyFile(path.join(response.artifactDir, "trajectory.json"), target);
-      return;
-    } catch {
-      // Fall through to the compact response lineage.
-    }
-  }
-  await fsp.writeFile(
-    target,
-    `${JSON.stringify(
-      {
-        trajectoryId: response.trajectoryId,
-        phase: response.phase,
-        callPrimitives: response.callPrimitives ?? [],
-      },
-      null,
-      2,
-    )}\n`,
-    "utf8",
-  );
-}
-
-async function buildReplayTest(args: {
-  root: string;
-  commitId: string;
-  source: string;
-  response: SnippetResponse;
-}): Promise<Record<string, unknown>> {
-  const workspace = await readWorkspaceConfig(args.root);
-  const answer = normalizeObject(args.response.answer);
-  const validation = normalizeObject(args.response.validation);
-  const committedIntent = answerIntent(args.response.answer);
-  return {
-    version: 1,
-    kind: "workspace-head-replay",
-    commit: args.commitId,
-    trajectoryId: args.response.trajectoryId,
-    tenantId: workspace.tenantId,
-    dataset: workspace.dataset,
-    intent: workspace.intent,
-    ...(committedIntent !== undefined ? { committedIntent } : {}),
-    source: args.source,
-    expected: {
-      status: typeof answer?.["status"] === "string" ? answer["status"] : null,
-      ...(committedIntent !== undefined ? { intent: committedIntent } : {}),
-      ...(Object.prototype.hasOwnProperty.call(answer ?? {}, "value")
-        ? { value: answer?.["value"] }
-        : {}),
-      ...(typeof answer?.["unit"] === "string" ? { unit: answer["unit"] } : {}),
-      evidencePresent: evidencePresent(answer?.["evidence"]),
-      derivationPresent: answer?.["derivation"] !== undefined,
-      coverage: answer?.["coverage"] ?? null,
-      missing: answer?.["missing"] ?? null,
-    },
-    validation: {
-      accepted: validation?.["accepted"] === true,
-      learnable: validation?.["learnable"] === true,
-      blockers: Array.isArray(validation?.["blockers"])
-        ? validation?.["blockers"]
-        : [],
-    },
-    lineage: {
-      phase: args.response.phase,
-      calls: args.response.callPrimitives ?? [],
-      clientCalls: args.response.clientCallPrimitives ?? [],
-      nestedCalls: args.response.nestedCalls ?? [],
-      nestedByRoot: args.response.nestedByRoot ?? [],
-      requiresDb: (args.response.callPrimitives ?? []).some((p) =>
-        p.startsWith("db."),
-      ),
-      requiresLib: (args.response.callPrimitives ?? []).some((p) =>
-        p.startsWith("lib."),
-      ),
-      clientRequiresDb: (args.response.clientCallPrimitives ?? []).some((p) =>
-        p.startsWith("db."),
-      ),
-      clientRequiresLib: (args.response.clientCallPrimitives ?? []).some((p) =>
-        p.startsWith("lib."),
-      ),
-    },
-  };
-}
-
-function validationAccepted(value: unknown): boolean {
-  return normalizeObject(value)?.["accepted"] === true;
-}
-
-function normalizeObject(value: unknown): Record<string, unknown> | null {
-  if (value === null || typeof value !== "object" || Array.isArray(value)) {
-    return null;
-  }
-  return value as Record<string, unknown>;
-}
-
-function evidencePresent(value: unknown): boolean {
-  if (Array.isArray(value)) return value.length > 0;
-  return value !== null && value !== undefined;
-}
-
-function answerIntent(value: unknown): unknown | undefined {
-  const answer = normalizeObject(value);
-  if (!answer || answer["intent"] === undefined) return undefined;
-  return answer["intent"];
 }
 
 async function readWorkspaceConfig(root: string): Promise<WorkspaceConfig> {
@@ -659,40 +483,6 @@ async function nextRunDir(root: string): Promise<string> {
     if (Number.isInteger(n) && n > max) max = n;
   }
   return path.join(root, String(max + 1).padStart(3, "0"));
-}
-
-function renderRunMarkdown(response: SnippetResponse): string {
-  return [
-    "# datafetch run",
-    "",
-    `exitCode: ${response.exitCode}`,
-    `trajectoryId: ${response.trajectoryId ?? "none"}`,
-    "",
-    "```json",
-    JSON.stringify(response, null, 2),
-    "```",
-    "",
-  ].join("\n");
-}
-
-function renderAnswerMarkdown(response: SnippetResponse): string {
-  const validation = response.validation as { accepted?: boolean; blockers?: string[] } | undefined;
-  const lines = ["# datafetch committed answer", ""];
-  if (validation) {
-    lines.push(`accepted: ${validation.accepted === true ? "yes" : "no"}`);
-    const blockers = validation.blockers ?? [];
-    if (blockers.length > 0) {
-      lines.push("");
-      lines.push("blockers:");
-      for (const blocker of blockers) lines.push(`- ${blocker}`);
-    }
-    lines.push("");
-  }
-  lines.push("```json");
-  lines.push(JSON.stringify(response.answer ?? null, null, 2));
-  lines.push("```");
-  lines.push("");
-  return lines.join("\n");
 }
 
 async function copyIfExists(

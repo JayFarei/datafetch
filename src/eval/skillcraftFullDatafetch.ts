@@ -22,6 +22,7 @@ import {
 } from "../runtime/answerKit.js";
 import {
   flattenToolCatalogNames,
+  renderToolCatalogDtsLines,
   writeToolManifest,
   type ToolCatalogEntry,
   type ToolDescriptor,
@@ -590,13 +591,15 @@ async function runLiveExperimental(input: {
   }
   if (!input.task.groundtruthWorkspacePath) await fsp.mkdir(groundtruth, { recursive: true });
   const availableLibFunctions = input.libCacheDir
-    ? await hydrateFamilyLibCache({
+    ? filterCallableLiveLibFunctions(
+      await hydrateFamilyLibCache({
         family: input.task.family,
         libCacheDir: input.libCacheDir,
         workspace,
         datafetchHome,
         tenantId,
-      })
+      }),
+    )
     : [];
   // Extract the family's entities from the workspace's initial_workspace
   // JSON (the SkillCraft fixture drops one .json file with a top-level
@@ -627,6 +630,10 @@ async function runLiveExperimental(input: {
     seededLibFunctions: [PER_ENTITY_SEED_NAME],
     mountedRecords: familyRecords.length,
   });
+  const dfDts = await fsp.readFile(path.join(workspace, "df.d.ts"), "utf8");
+  const requireSubstrateRootedChain =
+    mountedRuntime !== null &&
+    buildFanoutToolPlan(input.task, dfDts, familyRecords).sameEntitySlots.length > 0;
   // Drop the episode context file used by the dev-only datafetch runner.
   // The Codex-facing prompt deliberately avoids live probes because the
   // sandboxed probe environment can make real tool calls look unavailable.
@@ -700,11 +707,12 @@ async function runLiveExperimental(input: {
         tenantId,
         mountIds: mountedRuntime ? [mountId] : [],
         baseDir: datafetchHome,
-        // Goal-3 iter 9: when the eval mounts df.db.records for this
-        // episode, require the final scripts/answer.ts to reach its
-        // answer through the substrate (df.db.* or df.lib.*) rather
-        // than bare df.tool.* fan-out. Non-mounted tenants are unaffected.
-        ...(mountedRuntime ? { requireSubstrateRootedChain: true } : {}),
+        // Goal-3 iter 9: require a substrate-rooted chain only when the
+        // mounted records actually verify a tool fan-out contract. Some
+        // SkillCraft fixtures mount supporting/category records, not the
+        // tool-callable entities themselves; pure df.tool composition is
+        // valid for those shapes and should not be failed by the gate.
+        ...(requireSubstrateRootedChain ? { requireSubstrateRootedChain: true } : {}),
         toolBridge: {
           datasetDir: input.skillcraftDir,
           bundles: taskToolBundles(input.task),
@@ -880,6 +888,7 @@ export function prepareAnswerSourceForRuntime(source: string, workspace: string)
   body = rewriteUnsafeRecordFindExactAccess(body);
   const hasIntentRecordWrapper = /\bloadRecordIntentRows\b/.test(body);
   if (!hasIntentRecordWrapper) {
+    body = rewriteLiteralScalarEntityArraysFromRecords(body, workspace);
     body = rewriteLiteralEntityArraysFromRecords(body, workspace);
     body = rewriteLiteralTupleEntityArraysFromRecords(body, workspace);
   }
@@ -1133,7 +1142,7 @@ function rewritePerEntityRecordIdMaps(source: string, workspace: string): string
 }
 
 function rewriteLiteralEntityArraysFromRecords(source: string, workspace: string): string {
-  if (!source.includes("df.tool.") || source.includes("df.db.records")) return source;
+  if (!/\bdf\.tool\b/.test(source) || source.includes("df.db.records")) return source;
   const records = readWorkspaceEvalRecords(workspace);
   if (records.length === 0) return source;
   const recordParamFields = recordParamFieldNames(records);
@@ -1193,8 +1202,34 @@ function rewriteLiteralEntityArraysFromRecords(source: string, workspace: string
   );
 }
 
+function rewriteLiteralScalarEntityArraysFromRecords(source: string, workspace: string): string {
+  if (!/\bdf\.tool\b/.test(source) || source.includes("df.db.records")) return source;
+  const records = readWorkspaceEvalRecords(workspace);
+  if (records.length === 0) return source;
+  const recordParamFields = recordParamFieldNames(records);
+  const family = records[0]?.family;
+  if (!family || records.some((record) => record.family !== family)) return source;
+
+  return source.replace(
+    /\b(const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*\[((?:\s*(?:"[^"]*"|'[^']*'|-?\d+(?:\.\d+)?)\s*,?)+)\]\s*(?:as\s+const)?\s*;?/g,
+    (match, decl: string, varName: string, arrayBody: string) => {
+      const values = parseLiteralScalars(arrayBody);
+      if (values.length < 2 || values.length > records.length) return match;
+      const field = recordFieldForLiteralValues("entity", values, records, recordParamFields);
+      if (!field) return match;
+      const recordsVar = `${varName}RecordsFromDatafetch`;
+      const valueSet = `[${values.map((value) => JSON.stringify(String(value))).join(", ")}]`;
+      const valueExpr = renderRecordValueExpression("r", field);
+      return [
+        `${decl} ${recordsVar} = (await df.db.records.findExact({ family: ${JSON.stringify(family)} }, ${records.length})).filter((r: any) => new Set(${valueSet}).has(String(${valueExpr})));`,
+        `${decl} ${varName} = ${recordsVar}.map((r: any) => ${valueExpr});`,
+      ].join("\n");
+    },
+  );
+}
+
 function rewriteLiteralTupleEntityArraysFromRecords(source: string, workspace: string): string {
-  if (!source.includes("df.tool.") || source.includes("df.db.records")) return source;
+  if (!/\bdf\.tool\b/.test(source) || source.includes("df.db.records")) return source;
   const records = readWorkspaceEvalRecords(workspace);
   if (records.length === 0) return source;
   const recordParamFields = recordParamFieldNames(records);
@@ -1266,6 +1301,19 @@ function parseLiteralTuples(arrayBody: string): Array<Array<string | number>> {
     if (tuple.length > 0) tuples.push(tuple);
   }
   return tuples;
+}
+
+function parseLiteralScalars(arrayBody: string): Array<string | number> {
+  const values: Array<string | number> = [];
+  for (const valueMatch of arrayBody.matchAll(/"([^"]*)"|'([^']*)'|(-?\d+(?:\.\d+)?)/g)) {
+    const [, doubleQuoted, singleQuoted, numeric] = valueMatch;
+    if (numeric !== undefined) {
+      values.push(Number(numeric));
+    } else {
+      values.push(doubleQuoted ?? singleQuoted ?? "");
+    }
+  }
+  return values;
 }
 
 function recordFieldForLiteralValues(
@@ -1826,7 +1874,7 @@ async function loadLiveLibFunctionDocs(input: {
   return docs.sort(compareLiveLibDocs);
 }
 
-function inferLiveLibInputType(source: string): string {
+export function inferLiveLibInputType(source: string): string {
   if (source.includes("Goal-4 learned record-backed fan-out interface")) {
     return "{ intent?: \"record-backed repeated fan-out\"; recordFilter?: Record<string, unknown>; recordLimit?: number }";
   }
@@ -1834,7 +1882,10 @@ function inferLiveLibInputType(source: string): string {
     return "{ intent?: \"record-backed dependent enrichment\"; recordFilter?: Record<string, unknown>; recordLimit?: number }";
   }
   if (source.includes("Goal-4 learned tool fan-out interface")) {
-    return "{ intent?: \"repeated tool fan-out\"; limit?: number }";
+    return "{ intent?: \"repeated tool fan-out\"; limit?: number; entityValues: Array<string | number>; toolBundle: string; toolNames: string[]; paramName: string; paramByTool?: Record<string, string>; sharedInput?: Record<string, unknown> }";
+  }
+  if (source.includes("Goal-4 learned pure fan-out dependent enrichment interface")) {
+    return "{ intent?: \"repeated tool fan-out dependent enrichment\"; limit?: number; entityValues: Array<string | number>; toolBundle: string; toolNames: string[]; paramName: string; paramByTool?: Record<string, string>; sharedInput?: Record<string, unknown>; dependentToolBundle: string; dependentToolNames: string[]; dependentParamName?: string; dependentParamByTool?: Record<string, string>; dependentValuePaths?: string[]; dependentValuePathsByTool?: Record<string, string[]>; dependentSharedInput?: Record<string, unknown> }";
   }
   if (
     source.includes("recordFilter") &&
@@ -1853,6 +1904,14 @@ function inferLiveLibInputType(source: string): string {
     return "{ entityValues: Array<string | number>; toolBundle: string; toolNames: string[]; paramName: string; paramByTool?: Record<string, string>; sharedInput?: Record<string, unknown> }";
   }
   return "any";
+}
+
+export function filterCallableLiveLibFunctions(
+  names: string[],
+  interfaceMode = getInterfaceMode(),
+): string[] {
+  if (interfaceMode === "hooks-candidate-only") return [];
+  return names;
 }
 
 function compareLiveLibDocs(
@@ -1877,11 +1936,6 @@ function renderLiveDfDts(
   libFunctionDocs: LiveLibFunctionDoc[],
   recordsMounted: boolean,
 ): string {
-  const bundleBlocks: string[] = [];
-  for (const entry of toolCatalog) {
-    const fields = entry.tools.map(renderLiveToolDeclaration).join("\n");
-    bundleBlocks.push(`  ${entry.bundle}: {\n    [name: string]: (input: any) => Promise<any>;\n${fields}\n  };`);
-  }
   const libResultType = "{ value: any; cost?: any; provenance?: any; escalations?: number }";
   const libFields = libFunctionDocs
     .map((doc) => renderLiveLibDeclaration(doc, libResultType))
@@ -1903,9 +1957,7 @@ function renderLiveDfDts(
     : "";
   return `
 declare const df: {
-${dbBlock}  tool: {
-${bundleBlocks.join("\n")}
-  };
+${dbBlock}${renderToolCatalogDtsLines(toolCatalog, "  ").join("\n")}
   lib: {
 ${libFields}
   };
@@ -1936,33 +1988,6 @@ function renderLiveLibDeclaration(
     `    ${JSON.stringify(doc.name)}(input: ${doc.inputType}): Promise<${libResultType}>;`,
   );
   return lines.join("\n");
-}
-
-function renderLiveToolDeclaration(tool: ToolDescriptor): string {
-  const lines: string[] = [];
-  const description = compactToolDescription(tool.description);
-  if (description) {
-    lines.push("    /**");
-    for (const line of description.split("\n")) {
-      lines.push(`     * ${line.replace(/\*\//g, "* /")}`);
-    }
-    lines.push("     */");
-  }
-  const inputType = schemaToTs(tool.params_json_schema);
-  lines.push(`    ${JSON.stringify(tool.name)}(input: ${inputType}): Promise<any>;`);
-  return lines.join("\n");
-}
-
-function compactToolDescription(description: string): string {
-  return description
-    .split(/\r?\n/)
-    .map((line) => line.trimEnd())
-    .filter((line, index, lines) => {
-      if (line.length > 0) return true;
-      return index > 0 && index < lines.length - 1 && lines[index - 1] !== "";
-    })
-    .slice(0, 40)
-    .join("\n");
 }
 
 function renderLiveAgentInstructions(task: SkillCraftTask, toolCatalog: ToolCatalogEntry[]): string {
@@ -2382,23 +2407,41 @@ async function renderLivePrompt(input: {
   records: EvalRecord[];
 }): Promise<string> {
   if (resolvePromptMode() === "brief") return renderBriefLivePrompt(input);
-  return renderWorkspaceLivePrompt(input.task);
+  return renderWorkspaceLivePrompt(input);
 }
 
-function renderWorkspaceLivePrompt(task: SkillCraftTask): string {
+async function renderWorkspaceLivePrompt(input: {
+  task: SkillCraftTask;
+  workspace: string;
+  records: EvalRecord[];
+}): Promise<string> {
+  const dfDts = await readPromptContextFile(path.join(input.workspace, "df.d.ts"), 18_000);
+  const verifiedRecordBackedFanout =
+    input.records.length > 0 &&
+    buildFanoutToolPlan(input.task, dfDts, input.records).sameEntitySlots.length > 0;
+  const recordGuidance = verifiedRecordBackedFanout
+    ? [
+      "When df.d.ts declares df.db.records for this task, those records verify a substrate-rooted entity/tool fan-out. Each record carries `id` (the raw, tool-callable identifier — e.g. \"Siamese\", 169, \"the-office\"), `recordKey` (the cross-family-unique key, NOT a tool argument), `entity` (same as `id`), `label`, and an `attributes` map. Prefer an intent-shaped learned record-backed helper listed in df.d.ts when its description matches the task; call it with record scope such as `{ recordFilter, recordLimit }`. The planner/executor handles record-field mapping, tool params, same-entity slot pruning, and dependent routing internally. Use `df.lib.per_entity({ entityIds, toolBundle, toolNames, paramName, extraInput? })` only as the cold-start fallback when no learned helper fits. Never pass `recordKey` to tools because it carries a `<family>:` prefix tools don't recognise.",
+      "REQUIRED for verified record-backed fan-out tasks: scripts/answer.ts MUST reach the answer through df.db.* plus df.tool.* or through df.lib.*. A script that only fan-outs with raw df.tool.* or only touches df.db.* without using tool/helper outputs will be auto-rewritten to `{status: \"unsupported\"}` and scored 0.",
+    ]
+    : input.records.length > 0
+      ? [
+        "df.d.ts may declare df.db.records, but these records are supporting/category context rather than a verified tool-callable entity list. Use df.db.records only if it directly provides values needed for this task. Otherwise, raw df.tool composition is valid; do not force a fake db touch.",
+      ]
+      : [];
   return [
     "You are solving one official SkillCraft task inside a Datafetch workspace.",
     "",
-    `Task: ${task.taskKey}`,
+    `Task: ${input.task.taskKey}`,
     "",
     "Read task.md, AGENTS.md, df.d.ts, and any initial workspace files.",
     "Edit scripts/answer.ts so it completes the task.",
     "Stay inside the current episode workspace. Do not read or write repo-root files via absolute paths, and do not create output files outside this workspace. The required output JSON must be written in the current workspace only.",
     "Cost matters: use `task.md`, `AGENTS.md`, and `df.d.ts` as the primary context. Do not dump full `tool_manifest.json`, full tool responses, or the full generated `scripts/answer.ts` back into the transcript unless a specific failure requires it; inspect targeted sections instead.",
-    "When df.d.ts declares df.db.records, the entities for this task are mounted as a substrate-rooted record store. Each record carries `id` (the raw, tool-callable identifier — e.g. \"Siamese\", 169, \"the-office\"), `recordKey` (the cross-family-unique key, NOT a tool argument), `entity` (same as `id`), `label`, and an `attributes` map. Prefer an intent-shaped learned record-backed helper listed in df.d.ts when its description matches the task; call it with record scope such as `{ recordFilter, recordLimit }`. The planner/executor handles record-field mapping, tool params, same-entity slot pruning, and dependent routing internally. Use `df.lib.per_entity({ entityIds, toolBundle, toolNames, paramName, extraInput? })` only as the cold-start fallback when no learned helper fits. Never pass `recordKey` to tools because it carries a `<family>:` prefix tools don't recognise.",
+    ...recordGuidance,
     "Learned fan-out helpers return `(await df.lib.<name>({...})).value` as an array. Record-backed rows include `entityId`, `entityValue`, `label`, `attributes`, `record`, a nested `tools` map keyed by tool name, and top-level keys for each tool name. You may read either `item.tools[toolName]` or `item[toolName]`.",
-    "REQUIRED when df.d.ts declares df.db.records: scripts/answer.ts MUST reach the answer through df.db.* plus df.tool.* or through df.lib.*. A script that only fan-outs with raw df.tool.* or only touches df.db.* without using tool/helper outputs will be auto-rewritten to `{status: \"unsupported\"}` and scored 0.",
-    "If a learned helper (anything other than `per_entity`) is listed in df.d.ts under df.lib, prefer it over recomposing the chain. Call it the same way: `const r = (await df.lib.<name>({...})).value`.",
+    "If a learned helper (anything other than `per_entity`) is listed in df.d.ts under df.lib, prefer it over recomposing the chain. Call it with the full input shape declared in `df.d.ts`: `const r = (await df.lib.<name>({...})).value`.",
+    "For pure learned `toolFanout` helpers, an intent-only call is not enough. Supply the entity values plus `toolBundle`, `toolNames`, and `paramName` shown in the `df.d.ts` signature; inspect `lib/<name>.ts` only if you need the exact row shape.",
     "When a record-backed learned helper is listed, call it with intent-level record scope (`recordFilter`/`recordLimit`) rather than passing entity values, tool params, or record-field maps; it covers lookup and fan-out in one learned interface.",
     "Use existing df.lib helpers when they fit. If no learned helper is listed for a repeated entity/tool fan-out, use the `per_entity` seed to complete scripts/answer.ts; any new helper you write under lib/ is for later episodes, not the current call path. Use raw df.tool calls only for one-off calls that are not a fan-out.",
     "When creating or updating a helper, make it parameterized over the task's tool names where practical so later levels in this family can reuse it.",
@@ -2458,6 +2501,9 @@ async function renderBriefLivePrompt(input: {
   const outputFiles = input.task.expectedOutputFiles.join(", ") || "see task.md/evaluator";
   const literalHints = renderTaskLiteralHints(taskMd);
   const hasColdStartIntentWrapper = coldStartGuidance.block.includes("loadRecordIntentRows");
+  const verifiedRecordBackedFanout =
+    input.records.length > 0 &&
+    buildFanoutToolPlan(input.task, rawDfDts, input.records).sameEntitySlots.length > 0;
   return [
     "You are solving one official SkillCraft task inside a Datafetch workspace.",
     "",
@@ -2475,7 +2521,9 @@ async function renderBriefLivePrompt(input: {
     "- If a learned record-backed helper is listed and the task has `df.db.records`, call that helper with `recordFilter`/`recordLimit`; it already covers the record lookup plus fan-out.",
     ...coldStartGuidance.rules,
     "- Do not call `claim_done`; it is not part of the Datafetch `df.d.ts` surface and the harness runs the official evaluator.",
-    "- When `df.db.records` exists, derive outputs through `df.db.*` plus `df.tool.*`, or through `df.lib.*`; a db-only touch without tool/helper outputs is rejected. Never pass `recordKey` to tools.",
+    verifiedRecordBackedFanout
+      ? "- These mounted records verify a record-backed fan-out contract. Derive outputs through `df.db.*` plus `df.tool.*`, or through `df.lib.*`; a db-only touch without tool/helper outputs is rejected. Never pass `recordKey` to tools."
+      : "- If `df.db.records` exists but no suggested record-backed setup is shown, treat it as optional supporting context. Use raw `df.tool.*` calls when records do not directly provide the tool-callable entities.",
     hasColdStartIntentWrapper
       ? "- The cold-start intent helper returns an array of rows directly. Do not call `df.lib.per_entity(...)` yourself when `loadRecordIntentRows()` is shown."
       : "- `df.lib.*` calls return a runtime wrapper; unwrap once with `(await df.lib.name(input)).value`.",
@@ -2777,6 +2825,7 @@ function recordFieldForToolParam(
     if (aliased) return aliased;
   }
   for (const [fieldKey, fieldName] of recordParamFields) {
+    if (fieldKey === "name") continue;
     if (fieldKey.length >= 3 && normalized.endsWith(`_${fieldKey}`)) return fieldName;
   }
   return null;
@@ -3670,26 +3719,6 @@ function taskToolBundles(task: SkillCraftTask): string[] {
   return local
     .filter((tool): tool is string => typeof tool === "string")
     .filter((tool) => !["claim_done", "skill_cache", "direct_exec"].includes(tool));
-}
-
-function schemaToTs(schema: Record<string, unknown>): string {
-  const props = schema.properties && typeof schema.properties === "object"
-    ? schema.properties as Record<string, Record<string, unknown>>
-    : {};
-  const required = new Set(Array.isArray(schema.required) ? schema.required.filter((item): item is string => typeof item === "string") : []);
-  const fields = Object.entries(props).map(([name, prop]) => {
-    const optional = required.has(name) ? "" : "?";
-    return `${JSON.stringify(name)}${optional}: ${jsonSchemaType(prop)}`;
-  });
-  return fields.length ? `{ ${fields.join("; ")} }` : "Record<string, unknown>";
-}
-
-function jsonSchemaType(prop: Record<string, unknown>): string {
-  if (prop.type === "number" || prop.type === "integer") return "number";
-  if (prop.type === "boolean") return "boolean";
-  if (prop.type === "array") return "unknown[]";
-  if (prop.type === "object") return "Record<string, unknown>";
-  return "string";
 }
 
 // --- Agent dispatcher -------------------------------------------------------

@@ -47,6 +47,7 @@ import {
 import { cmdInstallSkill } from "./cli/installSkill.js";
 import { cmdAdd, cmdInspect, cmdList } from "./cli/catalog.js";
 import { cmdCommit, cmdMount, cmdRun } from "./cli/workspace.js";
+import { cmdGraph } from "./cli/trajectoryGraph.js";
 
 loadProjectEnv();
 
@@ -168,6 +169,8 @@ function usage(): void {
       "    Render NAME / SYNOPSIS / INPUT / OUTPUT / EXAMPLES for a /lib/ fn.",
       "  datafetch apropos <kw> [--json]",
       "    Search /lib/<tenant>/ and /lib/__seed__/ by intent overlap.",
+      "  datafetch graph [trajectory-id|path] [--json]",
+      "    Print the read/compute/tool/write graph for a saved trajectory.",
       "",
       "Skill bundle:",
       "  datafetch install-skill [--path <dir>] [--force]",
@@ -476,6 +479,9 @@ async function main(): Promise<void> {
       return;
     case "apropos":
       await cmdApropos(positionals, flags);
+      return;
+    case "graph":
+      await cmdGraph(positionals, flags);
       return;
     case "install-skill":
       await cmdInstallSkill(positionals, flags);

@@ -37,6 +37,7 @@ export type AnswerInput = {
   evidence?: unknown;
   coverage?: unknown;
   derivation?: unknown;
+  assumptions?: unknown;
   missing?: unknown;
   reason?: string;
 };

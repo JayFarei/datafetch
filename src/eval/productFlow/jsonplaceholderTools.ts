@@ -15,6 +15,8 @@
 import { fileURLToPath } from "node:url";
 import * as path from "node:path";
 
+import type { ToolCatalogEntry } from "../../runtime/toolCatalog.js";
+
 export const JSONPLACEHOLDER_BASE = "https://jsonplaceholder.typicode.com";
 
 export const JSONPLACEHOLDER_BUNDLE_NAME = "jsonplaceholder";
@@ -65,6 +67,58 @@ export function buildJsonplaceholderBridgeConfig(): JsonplaceholderBridgeConfig 
     python: "python3",
     toolTimeoutMs: 8000,
   };
+}
+
+export function jsonplaceholderToolCatalog(): ToolCatalogEntry[] {
+  return [
+    {
+      bundle: JSONPLACEHOLDER_BUNDLE_NAME,
+      tools: [
+        {
+          name: "getUsers",
+          description:
+            "Fetch every JSONPlaceholder user. Returns { success, users: Array<User> }.",
+          params_json_schema: { type: "object", properties: {}, required: [] },
+        },
+        {
+          name: "getUser",
+          description:
+            "Fetch one JSONPlaceholder user by numeric user id. Returns { success, user: User }.",
+          params_json_schema: {
+            type: "object",
+            properties: { id: { type: "number" } },
+            required: ["id"],
+          },
+        },
+        {
+          name: "getPosts",
+          description:
+            "Fetch every JSONPlaceholder post. Returns { success, posts: Array<Post> }.",
+          params_json_schema: { type: "object", properties: {}, required: [] },
+        },
+        {
+          name: "getPostsByUser",
+          description:
+            "Fetch JSONPlaceholder posts authored by one user id. Returns { success, posts: Array<Post> }.",
+          params_json_schema: {
+            type: "object",
+            properties: { userId: { type: "number" } },
+            required: ["userId"],
+          },
+        },
+        {
+          name: "getCommentsByPost",
+          description:
+            "Fetch JSONPlaceholder comments for one post id. Returns { success, comments: Array<Comment> }.",
+          params_json_schema: {
+            type: "object",
+            properties: { postId: { type: "number" } },
+            required: ["postId"],
+          },
+        },
+      ],
+    },
+  ];
 }
 
 /**

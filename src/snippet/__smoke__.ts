@@ -34,6 +34,7 @@ import type {
   SampleOpts,
   SourceCapabilities,
 } from "../sdk/index.js";
+import { buildTrajectoryOperationGraph } from "../sdk/index.js";
 
 import { installSnippetRuntime } from "./install.js";
 
@@ -397,6 +398,40 @@ async function main(): Promise<void> {
       primitives.includes("db.cases.findSimilar") &&
       primitives.includes("lib.pickFiling"),
     detail: JSON.stringify(primitives),
+  });
+
+  // 9. The operation graph is a code-native projection over stable primitive
+  // calls, not a second persisted trajectory source of truth.
+  const operationGraph = trajectoryRecord
+    ? buildTrajectoryOperationGraph({
+        calls: calls.map((call, index) => ({
+          index,
+          primitive: call.primitive,
+          input: undefined,
+          output: undefined,
+          startedAt: "",
+          durationMs: 0,
+        })),
+        answer: trajectoryRecord["answer"],
+        sourceHash:
+          typeof trajectoryRecord["sourceHash"] === "string"
+            ? trajectoryRecord["sourceHash"]
+            : undefined,
+      })
+    : undefined;
+  checks.push({
+    name: "trajectory graph summarizes read/compute calls",
+    pass:
+      operationGraph?.summary?.reads === 1 &&
+      operationGraph.summary.computes === 2 &&
+      operationGraph.summary.tools === 0 &&
+      operationGraph.summary.writes === 0 &&
+      operationGraph.summary.hasAnswerWrite === false &&
+      operationGraph.nodes?.some(
+        (node) => node.kind === "read" && node.primitive === "db.cases.findSimilar",
+      ) === true &&
+      operationGraph.nodes?.filter((node) => node.kind === "compute").length === 2,
+    detail: JSON.stringify(operationGraph?.summary ?? null),
   });
 
   // --- Print results -------------------------------------------------------

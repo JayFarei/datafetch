@@ -132,8 +132,11 @@ describe("createConnectApp — POST /", () => {
     expect(agents).toContain("Datafetch Workspace Memory");
     expect(agents).toContain("df.db.finqaCases");
     expect(agents).toContain("financial question answering");
+    expect(agents).toContain("Code-Native Discovery");
     expect(agents).toContain("datafetch commit scripts/answer.ts");
     expect(agents).toContain("returns `df.answer(...)`");
+    expect(agents).toContain("return df.answer({");
+    expect(agents).not.toContain("export default async function");
 
     expect(await readFile(path.join(baseDir, "df.d.ts"), "utf8")).toContain(
       "declare const df",

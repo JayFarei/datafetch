@@ -156,6 +156,7 @@ describe("buildDf — df.db.<ident>", () => {
       value: 42,
       evidence: [{ ref: "case-1" }],
       derivation: { operation: "constant" },
+      assumptions: [{ statement: "constant fixture", risk: "none" }],
     });
 
     expect(answer).toMatchObject({
@@ -168,6 +169,7 @@ describe("buildDf — df.db.<ident>", () => {
       value: 42,
       evidence: [{ ref: "case-1" }],
       derivation: { operation: "constant" },
+      assumptions: [{ statement: "constant fixture", risk: "none" }],
     });
     expect(answer.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(isAnswerEnvelope(answer)).toBe(true);

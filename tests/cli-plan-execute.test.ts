@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { serve } from "@hono/node-server";
 import http from "node:http";
@@ -44,12 +45,14 @@ async function withSnippetServer<T>(
       bodies.push(body);
       const commitCount = bodies.filter((b) => b.phase === "commit").length;
       const trajectoryId = `traj_${body.phase}_${bodies.length}`;
+      const rejectedCommit =
+        body.phase === "commit" && body.source?.includes("plain rejection") === true;
       res.setHeader("content-type", "application/json");
       res.end(
         JSON.stringify({
           stdout: "",
           stderr: "",
-          exitCode: 0,
+          exitCode: rejectedCommit ? 1 : 0,
           trajectoryId,
           phase: body.phase,
           crystallisable: body.phase === "execute" || body.phase === "commit",
@@ -69,7 +72,9 @@ async function withSnippetServer<T>(
                   evidence: [{ ref: `x-${commitCount}` }],
                   derivation: { operation: "count" },
                 },
-                validation: { accepted: true, learnable: true, blockers: [] },
+                validation: rejectedCommit
+                  ? { accepted: false, learnable: false, blockers: ["plain rejection"] }
+                  : { accepted: true, learnable: true, blockers: [] },
               }
             : {}),
         }),
@@ -152,6 +157,90 @@ function parseEnvelope(stdout: string): Record<string, unknown> {
 }
 
 describe("datafetch plan/execute CLI", () => {
+  it("mounts a fallback intent workspace with code-mode guidance", async () => {
+    const baseDir = await makeBaseDir();
+    const parent = await mkdtemp(path.join(os.tmpdir(), "df-fallback-mount-"));
+    tempDirs.push(parent);
+    const workspace = path.join(parent, "workspace");
+
+    const server = http.createServer((req, res) => {
+      if (req.method === "GET" && req.url?.startsWith("/v1/catalog/sources/")) {
+        res.statusCode = 404;
+        res.setHeader("content-type", "application/json");
+        res.end(JSON.stringify({ error: "not_found" }));
+        return;
+      }
+      if (req.method === "POST" && req.url === "/v1/connect") {
+        res.setHeader("content-type", "application/json");
+        res.end(
+          JSON.stringify({
+            sessionId: "sess_fallback_mount",
+            tenantId: "tenant-a",
+            mountIds: ["fallback"],
+          }),
+        );
+        return;
+      }
+      res.statusCode = 404;
+      res.end();
+    });
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (address === null || typeof address === "string") {
+      server.close();
+      throw new Error("expected TCP server address");
+    }
+
+    try {
+      const env = {
+        ...process.env,
+        DATAFETCH_SESSION: "",
+        DATAFETCH_HOME: baseDir,
+      };
+      const mount = await runCli(
+        [
+          "mount",
+          "fallback",
+          "--tenant",
+          "tenant-a",
+          "--intent",
+          "count rows",
+          "--server",
+          `http://127.0.0.1:${address.port}`,
+          "--base-dir",
+          baseDir,
+          "--path",
+          workspace,
+        ],
+        env,
+      );
+      expect(mount.exitCode).toBe(0);
+
+      const agents = await readFile(path.join(workspace, "AGENTS.md"), "utf8");
+      expect(agents).toContain("Code-native discovery");
+      expect(agents).toContain("Namespace boundaries");
+      expect(agents).toContain("df.db.*` is the mounted system/provider data surface");
+      expect(agents).toContain("df.lib.*` is tenant-local TypeScript");
+      expect(agents).toContain("scripts/helpers.ts");
+      expect(agents).toContain("do not create nested `lib/<tenant>/...` paths");
+      expect(agents).toContain("validated observer promotion");
+      expect(agents).toContain("df.answer(...)` is the typed commit boundary");
+      await expect(
+        readFile(path.join(workspace, "scripts", "scratch.ts"), "utf8"),
+      ).resolves.toMatch(/^\/\/\/ <reference path="\.\.\/df\.d\.ts" \/>/);
+      await expect(
+        readFile(path.join(workspace, "scripts", "answer.ts"), "utf8"),
+      ).resolves.toMatch(/^\/\/\/ <reference path="\.\.\/df\.d\.ts" \/>/);
+      await expect(
+        readFile(path.join(workspace, "scripts", "helpers.ts"), "utf8"),
+      ).resolves.toMatch(/^\/\/\/ <reference path="\.\.\/df\.d\.ts" \/>/);
+    } finally {
+      await new Promise<void>((resolve, reject) => {
+        server.close((err) => (err ? reject(err) : resolve()));
+      });
+    }
+  }, 30_000);
+
   it("sends explicit phase metadata through the snippets API", async () => {
     const baseDir = await makeBaseDir();
     await withSnippetServer(async (serverUrl, bodies) => {
@@ -252,11 +341,9 @@ describe("datafetch plan/execute CLI", () => {
       );
       await writeFile(path.join(workspace, "tmp", "debug.txt"), "ignored\n", "utf8");
       await writeFile(path.join(workspace, ".env"), "SECRET=ignored\n", "utf8");
-      await writeFile(
-        path.join(workspace, "scripts", "answer.ts"),
-        "return df.answer({ status: 'answered', value: 1, evidence: [{ ref: 'x' }], derivation: { operation: 'count' } })\n",
-        "utf8",
-      );
+      const firstSource =
+        "return df.answer({ status: 'answered', value: 1, evidence: [{ ref: 'x' }], derivation: { operation: 'count' } })\n";
+      await writeFile(path.join(workspace, "scripts", "answer.ts"), firstSource, "utf8");
 
       const env = {
         ...process.env,
@@ -354,11 +441,9 @@ describe("datafetch plan/execute CLI", () => {
       const first = await runCli(["commit", "scripts/answer.ts"], env, workspace);
       expect(first.exitCode).toBe(0);
 
-      await writeFile(
-        path.join(workspace, "scripts", "answer.ts"),
-        "return df.answer({ status: 'answered', value: 2, evidence: [{ ref: 'x' }], derivation: { operation: 'count' } })\n",
-        "utf8",
-      );
+      const secondSource =
+        "return df.answer({ status: 'answered', value: 2, evidence: [{ ref: 'x' }], derivation: { operation: 'count' } })\n";
+      await writeFile(path.join(workspace, "scripts", "answer.ts"), secondSource, "utf8");
       const second = await runCli(["commit", "scripts/answer.ts"], env, workspace);
       expect(second.exitCode).toBe(0);
 
@@ -372,6 +457,11 @@ describe("datafetch plan/execute CLI", () => {
         commit: "002",
         trajectoryId: "traj_commit_2",
         intent: "count rows",
+        sourceSnapshotPath: "source.ts",
+        sourceHash: sha256Text(secondSource),
+        reportPath: "report.md",
+        observerDecisionLogPath: "observer/tenant-a/decisions.jsonl",
+        replaySummaryPath: "tests/replay.txt",
         committedIntent: {
           name: "countRows2",
           parent: "count rows",
@@ -401,6 +491,8 @@ describe("datafetch plan/execute CLI", () => {
           parent: "count rows",
           relation: "derived",
         },
+        sourceSnapshotPath: "source.ts",
+        sourceHash: sha256Text(secondSource),
         expected: {
           intent: {
             name: "countRows2",
@@ -411,6 +503,16 @@ describe("datafetch plan/execute CLI", () => {
           value: 2,
           evidencePresent: true,
           derivationPresent: true,
+          assumptionsPresent: false,
+        },
+        learning: {
+          phase: "commit",
+          crystallisable: true,
+          mode: "interpreted",
+          eligible: true,
+          observerDecision: "not-recorded-in-workspace-response",
+          observerDecisionLogPath: "observer/tenant-a/decisions.jsonl",
+          callabilityAuthority: "hook-manifest",
         },
       });
       await expect(
@@ -419,6 +521,48 @@ describe("datafetch plan/execute CLI", () => {
           "utf8",
         ),
       ).resolves.toContain('"trajectoryId": "traj_commit_2"');
+      await expect(
+        readFile(path.join(workspace, "result", "tests", "replay.txt"), "utf8"),
+      ).resolves.toContain(`sourceHash: ${sha256Text(secondSource)}`);
+      await expect(
+        readFile(path.join(workspace, "result", "tests", "replay.txt"), "utf8"),
+      ).resolves.toContain("observerDecision: not-recorded-in-workspace-response");
+      await expect(
+        readFile(path.join(workspace, "result", "tests", "replay.txt"), "utf8"),
+      ).resolves.toContain("observerDecisionLog: observer/tenant-a/decisions.jsonl");
+      await expect(
+        readFile(path.join(workspace, "result", "report.md"), "utf8"),
+      ).resolves.toContain("datafetch workspace report");
+      await expect(
+        readFile(path.join(workspace, "result", "report.md"), "utf8"),
+      ).resolves.toContain(`sourceHash: ${sha256Text(secondSource)}`);
+      await expect(
+        readFile(path.join(workspace, "result", "report.md"), "utf8"),
+      ).resolves.toContain("## Graph");
+      await expect(
+        readFile(path.join(workspace, "result", "report.md"), "utf8"),
+      ).resolves.toContain("## Learning");
+      await expect(
+        readFile(path.join(workspace, "result", "report.md"), "utf8"),
+      ).resolves.toContain("crystallisable: true");
+      await expect(
+        readFile(path.join(workspace, "result", "report.md"), "utf8"),
+      ).resolves.toContain("observerDecision: not-recorded-in-workspace-response");
+      await expect(
+        readFile(path.join(workspace, "result", "report.md"), "utf8"),
+      ).resolves.toContain("observerDecisionLog: observer/tenant-a/decisions.jsonl");
+      await expect(
+        readFile(path.join(workspace, "result", "report.md"), "utf8"),
+      ).resolves.toContain("callabilityAuthority: hook-manifest");
+      await expect(
+        readFile(
+          path.join(workspace, "result", "commits", "002", "tests", "replay.txt"),
+          "utf8",
+        ),
+      ).resolves.toContain("sourceSnapshot: source.ts");
+      await expect(
+        readFile(path.join(workspace, "result", "commits", "002", "report.md"), "utf8"),
+      ).resolves.toContain("accepted: true");
 
       const snapshot = JSON.parse(
         await readFile(path.join(workspace, "result", "workspace", "manifest.json"), "utf8"),
@@ -450,6 +594,33 @@ describe("datafetch plan/execute CLI", () => {
           "utf8",
         ),
       ).resolves.toContain('"scripts/answer.ts"');
+
+      await writeFile(
+        path.join(workspace, "scripts", "answer.ts"),
+        "console.log('plain rejection')\n",
+        "utf8",
+      );
+      const rejected = await runCli(["commit", "scripts/answer.ts"], env, workspace);
+      expect(rejected.exitCode).toBe(1);
+      const afterRejectedHead = JSON.parse(
+        await readFile(path.join(workspace, "result", "HEAD.json"), "utf8"),
+      ) as Record<string, unknown>;
+      expect(afterRejectedHead).toMatchObject({
+        commit: "002",
+        trajectoryId: "traj_commit_2",
+      });
+      await expect(
+        readFile(path.join(workspace, "result", "answer.json"), "utf8"),
+      ).resolves.toContain('"value": 2');
+      await expect(
+        readFile(path.join(workspace, "result", "validation.json"), "utf8"),
+      ).resolves.toContain('"accepted": true');
+      await expect(
+        readFile(
+          path.join(workspace, "result", "commits", "003", "validation.json"),
+          "utf8",
+        ),
+      ).resolves.toContain('"accepted": false');
     });
   }, 30_000);
 
@@ -537,3 +708,7 @@ describe("datafetch plan/execute CLI", () => {
     });
   }, 30_000);
 });
+
+function sha256Text(value: string): string {
+  return createHash("sha256").update(value).digest("hex");
+}

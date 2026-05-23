@@ -11,6 +11,7 @@
 
 export {
   TrajectoryRecorder,
+  buildTrajectoryOperationGraph,
   datafetchHome,
   atlasfsHome,
   trajectoryId,
@@ -20,6 +21,10 @@ export {
 export type {
   PrimitiveCallRecord,
   PrimitiveCallScope,
+  TrajectoryOperationKind,
+  TrajectoryOperationNode,
+  TrajectoryOperationEdge,
+  TrajectoryOperationGraph,
   TrajectoryRecord,
   TrajectoryProvenance,
 } from "../trajectory/recorder.js";

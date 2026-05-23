@@ -5,6 +5,20 @@ import path from "node:path";
 
 import { regenerateWorkspaceMemory } from "../src/bootstrap/workspaceMemory.js";
 
+const FN_OK = (name: string): string =>
+  [
+    'import { fn } from "@datafetch/sdk";',
+    'import * as v from "valibot";',
+    `export const ${name} = fn({`,
+    `  intent: "${name} seed intent",`,
+    "  examples: [{ input: {}, output: { value: 1 } }],",
+    "  input: v.object({}),",
+    "  output: v.object({ value: v.number() }),",
+    "  body: () => ({ value: 1 }),",
+    "});",
+    "",
+  ].join("\n");
+
 describe("regenerateWorkspaceMemory", () => {
   let baseDir: string;
 
@@ -75,11 +89,27 @@ describe("regenerateWorkspaceMemory", () => {
     const agents = await readFile(path.join(baseDir, "AGENTS.md"), "utf8");
     expect(agents).toContain("Datafetch Workspace Memory");
     expect(agents).toContain("df.d.ts");
+    expect(agents).toContain("Code-Native Discovery");
+    expect(agents).toContain("Namespace Boundaries");
+    expect(agents).toContain("df.db.*` is the mounted system/provider data surface");
+    expect(agents).toContain("df.lib.*` is tenant-local TypeScript");
+    expect(agents).toContain("df.tool.*` is a governed adapter bridge");
+    expect(agents).toContain("df.answer(...)` is the typed commit boundary");
     expect(agents).toContain("validated plan");
+    expect(agents).toContain("result/report.md");
+    expect(agents).toContain("result/graph.txt");
+    expect(agents).toContain("accepted HEAD view");
+    expect(agents).toContain("hook manifests remain the authority");
+    expect(agents).toContain("observer/<tenant>/decisions.jsonl");
+    expect(agents).toContain("scripts/helpers.ts");
+    expect(agents).toContain("do not create nested `lib/<tenant>/...` paths");
+    expect(agents).toContain("validated observer promotion");
     expect(agents).toContain("df.db.finqaCases");
     expect(agents).toContain("financial question answering");
     expect(agents).toContain("question");
     expect(agents).toContain("sector");
+    expect(agents).toContain("return df.answer({");
+    expect(agents).not.toContain("export default async function");
 
     const alias = path.join(baseDir, "CLAUDE.md");
     expect((await lstat(alias)).isSymbolicLink()).toBe(true);
@@ -99,5 +129,22 @@ describe("regenerateWorkspaceMemory", () => {
     expect(await readFile(path.join(baseDir, "CLAUDE.md"), "utf8")).toBe(
       "# Human Notes\n",
     );
+  });
+
+  it("lists seed primitives that remain callable under hook modes", async () => {
+    await mkdir(path.join(baseDir, "lib", "__seed__"), { recursive: true });
+    await writeFile(
+      path.join(baseDir, "lib", "__seed__", "seeded.ts"),
+      FN_OK("seeded"),
+      "utf8",
+    );
+
+    await regenerateWorkspaceMemory({
+      baseDir,
+      tenantId: "test-jay",
+    });
+
+    const agents = await readFile(path.join(baseDir, "AGENTS.md"), "utf8");
+    expect(agents).toContain("df.lib.seeded");
   });
 });

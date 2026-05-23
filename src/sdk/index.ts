@@ -74,6 +74,7 @@ export type {
 // --- Trajectory recorder (extended types) ---
 export {
   TrajectoryRecorder,
+  buildTrajectoryOperationGraph,
   datafetchHome,
   atlasfsHome,
   trajectoryId,
@@ -82,6 +83,10 @@ export {
 export type {
   PrimitiveCallRecord,
   PrimitiveCallScope,
+  TrajectoryOperationKind,
+  TrajectoryOperationNode,
+  TrajectoryOperationEdge,
+  TrajectoryOperationGraph,
   TrajectoryRecord,
   TrajectoryProvenance,
 } from "./trajectory.js";

@@ -26,9 +26,17 @@ export type FrontmatterHead = {
   // The `description: |` block scalar's body, with the YAML indentation
   // stripped. `null` if the block is missing or the file isn't a tool.
   description: string | null;
+  // Simple top-level scalar keys from the same block. Block scalars such as
+  // `description: |` keep the literal `|` marker here; callers that need the
+  // body should use `description` above.
+  fields: Record<string, string>;
 };
 
-const NEGATIVE: FrontmatterHead = { isTool: false, description: null };
+const NEGATIVE: FrontmatterHead = {
+  isTool: false,
+  description: null,
+  fields: {},
+};
 
 // Read at most HEAD_BYTES from the file's start and parse the frontmatter
 // out of that buffer. Errors (missing file, permission, etc.) collapse to
@@ -46,7 +54,11 @@ export async function readFrontmatterHead(
   const isTool =
     trimmed.startsWith("/* ---") || trimmed.startsWith("/*---");
   if (!isTool) return NEGATIVE;
-  return { isTool: true, description: parseDescription(head) };
+  return {
+    isTool: true,
+    description: parseDescription(head),
+    fields: parseFrontmatterFields(head),
+  };
 }
 
 // Bounded read using an explicit fd so we don't load multi-MB files into
@@ -67,9 +79,8 @@ async function readHead(filePath: string, max: number): Promise<string> {
 // subsequent indented line until the next column-zero key or the
 // closing `--- */`. Strips leading two-space indent.
 export function parseDescription(source: string): string | null {
-  const fmMatch = source.match(/\/\*\s*---\s*\n([\s\S]*?)\n\s*---\s*\*\//);
-  if (!fmMatch || !fmMatch[1]) return null;
-  const yaml = fmMatch[1];
+  const yaml = frontmatterBody(source);
+  if (yaml === null) return null;
   const lines = yaml.split("\n");
   let i = 0;
   while (i < lines.length) {
@@ -88,4 +99,34 @@ export function parseDescription(source: string): string | null {
     .join("\n")
     .trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+export function parseFrontmatterFields(source: string): Record<string, string> {
+  const yaml = frontmatterBody(source);
+  if (yaml === null) return {};
+  const fields: Record<string, string> = {};
+  for (const line of yaml.split("\n")) {
+    const match = /^([A-Za-z][A-Za-z0-9_-]*)\s*:\s*(.*)$/.exec(line);
+    if (!match) continue;
+    const key = match[1]!;
+    const value = match[2]!.trim();
+    fields[key] = stripYamlQuotes(value);
+  }
+  return fields;
+}
+
+function frontmatterBody(source: string): string | null {
+  const fmMatch = source.match(/\/\*\s*---\s*\n([\s\S]*?)\n\s*---\s*\*\//);
+  return fmMatch?.[1] ?? null;
+}
+
+function stripYamlQuotes(value: string): string {
+  if (
+    value.length >= 2 &&
+    ((value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'")))
+  ) {
+    return value.slice(1, -1);
+  }
+  return value;
 }

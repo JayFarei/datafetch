@@ -12,9 +12,9 @@ import {
   renderSchemaBlock,
   renderSynopsisArg,
 } from "../sdk/schemaRender.js";
-import { listManifests } from "../hooks/manifest.js";
+import { hookManifestPath, listManifests, readManifest } from "../hooks/manifest.js";
 import { hooksEnabled } from "../hooks/mode.js";
-import type { HookCallability, HookMaturity } from "../hooks/types.js";
+import type { HookCallability, HookMaturity, VfsHookManifest } from "../hooks/types.js";
 
 export type LibraryFunctionKind = "tool" | "primitive";
 
@@ -24,9 +24,22 @@ export type RankedFunction = {
   score: number;
   intent: string;
   description?: string;
+  governance?: LibraryFunctionGovernance;
   why: string[];
   invocation: string;
   sourcePath: string;
+};
+
+export type LibraryFunctionGovernance = {
+  maturity: HookMaturity;
+  callability: HookCallability;
+  manifestPath: string;
+  attempts: number;
+  successes: number;
+  replaysPassed: number;
+  replaysFailed: number;
+  quarantineReason?: string;
+  quarantineMessage?: string;
 };
 
 export type LibraryFunctionDescription = {
@@ -34,9 +47,11 @@ export type LibraryFunctionDescription = {
   kind: LibraryFunctionKind;
   intent: string;
   description?: string;
+  contract: Record<string, string>;
+  governance?: LibraryFunctionGovernance;
   invocation: string;
   sourcePath: string;
-  spec: FnSpec<unknown, unknown>;
+  spec?: FnSpec<unknown, unknown>;
 };
 
 export type SearchLibraryArgs = {
@@ -100,11 +115,11 @@ export async function searchLibrary(
   //   - We carry the callability/maturity through to influence ranking
   //     (validated > draft > observed > quarantined).
   const showQuarantined = process.env["DATAFETCH_HOOKS_SHOW_QUARANTINED"] === "1";
-  const hookIndex = new Map<string, { maturity: HookMaturity; callability: HookCallability; intent: string }>();
+  const hookIndex = new Map<string, VfsHookManifest>();
   if (hooksEnabled()) {
     const manifests = await listManifests(args.baseDir, args.tenantId);
     for (const m of manifests) {
-      hookIndex.set(m.name, { maturity: m.maturity, callability: m.callability, intent: m.intent });
+      hookIndex.set(m.name, m);
     }
   }
 
@@ -116,7 +131,13 @@ export async function searchLibrary(
         tenantId: args.tenantId,
         name: entry.name,
       });
-      return scoreEntry(entry, meta, queryTokens);
+      return scoreEntry({
+        entry,
+        meta,
+        queryTokens,
+        hook: hookIndex.get(entry.name),
+        baseDir: args.baseDir,
+      });
     }),
   );
 
@@ -131,12 +152,14 @@ export async function searchLibrary(
       if (hook.callability !== "quarantined") continue;
       const synthScore = scoreSynthetic(name, hook.intent, queryTokens);
       if (synthScore < threshold) continue;
+      const governance = hookGovernance(args.baseDir, hook);
       diagnostic.push({
         name,
         kind: "primitive",
         score: synthScore,
         intent: hook.intent,
-        why: ["quarantined (diagnostic only)"],
+        governance,
+        why: governanceWhy(governance),
         invocation: `df.lib.${name}(...) // quarantined`,
         sourcePath: "",
       });
@@ -174,7 +197,7 @@ function scoreSynthetic(name: string, intent: string, queryTokens: Set<string>):
 }
 
 // Higher is better. validated > draft > observed > quarantined > unknown.
-function callabilityRank(hook: { maturity: HookMaturity; callability: HookCallability } | undefined): number {
+function callabilityRank(hook: VfsHookManifest | undefined): number {
   if (!hook) return 1;
   if (hook.callability === "quarantined") return -1;
   if (hook.callability === "not-callable") return 0;
@@ -186,8 +209,20 @@ function callabilityRank(hook: { maturity: HookMaturity; callability: HookCallab
 export async function describeLibraryFunction(
   args: DescribeLibraryFunctionArgs,
 ): Promise<LibraryFunctionDescription | null> {
+  const hook = hooksEnabled()
+    ? await readHookGovernance(args.baseDir, args.tenantId, args.name)
+    : undefined;
   const fn = await args.resolver.resolve(args.tenantId, args.name);
-  if (!fn) return null;
+  if (!fn) {
+    return hook
+      ? describeManifestOnlyHook({
+          baseDir: args.baseDir,
+          tenantId: args.tenantId,
+          name: args.name,
+          governance: hook,
+        })
+      : null;
+  }
   const meta = await functionMetadata({
     baseDir: args.baseDir,
     tenantId: args.tenantId,
@@ -198,7 +233,9 @@ export async function describeLibraryFunction(
     kind: meta.kind,
     intent: fn.spec.intent,
     ...(meta.description ? { description: meta.description } : {}),
-    invocation: renderInvocation(args.name, fn.spec),
+    contract: learnedContract(meta.fields),
+    ...(hook ? { governance: hook } : {}),
+    invocation: renderGovernedInvocation(renderInvocation(args.name, fn.spec), hook),
     sourcePath: meta.sourcePath,
     spec: fn.spec,
   };
@@ -217,17 +254,35 @@ export function renderManPage(desc: LibraryFunctionDescription): string {
     }
   }
   lines.push("SYNOPSIS");
-  lines.push(`       df.lib.${desc.name}(${renderSynopsisArg(desc.spec.input)})`);
-  lines.push("INPUT SCHEMA");
-  lines.push(...renderSchemaBlock(desc.spec.input));
-  lines.push("OUTPUT");
-  lines.push(...renderSchemaBlock(desc.spec.output));
-  if (desc.spec.examples.length > 0) {
+  lines.push(
+    desc.spec
+      ? `       df.lib.${desc.name}(${renderSynopsisArg(desc.spec.input)})`
+      : `       ${desc.invocation}`,
+  );
+  if (desc.spec) {
+    lines.push("INPUT SCHEMA");
+    lines.push(...renderSchemaBlock(desc.spec.input));
+    lines.push("OUTPUT");
+    lines.push(...renderSchemaBlock(desc.spec.output));
+  }
+  if (desc.spec && desc.spec.examples.length > 0) {
     lines.push("EXAMPLES");
     for (const example of desc.spec.examples) {
       const inputJson = jsonOneLine(example.input);
       const outputJson = jsonOneLine(example.output);
       lines.push(`       df.lib.${desc.name}(${inputJson}) => ${outputJson}`);
+    }
+  }
+  if (Object.keys(desc.contract).length > 0) {
+    lines.push("CONTRACT");
+    for (const [key, value] of Object.entries(desc.contract)) {
+      lines.push(`       ${key}: ${value}`);
+    }
+  }
+  if (desc.governance) {
+    lines.push("GOVERNANCE");
+    for (const line of renderGovernanceLines(desc.governance)) {
+      lines.push(`       ${line}`);
     }
   }
   lines.push("INVOCATION");
@@ -237,9 +292,28 @@ export function renderManPage(desc: LibraryFunctionDescription): string {
   return `${lines.join("\n")}\n`;
 }
 
+export function renderAproposMatches(matches: RankedFunction[]): string {
+  if (matches.length === 0) {
+    return "(no matches)\n";
+  }
+  const maxName = Math.min(
+    24,
+    matches.reduce((m, x) => Math.max(m, x.name.length), 0),
+  );
+  const lines = matches.map((m) => {
+    const padded = m.name.padEnd(maxName, " ");
+    const governance = m.governance
+      ? ` [${m.governance.callability}/${m.governance.maturity}]`
+      : "";
+    return `${padded} (${m.kind})${governance} - ${m.intent}`;
+  });
+  return `${lines.join("\n")}\n`;
+}
+
 type FunctionMetadata = {
   kind: LibraryFunctionKind;
   description: string | null;
+  fields: Record<string, string>;
   sourcePath: string;
   sourceHead: string;
 };
@@ -260,6 +334,7 @@ async function functionMetadata(args: {
     return {
       kind: head.isTool ? "tool" : "primitive",
       description: head.description,
+      fields: head.fields,
       sourcePath: file,
       sourceHead: await readHead(file, SOURCE_HEAD_BYTES),
     };
@@ -268,16 +343,45 @@ async function functionMetadata(args: {
   return {
     kind: "primitive",
     description: null,
+    fields: {},
     sourcePath: path.join(args.baseDir, "lib", args.tenantId, `${args.name}.ts`),
     sourceHead: "",
   };
 }
 
-function scoreEntry(
-  entry: LibraryEntry,
-  meta: FunctionMetadata,
-  queryTokens: Set<string>,
-): RankedFunction {
+function learnedContract(fields: Record<string, string>): Record<string, string> {
+  const keys = [
+    "trajectory",
+    "shape-hash",
+    "source-hash",
+    "promotion-state",
+    "coverage-density",
+    "step-count",
+    "distinct-tools",
+    "regal-gate-active",
+    "replay-contract",
+    "change-contract",
+    "verifier",
+    "rollback",
+  ];
+  const out: Record<string, string> = {};
+  for (const key of keys) {
+    const value = fields[key];
+    if (value !== undefined && value.length > 0 && value !== "|") {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
+function scoreEntry(args: {
+  entry: LibraryEntry;
+  meta: FunctionMetadata;
+  queryTokens: Set<string>;
+  hook: VfsHookManifest | undefined;
+  baseDir: string;
+}): RankedFunction {
+  const { entry, meta, queryTokens } = args;
   const buckets: Array<{ label: string; tokens: Set<string>; weight: number }> = [
     { label: "name", tokens: tokenise(entry.name), weight: 0.9 },
     { label: "intent", tokens: tokenise(entry.spec.intent), weight: 1 },
@@ -319,6 +423,10 @@ function scoreEntry(
   if (meta.kind === "tool" && score > 0) {
     score = Math.min(1, score + 0.05);
   }
+  const governance = args.hook ? hookGovernance(args.baseDir, args.hook) : undefined;
+  if (governance) {
+    why.push(...governanceWhy(governance));
+  }
 
   return {
     name: entry.name,
@@ -326,10 +434,97 @@ function scoreEntry(
     score,
     intent: entry.spec.intent,
     ...(meta.description ? { description: meta.description } : {}),
+    ...(governance ? { governance } : {}),
     why,
-    invocation: renderInvocation(entry.name, entry.spec),
+    invocation: renderGovernedInvocation(renderInvocation(entry.name, entry.spec), governance),
     sourcePath: meta.sourcePath,
   };
+}
+
+function renderGovernedInvocation(
+  invocation: string,
+  governance: LibraryFunctionGovernance | undefined,
+): string {
+  if (!governance) return invocation;
+  if (governance.callability === "callable" || governance.callability === "callable-with-fallback") {
+    return invocation;
+  }
+  return `${invocation} // ${governance.callability}; inspect ${governance.manifestPath}`;
+}
+
+async function readHookGovernance(
+  baseDir: string,
+  tenantId: string,
+  name: string,
+): Promise<LibraryFunctionGovernance | undefined> {
+  const manifest = await readManifest(baseDir, tenantId, name);
+  return manifest ? hookGovernance(baseDir, manifest) : undefined;
+}
+
+async function describeManifestOnlyHook(args: {
+  baseDir: string;
+  tenantId: string;
+  name: string;
+  governance: LibraryFunctionGovernance;
+}): Promise<LibraryFunctionDescription | null> {
+  const manifest = await readManifest(args.baseDir, args.tenantId, args.name);
+  if (!manifest) return null;
+  return {
+    name: args.name,
+    kind: "primitive",
+    intent: manifest.intent,
+    contract: {},
+    governance: args.governance,
+    invocation: renderGovernedInvocation(`df.lib.${args.name}(...)`, args.governance),
+    sourcePath: manifest.implementation.ref ?? args.governance.manifestPath,
+  };
+}
+
+function hookGovernance(
+  baseDir: string,
+  manifest: VfsHookManifest,
+): LibraryFunctionGovernance {
+  return {
+    maturity: manifest.maturity,
+    callability: manifest.callability,
+    manifestPath: hookManifestPath(baseDir, manifest.origin.tenantId, manifest.name),
+    attempts: manifest.stats.attempts,
+    successes: manifest.stats.successes,
+    replaysPassed: manifest.stats.replaysPassed,
+    replaysFailed: manifest.stats.replaysFailed,
+    ...(manifest.quarantine?.reason ? { quarantineReason: manifest.quarantine.reason } : {}),
+    ...(manifest.quarantine?.message ? { quarantineMessage: manifest.quarantine.message } : {}),
+  };
+}
+
+function governanceWhy(governance: LibraryFunctionGovernance): string[] {
+  const why = [
+    `callability: ${governance.callability}`,
+    `maturity: ${governance.maturity}`,
+  ];
+  if (governance.quarantineReason) {
+    why.push(`quarantine: ${governance.quarantineReason}`);
+  }
+  return why;
+}
+
+function renderGovernanceLines(governance: LibraryFunctionGovernance): string[] {
+  const lines = [
+    `callability: ${governance.callability}`,
+    `maturity: ${governance.maturity}`,
+    `manifest: ${governance.manifestPath}`,
+    `attempts: ${governance.attempts}`,
+    `successes: ${governance.successes}`,
+    `replaysPassed: ${governance.replaysPassed}`,
+    `replaysFailed: ${governance.replaysFailed}`,
+  ];
+  if (governance.quarantineReason) {
+    lines.push(`quarantineReason: ${governance.quarantineReason}`);
+  }
+  if (governance.quarantineMessage) {
+    lines.push(`quarantineMessage: ${governance.quarantineMessage}`);
+  }
+  return lines;
 }
 
 function renderInvocation(name: string, spec: FnSpec<unknown, unknown>): string {

@@ -13,6 +13,7 @@
 // de-dup in the gate keeps re-running the same snippet from producing a
 // second learned-interface file.
 
+import { promises as fsp } from "node:fs";
 import path from "node:path";
 
 import { defaultBaseDir } from "../paths.js";
@@ -60,6 +61,15 @@ export type ObserveCrystallised = {
 };
 
 export type ObserveResult = ObserveSkipped | ObserveCrystallised;
+
+export type ObserverDecisionRecord = {
+  version: 1;
+  observedAt: string;
+  trajectoryId: string;
+  tenantId: string;
+  observerTenantId: string | null;
+  result: ObserveResult;
+};
 
 export type ObserverOpts = {
   baseDir?: string;
@@ -117,13 +127,51 @@ export class Observer {
   }
 
   async observe(trajectoryId: string): Promise<ObserveResult> {
-    const inFlight = this.runObserve(trajectoryId);
+    const inFlight = this.runObserveAndRecord(trajectoryId);
     this.observerPromise.set(trajectoryId, inFlight);
     enforceMapCap(this.observerPromise, OBSERVER_PROMISE_CAP);
     return inFlight;
   }
 
   // --- internal -----------------------------------------------------------
+
+  private async runObserveAndRecord(trajectoryId: string): Promise<ObserveResult> {
+    const result = await this.runObserve(trajectoryId);
+    await this.writeDecisionRecord(trajectoryId, result).catch(() => undefined);
+    return result;
+  }
+
+  private async writeDecisionRecord(
+    trajectoryId: string,
+    result: ObserveResult,
+  ): Promise<void> {
+    const tenantId = await this.resolveDecisionTenantId(trajectoryId);
+    if (tenantId === null) return;
+    const dir = path.join(this.baseDir, "observer", tenantId);
+    const record: ObserverDecisionRecord = {
+      version: 1,
+      observedAt: new Date().toISOString(),
+      trajectoryId,
+      tenantId,
+      observerTenantId: this.tenantId,
+      result,
+    };
+    await fsp.mkdir(dir, { recursive: true });
+    await fsp.appendFile(
+      path.join(dir, "decisions.jsonl"),
+      `${JSON.stringify(record)}\n`,
+      "utf8",
+    );
+  }
+
+  private async resolveDecisionTenantId(trajectoryId: string): Promise<string | null> {
+    try {
+      const trajectory = await readTrajectory(trajectoryId, this.baseDir);
+      return trajectory.tenantId;
+    } catch {
+      return this.tenantId;
+    }
+  }
 
   private async runObserve(trajectoryId: string): Promise<ObserveResult> {
     let trajectory: TrajectoryRecord;

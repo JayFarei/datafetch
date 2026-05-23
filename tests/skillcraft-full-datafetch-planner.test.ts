@@ -8,7 +8,9 @@ import {
   buildFanoutToolPlan,
   buildPureToolEnrichmentPlan,
   buildPureToolFanoutPlan,
+  filterCallableLiveLibFunctions,
   inferPureFanoutEntityValuesFromTaskMarkdown,
+  inferLiveLibInputType,
   isTransferableHelperSource,
   prepareAnswerSourceForRuntime,
   renderColdStartFanoutGuidance,
@@ -217,6 +219,45 @@ describe("Goal 4 fanout planner", () => {
         "local-pokemon_get_abilities",
       ],
     });
+  });
+
+  it("exposes operational call fields for learned pure tool fanout helpers", () => {
+    const source = [
+      "// Goal-4 learned tool fan-out interface.",
+      "type InternalToolFanoutPlan = {",
+      "  entityValues?: Array<string | number>;",
+      "  toolBundle?: string;",
+      "  toolNames?: string[];",
+      "  paramName?: string;",
+      "};",
+    ].join("\n");
+
+    expect(inferLiveLibInputType(source)).toBe(
+      "{ intent?: \"repeated tool fan-out\"; limit?: number; entityValues: Array<string | number>; toolBundle: string; toolNames: string[]; paramName: string; paramByTool?: Record<string, string>; sharedInput?: Record<string, unknown> }",
+    );
+  });
+
+  it("exposes operational call fields for learned pure tool enrichment helpers", () => {
+    const source = [
+      "// Goal-4 learned pure fan-out dependent enrichment interface.",
+      "type InternalToolEnrichmentPlan = {",
+      "  entityValues?: Array<string | number>;",
+      "  toolBundle?: string;",
+      "  dependentToolNames?: string[];",
+      "};",
+    ].join("\n");
+
+    const inputType = inferLiveLibInputType(source);
+    expect(inputType).toContain('intent?: "repeated tool fan-out dependent enrichment"');
+    expect(inputType).toContain("entityValues: Array<string | number>");
+    expect(inputType).toContain("dependentToolNames: string[]");
+    expect(inputType).toContain("dependentValuePathsByTool?: Record<string, string[]>");
+  });
+
+  it("does not advertise learned live helpers as callable in candidate-only mode", () => {
+    expect(filterCallableLiveLibFunctions(["toolFanout"], "hooks-candidate-only")).toEqual([]);
+    expect(filterCallableLiveLibFunctions(["toolFanout"], "hooks-draft")).toEqual(["toolFanout"]);
+    expect(filterCallableLiveLibFunctions(["toolFanout"], "legacy")).toEqual(["toolFanout"]);
   });
 
   it("infers pure tool fanout entity values from markdown ID tables", () => {
@@ -604,6 +645,40 @@ describe("Goal 4 fanout planner", () => {
     expect(guidance.rules.join("\n")).toContain("Do not call `df.lib.per_entity`");
     expect(guidance.block).toContain("No verified single-field record fan-out");
     expect(guidance.block).not.toContain("df.lib.per_entity({");
+  });
+
+  it("does not treat generic record name as verified backing for a specific *_name tool parameter", () => {
+    const plan = buildFanoutToolPlan(
+      task("cat-facts-collector", [
+        "local-catfacts_breed_profile",
+        "local-catfacts_breed_relatives",
+      ], "catfacts_api"),
+      dfDts("catfacts_api", [
+        '      "local-catfacts_breed_profile"(input: { "breed_name": string }): Promise<any>;',
+        '      "local-catfacts_breed_relatives"(input: { "breed_name": string }): Promise<any>;',
+      ]),
+      [
+        {
+          id: "1",
+          entity: "1",
+          recordKey: "cat-facts-collector:1",
+          family: "cat-facts-collector",
+          label: "Short Facts",
+          attributes: { id: 1, name: "Short Facts" },
+        },
+        {
+          id: "5",
+          entity: "5",
+          recordKey: "cat-facts-collector:5",
+          family: "cat-facts-collector",
+          label: "Breed Information",
+          attributes: { id: 5, name: "Breed Information" },
+        },
+      ],
+    );
+
+    expect(plan.sameEntityToolNames).toEqual([]);
+    expect(plan.recordParamMapByTool).toEqual(null);
   });
 
   it("keeps the per_entity seed recommendation for verified single-field fanout", () => {
@@ -1001,6 +1076,57 @@ describe("Goal 4 answer builder hardening", () => {
     expect(prepared).toContain("buildsLiteralByDatafetchKey");
     expect(prepared).toContain('"score":70');
     expect(prepared).not.toContain('class_name: "Fighter"');
+  });
+
+  it("roots literal scalar entity arrays in mounted records when values match records", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "datafetch-scalar-records-"));
+    await writeFile(
+      path.join(dir, ".datafetch-ctx.json"),
+      JSON.stringify({
+        records: [
+          {
+            id: "Persian",
+            recordKey: "cat-facts-collector:Persian",
+            family: "cat-facts-collector",
+            entity: "Persian",
+            label: "Persian",
+            attributes: { breed_name: "Persian" },
+          },
+          {
+            id: "Siamese",
+            recordKey: "cat-facts-collector:Siamese",
+            family: "cat-facts-collector",
+            entity: "Siamese",
+            label: "Siamese",
+            attributes: { breed_name: "Siamese" },
+          },
+          {
+            id: "Maine Coon",
+            recordKey: "cat-facts-collector:Maine Coon",
+            family: "cat-facts-collector",
+            entity: "Maine Coon",
+            label: "Maine Coon",
+            attributes: { breed_name: "Maine Coon" },
+          },
+        ],
+      }),
+      "utf8",
+    );
+
+    const prepared = prepareAnswerSourceForRuntime(
+      [
+        'const breeds = ["Persian", "Siamese", "Maine Coon"];',
+        "for (const breed of breeds) {",
+        "  await df.tool[\"catfacts_api\"][\"local-catfacts_breed_profile\"]({ breed_name: breed });",
+        "}",
+      ].join("\n"),
+      dir,
+    );
+
+    expect(prepared).toContain("df.db.records.findExact");
+    expect(prepared).toContain("breedsRecordsFromDatafetch");
+    expect(prepared).toContain("const breeds = breedsRecordsFromDatafetch.map((r: any) => r.entity)");
+    expect(prepared).not.toContain('const breeds = ["Persian", "Siamese", "Maine Coon"]');
   });
 
   it("does not rewrite literal entity arrays after an intent record wrapper is present", async () => {

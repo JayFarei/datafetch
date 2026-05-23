@@ -64,3 +64,109 @@ export async function writeToolManifest(
 export function flattenToolCatalogNames(catalog: ToolCatalogEntry[]): string[] {
   return catalog.flatMap((entry) => entry.tools.map((tool) => tool.name));
 }
+
+// Render the tool bridge as part of the TypeScript code-mode surface.
+// Dataset evals can still write tool_manifest.json as a fallback, but df.d.ts
+// should be the primary discovery contract for agents.
+export function renderToolCatalogDtsLines(
+  catalog: ToolCatalogEntry[],
+  indent = "  ",
+): string[] {
+  if (catalog.length === 0) return [];
+  const lines: string[] = [];
+  lines.push(`${indent}/** Governed external tool bridge. */`);
+  lines.push(`${indent}tool: {`);
+  for (const entry of catalog) {
+    lines.push(`${indent}  /** Tool bundle ${entry.bundle}. */`);
+    lines.push(`${indent}  ${quoteProperty(entry.bundle)}: {`);
+    lines.push(`${indent}    [name: string]: (input: unknown) => Promise<unknown>;`);
+    for (const tool of entry.tools) {
+      lines.push(...renderToolDescriptorDtsLines(tool, `${indent}    `));
+    }
+    lines.push(`${indent}  };`);
+  }
+  lines.push(`${indent}};`);
+  return lines;
+}
+
+function renderToolDescriptorDtsLines(
+  tool: ToolDescriptor,
+  indent: string,
+): string[] {
+  const lines: string[] = [];
+  const description = compactDescription(tool.description);
+  if (description) {
+    lines.push(`${indent}/**`);
+    for (const line of description.split("\n")) {
+      lines.push(`${indent} * ${escapeJSDoc(line)}`);
+    }
+    lines.push(`${indent} */`);
+  }
+  lines.push(
+    `${indent}${quoteProperty(tool.name)}: (input: ${jsonSchemaToTs(tool.params_json_schema)}) => Promise<unknown>;`,
+  );
+  return lines;
+}
+
+export function jsonSchemaToTs(schema: Record<string, unknown>): string {
+  const props = schema.properties && typeof schema.properties === "object"
+    ? schema.properties as Record<string, Record<string, unknown>>
+    : {};
+  const required = new Set(
+    Array.isArray(schema.required)
+      ? schema.required.filter((item): item is string => typeof item === "string")
+      : [],
+  );
+  const fields = Object.entries(props).map(([name, prop]) => {
+    const optional = required.has(name) ? "" : "?";
+    return `${quoteProperty(name)}${optional}: ${jsonSchemaPropertyToTs(prop)}`;
+  });
+  return fields.length ? `{ ${fields.join("; ")} }` : "Record<string, unknown>";
+}
+
+function jsonSchemaPropertyToTs(prop: Record<string, unknown>): string {
+  if (Array.isArray(prop.type)) {
+    return prop.type.map((t) => jsonSchemaTypeName(t)).join(" | ");
+  }
+  return jsonSchemaTypeName(prop.type);
+}
+
+function jsonSchemaTypeName(type: unknown): string {
+  switch (type) {
+    case "number":
+    case "integer":
+      return "number";
+    case "boolean":
+      return "boolean";
+    case "array":
+      return "unknown[]";
+    case "object":
+      return "Record<string, unknown>";
+    case "string":
+      return "string";
+    case "null":
+      return "null";
+    default:
+      return "unknown";
+  }
+}
+
+function compactDescription(description: string): string {
+  return description
+    .split(/\r?\n/)
+    .map((line) => line.trimEnd())
+    .filter((line, index, lines) => {
+      if (line.length > 0) return true;
+      return index > 0 && index < lines.length - 1 && lines[index - 1] !== "";
+    })
+    .slice(0, 40)
+    .join("\n");
+}
+
+function quoteProperty(name: string): string {
+  return JSON.stringify(name);
+}
+
+function escapeJSDoc(value: string): string {
+  return value.replace(/\*\//g, "* /");
+}

@@ -5,9 +5,11 @@ import path from "node:path";
 
 import {
   describeLibraryFunction,
+  renderAproposMatches,
   renderManPage,
   searchLibrary,
 } from "../src/discovery/librarySearch.js";
+import { HookRegistry } from "../src/hooks/registry.js";
 import { DiskLibraryResolver } from "../src/snippet/library.js";
 
 describe("librarySearch", () => {
@@ -27,6 +29,9 @@ describe("librarySearch", () => {
         "  Prefer this learned tool before composing table primitives.",
         "trajectory: traj_1",
         "shape-hash: deadbeef",
+        "source-hash: sha256abc",
+        "replay-contract: origin-and-heldout-replay-before-validation",
+        "change-contract: preserve-public-schema-call-graph-and-evidence-semantics",
         "--- */",
         'import { fn } from "@datafetch/sdk";',
         'import * as v from "valibot";',
@@ -65,6 +70,8 @@ describe("librarySearch", () => {
   });
 
   afterEach(async () => {
+    delete process.env["DATAFETCH_INTERFACE_MODE"];
+    delete process.env["DATAFETCH_HOOKS_SHOW_QUARANTINED"];
     await rm(baseDir, { recursive: true, force: true });
   });
 
@@ -156,8 +163,58 @@ describe("librarySearch", () => {
     const page = renderManPage(desc!);
     expect(page).toContain("KIND\n       tool");
     expect(page).toContain("Use when the user asks for a revenue metric range");
+    expect(page).toContain("CONTRACT");
+    expect(page).toContain("trajectory: traj_1");
+    expect(page).toContain("shape-hash: deadbeef");
+    expect(page).toContain("source-hash: sha256abc");
+    expect(page).toContain(
+      "replay-contract: origin-and-heldout-replay-before-validation",
+    );
     expect(page).toContain("INVOCATION");
     expect(page).toContain("df.lib.rangeTableMetric");
     expect(page).toContain(path.join(baseDir, "lib", "acme", "rangeTableMetric.ts"));
+  });
+
+  it("renders hook governance in apropos and man when hook manifests own callability", async () => {
+    process.env["DATAFETCH_INTERFACE_MODE"] = "hooks-draft";
+    const resolver = new DiskLibraryResolver({ baseDir });
+    const registry = new HookRegistry({ baseDir, resolver, mode: "hooks-draft" });
+    await registry.ingestTenant("acme");
+
+    const matches = await searchLibrary({
+      baseDir,
+      tenantId: "acme",
+      resolver,
+      query: "revenue range",
+    });
+
+    expect(matches[0]).toMatchObject({
+      name: "rangeTableMetric",
+      governance: {
+        callability: "callable-with-fallback",
+        maturity: "candidate-typescript",
+        attempts: 0,
+        successes: 0,
+      },
+    });
+    expect(matches[0]!.governance?.manifestPath).toBe(
+      path.join(baseDir, "hooks", "acme", "rangeTableMetric.json"),
+    );
+    expect(matches[0]!.why.join(" ")).toContain("callability: callable-with-fallback");
+    expect(renderAproposMatches(matches)).toContain(
+      "rangeTableMetric (tool) [callable-with-fallback/candidate-typescript]",
+    );
+
+    const desc = await describeLibraryFunction({
+      baseDir,
+      tenantId: "acme",
+      resolver,
+      name: "rangeTableMetric",
+    });
+    const page = renderManPage(desc!);
+    expect(page).toContain("GOVERNANCE");
+    expect(page).toContain("callability: callable-with-fallback");
+    expect(page).toContain("maturity: candidate-typescript");
+    expect(page).toContain(path.join(baseDir, "hooks", "acme", "rangeTableMetric.json"));
   });
 });

@@ -95,6 +95,19 @@ async function tryReadJson(p?: string): Promise<unknown> {
   }
 }
 
+async function tryReadJsonl<T>(p: string): Promise<T[] | null> {
+  try {
+    const raw = await fsp.readFile(p, "utf8");
+    return raw
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => JSON.parse(line) as T);
+  } catch {
+    return null;
+  }
+}
+
 interface PerTierMetric {
   episodes: number;
   facRate: number | null;          // mean of facMatch (0/1)
@@ -264,6 +277,396 @@ function fc3Stats(learned: NormalizedRow[], control: NormalizedRow[]): {
   };
 }
 
+interface SkillCraftInstrumentationRow {
+  taskKey: string;
+  family: string;
+  helpersCalled?: string[];
+  helperOrigins?: Array<{
+    name: string;
+    intentSignature: string | null;
+    isSeed?: boolean;
+  }>;
+}
+
+interface FinChainArtifactWalk {
+  helpers?: Array<Record<string, unknown>>;
+  trajectories?: Array<{
+    trajectoryId: string;
+    family: string;
+    libCalls?: string[];
+    intentSignature: string | null;
+  }>;
+  R4R9?: {
+    R4?: {
+      pass?: boolean | null;
+      quarantineRate?: number | null;
+      quarantinedHelpers?: number | null;
+      totalHelpers?: number | null;
+    };
+    R6?: { pass?: boolean | null; convergenceRate?: number | null };
+    R7?: {
+      pass?: boolean | null;
+      conditionalReuseRate?: number | null;
+      warmEpisodesWithHelper?: number | null;
+      warmEpisodesReused?: number | null;
+    };
+    R9?: {
+      pass?: boolean | null;
+      crossShapeTransfer?: string | null;
+      familiesReached?: string[];
+    };
+  };
+}
+
+interface IntentUse {
+  signature: string;
+  families: Set<string>;
+  episodes: Set<string>;
+}
+
+function addIntentUse(
+  bySignature: Map<string, IntentUse>,
+  signature: string | null | undefined,
+  family: string | null | undefined,
+  episode: string | null | undefined,
+): void {
+  if (!signature || !family) return;
+  const entry = bySignature.get(signature) ?? {
+    signature,
+    families: new Set<string>(),
+    episodes: new Set<string>(),
+  };
+  entry.families.add(family);
+  if (episode) entry.episodes.add(episode);
+  bySignature.set(signature, entry);
+}
+
+function serialiseIntentUse(use: IntentUse): {
+  intentSignature: string;
+  families: string[];
+  episodes: string[];
+} {
+  return {
+    intentSignature: use.signature,
+    families: [...use.families].sort(),
+    episodes: [...use.episodes].sort(),
+  };
+}
+
+async function fc4CrossBenchmarkTransfer(args: Args): Promise<Record<string, unknown>> {
+  const finchainArtifactPath = path.join(args.runBase, "artifact-walk.json");
+  const skillcraftInstrumentationPath = args.skillcraftRunBase
+    ? path.join(args.skillcraftRunBase, "helper-instrumentation.jsonl")
+    : null;
+  if (!args.skillcraftRunBase || !skillcraftInstrumentationPath) {
+    return {
+      passes: null,
+      skillcraftRunBase: args.skillcraftRunBase ?? null,
+      finchainArtifactWalkPath: finchainArtifactPath,
+      note: "FC4 requires --skillcraft-run-base with helper-instrumentation.jsonl",
+    };
+  }
+
+  const [finchainWalk, skillcraftRows] = await Promise.all([
+    tryReadJson(finchainArtifactPath) as Promise<FinChainArtifactWalk | null>,
+    tryReadJsonl<SkillCraftInstrumentationRow>(skillcraftInstrumentationPath),
+  ]);
+  if (!finchainWalk) {
+    return {
+      passes: null,
+      skillcraftRunBase: args.skillcraftRunBase,
+      finchainArtifactWalkPath: finchainArtifactPath,
+      skillcraftInstrumentationPath,
+      note: "FC4 requires a FinChain artifact-walk.json; run eval/finchain/scripts/walk-artifacts.ts for the learned run and place/copy it at the scorecard run base.",
+    };
+  }
+  if (!skillcraftRows) {
+    return {
+      passes: null,
+      skillcraftRunBase: args.skillcraftRunBase,
+      finchainArtifactWalkPath: finchainArtifactPath,
+      skillcraftInstrumentationPath,
+      note: "FC4 requires SkillCraft helper-instrumentation.jsonl from eval/skillcraft/scripts/walk-artifacts.ts",
+    };
+  }
+
+  const skillcraftUses = new Map<string, IntentUse>();
+  for (const row of skillcraftRows) {
+    const called = new Set(row.helpersCalled ?? []);
+    if (called.size === 0) continue;
+    for (const origin of row.helperOrigins ?? []) {
+      if (origin.isSeed || !called.has(origin.name)) continue;
+      addIntentUse(skillcraftUses, origin.intentSignature, row.family, row.taskKey);
+    }
+  }
+
+  const finchainUses = new Map<string, IntentUse>();
+  for (const trajectory of finchainWalk.trajectories ?? []) {
+    if ((trajectory.libCalls ?? []).length === 0) continue;
+    addIntentUse(
+      finchainUses,
+      trajectory.intentSignature,
+      trajectory.family,
+      trajectory.trajectoryId,
+    );
+  }
+
+  const shared: Array<{
+    intentSignature: string;
+    skillcraftFamilies: string[];
+    finchainTopics: string[];
+    skillcraftEpisodes: string[];
+    finchainTrajectories: string[];
+  }> = [];
+  for (const [signature, skillcraftUse] of skillcraftUses) {
+    const finchainUse = finchainUses.get(signature);
+    if (!finchainUse) continue;
+    shared.push({
+      intentSignature: signature,
+      skillcraftFamilies: [...skillcraftUse.families].sort(),
+      finchainTopics: [...finchainUse.families].sort(),
+      skillcraftEpisodes: [...skillcraftUse.episodes].sort(),
+      finchainTrajectories: [...finchainUse.episodes].sort(),
+    });
+  }
+
+  return {
+    passes: shared.length > 0,
+    skillcraftRunBase: args.skillcraftRunBase,
+    finchainArtifactWalkPath: finchainArtifactPath,
+    skillcraftInstrumentationPath,
+    sharedIntentSignatures: shared,
+    skillcraftCalledIntentSignatures: [...skillcraftUses.values()]
+      .map(serialiseIntentUse)
+      .sort((a, b) => a.intentSignature.localeCompare(b.intentSignature)),
+    finchainCalledIntentSignatures: [...finchainUses.values()]
+      .map(serialiseIntentUse)
+      .sort((a, b) => a.intentSignature.localeCompare(b.intentSignature)),
+  };
+}
+
+type HarnessStatus = "proven" | "weak" | "blocked";
+
+const CODE_MODE_MIN_PAIRED_EPISODES = 3;
+const CODE_MODE_MIN_WARM_REUSE_OPPORTUNITIES = 3;
+const CODE_MODE_MIN_COMPRESSION_REDUCTION = 0.10;
+
+function passFailConditional(
+  value: boolean | null | undefined,
+): HarnessStatus {
+  if (value === true) return "proven";
+  if (value === false) return "weak";
+  return "blocked";
+}
+
+function rate(rows: NormalizedRow[], pick: (row: NormalizedRow) => boolean | null): number | null {
+  const values = rows
+    .map(pick)
+    .filter((value): value is boolean => value !== null);
+  return meanOrNull(values.map((value) => (value ? 1 : 0)));
+}
+
+function codeModeHarnessAssessment(input: {
+  learned: NormalizedRow[];
+  control: NormalizedRow[];
+  fc3: ReturnType<typeof fc3Stats>;
+  fc4: Record<string, unknown>;
+  finchainWalk: FinChainArtifactWalk | null;
+}): Record<string, unknown> {
+  const learnedFacRate = rate(input.learned, (row) => row.facMatch);
+  const controlFacRate = rate(input.control, (row) => row.facMatch);
+  const learnedPassRate = rate(input.learned, (row) => row.passed);
+  const noAccuracyRegression = input.fc3.pairedCount > 0
+    && input.fc3.facLearnedMean !== null
+    && input.fc3.facControlMean !== null
+    && input.fc3.facLearnedMean >= input.fc3.facControlMean;
+  const anyCompression = (input.fc3.tokenReductionPct !== null && input.fc3.tokenReductionPct > 0)
+    || (input.fc3.wallClockReductionPct !== null && input.fc3.wallClockReductionPct > 0);
+  const trajectories = input.finchainWalk?.trajectories ?? [];
+  const libCallTrajectories = trajectories.filter((trajectory) =>
+    (trajectory.libCalls ?? []).length > 0,
+  );
+  const calledIntentSignatures = [...new Set(
+    libCallTrajectories
+      .map((trajectory) => trajectory.intentSignature)
+      .filter((signature): signature is string => Boolean(signature)),
+  )].sort();
+  const r4 = input.finchainWalk?.R4R9?.R4;
+  const r6 = input.finchainWalk?.R4R9?.R6;
+  const r7 = input.finchainWalk?.R4R9?.R7;
+  const r9 = input.finchainWalk?.R4R9?.R9;
+  const warmOpportunities = r7?.warmEpisodesWithHelper ?? 0;
+  const maxCostReduction = Math.max(
+    input.fc3.tokenReductionPct ?? Number.NEGATIVE_INFINITY,
+    input.fc3.wallClockReductionPct ?? Number.NEGATIVE_INFINITY,
+  );
+  const helpers = input.finchainWalk?.helpers ?? [];
+  const helpersWithContracts = helpers.filter((helper) =>
+    typeof helper["replayContract"] === "string" &&
+    typeof helper["changeContract"] === "string" &&
+    typeof helper["verifier"] === "string" &&
+    typeof helper["rollback"] === "string",
+  ).length;
+  const benchmarkSafetyStatus: HarnessStatus = input.fc3.pairedCount === 0
+    ? "blocked"
+    : input.fc3.pairedCount >= CODE_MODE_MIN_PAIRED_EPISODES
+      && noAccuracyRegression
+      && (learnedPassRate ?? 0) >= 0.92
+      ? "proven"
+      : "weak";
+  const compressionStatus: HarnessStatus = input.fc3.pairedCount === 0
+    ? "blocked"
+    : input.fc3.pairedCount >= CODE_MODE_MIN_PAIRED_EPISODES
+      && noAccuracyRegression
+      && warmOpportunities >= CODE_MODE_MIN_WARM_REUSE_OPPORTUNITIES
+      && libCallTrajectories.length >= CODE_MODE_MIN_WARM_REUSE_OPPORTUNITIES
+      && maxCostReduction >= CODE_MODE_MIN_COMPRESSION_REDUCTION
+      ? "proven"
+      : "weak";
+  const learningLoopStatus: HarnessStatus = input.finchainWalk === null
+    ? "blocked"
+    : r6?.pass === true
+      && r7?.pass === true
+      && warmOpportunities >= CODE_MODE_MIN_WARM_REUSE_OPPORTUNITIES
+      && libCallTrajectories.length >= CODE_MODE_MIN_WARM_REUSE_OPPORTUNITIES
+      ? "proven"
+      : "weak";
+  const libraryMaturityStatus: HarnessStatus = input.finchainWalk === null
+    ? "blocked"
+    : r4?.pass === true && helpers.length > 0 && helpersWithContracts === helpers.length
+      ? "proven"
+      : "weak";
+  const crossBenchmarkStatus = passFailConditional(input.fc4["passes"] as boolean | null | undefined);
+  const withinBenchmarkStatus = passFailConditional(r9?.pass);
+  const generalityStatus: HarnessStatus =
+    crossBenchmarkStatus === "proven" || withinBenchmarkStatus === "proven"
+      ? "proven"
+      : crossBenchmarkStatus === "blocked" && withinBenchmarkStatus === "blocked"
+        ? "blocked"
+        : "weak";
+  const reuseEvidenceStatus: HarnessStatus = libCallTrajectories.length === 0
+    ? "blocked"
+    : "weak";
+  const layerStatuses = [
+    benchmarkSafetyStatus,
+    "weak" as HarnessStatus, // codeModeContract is external to this scorecard.
+    learningLoopStatus,
+    compressionStatus,
+    libraryMaturityStatus,
+    reuseEvidenceStatus,
+    generalityStatus,
+  ];
+  const overallStatus: HarnessStatus = layerStatuses.every((status) => status === "proven")
+    ? "proven"
+    : layerStatuses.includes("blocked")
+      ? "blocked"
+      : "weak";
+
+  return {
+    statusVocabulary: {
+      proven: "current scorecard evidence meets the minimum anti-gaming threshold for this layer",
+      weak: "some useful evidence exists, but sample size, threshold strength, or provenance is insufficient for a product conclusion",
+      blocked: "required evidence is missing from this scorecard",
+    },
+    overallStatus,
+    thresholds: {
+      minPairedEpisodes: CODE_MODE_MIN_PAIRED_EPISODES,
+      minWarmReuseOpportunities: CODE_MODE_MIN_WARM_REUSE_OPPORTUNITIES,
+      minCompressionReductionPct: CODE_MODE_MIN_COMPRESSION_REDUCTION,
+    },
+    note: [
+      "Diagnostic product-alignment rubric for code-mode learning quality.",
+      "It does not change FC1-FC5 pass/fail semantics; FC gates remain benchmark-success evidence.",
+      "FC3 still requires FAC uplift for benchmark success, while this layer treats saturated correctness as useful only when accuracy is preserved and cost compression clears a diagnostic threshold.",
+      "FC4 same-signature transfer remains reported separately from broader harness generality.",
+      "Diagnostic pass-like claims are intentionally harder than a single warm reuse or a tiny positive token delta.",
+    ].join(" "),
+    layers: {
+      benchmarkSafety: {
+        status: benchmarkSafetyStatus,
+        learnedFacRate,
+        controlFacRate,
+        learnedPassRate,
+        pairedCount: input.fc3.pairedCount,
+        minPairedEpisodes: CODE_MODE_MIN_PAIRED_EPISODES,
+        requirement: "preserve correctness before treating reuse or compression as useful",
+      },
+      codeModeContract: {
+        status: "weak" as HarnessStatus,
+        requirement: "prove the VFS/TypeScript surface matches runtime behavior",
+        evidenceOutsideScorecard: [
+          "tests/finchain-workspace-surface.test.ts",
+          "workspace AGENTS.md / df.d.ts / prepared-answer.ts artifacts",
+        ],
+        note: "This scorecard reads eval outputs only, so it cannot independently prove prompt/type/runtime alignment.",
+      },
+      learningLoop: {
+        status: learningLoopStatus,
+        convergence: r6 ?? null,
+        conditionalReuse: r7 ?? null,
+        libCallTrajectories: libCallTrajectories.length,
+        minWarmReuseOpportunities: CODE_MODE_MIN_WARM_REUSE_OPPORTUNITIES,
+        calledIntentSignatures,
+        requirement: "repeated intents crystallise tenant helpers and warm episodes call them through df.lib",
+      },
+      reuseEvidence: {
+        status: reuseEvidenceStatus,
+        promptDirected: {
+          status: libCallTrajectories.length > 0 ? "proven" : "blocked",
+          libCallTrajectories: libCallTrajectories.length,
+          note: "A helper call in a run whose prompt may mandate helpers proves directed reuse, not natural discovery.",
+        },
+        filesystemDiscovered: {
+          status: "blocked" as HarnessStatus,
+          note: "Requires prompt/trace evidence that the agent inspected AGENTS.md, df.d.ts, lib/, man, or apropos before selecting the helper.",
+        },
+        heldOutDiscovered: {
+          status: warmOpportunities >= CODE_MODE_MIN_WARM_REUSE_OPPORTUNITIES && r7?.pass === true
+            ? "weak"
+            : warmOpportunities > 0
+              ? "weak"
+              : "blocked",
+          warmOpportunities,
+          minWarmReuseOpportunities: CODE_MODE_MIN_WARM_REUSE_OPPORTUNITIES,
+          note: "Current artifacts do not distinguish held-out discovered reuse from prompt-directed reuse.",
+        },
+        requirement: "separate prompt-directed reuse from filesystem-discovered and held-out reuse",
+      },
+      compression: {
+        status: compressionStatus,
+        tokenReductionPct: input.fc3.tokenReductionPct,
+        wallClockReductionPct: input.fc3.wallClockReductionPct,
+        maxCostReductionPct: Number.isFinite(maxCostReduction) ? maxCostReduction : null,
+        minReductionPct: CODE_MODE_MIN_COMPRESSION_REDUCTION,
+        noAccuracyRegression,
+        anyPositiveReduction: anyCompression,
+        requirement: "learned path preserves accuracy and clears a minimum cost-reduction threshold",
+      },
+      libraryMaturity: {
+        status: libraryMaturityStatus,
+        quarantine: r4 ?? null,
+        helpers: helpers.length,
+        helpersWithContracts,
+        requiredContractFields: ["replayContract", "changeContract", "verifier", "rollback"],
+        requirement: "learned helpers stay inside hook/quarantine governance and expose replay/change/verifier/rollback contracts",
+      },
+      generality: {
+        status: generalityStatus,
+        withinBenchmarkTransfer: {
+          status: withinBenchmarkStatus,
+          crossShapeTransfer: r9?.crossShapeTransfer ?? null,
+          familiesReached: r9?.familiesReached ?? [],
+        },
+        crossBenchmarkSameSignature: {
+          status: crossBenchmarkStatus,
+          fc4: input.fc4,
+        },
+        requirement: "separate within-domain reusable harness behavior from strict cross-benchmark same-signature transfer",
+      },
+    },
+  };
+}
+
 // Abramowitz & Stegun 26.2.17 polynomial approximation to the standard
 // normal CDF; absolute error < 7.5e-8. Adequate for our diagnostic uses.
 function normalCdf(x: number): number {
@@ -303,14 +706,15 @@ async function main(): Promise<void> {
         note: "FC5 requires a SkillCraft regression run on the same substrate commit; pass --skillcraft-scorecard",
       };
 
-  // FC4 cross-benchmark transfer: requires walking trajectories from BOTH
-  // runs. Skip implementation here (iter 3 follow-up: extend
-  // walk-artifacts.ts to compare intentSignatures across run bases).
-  const fc4 = {
-    passes: null,
-    skillcraftRunBase: args.skillcraftRunBase ?? null,
-    note: "FC4 cross-benchmark transfer requires walking trajectory artifacts from both SkillCraft and FinChain runs; implementation lands in iter 3 alongside walk-artifacts.ts extension.",
-  };
+  const fc4 = await fc4CrossBenchmarkTransfer(args);
+  const finchainWalk = await tryReadJson(path.join(args.runBase, "artifact-walk.json")) as FinChainArtifactWalk | null;
+  const codeModeHarness = codeModeHarnessAssessment({
+    learned,
+    control,
+    fc3,
+    fc4,
+    finchainWalk,
+  });
 
   const scorecard = {
     generatedAt: new Date().toISOString(),
@@ -321,6 +725,7 @@ async function main(): Promise<void> {
     fc3,
     fc4,
     fc5,
+    codeModeHarness,
     substrateCommitSha: process.env["GIT_COMMIT_SHA"] ?? null,
   };
 

@@ -16,6 +16,7 @@ import path from "node:path";
 import type { SnippetPhase } from "../bash/snippetRuntime.js";
 import {
   describeLibraryFunction,
+  renderAproposMatches,
   renderManPage,
   searchLibrary,
 } from "../discovery/librarySearch.js";
@@ -246,16 +247,5 @@ export async function cmdApropos(
     return;
   }
 
-  if (scored.length === 0) {
-    process.stdout.write("(no matches above 0.5)\n");
-    return;
-  }
-  const maxName = Math.min(
-    24,
-    scored.reduce((m, x) => Math.max(m, x.name.length), 0),
-  );
-  for (const m of scored) {
-    const padded = m.name.padEnd(maxName, " ");
-    process.stdout.write(`${padded} (${m.kind}) - ${m.intent}\n`);
-  }
+  process.stdout.write(renderAproposMatches(scored));
 }

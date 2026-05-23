@@ -35,7 +35,7 @@
     "eval:finchain:walk-artifacts": "tsx eval/finchain/scripts/walk-artifacts.ts",
     "eval:finchain:verify": "tsx src/observer/__smoke__/finchain-mount.ts",
     "eval:finchain:sweep": "tsx eval/finchain/scripts/sweep.ts",
-    "test": "tsx src/snippet/__smoke__.ts && tsx src/snippet/__sdk_import_smoke__.ts && tsx src/observer/__smoke__/finqa.ts && tsx src/observer/__smoke__/novel-tenant.ts && tsx src/observer/__smoke__/cross-shape-transfer.ts && tsx src/bash/__smoke__.ts && tsx src/observer/__smoke__/finchain-mount.ts && tsx src/observer/__smoke__/author-from-source.ts && vitest run",
+    "test": "tsx src/trajectory/__smoke__.ts && tsx src/snippet/__smoke__.ts && tsx src/snippet/__sdk_import_smoke__.ts && tsx src/observer/__smoke__/finqa.ts && tsx src/observer/__smoke__/novel-tenant.ts && tsx src/observer/__smoke__/cross-shape-transfer.ts && tsx src/bash/__smoke__.ts && tsx src/observer/__smoke__/finchain-mount.ts && tsx src/observer/__smoke__/author-from-source.ts && vitest run",
     "test:unit": "vitest run",
     "typecheck": "tsc --noEmit",
     "acceptance": "bash scripts/acceptance/run-all.sh",

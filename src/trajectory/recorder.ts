@@ -30,6 +30,44 @@ export type PrimitiveCallScope = {
   rootPrimitive?: string;
 };
 
+export type TrajectoryOperationKind =
+  | "read"
+  | "compute"
+  | "tool"
+  | "write"
+  | "unknown";
+
+export type TrajectoryOperationNode = {
+  id: string;
+  kind: TrajectoryOperationKind;
+  primitive: string;
+  label: string;
+  callIndex?: number;
+  scope?: PrimitiveCallScope;
+};
+
+export type TrajectoryOperationEdge = {
+  from: string;
+  to: string;
+  kind: "sequence" | "scope";
+};
+
+export type TrajectoryOperationGraph = {
+  version: 1;
+  nodes: TrajectoryOperationNode[];
+  edges: TrajectoryOperationEdge[];
+  summary: {
+    total: number;
+    reads: number;
+    computes: number;
+    tools: number;
+    writes: number;
+    unknown: number;
+    hasAnswerWrite: boolean;
+    sourceHash?: string;
+  };
+};
+
 // Per-trajectory provenance block. Intentionally a subset of the SDK
 // `Provenance` type — the trajectory file lives next to the data and
 // references the originating tenant + mount + (optional) function.
@@ -210,4 +248,98 @@ export async function readTrajectory(idOrPath: string, baseDir = datafetchHome()
     ? idOrPath
     : path.join(baseDir, "trajectories", `${idOrPath}.json`);
   return JSON.parse(await readFile(file, "utf8")) as TrajectoryRecord;
+}
+
+export function buildTrajectoryOperationGraph(
+  trajectory: Pick<TrajectoryRecord, "calls" | "answer" | "sourceHash">,
+): TrajectoryOperationGraph {
+  const nodes: TrajectoryOperationNode[] = trajectory.calls.map((call) => ({
+    id: `call:${call.index}`,
+    kind: classifyPrimitive(call.primitive),
+    primitive: call.primitive,
+    label: call.primitive,
+    callIndex: call.index,
+    ...(call.scope ? { scope: call.scope } : {}),
+  }));
+
+  if (trajectory.answer !== undefined) {
+    nodes.push({
+      id: "answer",
+      kind: "write",
+      primitive: "df.answer",
+      label: "df.answer",
+    });
+  }
+
+  const edges: TrajectoryOperationEdge[] = [];
+  for (let i = 1; i < nodes.length; i += 1) {
+    edges.push({
+      from: nodes[i - 1]!.id,
+      to: nodes[i]!.id,
+      kind: "sequence",
+    });
+  }
+
+  for (const node of nodes) {
+    if (node.scope?.parentPrimitive === undefined) continue;
+    const parent = findNearestParentNode(nodes, node, node.scope.parentPrimitive);
+    if (!parent || parent.id === node.id) continue;
+    edges.push({
+      from: parent.id,
+      to: node.id,
+      kind: "scope",
+    });
+  }
+
+  return {
+    version: 1,
+    nodes,
+    edges,
+    summary: {
+      total: nodes.length,
+      reads: countKind(nodes, "read"),
+      computes: countKind(nodes, "compute"),
+      tools: countKind(nodes, "tool"),
+      writes: countKind(nodes, "write"),
+      unknown: countKind(nodes, "unknown"),
+      hasAnswerWrite: nodes.some((node) => node.primitive === "df.answer"),
+      ...(trajectory.sourceHash ? { sourceHash: trajectory.sourceHash } : {}),
+    },
+  };
+}
+
+function classifyPrimitive(primitive: string): TrajectoryOperationKind {
+  if (primitive.startsWith("db.")) return "read";
+  if (primitive.startsWith("lib.")) return "compute";
+  if (primitive.startsWith("tool.")) return "tool";
+  if (primitive === "df.answer" || primitive === "answer") return "write";
+  return "unknown";
+}
+
+function findNearestParentNode(
+  nodes: readonly TrajectoryOperationNode[],
+  child: TrajectoryOperationNode,
+  parentPrimitive: string,
+): TrajectoryOperationNode | undefined {
+  const candidates = nodes.filter(
+    (node) =>
+      node.id !== child.id &&
+      node.primitive === parentPrimitive &&
+      node.callIndex !== undefined,
+  );
+  if (candidates.length === 0) return undefined;
+  if (child.callIndex === undefined) return candidates[0];
+  // Nested calls made inside df.lib.* are recorded before the outer lib
+  // boundary is appended, so the matching parent normally follows the child.
+  return (
+    candidates.find((node) => node.callIndex! > child.callIndex!) ??
+    candidates.at(-1)
+  );
+}
+
+function countKind(
+  nodes: readonly TrajectoryOperationNode[],
+  kind: TrajectoryOperationKind,
+): number {
+  return nodes.filter((node) => node.kind === kind).length;
 }

@@ -16,6 +16,9 @@ import path from "node:path";
 import type { MountDescriptor } from "../sdk/index.js";
 import { readFrontmatterHead } from "../sdk/frontmatter.js";
 import { DiskLibraryResolver } from "../snippet/library.js";
+import { hooksEnabled } from "../hooks/mode.js";
+import { listManifests } from "../hooks/manifest.js";
+import type { VfsHookManifest } from "../hooks/types.js";
 
 export type RegenerateWorkspaceMemoryOpts = {
   baseDir: string;
@@ -110,6 +113,39 @@ export async function renderWorkspaceMemory(
     "4. Inspect `_descriptor.json`, `_samples.json`, and `_stats.json` before deciding that a field or category is absent.",
   );
   lines.push("");
+  lines.push("## Code-Native Discovery");
+  lines.push("");
+  lines.push(
+    "- Treat the workspace like a small codebase: use `ls`, `find`, `rg`, `cat`, TypeScript symbols, and LSP/IDE references when available.",
+  );
+  lines.push(
+    "- `df.d.ts` is the source of truth for callable `df.db.*`, `df.tool.*`, `df.lib.*`, and `df.answer(...)` shapes.",
+  );
+  lines.push(
+    "- `lib/` contains tenant-local TypeScript. Read a helper's source before relying on an output shape that is not obvious from its JSDoc.",
+  );
+  lines.push(
+    "- `datafetch apropos '<intent words>'` and `datafetch man <name>` are filesystem-style discovery aids, not replacements for reading the typed code surface.",
+  );
+  lines.push(
+    "- Prefer reusing a matching `df.lib.*` workflow; compose directly from `df.db.*` or `df.tool.*` when no helper fits.",
+  );
+  lines.push("");
+  lines.push("## Namespace Boundaries");
+  lines.push("");
+  lines.push(
+    "- `df.db.*` is the mounted system/provider data surface. Use it for cold reads, search, sampling, and fallback composition when no tenant helper fits.",
+  );
+  lines.push(
+    "- `df.lib.*` is tenant-local TypeScript. It is the warm path for learned workflows, but only call helpers that are visible in `df.d.ts` and not quarantined by hook manifests.",
+  );
+  lines.push(
+    "- `df.tool.*` is a governed adapter bridge for explicit external tool catalogs. Use it when the typed manifest exposes a tool and no better tenant helper exists.",
+  );
+  lines.push(
+    "- `df.answer(...)` is the typed commit boundary. Return the final answer, evidence, derivation, and assumptions there rather than printing ad hoc output.",
+  );
+  lines.push("");
   lines.push("## Workspace Contract");
   lines.push("");
   lines.push(
@@ -122,7 +158,25 @@ export async function renderWorkspaceMemory(
     "- Do not answer from `tmp/runs/N` output. Convert the validated plan into `scripts/answer.ts`, commit it, then answer from `result/answer.json`.",
   );
   lines.push(
+    "- After commit, inspect `result/HEAD.json` and `result/report.md` first. `result/` is the accepted HEAD view; rejected attempts stay under `result/commits/N/`.",
+  );
+  lines.push(
+    "- Use `result/source.ts`, `result/graph.txt`, and `result/tests/replay.txt` to review the committed TypeScript source, read/compute/tool/write graph, replay contract, assumptions, and learning eligibility.",
+  );
+  lines.push(
+    "- `result/report.md` may show learning eligibility, but hook manifests remain the authority for final `df.lib.*` callability.",
+  );
+  lines.push(
+    "- Observer learning decisions, including skipped and crystallised outcomes, are append-only under `observer/<tenant>/decisions.jsonl` in the datafetch home.",
+  );
+  lines.push(
     "- Make probabilistic steps explicit as reusable `df.lib.*` interfaces or `fn({ body: agent(...) })` functions with skill markdown sidecars.",
+  );
+  lines.push(
+    "- For helper code needed only by the current answer, write `scripts/helpers.ts` and import it from `scripts/answer.ts`; do not create nested `lib/<tenant>/...` paths inside this workspace.",
+  );
+  lines.push(
+    "- Treat `lib/` as the mounted tenant library root. New durable `df.lib.*` callability should come from validated observer promotion plus hook manifests, not from assuming a fresh file is immediately callable.",
   );
   lines.push(
     "- If a broad exploration produces a narrower useful sub-intent, keep that logic in `scripts/answer.ts` and mark the committed `df.answer(...)` with `intent: { name, description, parent, relation }`.",
@@ -224,31 +278,30 @@ export async function renderWorkspaceMemory(
 
   lines.push("## Committed Answer File Shape");
   lines.push("");
-  lines.push("Use flat TypeScript. Keep the full answer path in the file:");
+  lines.push("Use flat TypeScript snippet code. Keep the full answer path in the file:");
   lines.push("");
   lines.push("```ts");
-  lines.push("export default async function main(input, df) {");
-  lines.push("  const candidates = await df.db.<ident>.search(input.query, { limit: 50 });");
-  lines.push("  const picked = await df.lib.<selector>({ question: input.question, candidates });");
-  lines.push("  const plan = await df.lib.<planner>({ question: input.question, filing: picked.value });");
-  lines.push("  const out = await df.lib.<executor>({ filing: picked.value, plan: plan.value });");
-  lines.push("  return df.answer({");
-  lines.push("    intent: {");
-  lines.push("      name: \"<short-stable-name>\",");
-  lines.push("      parent: input.question,");
-  lines.push("      relation: \"same\",");
-  lines.push("      description: \"<what this committed trajectory answers>\",");
-  lines.push("    },");
-  lines.push("    status: \"answered\",");
-  lines.push("    value: out.value,");
-  lines.push("    evidence: [{ ref: picked.value.id ?? picked.value.filename }],");
-  lines.push("    derivation: { operation: \"derived-from-visible-df-calls\" },");
-  lines.push("  });");
-  lines.push("}");
+  lines.push("const candidates = await df.db.<ident>.search(\"<query>\", { limit: 50 });");
+  lines.push("const picked = await df.lib.<selector>({ question: \"<question>\", candidates });");
+  lines.push("const plan = await df.lib.<planner>({ question: \"<question>\", filing: picked.value });");
+  lines.push("const out = await df.lib.<executor>({ filing: picked.value, plan: plan.value });");
+  lines.push("");
+  lines.push("return df.answer({");
+  lines.push("  intent: {");
+  lines.push("    name: \"<short-stable-name>\",");
+  lines.push("    parent: \"<original intent>\",");
+  lines.push("    relation: \"same\",");
+  lines.push("    description: \"<what this committed trajectory answers>\",");
+  lines.push("  },");
+  lines.push("  status: \"answered\",");
+  lines.push("  value: out.value,");
+  lines.push("  evidence: [{ ref: picked.value.id ?? picked.value.filename }],");
+  lines.push("  derivation: { operation: \"derived-from-visible-df-calls\" },");
+  lines.push("});");
   lines.push("```");
   lines.push("");
   lines.push(
-    "If no existing selector/planner/executor fits, write the missing helper in `scripts/helpers.ts` or a typed `fn({...})` in `lib/<tenant>/`, then call it from `scripts/answer.ts` and commit.",
+    "If no existing selector/planner/executor fits, keep the missing immediate helper in `scripts/helpers.ts`, import it from `scripts/answer.ts`, and commit the visible trajectory. Validated observer promotion can later turn that repeated workflow into a callable tenant `df.lib.*` helper under the mounted `lib/` surface.",
   );
   lines.push("");
 
@@ -292,11 +345,24 @@ async function discoverLibrary(
   } catch {
     return [];
   }
+  let callableNames: Set<string> | null = null;
+  if (hooksEnabled()) {
+    const manifests = await listManifests(baseDir, tenantId);
+    callableNames = new Set(
+      manifests
+        .filter((m: VfsHookManifest) =>
+          m.callability === "callable" || m.callability === "callable-with-fallback",
+        )
+        .map((m: VfsHookManifest) => m.name),
+    );
+  }
   const summaries = await Promise.all(
     entries.map(async (entry) => {
-      const head = await readFrontmatterHead(
-        path.join(baseDir, "lib", tenantId, `${entry.name}.ts`),
-      );
+      const source = await resolveLibrarySourcePath(baseDir, tenantId, entry.name);
+      if (callableNames !== null && !source.isSeed && !callableNames.has(entry.name)) {
+        return null;
+      }
+      const head = await readFrontmatterHead(source.path);
       const intent = compact(
         head.description ??
           entry.spec.intent ??
@@ -310,11 +376,33 @@ async function discoverLibrary(
       };
     }),
   );
-  summaries.sort((a, b) => {
+  const visibleSummaries = summaries.filter((s): s is LibrarySummary => s !== null);
+  visibleSummaries.sort((a, b) => {
     if (a.isTool !== b.isTool) return a.isTool ? -1 : 1;
     return a.name.localeCompare(b.name);
   });
-  return summaries;
+  return visibleSummaries;
+}
+
+async function resolveLibrarySourcePath(
+  baseDir: string,
+  tenantId: string,
+  name: string,
+): Promise<{ path: string; isSeed: boolean }> {
+  const tenantPath = path.join(baseDir, "lib", tenantId, `${name}.ts`);
+  if (await fileExists(tenantPath)) return { path: tenantPath, isSeed: false };
+  const seedPath = path.join(baseDir, "lib", "__seed__", `${name}.ts`);
+  if (await fileExists(seedPath)) return { path: seedPath, isSeed: true };
+  return { path: tenantPath, isSeed: false };
+}
+
+async function fileExists(file: string): Promise<boolean> {
+  try {
+    const stat = await fsp.stat(file);
+    return stat.isFile();
+  } catch {
+    return false;
+  }
 }
 
 async function listDirs(root: string): Promise<string[]> {

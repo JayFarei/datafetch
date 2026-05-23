@@ -2,6 +2,16 @@
 
 This file describes the Goal 5 bilateral rubric for the FinChain evaluation arm. It mirrors `eval/skillcraft/rubric.md` and adds the FinChain-specific gates FC1-FC5. The execution-level rubric authority is `experiments/PLAN.md` § Goal 5; this document is the per-benchmark reference.
 
+The FC gates remain hard benchmark-success gates. They are not weakened or
+reinterpreted by the code-mode harness diagnostic added below. The diagnostic
+exists because a code-centric learning harness has product properties that FC3
+and FC4 only partially measure: typed workspace discovery, contract/runtime
+agreement, helper crystallisation, warm reuse, governed maturity, and
+cost/trajectory compression under saturated correctness. The diagnostic uses
+`proven | weak | blocked`, not `pass | fail`: `proven` means the current
+scorecard evidence meets the anti-gaming threshold, `weak` means useful but
+insufficient evidence, and `blocked` means required evidence is missing.
+
 ## R1-R9 (carried from Goal 4)
 
 R1-R9 apply to the FinChain arm exactly as they do to SkillCraft, with the following per-benchmark interpretations:
@@ -65,11 +75,26 @@ Comparison from same table:
 
 Computed by `eval/finchain/scripts/p1-paired-analysis.py` (reusing the SkillCraft P1 analyser).
 
+FC3 is intentionally strict and still useful as benchmark evidence. When both
+arms already saturate FAC, FC3 may be false even when the code-mode harness is
+improving the product shape. In that case, inspect `codeModeHarness.compression`
+in `finchain-scorecard.json`: it records the weaker but product-relevant claim
+that learned mode preserved paired correctness and cleared a minimum cost
+reduction threshold. Tiny positive deltas stay `weak`. This diagnostic is not
+a substitute for FC3 pass.
+
 ## FC4 — Cross-benchmark transfer
 
 **Pass:** At least one `intentSignature` whose crystallised helper was called in ≥1 SkillCraft family AND ≥1 FinChain topic on the same substrate commit. Both calls must be in the trajectory (not just hydrated into df.d.ts).
 
 **Evidence path:** `eval/finchain/results/datafetch/<run>/finchain-scorecard.json#crossBenchmarkTransfer` AND `eval/skillcraft/results/datafetch/<run>/r1-r9-scorecard.json#crossShapeTransfer`. The two scorecards must reference the same helper signature with the same `intentSignature` field.
+
+FC4 measures the strictest form of transfer: the same intent signature called
+from both SkillCraft and FinChain. The broader product question is whether the
+same code-mode harness can discover, externalize, promote, and reuse tenant
+code across repeated intent families. That broader question is reported under
+`codeModeHarness.generality`, split into within-benchmark transfer and
+cross-benchmark same-signature transfer. FC4 remains the same-signature gate.
 
 ## FC5 — Bilateral non-regression (SkillCraft)
 
@@ -110,9 +135,54 @@ Computed by `eval/finchain/scripts/p1-paired-analysis.py` (reusing the SkillCraf
     "fourVector": {"correctness": "NEUTRAL", "tokens": "PASS", "wallClock": "PASS", "sigma": "NEUTRAL"},
     "passes": true|false
   },
+  "codeModeHarness": {
+    "note": "diagnostic only; FC1-FC5 semantics unchanged",
+    "layers": {
+      "benchmarkSafety": {
+        "status": "proven|weak|blocked",
+        "requirement": "preserve correctness before treating reuse or compression as useful"
+      },
+      "codeModeContract": {
+        "status": "weak",
+        "requirement": "prove the VFS/TypeScript surface matches runtime behavior",
+        "evidenceOutsideScorecard": ["tests/finchain-workspace-surface.test.ts"]
+      },
+      "learningLoop": {
+        "status": "proven|weak|blocked",
+        "requirement": "repeated intents crystallise tenant helpers and warm episodes call them through df.lib"
+      },
+      "reuseEvidence": {
+        "status": "proven|weak|blocked",
+        "requirement": "separate prompt-directed reuse from filesystem-discovered and held-out reuse"
+      },
+      "compression": {
+        "status": "proven|weak|blocked",
+        "requirement": "learned path preserves accuracy and clears a minimum cost-reduction threshold"
+      },
+      "libraryMaturity": {
+        "status": "proven|weak|blocked",
+        "requirement": "learned helpers stay inside hook/quarantine governance and expose replay/change/verifier/rollback contracts"
+      },
+      "generality": {
+        "status": "proven|weak|blocked",
+        "requirement": "separate within-domain reusable harness behavior from strict cross-benchmark same-signature transfer"
+      }
+    }
+  },
   "cacheBoundedByFramework": true,
   "substrateCommitSha": "..."
 }
 ```
 
 Goal 5 is MET when `r1-r9-scorecard.json#allPass === true` AND `finchain-scorecard.json#fc1.allPass && fc2.allPass && fc3.passes && fc4.passes && fc5.passes`.
+
+The `codeModeHarness` section answers a different question: whether the
+code-centric product architecture is moving in the right direction. It can
+show useful product progress while Goal 5 remains unmet.
+
+For a diagnostic layer to be `proven`, the current scorer requires at least
+three paired episodes, at least three warm reuse opportunities for learning-loop
+and compression claims, at least 10% token-or-wall reduction for compression,
+and helper maturity evidence beyond quarantine: replay contract, change
+contract, verifier, and rollback fields. Prompt-directed helper calls are
+reported separately from filesystem-discovered or held-out discovered reuse.
