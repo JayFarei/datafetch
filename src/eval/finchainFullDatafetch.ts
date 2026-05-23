@@ -573,6 +573,17 @@ async function runLiveEpisode(input: {
   });
   await fsp.writeFile(path.join(artifactDir, "agent-stdout.txt"), agentRun.stdout);
   await fsp.writeFile(path.join(artifactDir, "agent-stderr.txt"), agentRun.stderr);
+  // Persist the ordered stream-json turns as events.jsonl. The artifact walker
+  // reads this (and only this) as the ordered agent-event trace for code-mode
+  // discovery analysis; summary files are post-hoc and cannot prove ordering.
+  await fsp.writeFile(
+    path.join(artifactDir, "events.jsonl"),
+    agentRun.stdout
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith("{"))
+      .join("\n") + "\n",
+  );
   await fsp.writeFile(path.join(artifactDir, "agent-run.json"), `${JSON.stringify({
     elapsedMs: Math.round(agentRun.elapsedMs),
     exitCode: agentRun.exitCode,
@@ -777,7 +788,12 @@ async function runClaudePAgent(args: {
   const isClaudeP = /(?:^|\/)claude-p$/.test(claudeBin);
   const cliArgs = isClaudeP
     ? [
-        "--output-format", "json",
+        // stream-json (requires --verbose) emits one event per turn, so the
+        // ordered tool-use trace is preserved for the code-mode discovery
+        // analyzer. The final {"type":"result"} event still carries the
+        // answer/usage that parseAgentStdout reads.
+        "--output-format", "stream-json",
+        "--verbose",
         "--model", args.model,
         "--dangerously-skip-permissions",
         "--timeout", String(Math.max(60, Math.ceil(args.timeoutMs / 1000))),
@@ -810,23 +826,55 @@ async function runClaudePAgent(args: {
   });
   const stdout = Buffer.concat(stdoutChunks).toString("utf8");
   const stderr = Buffer.concat(stderrChunks).toString("utf8");
-  let finalMessage = "";
-  const usage: AgentUsage = { inputTokens: 0, cachedInputTokens: 0, outputTokens: 0, reasoningOutputTokens: 0, llmCalls: 0 };
-  try {
-    const parsed = JSON.parse(stdout) as Record<string, unknown>;
-    const result = parsed["result"];
-    finalMessage = typeof result === "string" ? result : result !== undefined ? JSON.stringify(result) : "";
-    const u = parsed["usage"] as Record<string, unknown> | undefined;
-    if (u) {
-      usage.inputTokens = Number(u["input_tokens"] ?? 0) || 0;
-      usage.cachedInputTokens = (Number(u["cache_read_input_tokens"] ?? 0) || 0) + (Number(u["cache_creation_input_tokens"] ?? 0) || 0);
-      usage.outputTokens = Number(u["output_tokens"] ?? 0) || 0;
+  const parsed = parseAgentStdout(stdout);
+  const usage: AgentUsage = {
+    inputTokens: parsed.inputTokens,
+    cachedInputTokens: parsed.cachedInputTokens,
+    outputTokens: parsed.outputTokens,
+    reasoningOutputTokens: 0,
+    llmCalls: parsed.llmCalls,
+  };
+  return { workspaceDir: args.workspaceDir, prompt: args.prompt, stdout, stderr, finalMessage: parsed.finalMessage, elapsedMs: performance.now() - started, exitCode, usage };
+}
+
+// Extract the final answer + usage from a claude-p run. Handles both
+// `--output-format json` (a single result object) and `--output-format
+// stream-json` (NDJSON whose last `{"type":"result"}` line carries the
+// answer/usage). Pure and unit-tested so the stream-json switch cannot
+// silently break token accounting; correctness itself comes from executing
+// scripts/answer.ts, not from this message.
+export function parseAgentStdout(stdout: string): {
+  finalMessage: string;
+  inputTokens: number;
+  cachedInputTokens: number;
+  outputTokens: number;
+  llmCalls: number;
+} {
+  const trimmed = stdout.trim();
+  const empty = { finalMessage: "", inputTokens: 0, cachedInputTokens: 0, outputTokens: 0, llmCalls: 0 };
+  if (!trimmed) return empty;
+  let resultObj: Record<string, unknown> | null = null;
+  for (const line of trimmed.split("\n")) {
+    const s = line.trim();
+    if (!s.startsWith("{")) continue;
+    try {
+      const obj = JSON.parse(s) as Record<string, unknown>;
+      if (obj["type"] === "result" || "result" in obj) resultObj = obj;
+    } catch {
+      /* skip non-JSON / partial stream lines */
     }
-    usage.llmCalls = Number(parsed["num_turns"] ?? 1) || 1;
-  } catch {
-    finalMessage = stdout.trim();
   }
-  return { workspaceDir: args.workspaceDir, prompt: args.prompt, stdout, stderr, finalMessage, elapsedMs: performance.now() - started, exitCode, usage };
+  if (!resultObj) return { ...empty, finalMessage: trimmed };
+  const result = resultObj["result"];
+  const finalMessage = typeof result === "string" ? result : result !== undefined ? JSON.stringify(result) : "";
+  const u = resultObj["usage"] as Record<string, unknown> | undefined;
+  return {
+    finalMessage,
+    inputTokens: u ? Number(u["input_tokens"] ?? 0) || 0 : 0,
+    cachedInputTokens: u ? (Number(u["cache_read_input_tokens"] ?? 0) || 0) + (Number(u["cache_creation_input_tokens"] ?? 0) || 0) : 0,
+    outputTokens: u ? Number(u["output_tokens"] ?? 0) || 0 : 0,
+    llmCalls: Number(resultObj["num_turns"] ?? 1) || 1,
+  };
 }
 
 function helperUseStrength(): "recommend" | "mandate" {

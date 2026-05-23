@@ -196,7 +196,11 @@ async function readJsonOrNull(filePath: string): Promise<unknown> {
 
 async function collectAgentEventTexts(root: string): Promise<Array<{ source: string; text: string }>> {
   const out: Array<{ source: string; text: string }> = [];
-  const wanted = new Set(["events.jsonl", "agent-stdout.txt", "agent-run.json", "run.json"]);
+  // Only ordered event streams (events.jsonl) prove inspection-before-helper.
+  // Summary files such as agent-stdout.txt / agent-run.json carry the final
+  // answer (which always names the chosen helper) with no ordering, so mixing
+  // them in would inject a premature helper-call and wrongly block discovery.
+  const wanted = new Set(["events.jsonl", "run.jsonl"]);
   const walk = async (dir: string): Promise<void> => {
     let entries: import("node:fs").Dirent[];
     try {
