@@ -492,6 +492,23 @@ do not fan out. Continue locally on small work or stop and record the blocker.
     stamping path. That keeps the rubric non-gameable: frontmatter can describe
     intent, but replay evidence earns maturity.
 
+39. The code-mode harness learning loop is now proven on fresh live artifacts.
+    The FinChain runner invokes `claude-p` with `--output-format stream-json`
+    and persists the ordered turns as `events.jsonl`; the artifact walker
+    derives discovery evidence from those ordered streams only, not from
+    post-hoc summary files that always name the chosen helper. A pure
+    `parseAgentStdout` reads the final result/usage from either output format so
+    the switch cannot break token accounting, and correctness still comes from
+    executing `scripts/answer.ts`. On fresh slices the agent inspects
+    `AGENTS.md` and `df.d.ts` before selecting the learned `df.lib.*` helper,
+    crystallises a helper that passes origin and held-out replay and carries
+    `validated-header` contracts, and reuses it across warm seeds. This moves
+    `filesystemDiscovered`, `reuseEvidence`, `learningLoop`, and
+    `libraryMaturity` to `proven` (joining `benchmarkSafety`) without weakening
+    any FC/R gate. `compression` and `generality` stay non-proven for the
+    structural reasons FC3 (correctness saturation) and FC4 (signature
+    mismatch) describe.
+
 Together, these slices give agents and vendors a clearer view of a run's
 read/compute/tool/write shape and the governed tool surface while keeping the
 authoritative state as executable TypeScript source, typed calls, replay

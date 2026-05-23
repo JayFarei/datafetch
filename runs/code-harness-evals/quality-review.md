@@ -480,3 +480,36 @@ Decision: the discovery-evidence and maturity-contract slices stayed simple and
 maintainable, and the live run proves the promotion-time contract path
 end-to-end. Accept. Remaining FC3/FC4/R8 and full-bilateral proof are documented
 blockers, not quality defects.
+
+## Review of the stream-json discovery trace (Attempt 49, commit 54342f0b7)
+
+- The agent-invocation change is contained: `runClaudePAgent` switches to
+  `--output-format stream-json --verbose` and delegates result/usage extraction
+  to a pure, exported `parseAgentStdout`. That parser handles both the legacy
+  single-object json output and the NDJSON stream (it picks the
+  `{"type":"result"}` line), so the format switch cannot silently zero out
+  token accounting. It has four focused unit tests covering json mode,
+  stream mode, non-JSON fallback, and empty input.
+- Correctness is structurally unaffected: the FAC result comes from executing
+  `scripts/answer.ts`, not from the agent's final message. The fresh live slices
+  confirm all seeds stayed `fac=true` after the switch.
+- `events.jsonl` is written from the same stdout the runner already captured;
+  no second agent invocation, no new persistence format beyond one NDJSON file
+  the walker already knew how to read.
+- The walker change tightens, rather than expands, the discovery-evidence
+  surface: it now reads ordered streams only and explicitly drops the summary
+  files (`agent-stdout.txt`, `agent-run.json`) that contain the final answer.
+  This removes a latent correctness bug — those summaries would have injected a
+  premature helper-call into the ordering and could wrongly block (or, in other
+  orderings, wrongly prove) discovery. The comment documents why.
+- No file crossed the 1k-line threshold from this change, no scorer threshold
+  moved, and the analyzer (`codeModeDiscoveryEvidence.ts`) was untouched — it
+  was already conservative and correct; it simply had no ordered input before.
+
+Residual risk: discovery-evidence quality now depends on `claude-p` continuing
+to emit a well-formed stream-json trace. If a future CLI change alters the event
+shape, `parseAgentStdout` still degrades safely (falls back to raw text / zero
+usage) and the analyzer returns `blocked` rather than a false positive.
+
+Decision: accept. The change proves the VFS-first discovery claim with live
+evidence while staying small, pure-testable, and non-gameable.
