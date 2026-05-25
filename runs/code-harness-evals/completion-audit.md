@@ -55,7 +55,18 @@ reasons rather than missing local work:
   is model-independent: re-running the consolidating 6-seed slice with Opus 4.7
   (`finchain-opus47-discovery-warmreuse-seeds0-5-v1-hooks-draft`) kept all six
   seeds `fac=true` with the identical code-mode harness layer outcomes, so a
-  stronger model reinforces saturation rather than breaking it.
+  stronger model reinforces saturation rather than breaking it. Attempt 51 then
+  showed harder FinChain templates do not unblock it either: the hardest
+  balance_sheets template (position 5, multi-step `business_combination`,
+  `finchain-sonnet-balance-sheets-HARD-tpl5-seeds0-5-v1-hooks-draft`) still got
+  6/6 `fac=true`, and although a helper crystallised and was reused (R7 4/4) and
+  genuinely encapsulated the multi-step goodwill formula, the warm agent
+  re-derived the computation by hand to fill the `df.answer` derivation, so
+  tokens rose rather than fell. The compounding structural blockers are
+  saturated correctness, literal task inputs (no retrieval/IO for a helper to
+  offload), and a derivation expectation that induces manual recomputation.
+  Realising headroom needs a corpus where the cold path must do expensive
+  retrieval or multi-turn tool work, i.e. CRAG + tau-3-bench.
 - FC4 / `generality`: SkillCraft `FANOUT(tool)` and FinChain `source(...)` are
   genuinely different intent signatures, so strict same-signature transfer is
   correctly false.
