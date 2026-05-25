@@ -51,7 +51,11 @@ reasons rather than missing local work:
 
 - FC3 / `compression`: correctness saturates both arms on this FinChain
   pure-compute corpus (`facPValue: 1`, token reduction ~5.5% < 10%). This is a
-  benchmark-difficulty ceiling, not a scorer issue.
+  benchmark-difficulty ceiling, not a scorer issue, and Attempt 50 confirmed it
+  is model-independent: re-running the consolidating 6-seed slice with Opus 4.7
+  (`finchain-opus47-discovery-warmreuse-seeds0-5-v1-hooks-draft`) kept all six
+  seeds `fac=true` with the identical code-mode harness layer outcomes, so a
+  stronger model reinforces saturation rather than breaking it.
 - FC4 / `generality`: SkillCraft `FANOUT(tool)` and FinChain `source(...)` are
   genuinely different intent signatures, so strict same-signature transfer is
   correctly false.
