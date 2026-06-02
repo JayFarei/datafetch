@@ -1,7 +1,25 @@
 import { promises as fsp } from "node:fs";
 import path from "node:path";
 
-type Arm = "skillcraft-base" | "skillcraft-skill" | "skillcraft-static-reuse" | "datafetch-learned" | "datafetch-control";
+type Arm =
+  | "skillcraft-base"
+  | "skillcraft-skill"
+  | "skillcraft-static-reuse"
+  | "datafetch-learned"
+  | "datafetch-control"
+  // SaC-aligned PoC seven-arm ladder (CONTRACT §a). The cross-arm scorer keys
+  // exclusively on the `sacArm` field below; `arm` carries the sac-arm id so
+  // existing readers/slices still see a single arm column.
+  | "sac-arm0"
+  | "sac-arm1"
+  | "sac-arm2"
+  | "sac-arm3"
+  | "sac-arm4"
+  | "sac-arm5a"
+  | "sac-arm5b";
+
+type SacArm = "arm0" | "arm1" | "arm2" | "arm3" | "arm4" | "arm5a" | "arm5b";
+type PhaseTag = "single" | "phase1-build" | "phase2-reuse";
 
 interface Args {
   nativeRun?: string;
@@ -46,6 +64,37 @@ interface NormalizedRow {
   promotedToLibCache: boolean | null;
   artifactPath: string | null;
   sourceProtocol: string;
+  // --- SaC-aligned PoC fields (CONTRACT §b/§e). All optional/null for
+  // non-sac rows so the Goal-4 scorer is untouched; the cross-arm scorer
+  // (S3) reads `sacArm` + `effectiveModelContextTokens` exclusively. ---
+  sacArm?: SacArm | null;
+  phaseTag?: PhaseTag | null;
+  // Interleaved seed ordinal (PRE-REGISTRATION §4). Read from the episode
+  // record when present, else from run-info.json (seed is constant per run).
+  // The cross-arm scorer (S3) uses it as the arm1<->arm4 parity match key and
+  // the within-arm noise-floor cluster; null on legacy runs.
+  seed?: number | null;
+  effectiveModelContextTokens?: number | null;
+  rawInputTokens?: number | null;
+  cachedInputTokens?: number | null;
+  outputTokensLedger?: number | null;
+  buildCostTokens?: number | null;
+  governanceCostTokens?: number | null;
+  inlineCostPerQTokens?: number | null;
+  warmCallCostPerQTokens?: number | null;
+  parityFloorTokens?: number | null;
+  sandboxMs?: number | null;
+  cacheHitCount?: number | null;
+  cacheMissCount?: number | null;
+  cacheHitRate?: number | null;
+  decisiveCacheHit?: boolean | null;
+  recipeChars?: number | null;
+  governanceGateApplied?: boolean | null;
+  governanceGatePassed?: boolean | null;
+  helperCallable?: boolean | null;
+  promptHash?: string | null;
+  promptParityHash?: string | null;
+  bindingLineHash?: string | null;
 }
 
 function parseArgs(argv: string[]): Args {
@@ -171,6 +220,11 @@ async function normalizeDatafetchRun(runDir: string): Promise<NormalizedRow[]> {
   // the same datafetch harness. Default to datafetch-learned to preserve
   // pre-P1 behaviour for older runs that never wrote this field.
   const runArmId = payload.armId === "datafetch-control" ? "datafetch-control" : "datafetch-learned";
+  // SaC-aligned PoC: the run-info may pin a sacArm; per-episode sacArm wins.
+  const runSacArm: SacArm | null = isSacArm(payload.sacArm) ? payload.sacArm : null;
+  // Interleaved seed ordinal (PRE-REGISTRATION §4) is constant per run; read
+  // it from run-info, allowing a per-episode override.
+  const runSeed: number | null = numberOrNull(payload.seed);
   return episodes
     .filter((episode: any) => episode.mode === "datafetch")
     .map((episode: any) => {
@@ -212,13 +266,21 @@ async function normalizeDatafetchRun(runDir: string): Promise<NormalizedRow[]> {
           ? "runtime_error"
           : null;
       const officialPassed = runtimeStatus === null && Boolean(episode.officialPassed ?? episode.answerCorrect);
+      // SaC-aligned PoC: the episode's sacArm (or the run-info default) drives
+      // the `arm` column to the sac-arm id; otherwise the legacy derivation.
+      const episodeSacArm: SacArm | null = isSacArm(episode.sacArm)
+        ? episode.sacArm
+        : runSacArm;
+      const arm: Arm = episodeSacArm
+        ? (`sac-${episodeSacArm}` as Arm)
+        : ((episode.armId === "datafetch-control" ? "datafetch-control" : runArmId) as Arm);
       return {
         taskKey,
         canonicalTaskKey,
         family: String(episode.family ?? episode.taskFamily),
         level,
         phase: episode.phase ?? phaseForLevel(level),
-        arm: (episode.armId === "datafetch-control" ? "datafetch-control" : runArmId) as Arm,
+        arm,
         officialPassed,
         passedGe70: officialPassed,
         statusPassGe90: runtimeStatus === null && (officialStatus === "pass" || score >= 90),
@@ -252,6 +314,31 @@ async function normalizeDatafetchRun(runDir: string): Promise<NormalizedRow[]> {
         promotedToLibCache: typeof episode.promotedToLibCache === "boolean" ? episode.promotedToLibCache : null,
         artifactPath: episode.artifactPath ?? resultFile ?? runDir,
         sourceProtocol,
+        // --- SaC-aligned PoC fields (CONTRACT §b/§e) ---
+        sacArm: episodeSacArm,
+        phaseTag: isPhaseTag(episode.phaseTag) ? episode.phaseTag : null,
+        seed: numberOrNull(episode.seed) ?? runSeed,
+        effectiveModelContextTokens: numberOrNull(episode.effectiveModelContextTokens),
+        rawInputTokens: numberOrNull(episode.rawInputTokens),
+        cachedInputTokens: numberOrNull(episode.cachedInputTokens),
+        outputTokensLedger: numberOrNull(episode.outputTokensLedger),
+        buildCostTokens: numberOrNull(episode.buildCostTokens),
+        governanceCostTokens: numberOrNull(episode.governanceCostTokens),
+        inlineCostPerQTokens: numberOrNull(episode.inlineCostPerQTokens),
+        warmCallCostPerQTokens: numberOrNull(episode.warmCallCostPerQTokens),
+        parityFloorTokens: numberOrNull(episode.parityFloorTokens),
+        sandboxMs: numberOrNull(episode.sandboxMs),
+        cacheHitCount: numberOrNull(episode.cacheHitCount),
+        cacheMissCount: numberOrNull(episode.cacheMissCount),
+        cacheHitRate: numberOrNull(episode.cacheHitRate),
+        decisiveCacheHit: typeof episode.decisiveCacheHit === "boolean" ? episode.decisiveCacheHit : null,
+        recipeChars: numberOrNull(episode.recipeChars),
+        governanceGateApplied: typeof episode.governanceGateApplied === "boolean" ? episode.governanceGateApplied : null,
+        governanceGatePassed: typeof episode.governanceGatePassed === "boolean" ? episode.governanceGatePassed : null,
+        helperCallable: typeof episode.helperCallable === "boolean" ? episode.helperCallable : null,
+        promptHash: typeof episode.promptHash === "string" ? episode.promptHash : null,
+        promptParityHash: typeof episode.promptParityHash === "string" ? episode.promptParityHash : null,
+        bindingLineHash: typeof episode.bindingLineHash === "string" ? episode.bindingLineHash : null,
       };
     });
 }
@@ -321,6 +408,24 @@ function numberOrNull(value: unknown): number | null {
 
 function stringOrNull(value: unknown): string | null {
   return typeof value === "string" ? value : null;
+}
+
+const SAC_ARM_VALUES: ReadonlySet<string> = new Set([
+  "arm0",
+  "arm1",
+  "arm2",
+  "arm3",
+  "arm4",
+  "arm5a",
+  "arm5b",
+]);
+
+function isSacArm(value: unknown): value is SacArm {
+  return typeof value === "string" && SAC_ARM_VALUES.has(value);
+}
+
+function isPhaseTag(value: unknown): value is PhaseTag {
+  return value === "single" || value === "phase1-build" || value === "phase2-reuse";
 }
 
 main().catch((error) => {

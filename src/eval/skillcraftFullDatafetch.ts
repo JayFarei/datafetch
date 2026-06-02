@@ -30,6 +30,24 @@ import { readFrontmatterHead } from "../sdk/frontmatter.js";
 import { readTrajectory, type TrajectoryRecord } from "../sdk/index.js";
 import { installSnippetRuntime } from "../snippet/install.js";
 import { getInterfaceMode } from "../hooks/mode.js";
+import {
+  approxTokenCount,
+  arm1BindingLine,
+  arm4BindingLine,
+  armConfig,
+  assertNoArmToggleConflict,
+  computeParityHashes,
+  distilRecipe,
+  effectiveModelContextTokens as computeEffectiveModelContextTokens,
+  marginalCostPerQ,
+  RECIPE_MAX_CHARS,
+  resolveSacArm,
+  stableStringify,
+  type ArmConfig,
+  type PhaseTag,
+  type SacArm,
+  type SacArmId,
+} from "./sacArms.js";
 
 import {
   EvalRecordsMount,
@@ -85,6 +103,23 @@ interface Args {
   noLibCache: boolean;
   disableLearning: boolean;
   resume: boolean;
+  // --- SaC-aligned PoC (S1 runner-core) ---
+  // Resolved from SAC_ARM; null preserves the legacy armId derivation.
+  sacArm?: SacArm | null;
+  // Two-phase fresh-process runner (arm4/arm5a/arm5b). phase 1 builds +
+  // freezes; phase 2 is the FRESH process / cleared transcript that reuses.
+  phase: 1 | 2;
+  // Phase-1 frozen library snapshot dir (arm4 phase-2 hydrates this read-only).
+  frozenLibDir?: string;
+  // Phase-1 results-cache dir (arm5a; written in phase-1, read in phase-2).
+  resultsCacheDir?: string;
+  // Phase-1 recipe dir (arm5b; written in phase-1, read in phase-2).
+  recipeDir?: string;
+  // Interleaved seed ordinal (PRE-REGISTRATION §4). Recorded per run and
+  // threaded onto every episode so the cross-arm scorer can use it as the
+  // arm1<->arm4 parity match key and the within-arm noise-floor cluster. Null
+  // for legacy runs that do not pass --seed.
+  seed?: number | null;
 }
 
 // P1 matched-arm control: when DATAFETCH_DISABLE_LEARNING=1 the harness
@@ -98,6 +133,26 @@ interface Args {
 function resolveDisableLearning(): boolean {
   const raw = (process.env["DATAFETCH_DISABLE_LEARNING"] ?? "").trim().toLowerCase();
   return raw === "1" || raw === "true" || raw === "yes";
+}
+
+// SaC-aligned PoC two-phase runner phase selector (--phase 1|2).
+function parseSacPhase(value: string | undefined): 1 | 2 {
+  const trimmed = (value ?? "").trim();
+  if (trimmed === "1") return 1;
+  if (trimmed === "2") return 2;
+  throw new Error(`--phase must be 1 or 2 (got ${JSON.stringify(value)})`);
+}
+
+// SaC-aligned PoC interleaved-seed ordinal (--seed N). Threaded onto every
+// episode so the cross-arm scorer can cluster the within-arm noise floor and
+// key the arm1<->arm4 parity match precisely (else it falls back to a coarser
+// canonical-question+level key). A finite non-negative integer or throws.
+function parseSeedArg(value: string | undefined): number {
+  const n = Number((value ?? "").trim());
+  if (!Number.isFinite(n) || !Number.isInteger(n) || n < 0) {
+    throw new Error(`--seed must be a non-negative integer (got ${JSON.stringify(value)})`);
+  }
+  return n;
 }
 
 interface SkillCraftTask {
@@ -159,7 +214,63 @@ interface AdapterEpisode {
   agentOutputTokens?: number;
   agentReasoningTokens?: number;
   agentElapsedMs?: number;
-  armId?: "datafetch-control" | "datafetch-learned";
+  // armId is widened (CONTRACT §a) to add the seven sac-arm ids. The legacy
+  // two-value union is retained verbatim so existing Goal-4 runs/readers work.
+  armId?:
+    | "datafetch-control"
+    | "datafetch-learned"
+    | SacArmId;
+
+  // --- SaC-aligned PoC cost-ledger + arm fields (CONTRACT §b) ---
+  // All new fields are optional and default to null when not applicable to
+  // the arm, so older readers and resumed runs do not break.
+
+  // arm identity / phase
+  sacArm?: SacArm | null;
+  phaseTag?: PhaseTag | null;
+
+  // confirmatory model-context token metric (R5): the ONLY token field the
+  // break-even + attribution math reads. = agentInputTokens +
+  // agentOutputTokens, cached input counted at FULL weight (never subtracted).
+  effectiveModelContextTokens?: number | null;
+
+  // raw token components (full weight, no subtraction); aliases for clarity.
+  rawInputTokens?: number | null;
+  cachedInputTokens?: number | null;
+  outputTokensLedger?: number | null;
+
+  // lifecycle cost ledger (R5/R6); tokens unless suffixed.
+  // Phase-1 amortised costs (per-family; populated on phase1-build rows only):
+  buildCostTokens?: number | null;
+  governanceCostTokens?: number | null;
+  // Per-question marginal costs (populated on the per-question rows):
+  inlineCostPerQTokens?: number | null;
+  warmCallCostPerQTokens?: number | null;
+  // The shared parity floor (parity-masked prompt body tokens) so the scorer
+  // can recompute marginals without re-tokenising.
+  parityFloorTokens?: number | null;
+  // Wall-clock + sandbox accounting.
+  sandboxMs?: number | null;
+  wallClockMs?: number | null;
+
+  // cache accounting (R4; arm5a primarily, emitted for all arms).
+  cacheHitCount?: number | null;
+  cacheMissCount?: number | null;
+  cacheHitRate?: number | null;
+  decisiveCacheHit?: boolean | null;
+
+  // recipe accounting (arm5b).
+  recipeChars?: number | null;
+
+  // governance gate decision (R1/R8).
+  governanceGateApplied?: boolean | null;
+  governanceGatePassed?: boolean | null;
+  helperCallable?: boolean | null;
+
+  // Arm-1 parity gate (R2; CONTRACT §d).
+  promptHash?: string | null;
+  promptParityHash?: string | null;
+  bindingLineHash?: string | null;
 }
 
 interface AgentRun {
@@ -195,6 +306,9 @@ function parseArgs(argv: string[]): Args {
     noLibCache: false,
     disableLearning: resolveDisableLearning(),
     resume: false,
+    sacArm: resolveSacArm(),
+    phase: 1,
+    seed: null,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -226,6 +340,18 @@ function parseArgs(argv: string[]): Args {
     else if (arg.startsWith("--lib-cache-dir=")) args.libCacheDir = path.resolve(arg.slice("--lib-cache-dir=".length));
     else if (arg === "--no-lib-cache") args.noLibCache = true;
     else if (arg === "--resume") args.resume = true;
+    else if (arg === "--phase") args.phase = parseSacPhase(argv[++index]);
+    else if (arg.startsWith("--phase=")) args.phase = parseSacPhase(arg.slice("--phase=".length));
+    else if (arg === "--frozen-lib") args.frozenLibDir = path.resolve(argv[++index]);
+    else if (arg.startsWith("--frozen-lib=")) args.frozenLibDir = path.resolve(arg.slice("--frozen-lib=".length));
+    else if (arg === "--results-cache-dir") args.resultsCacheDir = path.resolve(argv[++index]);
+    else if (arg.startsWith("--results-cache-dir=")) args.resultsCacheDir = path.resolve(arg.slice("--results-cache-dir=".length));
+    else if (arg === "--recipe-dir") args.recipeDir = path.resolve(argv[++index]);
+    else if (arg.startsWith("--recipe-dir=")) args.recipeDir = path.resolve(arg.slice("--recipe-dir=".length));
+    else if (arg === "--sac-arm") args.sacArm = resolveSacArm({ ...process.env, SAC_ARM: argv[++index] });
+    else if (arg.startsWith("--sac-arm=")) args.sacArm = resolveSacArm({ ...process.env, SAC_ARM: arg.slice("--sac-arm=".length) });
+    else if (arg === "--seed") args.seed = parseSeedArg(argv[++index]);
+    else if (arg.startsWith("--seed=")) args.seed = parseSeedArg(arg.slice("--seed=".length));
     else throw new Error(`unknown argument: ${arg}`);
   }
   return args;
@@ -233,16 +359,79 @@ function parseArgs(argv: string[]): Args {
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
+
+  // --- SaC-aligned PoC arm wiring (CONTRACT §a) ---
+  // When SAC_ARM is set, it is the single source of truth: it derives the
+  // interface mode + learning toggle + the three new axes + phase count, and
+  // we set process.env["DATAFETCH_INTERFACE_MODE"]/["DATAFETCH_DISABLE_LEARNING"]
+  // BEFORE any getInterfaceMode() read (Risk R-1). A missing SAC_ARM falls
+  // back to the legacy armId derivation so existing Goal-4 runs are untouched.
+  const sacConfig: ArmConfig | null = args.sacArm ? armConfig(args.sacArm) : null;
+  if (sacConfig) {
+    assertNoArmToggleConflict({ config: sacConfig });
+    // Set the derived toggles before the first getInterfaceMode() read.
+    process.env["DATAFETCH_INTERFACE_MODE"] = sacConfig.interfaceMode;
+    process.env["DATAFETCH_DISABLE_LEARNING"] = sacConfig.learningEnabled ? "0" : "1";
+    args.disableLearning = !sacConfig.learningEnabled;
+  }
+
   const tasks = await selectTasks(args);
   await fsp.mkdir(args.outDir, { recursive: true });
   // P1 control arm forces learning-loop OFF: no cross-episode lib cache.
-  const libCacheDir = (args.noLibCache || args.disableLearning)
-    ? undefined
-    : args.libCacheDir ?? path.join(args.outDir, "lib-cache");
+  // arm4 phase-2 reuses the FROZEN phase-1 lib snapshot read-only.
+  const libCacheDir = resolveSacLibCacheDir(args, sacConfig);
   if (libCacheDir) await fsp.mkdir(libCacheDir, { recursive: true });
-  const armId: "datafetch-control" | "datafetch-learned" = args.disableLearning
-    ? "datafetch-control"
-    : "datafetch-learned";
+  const armId: AdapterEpisode["armId"] = sacConfig
+    ? sacConfig.armId
+    : args.disableLearning
+      ? "datafetch-control"
+      : "datafetch-learned";
+
+  // CONTRACT invariant 6: run-info interfaceMode must match the arm config.
+  if (sacConfig && getInterfaceMode() !== sacConfig.interfaceMode) {
+    throw new Error(
+      `[sac-poc] interfaceMode mismatch: armConfig(${sacConfig.arm}).interfaceMode=` +
+        `${sacConfig.interfaceMode} but getInterfaceMode()=${getInterfaceMode()}`,
+    );
+  }
+
+  // The parity-hash ledger: arm1.promptParityHash must equal arm4's for the
+  // same (family, level). We record every arm's parity hashes per CONTRACT §d;
+  // the hard cross-arm assertion lives in the scorer (S3) over both runs, but
+  // we ALSO fail-fast within a run if two episodes that SHOULD share a parity
+  // body diverge. Within a single arm's run there is no arm1-vs-arm4 pair, so
+  // we persist a parity ledger to disk for the scorer to cross-check.
+  const phaseTag: PhaseTag = sacConfig
+    ? sacConfig.phases === 1
+      ? "single"
+      : args.phase === 1
+        ? "phase1-build"
+        : "phase2-reuse"
+    : "single";
+
+  // arm5a results-cache + arm5b recipe dirs (CONTRACT §arm5a/§arm5b). Phase-1
+  // writes; phase-2 reads. Default to a stable location under the out-dir so a
+  // single-out-dir two-phase run carries forward automatically.
+  const resultsCacheDir = sacConfig?.resultsCache
+    ? args.resultsCacheDir ?? path.join(args.outDir, "results-cache")
+    : undefined;
+  const recipeDir = sacConfig?.recipeHint
+    ? args.recipeDir ?? path.join(args.outDir, "recipes")
+    : undefined;
+  if (resultsCacheDir) await fsp.mkdir(resultsCacheDir, { recursive: true });
+  if (recipeDir) await fsp.mkdir(recipeDir, { recursive: true });
+
+  const sacContext: SacRunContext | null = sacConfig
+    ? {
+        config: sacConfig,
+        phase: args.phase,
+        phaseTag,
+        frozenLibDir: args.frozenLibDir,
+        resultsCacheDir,
+        recipeDir,
+        parityLedgerPath: path.join(args.outDir, "parity-ledger.jsonl"),
+      }
+    : null;
 
   const agentBackend = resolveAgentBackend();
   const resolvedModel =
@@ -270,6 +459,19 @@ async function main(): Promise<void> {
     snippetTimeoutMs: args.snippetTimeoutMs,
     armId,
     disableLearning: args.disableLearning,
+    // --- SaC-aligned PoC manifest fields (CONTRACT §a) ---
+    sacArm: sacConfig?.arm ?? null,
+    sacPhase: sacConfig ? args.phase : null,
+    // Interleaved seed ordinal (PRE-REGISTRATION §4); null on legacy runs.
+    seed: args.seed ?? null,
+    phaseTag: sacContext ? sacContext.phaseTag : null,
+    governanceGate: sacConfig ? sacConfig.governanceGate : null,
+    resultsCache: sacConfig ? sacConfig.resultsCache : null,
+    recipeHint: sacConfig ? sacConfig.recipeHint : null,
+    withholdTools: sacConfig ? sacConfig.withholdTools : null,
+    frozenLibDir: sacContext?.frozenLibDir ?? null,
+    resultsCacheDir: sacContext?.resultsCacheDir ?? null,
+    recipeDir: sacContext?.recipeDir ?? null,
   };
   await fsp.writeFile(path.join(args.outDir, "run-info.json"), `${JSON.stringify(runInfo, null, 2)}\n`);
   await fsp.writeFile(
@@ -306,6 +508,7 @@ async function main(): Promise<void> {
       args,
       libCacheDir,
       armId,
+      sacContext,
     });
     episodes.push(episode);
     await fsp.appendFile(episodesJsonlPath, `${JSON.stringify(episode)}\n`);
@@ -315,12 +518,73 @@ async function main(): Promise<void> {
       episodes,
     });
   }
+
+  // arm4 phase-1: freeze the per-family lib-cache snapshot so phase-2 (a fresh
+  // process / cleared transcript) can hydrate it read-only (CONTRACT
+  // §two-phase). The frozen dir is what makes "cross-session" honest.
+  if (sacContext && sacContext.config.arm === "arm4" && sacContext.phase === 1 && libCacheDir) {
+    const frozen = sacContext.frozenLibDir ?? path.join(args.outDir, "phase1-frozen");
+    await freezeLibCache({ libCacheDir, frozenDir: frozen });
+    console.log(`[sac-poc] arm4 phase-1 froze lib-cache -> ${frozen}`);
+  }
+
   await writeResultsFile({
     file: path.join(args.outDir, "results.json"),
     runInfo,
     episodes,
   });
   console.log(`[datafetch-skillcraft] wrote ${episodes.length} row(s) to ${args.outDir}`);
+}
+
+// SaC-aligned PoC: per-run context threaded into each episode. Holds the
+// resolved arm config + the two-phase parameters + the cache/recipe dirs.
+interface SacRunContext {
+  config: ArmConfig;
+  phase: 1 | 2;
+  phaseTag: PhaseTag;
+  // arm4 phase-2 hydrates this frozen lib snapshot read-only.
+  frozenLibDir?: string;
+  // arm5a: phase-1 writes, phase-2 reads the strict name+args results cache.
+  resultsCacheDir?: string;
+  // arm5b: phase-1 writes, phase-2 reads the distilled NL/schema recipe.
+  recipeDir?: string;
+  // Per-run parity-hash ledger (CONTRACT §d) for the cross-arm scorer.
+  parityLedgerPath: string;
+}
+
+// Resolve the cross-episode lib-cache dir under the SAC-arm regime. arm4
+// phase-2 reads the FROZEN snapshot read-only (no persistence); other learning
+// arms use the normal lib-cache; non-learning arms get none.
+function resolveSacLibCacheDir(args: Args, config: ArmConfig | null): string | undefined {
+  if (!config) {
+    return (args.noLibCache || args.disableLearning)
+      ? undefined
+      : args.libCacheDir ?? path.join(args.outDir, "lib-cache");
+  }
+  if (!config.learningEnabled) return undefined;
+  if (config.arm === "arm4" && args.phase === 2) {
+    // Phase-2 hydrates the frozen snapshot; it is the lib-cache for this run.
+    if (!args.frozenLibDir) {
+      throw new Error(
+        "[sac-poc] arm4 --phase 2 requires --frozen-lib <phase1-frozen-dir> (the frozen library to reuse).",
+      );
+    }
+    return args.frozenLibDir;
+  }
+  return args.libCacheDir ?? path.join(args.outDir, "lib-cache");
+}
+
+// Snapshot the per-family lib-cache (helpers + intent index + shared pool)
+// into a frozen dir for arm4 phase-2 cross-session reuse.
+async function freezeLibCache(input: {
+  libCacheDir: string;
+  frozenDir: string;
+}): Promise<void> {
+  await fsp.rm(input.frozenDir, { recursive: true, force: true });
+  await fsp.mkdir(input.frozenDir, { recursive: true });
+  if (await isDirectory(input.libCacheDir)) {
+    await fsp.cp(input.libCacheDir, input.frozenDir, { recursive: true, force: true });
+  }
 }
 
 async function readExistingEpisodes(filePath: string): Promise<AdapterEpisode[]> {
@@ -351,7 +615,8 @@ async function runEpisodeSafely(input: {
   task: SkillCraftTask;
   args: Args;
   libCacheDir?: string;
-  armId: "datafetch-control" | "datafetch-learned";
+  armId: AdapterEpisode["armId"];
+  sacContext: SacRunContext | null;
 }): Promise<AdapterEpisode> {
   try {
     const episode = input.args.live
@@ -365,6 +630,7 @@ async function runEpisodeSafely(input: {
           snippetTimeoutMs: input.args.snippetTimeoutMs,
           libCacheDir: input.libCacheDir,
           disableLearning: input.args.disableLearning,
+          sacContext: input.sacContext,
         })
       : await runFixtureSmoke({ task: input.task, skillcraftDir: input.args.skillcraftDir, outDir: input.args.outDir });
     return { ...episode, armId: input.armId };
@@ -375,6 +641,7 @@ async function runEpisodeSafely(input: {
       error,
       bridgeStatus: input.args.live ? "live-agent-experimental" : "fixture-evaluator-smoke",
       armId: input.armId,
+      sacContext: input.sacContext,
     });
   }
 }
@@ -398,7 +665,8 @@ async function writeHarnessErrorEpisode(input: {
   outDir: string;
   error: unknown;
   bridgeStatus: AdapterEpisode["bridgeStatus"];
-  armId?: "datafetch-control" | "datafetch-learned";
+  armId?: AdapterEpisode["armId"];
+  sacContext?: SacRunContext | null;
 }): Promise<AdapterEpisode> {
   const artifactDir = path.join(input.outDir, "episodes", input.task.family, input.task.level);
   await fsp.mkdir(artifactDir, { recursive: true });
@@ -435,6 +703,66 @@ async function writeHarnessErrorEpisode(input: {
     snippetExitCode: 1,
     phase: phaseForLevel(input.task.level),
     promotedToLibCache: false,
+    ...sacLedgerDefaults(input.sacContext ?? null),
+  };
+}
+
+// Default SaC ledger fields (all null unless the arm populates them) so every
+// emitted episode carries the full pinned schema (CONTRACT §b).
+function sacLedgerDefaults(sacContext: SacRunContext | null): Partial<AdapterEpisode> {
+  if (!sacContext) {
+    return {
+      sacArm: null,
+      phaseTag: null,
+      effectiveModelContextTokens: null,
+      rawInputTokens: null,
+      cachedInputTokens: null,
+      outputTokensLedger: null,
+      buildCostTokens: null,
+      governanceCostTokens: null,
+      inlineCostPerQTokens: null,
+      warmCallCostPerQTokens: null,
+      parityFloorTokens: null,
+      sandboxMs: null,
+      wallClockMs: null,
+      cacheHitCount: null,
+      cacheMissCount: null,
+      cacheHitRate: null,
+      decisiveCacheHit: null,
+      recipeChars: null,
+      governanceGateApplied: null,
+      governanceGatePassed: null,
+      helperCallable: null,
+      promptHash: null,
+      promptParityHash: null,
+      bindingLineHash: null,
+    };
+  }
+  return {
+    sacArm: sacContext.config.arm,
+    phaseTag: sacContext.phaseTag,
+    effectiveModelContextTokens: null,
+    rawInputTokens: null,
+    cachedInputTokens: null,
+    outputTokensLedger: null,
+    buildCostTokens: null,
+    governanceCostTokens: null,
+    inlineCostPerQTokens: null,
+    warmCallCostPerQTokens: null,
+    parityFloorTokens: null,
+    sandboxMs: null,
+    wallClockMs: null,
+    cacheHitCount: null,
+    cacheMissCount: null,
+    cacheHitRate: null,
+    decisiveCacheHit: null,
+    recipeChars: null,
+    governanceGateApplied: null,
+    governanceGatePassed: null,
+    helperCallable: null,
+    promptHash: null,
+    promptParityHash: null,
+    bindingLineHash: null,
   };
 }
 
@@ -576,7 +904,10 @@ async function runLiveExperimental(input: {
   snippetTimeoutMs: number;
   libCacheDir?: string;
   disableLearning?: boolean;
+  sacContext?: SacRunContext | null;
 }): Promise<AdapterEpisode> {
+  const sac = input.sacContext ?? null;
+  const arm: SacArm | null = sac?.config.arm ?? null;
   const artifactDir = path.join(input.outDir, "episodes", input.task.family, input.task.level);
   const workspace = path.join(artifactDir, "workspace");
   const datafetchHome = path.join(artifactDir, "datafetch-home");
@@ -627,6 +958,58 @@ async function runLiveExperimental(input: {
     seededLibFunctions: [PER_ENTITY_SEED_NAME],
     mountedRecords: familyRecords.length,
   });
+
+  // arm5b recipe-only: inject the distilled phase-1 recipe into the workspace
+  // so the shared renderer's recipe slot can read it. No callable code path.
+  let recipeText: string | null = null;
+  let recipeChars: number | null = null;
+  if (arm === "arm5b" && sac) {
+    if (sac.phase === 1) {
+      // Phase-1 build: distil + freeze the recipe for this family.
+      await persistRecipeForFamily({
+        task: input.task,
+        recipeDir: sac.recipeDir!,
+        availableLibFunctions,
+        workspace,
+      });
+    } else {
+      recipeText = await loadRecipeForFamily({ family: input.task.family, recipeDir: sac.recipeDir });
+      recipeChars = recipeText ? recipeText.length : 0;
+    }
+  }
+
+  // Log the planner artifact (buildFanoutToolPlan) as byte-identical across
+  // arms (CONTRACT §a item 5; plan R10 planner-neutralised slice). The plan
+  // is a pure function of (task, df.d.ts, records), so it is the SAME bytes
+  // for every arm on the same task; we persist it + its hash so the scorer can
+  // verify the planner is neutralised across arms.
+  if (sac) {
+    await writePlannerArtifact({ task: input.task, workspace, records: familyRecords, artifactDir });
+  }
+
+  // arm0 no-tools floor: withhold the tool surface. The empty bundle list
+  // means df.tool.* has nothing, and the snippet runtime's tool bridge is not
+  // wired, so the agent answers from task.md + records only (CONTRACT §a;
+  // invariant 5 asserts toolCalls == 0).
+  const withholdTools = arm === "arm0";
+  const episodeBundles = withholdTools ? [] : taskToolBundles(input.task);
+
+  // arm5a results-cache-only: route the tool bridge through a strict
+  // name+args cache shim runner. Phase-1 records every (toolName, args)->result;
+  // phase-2 returns cached results on an exact hit, else lives the call.
+  // R4 invariant: phase-2 siblings are new-argument, so decisive hits == 0.
+  let toolRunnerPath = path.resolve("eval/skillcraft/scripts/invoke-tool.py");
+  let resultsCachePaths: { runnerPath: string; cacheFile: string; statsFile: string } | null = null;
+  if (arm === "arm5a" && sac && sac.resultsCacheDir) {
+    resultsCachePaths = await prepareResultsCacheShim({
+      task: input.task,
+      outDir: input.outDir,
+      resultsCacheDir: sac.resultsCacheDir,
+      phase: sac.phase,
+    });
+    toolRunnerPath = resultsCachePaths.runnerPath;
+  }
+
   // Drop the episode context file used by the dev-only datafetch runner.
   // The Codex-facing prompt deliberately avoids live probes because the
   // sandboxed probe environment can make real tool calls look unavailable.
@@ -636,19 +1019,41 @@ async function runLiveExperimental(input: {
       tenantId,
       datasetDir: input.skillcraftDir,
       datafetchHome,
-      bundles: taskToolBundles(input.task),
-      toolRunnerPath: path.resolve("eval/skillcraft/scripts/invoke-tool.py"),
+      bundles: episodeBundles,
+      toolRunnerPath,
       snippetTimeoutMs: input.snippetTimeoutMs,
       family: input.task.family,
       mountId,
       records: familyRecords,
     }, null, 2)}\n`,
   );
-  const prompt = await renderLivePrompt({
+
+  // Prompt rendering. For arm1/arm4 we MUST use the single shared parity
+  // renderer (CONTRACT §d): identical body, only the binding line differs.
+  // Other arms keep the existing renderer (arm5b also injects the recipe).
+  const parity = await renderSacPromptForArm({
+    arm,
     task: input.task,
     workspace,
     records: familyRecords,
+    availableLibFunctions,
+    recipeText,
+    withholdTools,
   });
+  const prompt = parity.prompt;
+  // Record the parity-hash ledger row for the cross-arm scorer.
+  if (sac) {
+    await appendParityLedger(sac.parityLedgerPath, {
+      sacArm: arm,
+      phaseTag: sac.phaseTag,
+      family: input.task.family,
+      level: input.task.level,
+      promptHash: parity.promptHash,
+      promptParityHash: parity.promptParityHash,
+      bindingLineHash: parity.bindingLineHash,
+    });
+  }
+
   const agentRun = await runAgent({
     workspaceDir: workspace,
     prompt,
@@ -660,6 +1065,7 @@ async function runLiveExperimental(input: {
 
   const answerPath = path.join(workspace, "scripts", "answer.ts");
   let snippetExitCode = 1;
+  let snippetStderr = "";
   let trajectory: TrajectoryRecord | undefined;
   if (await exists(answerPath)) {
     await syncLibExportAliases(path.join(workspace, "lib"));
@@ -707,13 +1113,16 @@ async function runLiveExperimental(input: {
         ...(mountedRuntime ? { requireSubstrateRootedChain: true } : {}),
         toolBridge: {
           datasetDir: input.skillcraftDir,
-          bundles: taskToolBundles(input.task),
-          runnerPath: path.resolve("eval/skillcraft/scripts/invoke-tool.py"),
+          bundles: episodeBundles,
+          // arm5a routes through the strict name+args results-cache shim;
+          // every other arm uses the official invoke-tool.py directly.
+          runnerPath: toolRunnerPath,
         },
         snippetTimeoutMs: input.snippetTimeoutMs,
       },
     });
     snippetExitCode = run.exitCode;
+    snippetStderr = run.stderr;
     // Goal-3 iter 10 race fix: the observer is fire-and-forget from the
     // snippet runtime, so the answer.ts run returns BEFORE the observer
     // finishes authoring (which can crystallise multiple helpers per
@@ -772,11 +1181,22 @@ async function runLiveExperimental(input: {
   const createdLibFunctions = passed
     ? workspaceLibFunctions.filter((name) => !availableSet.has(name)).length
     : 0;
+  // arm4 phase-2 is hydrate-only: it reads the FROZEN library and must NOT
+  // persist anything back (cross-session reuse, no re-learning). Single-phase
+  // learning arms (2/3) and arm4-phase-1 persist as today.
+  const isArm4Phase2 = arm === "arm4" && sac?.phase === 2;
   const promotedToLibCache = Boolean(
     passed &&
     input.libCacheDir &&
+    !isArm4Phase2 &&
     LEARN_FROM_LEVELS.has(input.task.level),
   );
+
+  // --- governance gate decision (R1/R8; CONTRACT §f) ---
+  let governanceGateApplied: boolean | null = null;
+  let governanceGatePassed: boolean | null = null;
+  let governanceCostTokens: number | null = null;
+
   if (promotedToLibCache && input.libCacheDir) {
     await persistFamilyLibCache({
       family: input.task.family,
@@ -785,7 +1205,22 @@ async function runLiveExperimental(input: {
       datafetchHome,
       tenantId,
     });
-  } else if (input.libCacheDir) {
+    // arm2 / arm4-phase1: run the quarantine/replay governance gate (S2).
+    // A helper becomes callable ONLY on a replay PASS (validated-typescript).
+    // arm3: force-callable WITHOUT a replay PASS (the decoupled ablation).
+    if (sac && sac.config.governanceGate === true) {
+      const gate = await runSacGovernanceGate({ baseDir: datafetchHome, tenantId });
+      governanceGateApplied = true;
+      governanceGatePassed = gate.passed;
+      governanceCostTokens = gate.costTokens;
+    } else if (sac && sac.config.governanceGate === false) {
+      // arm3: crystallise + callable but SKIP the replay gate.
+      await forceSacCallableWithoutGovernance({ baseDir: datafetchHome, tenantId });
+      governanceGateApplied = false;
+      governanceGatePassed = null;
+      governanceCostTokens = null;
+    }
+  } else if (input.libCacheDir && !isArm4Phase2) {
     // Goal-4 Change 3: even when this episode did NOT promote a helper
     // (failed, or a hard-tier level we don't learn from), persist the
     // convergence index — the intents this episode exhibited must carry
@@ -797,6 +1232,18 @@ async function runLiveExperimental(input: {
       tenantId,
     });
   }
+
+  // arm4 phase-2 cross-session sanity: the frozen helper must resolve and be
+  // callable. Fail loud on a @datafetch/sdk import-resolution error (CONTRACT
+  // §a arm4): a frozen library that does not even load is a silent failure
+  // masquerading as "no reuse", which would corrupt the break-even math.
+  if (isArm4Phase2 && /Cannot find (module|package) ['"]?@datafetch\/sdk/i.test(snippetStderr)) {
+    throw new Error(
+      `[sac-poc] arm4 phase-2 @datafetch/sdk import-resolution error for ${input.task.taskKey}; ` +
+        `the frozen library failed to load. snippet stderr head: ${snippetStderr.slice(0, 400)}`,
+    );
+  }
+
   if (mountedRuntime) {
     getMountRuntimeRegistry().unregister(mountId);
   }
@@ -812,6 +1259,76 @@ async function runLiveExperimental(input: {
     toolCalls,
     reuseRate: reuseDenominator === 0 ? 0 : libCalls / reuseDenominator,
   }, null, 2)}\n`);
+
+  // CONTRACT invariant 5: arm0 must make zero tool calls. We fail loud here
+  // (not just in the scorer) so a misconfigured arm0 run dies immediately.
+  if (arm === "arm0" && toolCalls > 0) {
+    throw new Error(
+      `[sac-poc] arm0 invariant violated: toolCalls=${toolCalls} for ${input.task.taskKey} (tools must be withheld).`,
+    );
+  }
+
+  // arm1 inline-rewrite, NO persistence: wipe the lib overlay between every
+  // question so no helper survives (CONTRACT §a arm1). This deletes the
+  // workspace lib, the resolver lib for this tenant, and the per-family
+  // lib-cache contribution. promotedToLibCache is already false for arm1
+  // (learningEnabled=false -> input.libCacheDir is undefined).
+  if (arm === "arm1") {
+    await wipeArm1LibOverlay({ workspace, datafetchHome, tenantId, libCacheDir: input.libCacheDir, family: input.task.family });
+  }
+
+  // --- lifecycle cost ledger (CONTRACT §b/§c) ---
+  const effectiveModelContext = computeEffectiveModelContextTokens({
+    agentInputTokens: agentRun.usage.inputTokens,
+    agentOutputTokens: agentRun.usage.outputTokens,
+  });
+  const parityFloorTokens = parity.parityFloorTokens;
+  // arm1 per-question inline-rewrite marginal cost; arm4 phase-2 warm-call
+  // marginal cost. Both = effectiveModelContextTokens - parityFloorTokens,
+  // clamped at 0 (CONTRACT §b).
+  const inlineCostPerQTokens = arm === "arm1"
+    ? marginalCostPerQ({ effectiveModelContextTokens: effectiveModelContext, parityFloorTokens })
+    : null;
+  const warmCallCostPerQTokens = isArm4Phase2
+    ? marginalCostPerQ({ effectiveModelContextTokens: effectiveModelContext, parityFloorTokens })
+    : null;
+
+  // Phase-1 amortised costs are per-family (CONTRACT §b): emitted on
+  // phase1-build rows only. We attribute this episode's build spend to the
+  // family; the scorer sums them once per family. governanceCostTokens is the
+  // replay tokens recorded above (arm2/arm4 only). buildCostTokens is the
+  // codegen+crystallisation spend for this build episode (= its model-context
+  // tokens), null on single/phase2 rows.
+  const isPhase1Build = sac?.phaseTag === "phase1-build";
+  const buildCostTokens = isPhase1Build ? effectiveModelContext : null;
+  const governanceCostLedger = isPhase1Build ? governanceCostTokens : null;
+
+  // arm5a cache accounting (CONTRACT §arm5a). Read the shim's stats file.
+  let cacheStats: { hits: number; misses: number } = { hits: 0, misses: 0 };
+  if (resultsCachePaths) {
+    cacheStats = await readResultsCacheStats(resultsCachePaths.statsFile);
+  }
+  const cacheTotal = cacheStats.hits + cacheStats.misses;
+  // decisiveCacheHit: a cache hit supplied a value used in the final answer.
+  // Phase-2 siblings are new-argument, so for arm5a phase-2 this MUST be false
+  // (R4). We treat a hit on a passing phase-2 answer as decisive; by
+  // construction the strict key cannot match a new-argument sibling, so hits
+  // are 0 and decisive is false. The scorer re-asserts this invariant.
+  const decisiveCacheHit = arm === "arm5a"
+    ? (cacheStats.hits > 0 && passed && sac?.phaseTag === "phase2-reuse")
+    : null;
+
+  // helperCallable: at least one learned helper was callable to the agent this
+  // episode. For hooks-draft arms a helper is callable once its maturity is
+  // validated-typescript (arm2 after a gate PASS; arm3 force-promoted; arm4
+  // phase-2 hydrated frozen). We use libCalls>0 as the realised-callability
+  // signal and availableLibFunctions for the surfaced-callability signal.
+  const helperCallable = arm === null
+    ? null
+    : sac!.config.interfaceMode === "hooks-draft"
+      ? availableLibFunctions.some((name) => name !== PER_ENTITY_SEED_NAME) || libCalls > 0
+      : false;
+
   return {
     taskKey: input.task.taskKey,
     taskFamily: input.task.family,
@@ -848,6 +1365,34 @@ async function runLiveExperimental(input: {
     agentOutputTokens: agentRun.usage.outputTokens,
     agentReasoningTokens: agentRun.usage.reasoningOutputTokens,
     agentElapsedMs: Math.round(agentRun.elapsedMs),
+    // --- SaC-aligned PoC cost-ledger + arm fields (CONTRACT §b) ---
+    sacArm: arm,
+    phaseTag: sac ? sac.phaseTag : null,
+    // The confirmatory metric: cached input counted at FULL weight.
+    effectiveModelContextTokens: arm ? effectiveModelContext : null,
+    rawInputTokens: arm ? agentRun.usage.inputTokens : null,
+    cachedInputTokens: arm ? agentRun.usage.cachedInputTokens : null,
+    outputTokensLedger: arm ? agentRun.usage.outputTokens : null,
+    buildCostTokens,
+    governanceCostTokens: governanceCostLedger,
+    inlineCostPerQTokens,
+    warmCallCostPerQTokens,
+    parityFloorTokens: arm ? parityFloorTokens : null,
+    sandboxMs: arm ? Math.round(evaluator.elapsedMs) : null,
+    wallClockMs: arm ? Math.round(agentRun.elapsedMs) : null,
+    cacheHitCount: arm === "arm5a" ? cacheStats.hits : (arm ? 0 : null),
+    cacheMissCount: arm === "arm5a" ? cacheStats.misses : (arm ? 0 : null),
+    cacheHitRate: arm === "arm5a"
+      ? (cacheTotal === 0 ? 0 : cacheStats.hits / cacheTotal)
+      : (arm ? 0 : null),
+    decisiveCacheHit,
+    recipeChars: arm === "arm5b" ? (recipeChars ?? 0) : (arm ? 0 : null),
+    governanceGateApplied,
+    governanceGatePassed,
+    helperCallable,
+    promptHash: arm ? parity.promptHash : null,
+    promptParityHash: arm ? parity.promptParityHash : null,
+    bindingLineHash: arm ? parity.bindingLineHash : null,
   };
 }
 
@@ -2374,6 +2919,468 @@ type PromptMode = "workspace" | "brief";
 function resolvePromptMode(): PromptMode {
   const raw = (process.env["DATAFETCH_PROMPT_MODE"] ?? "workspace").trim().toLowerCase();
   return raw === "brief" ? "brief" : "workspace";
+}
+
+// ===========================================================================
+// SaC-aligned PoC (S1 runner-core) — prompt parity + arm mechanisms
+// Authoritative: CONTRACT.md §d (parity), §a (arm modes), §arm5a/§arm5b,
+// §f (governance). All helpers below are owned by the S1 runner-core stream.
+// ===========================================================================
+
+interface SacParityResult {
+  prompt: string;
+  promptHash: string;
+  promptParityHash: string;
+  bindingLineHash: string;
+  // The parity floor = model-context tokens of the parity-MASKED prompt body
+  // (binding region masked). The break-even math subtracts this from each
+  // episode's effectiveModelContextTokens to get the marginal per-question
+  // cost (CONTRACT §b). Byte-identical across arm1/arm4 by construction.
+  parityFloorTokens: number;
+}
+
+// Dispatch prompt rendering by arm. arm1/arm4 MUST go through the single
+// shared parity renderer (CONTRACT §d). All other arms use the existing
+// renderer (arm5b additionally injects the recipe text; arm0 drops tools).
+async function renderSacPromptForArm(input: {
+  arm: SacArm | null;
+  task: SkillCraftTask;
+  workspace: string;
+  records: EvalRecord[];
+  availableLibFunctions: string[];
+  recipeText: string | null;
+  withholdTools: boolean;
+}): Promise<SacParityResult> {
+  if (input.arm === "arm1" || input.arm === "arm4") {
+    return renderSharedParityPrompt(input);
+  }
+  // Non-parity arms: render via the existing path, then synthesise the same
+  // hash triple so every arm carries promptHash/promptParityHash/bindingLineHash
+  // (CONTRACT §d: "records both prompt hashes for EVERY arm"). For these arms
+  // the binding region is empty (the sentinel masks to the same body).
+  let prompt = await renderLivePrompt({
+    task: input.task,
+    workspace: input.workspace,
+    records: input.records,
+  });
+  if (input.arm === "arm5b" && input.recipeText) {
+    prompt = `${prompt}\n\n## learned recipe (instruction-compression hint)\n${input.recipeText}\n`;
+  }
+  const hashes = computeParityHashes({ assemble: () => prompt, bindingLine: "" });
+  return {
+    prompt: hashes.prompt,
+    promptHash: hashes.promptHash,
+    promptParityHash: hashes.promptParityHash,
+    bindingLineHash: hashes.bindingLineHash,
+    parityFloorTokens: approxTokenCount(hashes.prompt),
+  };
+}
+
+// The SINGLE shared prompt renderer for arm1 and arm4 (CONTRACT §d). The body
+// is built from ONE code path and is byte-identical across the two arms; the
+// ONLY difference is the binding line. The body deliberately depends only on
+// the task (task.md, literal hints, the tool/df surface, reuse rules) and NOT
+// on hydrated lib state, so the parity-masked prompt is identical regardless
+// of whether the helper is callable this arm.
+async function renderSharedParityPrompt(input: {
+  arm: SacArm | null;
+  task: SkillCraftTask;
+  workspace: string;
+  records: EvalRecord[];
+}): Promise<SacParityResult> {
+  const taskMd = await readPromptContextFile(path.join(input.workspace, "task.md"), 16_000);
+  const dfDts = await readPromptContextFile(path.join(input.workspace, "df.d.ts"), 18_000);
+  const literalHints = renderTaskLiteralHints(taskMd);
+  const initialWorkspace = await renderInitialWorkspaceContext(input.workspace, { maxChars: 1_500 });
+  const outputFiles = input.task.expectedOutputFiles.join(", ") || "see task.md/evaluator";
+  // A deterministic, arm-agnostic helper name so the BODY never differs by arm:
+  // the only arm-specific text is the binding line itself.
+  const fanoutPlan = buildPureToolFanoutPlan(input.task, dfDts);
+  const helperName = "familyFanout";
+
+  // The body assembler. The {binding} slot is the ONLY place the per-arm line
+  // appears, so masking it yields a byte-identical parity body across arms.
+  const assemble = (bindingLine: string): string =>
+    [
+      "You are solving one official SkillCraft task inside a Datafetch workspace.",
+      `Task: ${input.task.taskKey}`,
+      `Expected output file(s): ${outputFiles}`,
+      "",
+      "Use the embedded compact task and callable surface. Do not inspect files, run probes, or run a benchmark before writing.",
+      "Edit `scripts/answer.ts` only. Write required JSON output files using Node `fs/promises`; return `df.answer({ status: \"answered\", value, evidence, derivation })`.",
+      "",
+      "Shared rules (identical across arms):",
+      "- Use exact callable names from `df.d.ts`; hyphenated tool names require bracket notation.",
+      "- When `df.db.records` exists, derive outputs through `df.db.*` plus `df.tool.*`, or through `df.lib.*`; a db-only touch without tool/helper outputs is rejected. Never pass `recordKey` to tools.",
+      "- Use the imported `g`, `arr`/`asArr`, `num`/`pickNum`, `avg`, `r1`, `firstVal`, `text`, `rowsOf`, and `writeJson` helpers. Do not redefine equivalent local helpers.",
+      "- Keep code concise and ordinary; source must parse. Do not mix `??` with `||`/`&&` without explicit parentheses.",
+      ...renderInputHygieneRules(),
+      "",
+      "## BINDING (the ONLY per-arm instruction)",
+      bindingLine,
+      "",
+      "## suggested fan-out shape",
+      "```ts",
+      `// tool bundle: ${fanoutPlan?.toolBundle ?? "tool_bundle"}; param: ${fanoutPlan?.paramName ?? "entity_id"}`,
+      `// tools: ${(fanoutPlan?.toolNames ?? []).join(", ")}`,
+      "```",
+      "",
+      "## task.md (compact)",
+      "```md",
+      compactTaskMdForLearnedReuse(taskMd),
+      "```",
+      "",
+      literalHints,
+      "",
+      "## callable surface",
+      "```ts",
+      compactBriefDfDts(dfDts),
+      "```",
+      "",
+      initialWorkspace,
+    ]
+      .filter((part) => part.length > 0)
+      .join("\n");
+
+  const bindingLine = input.arm === "arm4" ? arm4BindingLine(helperName) : arm1BindingLine();
+  const hashes = computeParityHashes({ assemble, bindingLine });
+  // The parity floor is the masked body's tokens (identical across arm1/arm4).
+  const maskedBody = assemble("<<<SAC_BINDING_LINE>>>");
+  return {
+    prompt: hashes.prompt,
+    promptHash: hashes.promptHash,
+    promptParityHash: hashes.promptParityHash,
+    bindingLineHash: hashes.bindingLineHash,
+    parityFloorTokens: approxTokenCount(maskedBody),
+  };
+}
+
+// Log the planner artifact byte-identically across arms (CONTRACT §a item 5).
+// buildFanoutToolPlan is deterministic in (task, df.d.ts, records); we
+// serialise it canonically and emit its sha256 so the scorer can confirm the
+// planner is identical across arms for the same task (planner-neutralised
+// slice). Maps are serialised as sorted entry arrays for stable bytes.
+async function writePlannerArtifact(input: {
+  task: SkillCraftTask;
+  workspace: string;
+  records: EvalRecord[];
+  artifactDir: string;
+}): Promise<void> {
+  const dfDts = await readPromptContextFile(path.join(input.workspace, "df.d.ts"), 18_000);
+  const plan = buildFanoutToolPlan(input.task, dfDts, input.records);
+  const canonical = {
+    exactToolNames: plan.exactToolNames,
+    sameEntityToolNames: plan.sameEntityToolNames,
+    dependentToolNames: plan.dependentToolNames,
+    entityField: plan.entityField,
+    paramName: plan.paramName,
+    paramByTool: plan.paramByTool,
+    recordParamMapByTool: plan.recordParamMapByTool,
+    toolParamCandidates: [...plan.toolParamCandidates.entries()].sort((a, b) => a[0].localeCompare(b[0])),
+    selectedParamByTool: [...plan.selectedParamByTool.entries()].sort((a, b) => a[0].localeCompare(b[0])),
+  };
+  const body = stableStringify(canonical);
+  const planHash = createHash("sha256").update(body, "utf8").digest("hex");
+  await fsp.writeFile(
+    path.join(input.artifactDir, "planner-artifact.json"),
+    `${JSON.stringify({ planHash, plan: canonical }, null, 2)}\n`,
+  );
+}
+
+// Append a parity-hash ledger row (CONTRACT §d). The cross-arm scorer (S3)
+// reads this to assert arm1.promptParityHash === arm4.promptParityHash for
+// every matched (family, level). We persist per-run; the hard cross-run
+// assertion is the scorer's job, but a single run still records the evidence.
+async function appendParityLedger(
+  ledgerPath: string,
+  row: {
+    sacArm: SacArm | null;
+    phaseTag: PhaseTag;
+    family: string;
+    level: string;
+    promptHash: string;
+    promptParityHash: string;
+    bindingLineHash: string;
+  },
+): Promise<void> {
+  await fsp.appendFile(ledgerPath, `${JSON.stringify(row)}\n`);
+}
+
+// arm1 inline-rewrite, NO persistence: wipe the lib overlay between every
+// question so no helper survives (CONTRACT §a arm1).
+async function wipeArm1LibOverlay(input: {
+  workspace: string;
+  datafetchHome: string;
+  tenantId: string;
+  libCacheDir?: string;
+  family: string;
+}): Promise<void> {
+  await fsp.rm(path.join(input.workspace, "lib"), { recursive: true, force: true });
+  await fsp.rm(path.join(input.datafetchHome, "lib", input.tenantId), { recursive: true, force: true });
+  if (input.libCacheDir) {
+    await fsp.rm(path.join(input.libCacheDir, input.family), { recursive: true, force: true });
+  }
+}
+
+// --- arm5a strict results-cache shim (CONTRACT §arm5a) ---------------------
+//
+// We do NOT edit the S4-owned invoke-tool.py. Instead we write a thin Python
+// wrapper runner under the run out-dir that, on each (toolName, args) call,
+// computes the strict key (sha256(toolName + " " + stableStringify(args)));
+// in phase-1 it runs the real tool and records the result; in phase-2 it
+// returns the cached result on an exact hit (cache hit), else runs live
+// (cache miss). It tallies hits/misses to a stats file the runner reads.
+async function prepareResultsCacheShim(input: {
+  task: SkillCraftTask;
+  outDir: string;
+  resultsCacheDir: string;
+  phase: 1 | 2;
+}): Promise<{ runnerPath: string; cacheFile: string; statsFile: string }> {
+  await fsp.mkdir(input.resultsCacheDir, { recursive: true });
+  const shimDir = path.join(input.outDir, "results-cache-shim");
+  await fsp.mkdir(shimDir, { recursive: true });
+  const cacheFile = path.join(input.resultsCacheDir, `${input.task.family}.json`);
+  // Per-episode stats so the runner can read this episode's hits/misses.
+  const statsFile = path.join(
+    input.outDir,
+    "episodes",
+    input.task.family,
+    input.task.level,
+    "results-cache-stats.json",
+  );
+  await fsp.mkdir(path.dirname(statsFile), { recursive: true });
+  await fsp.writeFile(statsFile, `${JSON.stringify({ hits: 0, misses: 0 })}\n`);
+  const realRunner = path.resolve("eval/skillcraft/scripts/invoke-tool.py");
+  const runnerPath = path.join(shimDir, "results-cache-runner.py");
+  await fsp.writeFile(runnerPath, renderResultsCacheRunnerPy({
+    realRunner,
+    cacheFile,
+    statsFile,
+    phase: input.phase,
+  }));
+  return { runnerPath, cacheFile, statsFile };
+}
+
+// The shim runner source. Strict key = sha256(toolName + " " +
+// stableStringify(args)), object keys sorted (matches sacArms.resultsCacheKey).
+function renderResultsCacheRunnerPy(input: {
+  realRunner: string;
+  cacheFile: string;
+  statsFile: string;
+  phase: 1 | 2;
+}): string {
+  return [
+    "#!/usr/bin/env python3",
+    "# SaC-aligned PoC arm5a results-cache shim (S1 runner-core, generated).",
+    "# Wraps invoke-tool.py with a strict name+args results cache. No authored",
+    "# code, no callable helper: pure memoization floor (CONTRACT arm5a).",
+    "import hashlib, json, os, subprocess, sys",
+    "",
+    `REAL_RUNNER = ${_pyStr(input.realRunner)}`,
+    `CACHE_FILE = ${_pyStr(input.cacheFile)}`,
+    `STATS_FILE = ${_pyStr(input.statsFile)}`,
+    `PHASE = ${input.phase}`,
+    "",
+    "def stable(o):",
+    "    return json.dumps(o, sort_keys=True, separators=(',', ':'), ensure_ascii=False)",
+    "",
+    "def key_for(tool, args):",
+    "    raw = tool + ' ' + stable(args)",
+    "    return hashlib.sha256(raw.encode('utf-8')).hexdigest()",
+    "",
+    "def load_json(path, default):",
+    "    try:",
+    "        with open(path) as f:",
+    "            return json.load(f)",
+    "    except Exception:",
+    "        return default",
+    "",
+    "def bump(field):",
+    "    stats = load_json(STATS_FILE, {'hits': 0, 'misses': 0})",
+    "    stats[field] = stats.get(field, 0) + 1",
+    "    with open(STATS_FILE, 'w') as f:",
+    "        json.dump(stats, f)",
+    "",
+    "def parse_args(argv):",
+    "    out = {}",
+    "    i = 0",
+    "    while i < len(argv):",
+    "        a = argv[i]",
+    "        if a.startswith('--') and i + 1 < len(argv):",
+    "            out[a[2:]] = argv[i + 1]",
+    "            i += 2",
+    "        elif a == '--list':",
+    "            out['list'] = True",
+    "            i += 1",
+    "        else:",
+    "            i += 1",
+    "    return out",
+    "",
+    "def run_real(argv):",
+    "    return subprocess.run([sys.executable, REAL_RUNNER] + argv, capture_output=True, text=True)",
+    "",
+    "def main():",
+    "    argv = sys.argv[1:]",
+    "    a = parse_args(argv)",
+    "    # --list passes straight through (no caching of catalog).",
+    "    if a.get('list') or not a.get('tool'):",
+    "        r = run_real(argv)",
+    "        sys.stdout.write(r.stdout)",
+    "        sys.stderr.write(r.stderr)",
+    "        sys.exit(r.returncode)",
+    "    tool = a.get('tool', '')",
+    "    try:",
+    "        args_obj = json.loads(a.get('args', '{}'))",
+    "    except Exception:",
+    "        args_obj = {}",
+    "    k = key_for(tool, args_obj)",
+    "    cache = load_json(CACHE_FILE, {})",
+    "    if PHASE == 2 and k in cache:",
+    "        bump('hits')",
+    "        sys.stdout.write(json.dumps({'result': cache[k]}, ensure_ascii=False))",
+    "        sys.exit(0)",
+    "    bump('misses')",
+    "    r = run_real(argv)",
+    "    if r.returncode == 0:",
+    "        try:",
+    "            payload = json.loads(r.stdout)",
+    "            cache[k] = payload.get('result')",
+    "            os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)",
+    "            with open(CACHE_FILE, 'w') as f:",
+    "                json.dump(cache, f)",
+    "        except Exception:",
+    "            pass",
+    "    sys.stdout.write(r.stdout)",
+    "    sys.stderr.write(r.stderr)",
+    "    sys.exit(r.returncode)",
+    "",
+    "if __name__ == '__main__':",
+    "    main()",
+    "",
+  ].join("\n");
+}
+
+function _pyStr(value: string): string {
+  return JSON.stringify(value);
+}
+
+async function readResultsCacheStats(statsFile: string): Promise<{ hits: number; misses: number }> {
+  try {
+    const raw = JSON.parse(await fsp.readFile(statsFile, "utf8")) as { hits?: number; misses?: number };
+    return { hits: Number(raw.hits ?? 0), misses: Number(raw.misses ?? 0) };
+  } catch {
+    return { hits: 0, misses: 0 };
+  }
+}
+
+// --- arm5b recipe distillation/injection (CONTRACT §arm5b) -----------------
+//
+// Phase-1: distil a short NL/schema hint per family from the converged intent
+// (@intent-signature + tool bundle + param name + a one-line NL gloss), capped
+// at RECIPE_MAX_CHARS, written to recipes/<family>.md. No callable code.
+async function persistRecipeForFamily(input: {
+  task: SkillCraftTask;
+  recipeDir: string;
+  availableLibFunctions: string[];
+  workspace: string;
+}): Promise<void> {
+  await fsp.mkdir(input.recipeDir, { recursive: true });
+  const dfDts = await readPromptContextFile(path.join(input.workspace, "df.d.ts"), 18_000);
+  const fanoutPlan = buildPureToolFanoutPlan(input.task, dfDts);
+  // Read the @intent-signature from the first hydrated helper, if present.
+  let intentSignature: string | null = null;
+  for (const name of input.availableLibFunctions) {
+    if (name === PER_ENTITY_SEED_NAME) continue;
+    try {
+      const src = await fsp.readFile(path.join(input.workspace, "lib", `${name}.ts`), "utf8");
+      const sig = intentSignatureOfSource(src);
+      if (sig) { intentSignature = sig; break; }
+    } catch {
+      // skip unreadable
+    }
+  }
+  const recipe = distilRecipe({
+    family: input.task.family,
+    intentSignature,
+    toolBundle: fanoutPlan?.toolBundle ?? (taskToolBundles(input.task)[0] ?? "tool_bundle"),
+    toolNames: fanoutPlan?.toolNames ?? [],
+    paramName: fanoutPlan?.paramName ?? "entity_id",
+  });
+  // Recipe is capped at RECIPE_MAX_CHARS by distilRecipe; assert defensively.
+  if (recipe.length > RECIPE_MAX_CHARS) {
+    throw new Error(`[sac-poc] arm5b recipe exceeded ${RECIPE_MAX_CHARS} chars for ${input.task.family}`);
+  }
+  await fsp.writeFile(path.join(input.recipeDir, `${input.task.family}.md`), `${recipe}\n`);
+}
+
+async function loadRecipeForFamily(input: {
+  family: string;
+  recipeDir?: string;
+}): Promise<string | null> {
+  if (!input.recipeDir) return null;
+  try {
+    return (await fsp.readFile(path.join(input.recipeDir, `${input.family}.md`), "utf8")).trim();
+  } catch {
+    return null;
+  }
+}
+
+// --- governance gate wrappers (CONTRACT §f) --------------------------------
+//
+// S2 (src/eval/sacArmGovernance.ts) owns the real implementations
+// (runGovernanceGate + forceCallableWithoutGovernance reusing
+// validateAuthoredFromSourceHelpers). S1 imports them at the promote site. To
+// keep the two streams decoupled while S2 lands in parallel, we dynamic-import
+// S2 and fall back to a SAFE local default if the module is not yet present:
+//   - runSacGovernanceGate: returns { passed: false, costTokens: 0 } so a
+//     missing gate does NOT silently promote (fail-safe toward NOT callable).
+//   - forceSacCallableWithoutGovernance: a no-op (arm3 is the ablation; the
+//     real force-callable is S2's). The TODO marks the dependency.
+async function runSacGovernanceGate(input: {
+  baseDir: string;
+  tenantId: string;
+}): Promise<{ passed: boolean; costTokens: number | null }> {
+  const mod = await loadSacGovernanceModule();
+  if (mod && typeof mod.runGovernanceGate === "function") {
+    const result = await mod.runGovernanceGate(input);
+    return { passed: Boolean(result.passed), costTokens: result.costTokens ?? null };
+  }
+  // TODO(sac-poc): S2 src/eval/sacArmGovernance.ts not present yet; fail-safe
+  // to NOT-promoted so a missing gate cannot mint a callable helper.
+  return { passed: false, costTokens: 0 };
+}
+
+async function forceSacCallableWithoutGovernance(input: {
+  baseDir: string;
+  tenantId: string;
+}): Promise<void> {
+  const mod = await loadSacGovernanceModule();
+  if (mod && typeof mod.forceCallableWithoutGovernance === "function") {
+    await mod.forceCallableWithoutGovernance(input);
+    return;
+  }
+  // TODO(sac-poc): S2 forceCallableWithoutGovernance not present yet; arm3's
+  // decoupled callable-without-gate path is a no-op until S2 lands.
+}
+
+// Cached dynamic import of the S2 governance module. Returns null if absent.
+let sacGovernanceModuleCache: SacGovernanceModule | null | undefined;
+interface SacGovernanceModule {
+  runGovernanceGate?: (input: { baseDir: string; tenantId: string }) => Promise<{ passed: boolean; costTokens?: number | null }>;
+  forceCallableWithoutGovernance?: (input: { baseDir: string; tenantId: string }) => Promise<void>;
+}
+async function loadSacGovernanceModule(): Promise<SacGovernanceModule | null> {
+  if (sacGovernanceModuleCache !== undefined) return sacGovernanceModuleCache;
+  try {
+    // Indirect specifier so the typechecker does not hard-fail before S2
+    // (src/eval/sacArmGovernance.ts) has landed; the import resolves at
+    // runtime once S2 owns the file. The S2 interface is pinned in CONTRACT §e.
+    const specifier = "./sacArmGovernance.js";
+    sacGovernanceModuleCache = (await import(/* @vite-ignore */ specifier)) as SacGovernanceModule;
+  } catch {
+    sacGovernanceModuleCache = null;
+  }
+  return sacGovernanceModuleCache;
 }
 
 async function renderLivePrompt(input: {
