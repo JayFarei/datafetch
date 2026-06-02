@@ -122,3 +122,15 @@ Phase-3 WideSearch-vs-alternative corpus choice also remains open (deferred unti
 - Also: `countries-encyclopedia` correctness is shaky for the agent on a single seed (arm1 e1 fail; arm4 3/5 fail). The k≥5 multi-seed design exists to absorb exactly this noise, but we still want one clean arm4 warm-path demo (phase-1 crystallises → phase-2 reuses → finite M*) before the full run.
 
 **Next-step rationale:** the preseed is validated and committed. The remaining gate for a clean arm4 warm-path demonstration is a fan-out family where arm4 phase-1 reliably PASSES (so it crystallises+freezes a helper), and/or running multiple seeds so at least some phase-1 episodes crystallise per family. This is the family-selection input still owed (which overlaps the confirmatory-run family set). Surfacing the choice to the user. NOT a runner bug; do not edit freeze/hydrate logic.
+
+---
+
+## 2026-06-02 — Attempt 5: pre-registration FROZEN; confirmatory k=5 run launched
+
+**User decision:** pin config + run the full k≥5 ladder now; family choice delegated ("easier ones").
+
+**Change:** froze `PRE-REGISTRATION.md` §8 (M0=8 unchanged, k=5, model `claude-sonnet-4-6` via claude-p, families = cat-facts-collector / dog-breeds-encyclopedia / pokeapi-pokedex, held-out split e1..m2 / h1) and committed it BEFORE the run (integrity requirement §8). Families chosen as higher-pass-rate per-entity fan-out (so arm4 phase-1 crystallises); post-hoc easier-family selection disclosed per §6 (existence proof, not generality).
+
+**Run:** all 7 arms × 5 interleaved seeds × 3 families via `run-sac-poc.sh --live` (`DATAFETCH_AGENT=claude`, sonnet-4-6). Structured PER-FAMILY (separate orchestrator invocations to `eval/skillcraft/results/sac-poc/confirm-k5/<fam>`) so a single-family crash cannot abort the whole run; the first family (~3h of ~9h total at ~50s/episode) is an early end-to-end checkpoint on the arm4 warm path. After all families, the union of normalized.jsonl is scored once with `score-cross-arm.ts --m0 8`.
+
+**Evidence to surface on completion:** per-arm M* + 95% upper CI vs M0=8 (full-weight headline + dollarEquivalent tie-breaker), realised b/c/b+c (clustered McNemar), the arm4-vs-arm5a/5b attribution ladder + claimSurvivesDollarLedger, and `pnpm typecheck` + `pnpm test` exit lines. Running now; results pending.

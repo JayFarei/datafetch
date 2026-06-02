@@ -161,11 +161,23 @@ single-session correctness improvement over inline-rewrite is claimed.
 > persistent library amortises cross-session codegen cost that SaC's
 > ephemeral helpers re-pay every session, at non-inferior correctness."
 
-## 8. Pre-registration sign-off (fill at Milestone 8, before the run)
+## 8. Pre-registration sign-off (frozen 2026-06-02, before the confirmatory run)
 
-- [ ] `M0` finalised: ____ (and rationale if changed from 8)
-- [ ] k (seed count) finalised: ____
-- [ ] Model snapshot + date: ____
-- [ ] Family set: ____
-- [ ] Held-out split confirmed (phase-1 levels / phase-2 h1)
-- [ ] This file committed BEFORE the confirmatory run starts
+- [x] `M0` finalised: **8** (unchanged from the pre-registered placeholder; NOT adjusted from observed build cost — moving M0 after seeing M* is a forking-paths defect we explicitly forbid, §1).
+- [x] k (seed count) finalised: **5** interleaved seeds per arm.
+- [x] Model snapshot + date: **claude-sonnet-4-6** via `claude-p` (`DATAFETCH_AGENT=claude`), run date **2026-06-02**; exact resolved model recorded per-episode in each `run-info.json`. (Same snapshot validated the crystallise+reuse smoke, commit `d30903917`.)
+- [x] Family set: **cat-facts-collector, dog-breeds-encyclopedia, pokeapi-pokedex** — confirmed per-entity tool fan-out families (the shape that crystallises `toolFanout`), chosen for higher expected pass-rate so arm4 phase-1 reliably crystallises a freezable helper. This is a post-hoc, easier-family selection (disclosed per §6); it strengthens the existence proof, and is disqualifying only for a generality claim, which is not made here. (`random-user-database` and `countries-encyclopedia` were rejected after the pilot smokes: the former lacks per-entity fan-out, the latter had a low single-seed pass-rate.)
+- [x] Held-out split confirmed: phase-1 build = `e1,e2,e3,m1,m2` (`LEARN_FROM_LEVELS`); phase-2 reuse = `h1` (held out of learning).
+- [x] This file committed BEFORE the confirmatory run starts (commit precedes the `run-sac-poc.sh ... --live` launch).
+
+### Run command (recorded for reproducibility)
+
+```
+# per-family (robust to a single-family abort), k=5, all 7 arms, sonnet-4-6:
+for fam in cat-facts-collector dog-breeds-encyclopedia pokeapi-pokedex; do
+  DATAFETCH_AGENT=claude eval/skillcraft/scripts/run-sac-poc.sh \
+    --families "$fam" --seeds 5 --m0 8 --model claude-sonnet-4-6 --live \
+    --out-root eval/skillcraft/results/sac-poc/confirm-k5/<fam>
+done
+# then concat all normalized.jsonl and score-cross-arm.ts --m0 8 over the union.
+```
