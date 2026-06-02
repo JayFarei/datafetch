@@ -104,3 +104,21 @@ Phase-3 WideSearch-vs-alternative corpus choice also remains open (deferred unti
 1. Family choice for Phase 1 — which SkillCraft family(ies) actually exhibit the repeated fan-out where reuse fires (candidates with structural per-entity fan-out + ideally numeric answers so the governance gate validates)? `random-user-database` did not.
 2. Whether the S4 preseed (Milestone 3) must be built/landed first to induce crystallisation + `df.tool` naming — i.e., is "reuse fires" contingent on the preseed, and should that be the next build step?
 3. With those settled, re-run the tiny smoke to confirm reuse fires (libCalls>0, arm4 phase-2 helperCallable=true, M* finite) BEFORE committing to the k≥5 run.
+
+---
+
+## 2026-06-02 — Attempt 4: preseed mandate → crystallise+reuse FIRES (arm2 proven); arm4 warm path gated on phase-1 passing
+
+**Change:** added a MANDATE-strength preseed to `renderLiveAgentInstructions` (→ workspace AGENTS.md; user-chosen channel since claude-p loads the GLOBAL `~/.claude/skills/datafetch/SKILL.md`, not the repo copy — see Attempt-3 channel finding). The mandate: for repeated per-entity tool fan-out, the agent MUST route through `df.lib.per_entity({ entityValues, toolBundle, toolNames, paramName })` (or a learned helper), never a raw inline loop; "inline fan-out is not learnable." Grounded in the FinChain iter-3.0a finding (soft prose ignored, mandate is the lever) and the observer crystallisation mechanism. Parity-safe: arm-agnostic content, and AGENTS.md is NOT part of the parity-hashed prompt. Re-smoked on `countries-encyclopedia` (a confirmed fan-out family) × arm1/arm2/arm4 × seed 1.
+
+**Evidence — the preseed WORKS (crystallise→reuse fires):**
+- `pnpm typecheck` exit 0; `pnpm test:unit` 48 files / **405/405** pass, exit 0 (preseed is prompt text).
+- arm2: the observer crystallised a REAL transferable helper `lib-cache/countries-encyclopedia/toolFanout.ts` (+ the `__intent__/` shared pool), frontmatter `name: toolFanout, shape-hash 363b95de, "Transferable learned datafetch fan-out helper"`. It was REUSED across episodes: `learnedInterfaceCalls` = 9 (e1) → 1 (e3) → 4 (m1) → 3 (m2); `helperCallable=true` from e1. This is the central mechanism firing for the first time in the SaC harness (vs Attempt-3's all-zero null).
+- vs Attempt 3 (random-user-database): there, `libCalls=0` everywhere. The mandate + a fan-out family flipped it.
+
+**Evidence — arm4 two-phase warm path still clean-fails (different, narrower cause):**
+- `M*: Infinity / CLEAN FAIL (denom<=0)`; arm4 phase-2/h1 `pass=0, helperCallable=false, availableAtStart=[]`; frozen lib (`phase1-frozen/countries-encyclopedia/`) holds only `intent-index.jsonl` — no `toolFanout.ts`.
+- ROOT CAUSE (not a freeze-code bug): arm4 phase-1 FAILED 3 of 5 levels on this single seed (e2,e3,m2 `pass=0`); crystallisation requires a PASSING episode + convergence, so phase-1 never accumulated/persisted a helper to freeze. `find arm4 -name toolFanout*` → nothing (no lib-cache helper). arm2 (5/6 passing) crystallised fine; arm4 phase-1 (2/5 passing) did not. Freeze logic (skillcraftFullDatafetch.ts:525-528, freezes libCacheDir→phase1-frozen) is correct — there was simply nothing to freeze.
+- Also: `countries-encyclopedia` correctness is shaky for the agent on a single seed (arm1 e1 fail; arm4 3/5 fail). The k≥5 multi-seed design exists to absorb exactly this noise, but we still want one clean arm4 warm-path demo (phase-1 crystallises → phase-2 reuses → finite M*) before the full run.
+
+**Next-step rationale:** the preseed is validated and committed. The remaining gate for a clean arm4 warm-path demonstration is a fan-out family where arm4 phase-1 reliably PASSES (so it crystallises+freezes a helper), and/or running multiple seeds so at least some phase-1 episodes crystallise per family. This is the family-selection input still owed (which overlaps the confirmatory-run family set). Surfacing the choice to the user. NOT a runner bug; do not edit freeze/hydrate logic.
