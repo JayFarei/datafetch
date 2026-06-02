@@ -98,9 +98,9 @@ run_one() {
     --out-dir "${out}" \
     --phase "${phase}" \
     --seed "${seed}" \
-    "${model_args[@]}" \
+    ${model_args[@]+"${model_args[@]}"} \
     ${LIVE} \
-    "${extra[@]}"
+    ${extra[@]+"${extra[@]}"}
 }
 
 # Interleave seeds across arms (outer loop = seed, inner loop = arm) so any

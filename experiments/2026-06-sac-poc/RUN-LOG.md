@@ -71,3 +71,36 @@ Append-only attempt log for the datafetch dataset-onboarding-SDK Goal (branch `s
 3. Whether to run a tiny live smoke first (1 family × {arm1,arm4,arm2} × 1 seed, per the verify-skill suggestion) before committing to the full 7-arm × k-seed run.
 
 Phase-3 WideSearch-vs-alternative corpus choice also remains open (deferred until Phase 3, as the Goal specifies).
+
+---
+
+## 2026-06-02 — Attempt 3: live smoke (pipeline VALIDATED; reuse loop did NOT fire — new blocker)
+
+**Change:** ran a tiny live smoke via `run-sac-poc.sh` (arms arm1,arm2,arm4 × family `random-user-database` × seed 1 × `--live`, `DATAFETCH_AGENT=claude` / `claude-p`). First attempt died instantly on a real orchestrator bug — `run-sac-poc.sh:94 model_args[@]: unbound variable` (empty-array expansion under `set -u` on macOS bash). Fixed both unguarded expansions to the `${arr[@]+"${arr[@]}"}` idiom (lines 101/103); `bash -n` clean. Relaunched; ran to completion, exit 0.
+
+**Evidence observed — pipeline + parity VALIDATED (the smoke's primary goal):**
+- 18 normalized rows (arm1/single 6, arm2/single 6, arm4/phase1-build 5, arm4/phase2-reuse 1); normalize + the new cross-arm scorer both ran; `invariants: ALL HELD`; exit 0.
+- **arm1↔arm4 prompt-parity hashes are BYTE-IDENTICAL at all 6 levels** (e1 `0deedebe`, e2 `7bae3132`, e3 `da6c582b`, m1 `b22e1486`, m2 `3b3883e3`, h1 `90d883a7` — match exactly). R2 parity invariant validated on REAL prompts.
+- The new scorer code (sensitivity ladder + dollar tie-breaker + parity-floor diagnostic) executed on live rows and printed the `DOLLAR-LEDGER tie-breaker` line.
+- arm2 official correctness is fine (e2–h1 pass at 100%); the agent works.
+
+**Evidence observed — the crystallise→reuse loop did NOT fire (new blocker):**
+- `M*: point=Infinity -> CLEAN FAIL (denom<=0)` — arm4 warm cost was not below arm1 inline, because there was no warm reuse.
+- arm4 phase-1 crystallised NOTHING: `lib-status.json` at m2 = `availableAtStart:[], functionsAfterAgent:[], committedNewFunctions:0, libCalls:0`. The frozen lib (`phase1-frozen/random-user-database/`) contains only `intent-index.jsonl` — no helper functions. So phase-2 had nothing to hydrate (`helperCallable=false, libCalls:0`).
+- arm2's `helperCallable=true` was only the pre-seeded `recordToolLookup`, never called (`libCalls:0, committedNewFunctions:0`).
+- `libCalls:0` across EVERY arm and level → no reuse fired anywhere.
+
+**Interpretation (honest, no fabrication):** the smoke proved the harness/parity/scorer pipeline is sound, but on `random-user-database` the agent did not crystallise or reuse a helper at all, so M* is a clean fail by construction. Two non-exclusive causes: (a) family choice — `random-user-database` may lack the repeated per-entity fan-out that triggers crystallisation (the R7=0.846 "reuse fires" families are likely the fan-out ones, e.g. pokeapi/dnd/countries-encyclopedia); (b) the S4 preseed (Milestone 3 in `STATUS.md`, "composition few-shot; name df.tool") is NOT STARTED — without it the agent is not induced to crystallise + name `df.tool` helpers. Connects to [[project_crag_within_session_negative]] (frontier models don't spontaneously reuse small helpers) and the [[project_sac_aligned_poc]] "reuse fires" premise, which this smoke puts in question for this family/config.
+
+### BLOCKED — reuse loop must fire before the confirmatory run is meaningful (needs user)
+
+**Attempted paths:** (1) run-sac-poc.sh bash fix → unblocked the orchestrator (validated end-to-end). (2) the smoke itself → validated pipeline/parity but exposed zero crystallisation/reuse. (3) proceeding to the full k≥5 run now → declined: it would produce clean-fail M* on every seed (no reuse → no warm saving), wasting a large live run and producing no headline result.
+
+**Evidence gathered:** see Attempt 3 above (lib-status.json = 0 committed functions, 0 lib calls; empty frozen lib; M* clean-fail).
+
+**Blocker:** the PoC's central mechanism (crystallise a helper in phase-1, reuse it warm in phase-2) did not fire. The confirmatory run cannot yield a finite M*/attribution result until reuse demonstrably fires in a smoke.
+
+**Input that would unlock progress:**
+1. Family choice for Phase 1 — which SkillCraft family(ies) actually exhibit the repeated fan-out where reuse fires (candidates with structural per-entity fan-out + ideally numeric answers so the governance gate validates)? `random-user-database` did not.
+2. Whether the S4 preseed (Milestone 3) must be built/landed first to induce crystallisation + `df.tool` naming — i.e., is "reuse fires" contingent on the preseed, and should that be the next build step?
+3. With those settled, re-run the tiny smoke to confirm reuse fires (libCalls>0, arm4 phase-2 helperCallable=true, M* finite) BEFORE committing to the k≥5 run.
