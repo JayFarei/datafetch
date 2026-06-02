@@ -345,14 +345,52 @@ export function distilRecipe(input: RecipeInput): string {
 
 // --- lifecycle ledger arithmetic (CONTRACT §b) -----------------------------
 //
-// effectiveModelContextTokens = agentInputTokens + agentOutputTokens, with
-// cached input counted at FULL weight (NOT subtracting cached). This is the
-// ONLY token field the break-even + attribution math reads.
+// effectiveModelContextTokens = agentInputTokens + agentCachedInputTokens +
+// agentOutputTokens (cached input counted at FULL weight, NOT subtracted).
+// This is the HEADLINE model-context token field the break-even + attribution
+// math reads. The cross-arm scorer ALSO derives two sensitivity units from the
+// same components via modelContextCostAtCachedWeight() below:
+//   - fresh+output (cachedWeight = 0): the cache-excluded marginal
+//   - dollar-equivalent (cachedWeight ~= 0.1): the REQUIRED tie-breaker the
+//     headline token claim must survive (cached reads bill ~10x cheaper).
 export function effectiveModelContextTokens(input: {
   agentInputTokens: number;
+  agentCachedInputTokens?: number | null;
   agentOutputTokens: number;
 }): number {
-  return input.agentInputTokens + input.agentOutputTokens;
+  // Full-weight model-context tokens (CONTRACT §b / plan R5): cached input is
+  // counted at FULL weight, NOT subtracted. In the claude-p / Anthropic usage
+  // convention, `inputTokens` is the fresh (uncached) input and
+  // `cachedInputTokens` is the ADDITIVE cache-read subset (observed 8 fresh vs
+  // 139093 cached on a real episode), so the model actually processed
+  // input + cached + output. Dropping the cached term re-imports the exact
+  // prompt-cache confound this metric exists to control.
+  return (
+    input.agentInputTokens +
+    (input.agentCachedInputTokens ?? 0) +
+    input.agentOutputTokens
+  );
+}
+
+// Model-context cost under an arbitrary cache weight (CONTRACT §c sensitivity
+// ladder). `cachedWeight` reweights the cache-read subset only:
+//   1.0  -> effectiveModelContextTokens (the HEADLINE unit; cached at full weight)
+//   0.0  -> fresh input + output (cache excluded)
+//   ~0.1 -> dollar-equivalent (cached reads bill ~0.1x fresh input)
+// At cachedWeight = 1 this is IDENTICAL to effectiveModelContextTokens, so the
+// scorer's full-weight sensitivity row reproduces the primary M* exactly (a
+// no-op consistency check, not a second metric).
+export function modelContextCostAtCachedWeight(input: {
+  rawInputTokens: number;
+  cachedInputTokens?: number | null;
+  outputTokensLedger: number;
+  cachedWeight: number;
+}): number {
+  return (
+    input.rawInputTokens +
+    input.cachedWeight * (input.cachedInputTokens ?? 0) +
+    input.outputTokensLedger
+  );
 }
 
 // inlineCostPerQ (arm1) / warmCallCostPerQ (arm4 phase-2) =

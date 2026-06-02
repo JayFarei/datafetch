@@ -20,6 +20,21 @@ by calling the frozen helper), with a clustered-by-question bootstrap 95% CI.
 
 - **Success rule:** the **95% upper** CI of `M*` ≤ `M0`.
 - **Clean fail:** denominator ≤ 0 -> `M* = +infinity`.
+- **Cost unit (pinned 2026-06-02, user-confirmed):** full-weight model-context
+  tokens (`effectiveModelContextTokens`, cached at 1×) for both M* and the
+  attribution ladder; reported as a token claim, never a dollar claim. The
+  char-based `parityFloorTokens` is a DIAGNOSTIC (it cancels in the arm1-vs-arm4
+  paired difference); the denominator is computed as that paired full-weight
+  difference directly. See `CONTRACT.md` §(c) "Cost unit … tie-breaker".
+- **Required dollar-equivalent tie-breaker:** the scorer recomputes M* and the
+  attribution diffs under three units — `fullWeight` (×1, headline),
+  `freshPlusOutput` (×0), `dollarEquivalent` (cached ×0.1). The claim counts as
+  surviving the dollar ledger only if `claimSurvivesDollarLedger` is true (M*
+  still ≤ M0 and arm4 still beats both floors under ×0.1). If the win holds at
+  full weight but not at ×0.1, the artifact concedes a token-only win. ×0.1 is a
+  list-price approximation; the pinned price snapshot is recorded at run start.
+- **`governance_cost` ≈ 0** by construction (in-process FAC replay, no model
+  call), so M* pays back the one-time governed helper BUILD, not the gate.
 
 ### M0 (the claimed tenant reuse density) — PLACEHOLDER, set before run
 

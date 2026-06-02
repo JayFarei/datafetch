@@ -326,6 +326,46 @@ answered by calling the frozen helper). Components:
   published design has `M* = infinity` because it re-pays codegen every
   trajectory; the claim is that datafetch's `M*` is finite and ≤ `M0`.
 
+### Cost unit, the parity-floor diagnostic, and the dollar-equivalent tie-breaker (R5)
+
+**Decision (2026-06-02, user-confirmed; supersedes the v2 "char-floor vs
+paired-differencing" framing).** The headline unit for BOTH M* and the
+attribution ladder is **full-weight model-context tokens**
+(`effectiveModelContextTokens` = raw input + cached input at 1× + output) —
+what the model actually processes, and directly comparable to SaC's published
+model-context reductions. Reported as a **token** claim, never a dollar claim.
+
+- **The char-based `parityFloorTokens` is a DIAGNOSTIC, not the economic unit.**
+  It is byte-identical across arm1/arm4 per question (the parity invariant), so
+  it cancels exactly in the `arm1_inline − arm4_warm` difference regardless of
+  its value. The scorer computes the denominator as the arm1-vs-arm4 paired
+  difference of full-weight model-context cost directly (the paired-differencing
+  estimand) and surfaces the floor only under
+  `primaryBreakEven.parityFloorDiagnostic`. The earlier "the cached floor
+  cancels by the prompt-parity gate" claim is RETIRED: the parity gate hashes
+  prompt TEXT, not realized prompt-cache reads, so arm1/arm4 per-question cached
+  counts are NOT guaranteed equal and the ~139k cached scaffolding does not
+  provably cancel — which is precisely why the tie-breaker below exists.
+
+- **REQUIRED dollar-equivalent tie-breaker.** Cached reads bill ~10× cheaper
+  than fresh input, so a full-weight token win can overstate the dollar win. The
+  scorer recomputes every endpoint under three units (`primaryBreakEven.sensitivity`
+  and the per-arm `tokens.sensitivity` in the attribution block):
+  - `fullWeight` (cached ×1) — the HEADLINE (reproduces the primary).
+  - `freshPlusOutput` (cached ×0) — the cache-excluded marginal.
+  - `dollarEquivalent` (cached ×0.1) — the TIE-BREAKER.
+  The claim is reported as upheld **and** surviving the dollar ledger only when
+  `claimSurvivesDollarLedger` is true (M* still clears M0, and arm4 still beats
+  both floors with the CI excluding 0, under the ×0.1 unit). If the win holds at
+  full weight but NOT under the dollar unit, the artifact MUST concede it is a
+  model-context-token win, not a dollar win. (×0.1 is a published-list-price
+  approximation; the exact pinned snapshot price is recorded in `run-info.json`.)
+
+- **`governance_cost` is ~0 by construction.** The FAC quarantine/replay gate
+  runs in-process with no model call (`sacArmGovernance` `costTokens = 0`), so
+  M* pays back the one-time governed helper BUILD, not a token-expensive gate.
+  Reported honestly as such, never inflated.
+
 ### CO-PRIMARY — attribution ladder (R7)
 
 The callable-interface claim holds ONLY if **arm4 beats BOTH arm5a AND arm5b**

@@ -26,7 +26,7 @@ frozen (that is Milestone 8, gated on phase-1 build cost).
 |--------|------|--------|
 | S1 runner-core | `src/eval/skillcraftFullDatafetch.ts`, `src/eval/sacArms.ts` (new), `normalize-results.ts`, `run-sac-poc.sh` (new) | BUILT (typecheck clean): SAC_ARM selector + armConfig table (all 7 arms verified vs CONTRACT), interfaceMode set before getInterfaceMode (Risk R-1), conflict/unknown-arm fail-run invariants, shared parity renderer (arm1/arm4 masked-hash MATCH verified, binding differs), two-phase fresh-process runner (--phase/--frozen-lib, arm4 freeze), arm0 tool-withhold + toolCalls==0 assert, arm1 lib-overlay wipe, arm5a results-cache shim (TS↔Python key byte-equal verified), arm5b recipe distil/inject (<=600c), full cost-ledger emission (effectiveModelContextTokens at full weight), planner-artifact hash, normalize-results widened + legacy run still normalizes. Governance gate calls (arm2/arm4 runGovernanceGate, arm3 forceCallableWithoutGovernance) dynamic-import S2's `sacArmGovernance.ts` with a fail-safe (NOT-promoted) default until S2 lands that file. |
 | S2 governance | `src/eval/sacArmGovernance.ts` (new) + probe harness | probes landed: `eval/skillcraft/probes/{governanceGate,fixtures,blindSuite}.ts` + `scripts/run-governance-probes.ts` — 3 deterministic probes PASS (arm2 declines / arm3 emits wrong-stale), blind 20+20 runs clean (0 false-accept/reject); arm3 decouple in `sacArmGovernance.ts` not started |
-| S3 scorer | `score-cross-arm.ts` (new), `p1-paired-analysis.py` extension | not started |
+| S3 scorer | `score-cross-arm.ts` (new), `p1-paired-analysis.py` extension | BUILT (typecheck clean; synthetic end-to-end verified, exit 0): M* + clustered bootstrap CI, arm4-vs-5a/5b attribution, arm4-vs-1 secondary, clustered-by-question McNemar + -5pp NI, cache-hit/parity/arm0 invariants. **2026-06-02 metric decision landed (user-confirmed):** headline = full-weight model-context tokens; `parityFloorTokens` DEMOTED to a diagnostic (denominator = arm1-vs-arm4 paired full-weight difference directly); 3-unit sensitivity ladder (×1 / ×0 / ×0.1) + `claimSurvivesDollarLedger` dollar tie-breaker on M* and attribution; `governance_cost≈0` honest note. Already wired into `run-sac-poc.sh`. Guard test `tests/sac-cost-ledger.test.ts`. p1-paired-analysis.py extension still pending. |
 | S4 preseed + fixtures | `skills/datafetch/SKILL.md`, `eval/skillcraft/fixtures/sac-poc/` (new) | not started |
 
 ## Milestone trace (from plan 009)
@@ -36,7 +36,7 @@ frozen (that is Milestone 8, gated on phase-1 build cost).
 3. [ ] preseed rewrite (composition few-shot; name df.tool) — S4
 4. [ ] arm1 inline-rewrite-no-persistence + arm3 ablation-without-governance — S1/S2
 5. [ ] arm4 two-phase fresh-process + arm5a results-cache + arm5b recipe + cache-hit assertion — S1
-6. [ ] cross-arm scorer (M* + CI, attribution, clustered NI) — S3
+6. [x] cross-arm scorer (M* + CI, attribution, clustered NI) — S3 (+ §c cost-unit decision: full-weight headline + dollar tie-breaker, 2026-06-02)
 7. [ ] three deterministic governance probes + blind 20+20 — S2/S4
 8. [ ] pre-register + run k≥5 interleaved seeds — all
 9. [ ] blog + interactive demo — (post-build)

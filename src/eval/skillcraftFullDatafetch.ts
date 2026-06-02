@@ -1280,6 +1280,7 @@ async function runLiveExperimental(input: {
   // --- lifecycle cost ledger (CONTRACT §b/§c) ---
   const effectiveModelContext = computeEffectiveModelContextTokens({
     agentInputTokens: agentRun.usage.inputTokens,
+    agentCachedInputTokens: agentRun.usage.cachedInputTokens,
     agentOutputTokens: agentRun.usage.outputTokens,
   });
   const parityFloorTokens = parity.parityFloorTokens;

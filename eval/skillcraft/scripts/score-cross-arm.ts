@@ -65,6 +65,11 @@
 import { promises as fsp } from "node:fs";
 import path from "node:path";
 
+// Single source of truth for the model-context cost arithmetic (so the scorer
+// and the runner ledger cannot drift). The full-weight definition is the
+// headline; the weighted variant powers the sensitivity ladder (CONTRACT §c).
+import { modelContextCostAtCachedWeight } from "../../../src/eval/sacArms.js";
+
 // --- the SaC arm enum (CONTRACT.md §(a)) ----------------------------------
 
 type SacArm = "arm0" | "arm1" | "arm2" | "arm3" | "arm4" | "arm5a" | "arm5b";
@@ -218,6 +223,49 @@ function stdev(values: number[]): number {
   return Math.sqrt(v);
 }
 
+// --- sensitivity ladder (CONTRACT §c) --------------------------------------
+//
+// The HEADLINE unit is full-weight model-context tokens (cached at 1x), which
+// is what the primary M* and the attribution ladder are scored in. Because
+// cached reads bill ~10x cheaper than fresh input, a token win at full weight
+// can overstate the dollar win — so we ALSO recompute every endpoint under a
+// cache-excluded unit and a dollar-equivalent unit. The dollar-equivalent unit
+// is the REQUIRED tie-breaker: the claim must SURVIVE it (claimSurvivesDollarLedger),
+// or the artifact must concede the win is token-only.
+const DOLLAR_CACHED_WEIGHT = 0.1;
+const SENSITIVITY_UNITS = [
+  { key: "fullWeight", cachedWeight: 1, label: "model-context tokens (cached 1x) — HEADLINE", headline: true, tieBreaker: false },
+  { key: "freshPlusOutput", cachedWeight: 0, label: "fresh input + output (cache excluded)", headline: false, tieBreaker: false },
+  { key: "dollarEquivalent", cachedWeight: DOLLAR_CACHED_WEIGHT, label: `fresh + ${DOLLAR_CACHED_WEIGHT}x cached + output (dollar-equivalent) — TIE-BREAKER`, headline: false, tieBreaker: true },
+] as const;
+
+interface CostParts {
+  raw: number;
+  cached: number;
+  out: number;
+}
+
+// Per-question cost components (means over seeds). Returns null if the row set
+// lacks the raw/output ledger fields (older runs); the scorer then drops the
+// question from the sensitivity-aware endpoints rather than guessing.
+function costPartsOf(label: QuestionLabel): CostParts | null {
+  if (!isNum(label.rawInputTokensMean) || !isNum(label.outputTokensLedgerMean)) return null;
+  return {
+    raw: label.rawInputTokensMean,
+    cached: isNum(label.cachedInputTokensMean) ? label.cachedInputTokensMean : 0,
+    out: label.outputTokensLedgerMean,
+  };
+}
+
+function costAt(parts: CostParts, cachedWeight: number): number {
+  return modelContextCostAtCachedWeight({
+    rawInputTokens: parts.raw,
+    cachedInputTokens: parts.cached,
+    outputTokensLedger: parts.out,
+    cachedWeight,
+  });
+}
+
 // Mulberry32 — small deterministic PRNG so the bootstrap CI is reproducible
 // given --seed (the same seed yields the same CI run-to-run).
 function mulberry32(a: number): () => number {
@@ -334,8 +382,16 @@ interface QuestionLabel {
   seedDisagreement: number; // fraction of seeds disagreeing with the majority
   // token marginals aggregated per question (mean over seeds), for M* / ledger
   effectiveModelContextTokensMean: number | null;
+  // raw cost components (mean over seeds), for the sensitivity ladder (§c)
+  rawInputTokensMean: number | null;
+  cachedInputTokensMean: number | null;
+  outputTokensLedgerMean: number | null;
   inlineCostPerQTokensMean: number | null;
   warmCallCostPerQTokensMean: number | null;
+  // the char-based parity floor (mean over seeds) — DIAGNOSTIC ONLY; it is
+  // byte-identical across arm1/arm4 per question and cancels in the denominator
+  // difference, so it is not part of the economic unit.
+  parityFloorTokensMean: number | null;
 }
 
 function majorityLabel(rows: CrossArmRow[]): QuestionLabel {
@@ -348,8 +404,12 @@ function majorityLabel(rows: CrossArmRow[]): QuestionLabel {
   const majorityVal = majorityPass ? 1 : 0;
   const disagree = rows.filter((r) => (r.officialPassed ? 1 : 0) !== majorityVal).length;
   const emc = rows.map((r) => r.effectiveModelContextTokens).filter(isNum);
+  const rawIn = rows.map((r) => r.rawInputTokens).filter(isNum);
+  const cachedIn = rows.map((r) => r.cachedInputTokens).filter(isNum);
+  const outTok = rows.map((r) => r.outputTokensLedger).filter(isNum);
   const inl = rows.map((r) => r.inlineCostPerQTokens).filter(isNum);
   const warm = rows.map((r) => r.warmCallCostPerQTokens).filter(isNum);
+  const floor = rows.map((r) => r.parityFloorTokens).filter(isNum);
   return {
     questionKey: questionKey(first),
     family: first.family,
@@ -360,8 +420,12 @@ function majorityLabel(rows: CrossArmRow[]): QuestionLabel {
     majorityPass,
     seedDisagreement: seeds === 0 ? 0 : disagree / seeds,
     effectiveModelContextTokensMean: emc.length ? mean(emc) : null,
+    rawInputTokensMean: rawIn.length ? mean(rawIn) : null,
+    cachedInputTokensMean: cachedIn.length ? mean(cachedIn) : null,
+    outputTokensLedgerMean: outTok.length ? mean(outTok) : null,
     inlineCostPerQTokensMean: inl.length ? mean(inl) : null,
     warmCallCostPerQTokensMean: warm.length ? mean(warm) : null,
+    parityFloorTokensMean: floor.length ? mean(floor) : null,
   };
 }
 
@@ -487,24 +551,31 @@ function bootstrapCI<T>(
 // CI: clustered (by question) bootstrap; report the 95% UPPER CI.
 
 interface MStarInputs {
-  buildCost: number;
-  governanceCost: number;
-  // per-question marginal cost samples, keyed by question, on the matched
-  // held-out set (the intersection of arm1 and eligible-arm4 questions).
+  // per-question cost COMPONENTS (mean over seeds) on the matched held-out set
+  // (the intersection of arm1 and eligible-arm4 questions). We carry the raw
+  // components, not the pre-subtracted marginal, so M* can be recomputed under
+  // each sensitivity unit. The char parity floor is NOT carried: it is
+  // byte-identical across arm1/arm4 per question and cancels in the difference
+  // (it lives in the parityFloorDiagnostic only).
   perQuestion: Array<{
     questionKey: string;
-    arm1Inline: number;
-    arm4Warm: number;
+    arm1: CostParts;
+    arm4: CostParts;
   }>;
 }
 
-function computeMStar(
+// M* under a given cache weight. `numeratorCost` MUST be computed at the SAME
+// weight (numerator and denominator share the unit). The denominator is the
+// arm1-vs-arm4 paired difference of model-context cost; the floor cancels by
+// the parity invariant, so this is the paired-differencing estimand directly.
+function computeMStarAt(
   numeratorCost: number,
   perQuestion: MStarInputs["perQuestion"],
+  cachedWeight: number,
 ): number | null {
   if (perQuestion.length === 0) return null;
-  const inlineMean = mean(perQuestion.map((q) => q.arm1Inline));
-  const warmMean = mean(perQuestion.map((q) => q.arm4Warm));
+  const inlineMean = mean(perQuestion.map((q) => costAt(q.arm1, cachedWeight)));
+  const warmMean = mean(perQuestion.map((q) => costAt(q.arm4, cachedWeight)));
   const denom = inlineMean - warmMean;
   if (!(denom > 0)) return Number.POSITIVE_INFINITY; // clean fail
   return numeratorCost / denom;
@@ -654,34 +725,43 @@ function scoreMStar(
   rng: () => number,
 ): unknown {
   // numerator: build_cost + governance_cost = sum over FAMILIES of arm4
-  // phase-1 buildCostTokens + governanceCostTokens. These are emitted on
-  // phase1-build rows only and are PER-FAMILY (CONTRACT §(b)) — so we take one
-  // value per (family) from the arm4 phase-1 rows, not per question.
+  // phase-1 cost + governance cost. Build cost is per-family (one episode's
+  // cost components per family; we take the first arm4 phase-1 row per family,
+  // mirroring the v1 buildCostTokens selection). We carry the COMPONENTS so the
+  // numerator can be reweighted per sensitivity unit (numerator + denominator
+  // must share the unit). governance_cost is a single token figure (~0 here).
   const arm4Phase1 = rows.filter(
     (r) => r.sacArm === "arm4" && r.phaseTag === "phase1-build",
   );
-  const buildByFamily = new Map<string, number>();
+  const buildPartsByFamily = new Map<string, CostParts>();
   const govByFamily = new Map<string, number>();
   for (const r of arm4Phase1) {
-    if (isNum(r.buildCostTokens) && !buildByFamily.has(r.family)) {
-      buildByFamily.set(r.family, r.buildCostTokens);
+    if (
+      !buildPartsByFamily.has(r.family) &&
+      isNum(r.rawInputTokens) &&
+      isNum(r.outputTokensLedger)
+    ) {
+      buildPartsByFamily.set(r.family, {
+        raw: r.rawInputTokens,
+        cached: isNum(r.cachedInputTokens) ? r.cachedInputTokens : 0,
+        out: r.outputTokensLedger,
+      });
     }
     if (isNum(r.governanceCostTokens) && !govByFamily.has(r.family)) {
       govByFamily.set(r.family, r.governanceCostTokens);
     }
   }
-  const buildCost = sum([...buildByFamily.values()]);
   const governanceCost = sum([...govByFamily.values()]);
-  const numeratorCost = buildCost + governanceCost;
+  const numeratorAt = (cachedWeight: number): number =>
+    sum([...buildPartsByFamily.values()].map((p) => costAt(p, cachedWeight))) + governanceCost;
 
   // eligible warm reuses: arm4 phase-2 questions actually answered by calling
-  // the frozen helper (helperCallable true on a phase-2 row). We aggregate to
-  // the per-question level (majority over seeds is the unit), and require the
-  // question carry a finite warmCallCostPerQTokensMean. The matched
-  // arm1_inline_cost_per_q must come from the SAME held-out question set.
+  // the frozen helper (finite warmCallCostPerQTokensMean), matched to the SAME
+  // arm1 held-out question. We carry the raw cost components for both arms.
   const arm4Labels = armQuestionLabels.get("arm4");
   const arm1Labels = armQuestionLabels.get("arm1");
   const perQuestion: MStarInputs["perQuestion"] = [];
+  const matchedFloors: Array<{ a1: number | null; a4: number | null }> = [];
   const droppedQuestions: Array<{ questionKey: string; reason: string }> = [];
   if (arm4Labels && arm1Labels) {
     for (const [qk, a4] of arm4Labels) {
@@ -697,66 +777,113 @@ function scoreMStar(
         droppedQuestions.push({ questionKey: qk, reason: "no matched arm1 inline cost for this question" });
         continue;
       }
-      perQuestion.push({
-        questionKey: qk,
-        arm1Inline: a1.inlineCostPerQTokensMean,
-        arm4Warm: a4.warmCallCostPerQTokensMean,
-      });
+      const a4Parts = costPartsOf(a4);
+      const a1Parts = costPartsOf(a1);
+      if (!a4Parts || !a1Parts) {
+        droppedQuestions.push({ questionKey: qk, reason: "raw cost components missing on arm1/arm4 row (pre-ledger run)" });
+        continue;
+      }
+      perQuestion.push({ questionKey: qk, arm1: a1Parts, arm4: a4Parts });
+      matchedFloors.push({ a1: a1.parityFloorTokensMean, a4: a4.parityFloorTokensMean });
     }
   }
 
-  const point = computeMStar(numeratorCost, perQuestion);
-  // clustered bootstrap over questions: resample the per-question marginal
-  // pairs, recompute M* each draw (numerator is fixed; only the denominator
-  // means are resampled — that is the source of clustered variance).
-  const ci = bootstrapCI(
-    perQuestion,
-    (resampled) => computeMStar(numeratorCost, resampled),
-    { draws: args.bootstrap, rng, alpha: args.alpha },
-  );
+  // Compute M* + clustered bootstrap CI + success at one cache weight. The
+  // numerator is fixed per unit; only the denominator means are resampled
+  // (the source of clustered variance). Same rng stream across units (the call
+  // order is deterministic, so the report is reproducible for a given seed).
+  const unitResult = (cachedWeight: number) => {
+    const numeratorCost = numeratorAt(cachedWeight);
+    const point = computeMStarAt(numeratorCost, perQuestion, cachedWeight);
+    const ci = bootstrapCI(
+      perQuestion,
+      (resampled) => computeMStarAt(numeratorCost, resampled, cachedWeight),
+      { draws: args.bootstrap, rng, alpha: args.alpha },
+    );
+    const inlineMean = perQuestion.length ? mean(perQuestion.map((q) => costAt(q.arm1, cachedWeight))) : null;
+    const warmMean = perQuestion.length ? mean(perQuestion.map((q) => costAt(q.arm4, cachedWeight))) : null;
+    const denom = inlineMean !== null && warmMean !== null ? inlineMean - warmMean : null;
+    const denomPositive = denom !== null && denom > 0;
+    const upper = ci.upperOneSided;
+    const success =
+      point !== null && Number.isFinite(point) && denomPositive && isNum(upper)
+        ? upper <= args.m0
+        : false;
+    return { numeratorCost, point, ci, inlineMean, warmMean, denom, denomPositive, success };
+  };
 
-  const denomPositive =
-    perQuestion.length > 0 &&
-    mean(perQuestion.map((q) => q.arm1Inline)) - mean(perQuestion.map((q) => q.arm4Warm)) > 0;
+  const byUnit = SENSITIVITY_UNITS.map((u) => ({ unit: u, res: unitResult(u.cachedWeight) }));
+  const primary = byUnit.find((b) => b.unit.headline)!.res;
+  const dollar = byUnit.find((b) => b.unit.tieBreaker)!.res;
 
-  // Success = 95% UPPER CI of M* <= M0 (PRE-REGISTRATION §1).
-  const upper = ci.upperOneSided;
-  const success =
-    point !== null && Number.isFinite(point) && denomPositive && isNum(upper)
-      ? upper <= args.m0
-      : false;
+  const fmtPoint = (p: number | null) => (p === null ? null : Number.isFinite(p) ? round(p, 3) : "Infinity");
+
+  // parity-floor DIAGNOSTIC (CONTRACT §c): show the char floor is identical
+  // across arm1/arm4 (so it cancels in the denominator and is not the unit).
+  const a1Floors = matchedFloors.map((f) => f.a1).filter(isNum);
+  const a4Floors = matchedFloors.map((f) => f.a4).filter(isNum);
+  const arm1FloorMean = a1Floors.length ? mean(a1Floors) : null;
+  const arm4FloorMean = a4Floors.length ? mean(a4Floors) : null;
+  const floorCancels =
+    arm1FloorMean !== null && arm4FloorMean !== null && Math.abs(arm1FloorMean - arm4FloorMean) < 1e-6;
 
   return {
     formula:
       "M* = (build_cost + governance_cost) / (arm1_inline_cost_per_q - arm4_warm_call_cost_per_q)",
-    buildCostTokens: round(buildCost, 1),
+    headlineUnit:
+      "full-weight model-context tokens (cached input at 1x); dollar-equivalent tie-breaker reported in `sensitivity`",
+    buildCostTokens: round(numeratorAt(1) - governanceCost, 1),
     governanceCostTokens: round(governanceCost, 1),
-    numeratorTokens: round(numeratorCost, 1),
-    familiesWithBuildCost: buildByFamily.size,
+    governanceNote:
+      "governance_cost is the in-process FAC quarantine/replay spend; it carries ZERO model call in this harness (sacArmGovernance costTokens=0), so M* pays back the one-time governed helper BUILD, not a token-expensive gate.",
+    numeratorTokens: round(primary.numeratorCost, 1),
+    familiesWithBuildCost: buildPartsByFamily.size,
     familiesWithGovernanceCost: govByFamily.size,
     eligibleWarmReuseQuestions: perQuestion.length,
-    arm1InlineCostPerQ:
-      perQuestion.length > 0 ? round(mean(perQuestion.map((q) => q.arm1Inline)), 1) : null,
-    arm4WarmCallCostPerQ:
-      perQuestion.length > 0 ? round(mean(perQuestion.map((q) => q.arm4Warm)), 1) : null,
-    denominatorTokens:
-      perQuestion.length > 0
-        ? round(mean(perQuestion.map((q) => q.arm1Inline)) - mean(perQuestion.map((q) => q.arm4Warm)), 1)
-        : null,
-    denominatorPositive: denomPositive,
-    mStarPoint: point === null ? null : Number.isFinite(point) ? round(point, 3) : "Infinity",
+    arm1InlineCostPerQ: primary.inlineMean !== null ? round(primary.inlineMean, 1) : null,
+    arm4WarmCallCostPerQ: primary.warmMean !== null ? round(primary.warmMean, 1) : null,
+    denominatorTokens: primary.denom !== null ? round(primary.denom, 1) : null,
+    denominatorPositive: primary.denomPositive,
+    parityFloorDiagnostic: {
+      arm1MeanParityFloorTokens: arm1FloorMean !== null ? round(arm1FloorMean, 1) : null,
+      arm4MeanParityFloorTokens: arm4FloorMean !== null ? round(arm4FloorMean, 1) : null,
+      cancelsInDenominator: floorCancels,
+      note:
+        "DEMOTED to a provenance diagnostic (CONTRACT §c): the char-based parity floor is byte-identical across arm1/arm4 per question, so it cancels exactly in the denominator difference and is NOT the economic unit. The cached scaffolding (counted in the headline at full weight) — not this ~1.7k floor — dominates each episode.",
+    },
+    mStarPoint: fmtPoint(primary.point),
     mStarCI95: {
-      lowerOneSided: isNum(ci.lowerOneSided) ? round(ci.lowerOneSided, 3) : ci.lowerOneSided,
-      upperOneSided: isNum(ci.upperOneSided) ? round(ci.upperOneSided, 3) : ci.upperOneSided,
-      twoSidedLower: isNum(ci.lower) ? round(ci.lower, 3) : ci.lower,
-      twoSidedUpper: isNum(ci.upper) ? round(ci.upper, 3) : ci.upper,
-      bootstrapDraws: ci.draws,
-      nQuestionClusters: ci.nClusters,
+      lowerOneSided: isNum(primary.ci.lowerOneSided) ? round(primary.ci.lowerOneSided, 3) : primary.ci.lowerOneSided,
+      upperOneSided: isNum(primary.ci.upperOneSided) ? round(primary.ci.upperOneSided, 3) : primary.ci.upperOneSided,
+      twoSidedLower: isNum(primary.ci.lower) ? round(primary.ci.lower, 3) : primary.ci.lower,
+      twoSidedUpper: isNum(primary.ci.upper) ? round(primary.ci.upper, 3) : primary.ci.upper,
+      bootstrapDraws: primary.ci.draws,
+      nQuestionClusters: primary.ci.nClusters,
     },
     m0: args.m0,
-    successRule: "95% upper CI of M* <= M0",
-    success,
-    cleanFail: !denomPositive,
+    successRule: "95% upper CI of M* <= M0 (in the HEADLINE full-weight unit)",
+    success: primary.success,
+    cleanFail: !primary.denomPositive,
+    // sensitivity ladder: same M* recomputed under each unit. fullWeight is the
+    // headline (reproduces the primary above); dollarEquivalent is the tie-breaker.
+    sensitivity: byUnit.map((b) => ({
+      unit: b.unit.key,
+      label: b.unit.label,
+      cachedWeight: b.unit.cachedWeight,
+      headline: b.unit.headline,
+      tieBreaker: b.unit.tieBreaker,
+      numeratorTokens: round(b.res.numeratorCost, 1),
+      arm1CostPerQ: b.res.inlineMean !== null ? round(b.res.inlineMean, 1) : null,
+      arm4CostPerQ: b.res.warmMean !== null ? round(b.res.warmMean, 1) : null,
+      denominatorTokens: b.res.denom !== null ? round(b.res.denom, 1) : null,
+      denominatorPositive: b.res.denomPositive,
+      mStarPoint: fmtPoint(b.res.point),
+      mStarUpperCI95: isNum(b.res.ci.upperOneSided) ? round(b.res.ci.upperOneSided, 3) : b.res.ci.upperOneSided,
+      success: b.res.success,
+    })),
+    // TIE-BREAKER: does the break-even still clear M0 once cached reads are
+    // discounted to ~0.1x (dollar-equivalent)? If false, the win is token-only.
+    claimSurvivesDollarLedger: dollar.success,
     droppedQuestions,
   };
 }
@@ -793,29 +920,62 @@ function scoreAttribution(
   // AND is non-inferior in correctness to BOTH (PRE-REGISTRATION §2).
   const claimUpheld = beats5a && beats5b && niHolds5a && niHolds5b;
 
+  // TIE-BREAKER: does arm4 still beat BOTH floors once cached reads are
+  // discounted to ~0.1x (dollar-equivalent)? Correctness NI is unit-independent,
+  // so it carries over. If false, the attribution win is token-only.
+  const claimSurvivesDollarLedger =
+    vs5a.beatsUnderDollar && vs5b.beatsUnderDollar && niHolds5a && niHolds5b;
+
   return {
     rule:
-      "callable-interface claim upheld iff arm4 beats BOTH arm5a AND arm5b on effectiveModelContextTokens (CI of diff excludes 0) AND is non-inferior in correctness to BOTH",
+      "callable-interface claim upheld iff arm4 beats BOTH arm5a AND arm5b on effectiveModelContextTokens (full-weight; CI of diff excludes 0) AND is non-inferior in correctness to BOTH",
+    headlineUnit:
+      "full-weight model-context tokens; per-unit sensitivity (incl. the dollar-equivalent tie-breaker) is under each arm's tokens.sensitivity",
     arm4VsArm5a: { tokens: vs5a, correctnessNI: niVs5a, beatsOnTokens: beats5a, niHolds: niHolds5a },
     arm4VsArm5b: { tokens: vs5b, correctnessNI: niVs5b, beatsOnTokens: beats5b, niHolds: niHolds5b },
     beatsBothOnTokens: beats5a && beats5b,
     nonInferiorToBoth: niHolds5a && niHolds5b,
     claimUpheld,
+    claimSurvivesDollarLedger,
   };
 }
 
 // Token-difference attribution between two arms over the matched phase-2
-// held-out question set. Returns mean(arm4 - floor) and its clustered
-// bootstrap CI; negative => arm4 cheaper.
+// held-out question set. Returns mean(arm4 - floor) and its clustered bootstrap
+// CI under the HEADLINE full-weight unit (negative => arm4 cheaper), PLUS a
+// per-unit sensitivity ladder (CONTRACT §c). `beatsUnderDollar` is the
+// tie-breaker: does arm4 still beat the floor once cached reads bill at ~0.1x?
+interface PairwiseAttribution {
+  floor: string;
+  nMatched: number;
+  meanA: number | null;
+  meanB: number | null;
+  meanDiff: number | null;
+  ci: BootstrapCI;
+  beatsUnderDollar: boolean;
+  sensitivity: Array<{
+    unit: string;
+    label: string;
+    cachedWeight: number;
+    headline: boolean;
+    tieBreaker: boolean;
+    meanA: number | null;
+    meanB: number | null;
+    meanDiff: number | null;
+    ciUpper: number | null;
+    beats: boolean;
+  }>;
+}
+
 function pairwiseTokenAttribution(
   armA: Map<string, QuestionLabel> | undefined,
   armB: Map<string, QuestionLabel> | undefined,
   floorName: string,
   args: Args,
   rng: () => number,
-): { floor: string; nMatched: number; meanA: number | null; meanB: number | null; meanDiff: number | null; ci: BootstrapCI } {
-  const diffs = matchedPhase2TokenDiffs(armA, armB);
-  if (diffs.length === 0) {
+): PairwiseAttribution {
+  const parts = matchedPhase2CostParts(armA, armB);
+  if (parts.length === 0) {
     return {
       floor: floorName,
       nMatched: 0,
@@ -823,45 +983,73 @@ function pairwiseTokenAttribution(
       meanB: null,
       meanDiff: null,
       ci: { point: null, lower: null, upper: null, upperOneSided: null, lowerOneSided: null, draws: 0, nClusters: 0 },
+      beatsUnderDollar: false,
+      sensitivity: SENSITIVITY_UNITS.map((u) => ({
+        unit: u.key, label: u.label, cachedWeight: u.cachedWeight, headline: u.headline, tieBreaker: u.tieBreaker,
+        meanA: null, meanB: null, meanDiff: null, ciUpper: null, beats: false,
+      })),
     };
   }
-  const meanA = mean(diffs.map((d) => d.a));
-  const meanB = mean(diffs.map((d) => d.b));
-  const ci = bootstrapCI(
-    diffs,
-    (resampled) => mean(resampled.map((d) => d.a - d.b)),
-    { draws: args.bootstrap, rng, alpha: args.alpha },
-  );
+  const unitDiff = (cachedWeight: number) => {
+    const meanA = mean(parts.map((p) => costAt(p.a, cachedWeight)));
+    const meanB = mean(parts.map((p) => costAt(p.b, cachedWeight)));
+    const ci = bootstrapCI(
+      parts,
+      (resampled) => mean(resampled.map((p) => costAt(p.a, cachedWeight) - costAt(p.b, cachedWeight))),
+      { draws: args.bootstrap, rng, alpha: args.alpha },
+    );
+    const meanDiff = meanA - meanB;
+    const beats = meanDiff < 0 && isNum(ci.upper) && ci.upper < 0;
+    return { meanA, meanB, ci, meanDiff, beats };
+  };
+  const byUnit = SENSITIVITY_UNITS.map((u) => ({ unit: u, res: unitDiff(u.cachedWeight) }));
+  const headline = byUnit.find((b) => b.unit.headline)!.res;
+  const dollar = byUnit.find((b) => b.unit.tieBreaker)!.res;
   return {
     floor: floorName,
-    nMatched: diffs.length,
-    meanA: round(meanA, 1),
-    meanB: round(meanB, 1),
-    meanDiff: round(meanA - meanB, 1),
+    nMatched: parts.length,
+    meanA: round(headline.meanA, 1),
+    meanB: round(headline.meanB, 1),
+    meanDiff: round(headline.meanDiff, 1),
     ci: {
-      point: isNum(ci.point) ? round(ci.point, 1) : ci.point,
-      lower: isNum(ci.lower) ? round(ci.lower, 1) : ci.lower,
-      upper: isNum(ci.upper) ? round(ci.upper, 1) : ci.upper,
-      upperOneSided: isNum(ci.upperOneSided) ? round(ci.upperOneSided, 1) : ci.upperOneSided,
-      lowerOneSided: isNum(ci.lowerOneSided) ? round(ci.lowerOneSided, 1) : ci.lowerOneSided,
-      draws: ci.draws,
-      nClusters: ci.nClusters,
+      point: isNum(headline.ci.point) ? round(headline.ci.point, 1) : headline.ci.point,
+      lower: isNum(headline.ci.lower) ? round(headline.ci.lower, 1) : headline.ci.lower,
+      upper: isNum(headline.ci.upper) ? round(headline.ci.upper, 1) : headline.ci.upper,
+      upperOneSided: isNum(headline.ci.upperOneSided) ? round(headline.ci.upperOneSided, 1) : headline.ci.upperOneSided,
+      lowerOneSided: isNum(headline.ci.lowerOneSided) ? round(headline.ci.lowerOneSided, 1) : headline.ci.lowerOneSided,
+      draws: headline.ci.draws,
+      nClusters: headline.ci.nClusters,
     },
+    beatsUnderDollar: dollar.beats,
+    sensitivity: byUnit.map((b) => ({
+      unit: b.unit.key,
+      label: b.unit.label,
+      cachedWeight: b.unit.cachedWeight,
+      headline: b.unit.headline,
+      tieBreaker: b.unit.tieBreaker,
+      meanA: round(b.res.meanA, 1),
+      meanB: round(b.res.meanB, 1),
+      meanDiff: round(b.res.meanDiff, 1),
+      ciUpper: isNum(b.res.ci.upper) ? round(b.res.ci.upper, 1) : b.res.ci.upper,
+      beats: b.res.beats,
+    })),
   };
 }
 
-function matchedPhase2TokenDiffs(
+function matchedPhase2CostParts(
   armA: Map<string, QuestionLabel> | undefined,
   armB: Map<string, QuestionLabel> | undefined,
-): Array<{ questionKey: string; a: number; b: number }> {
-  const out: Array<{ questionKey: string; a: number; b: number }> = [];
+): Array<{ questionKey: string; a: CostParts; b: CostParts }> {
+  const out: Array<{ questionKey: string; a: CostParts; b: CostParts }> = [];
   if (!armA || !armB) return out;
   for (const [qk, a] of armA) {
     if (a.phaseTag !== "phase2-reuse") continue;
     const b = armB.get(qk);
     if (!b || b.phaseTag !== "phase2-reuse") continue;
-    if (!isNum(a.effectiveModelContextTokensMean) || !isNum(b.effectiveModelContextTokensMean)) continue;
-    out.push({ questionKey: qk, a: a.effectiveModelContextTokensMean, b: b.effectiveModelContextTokensMean });
+    const aParts = costPartsOf(a);
+    const bParts = costPartsOf(b);
+    if (!aParts || !bParts) continue;
+    out.push({ questionKey: qk, a: aParts, b: bParts });
   }
   return out;
 }
@@ -1257,6 +1445,9 @@ function printSummary(sc: any): void {
   const a = sc.coPrimaryAttribution;
   console.log(
     `[score-cross-arm] CO-PRIMARY attribution: beatsBoth=${a.beatsBothOnTokens} niToBoth=${a.nonInferiorToBoth} -> claimUpheld=${a.claimUpheld}`,
+  );
+  console.log(
+    `[score-cross-arm] DOLLAR-LEDGER tie-breaker (cached @0.1x): M* survives=${m.claimSurvivesDollarLedger} attribution survives=${a.claimSurvivesDollarLedger}`,
   );
   for (const p of sc.correctness.pairings) {
     console.log(
