@@ -228,3 +228,22 @@ Phase-3 WideSearch-vs-alternative corpus choice also remains open (deferred unti
 **Blockers A + B + C all RESOLVED + verified.** This is the first configuration where M*, the attribution ladder, and R4 are all methodologically sound. Next: commit h1x + the orchestrator flag, then launch the VALID k≥5 confirmatory run on pokeapi-pokedex with --reuse-level h1x across all 7 arms (~3h).
 
 **Tracking note:** `eval/skillcraft/vendor/` is gitignored (blanket `*`), so the h1x level cannot be committed in place. The TRACKED source of truth is `eval/skillcraft/fixtures/sac-poc/heldout-levels/pokeapi-pokedex/h1x/` (+ README with the install one-liner). The runner reads from vendor, so the level is copied into the vendor tree before running (it is already on disk there for this run; a fresh checkout installs it via the README).
+
+---
+
+## 2026-06-03 — Attempt 11: VALID confirmatory run (pokeapi + h1x, k=5, all 7 arms) — ROBUST NEGATIVE
+
+**Run:** 210 episodes, 7 arms × 5 seeds, pokeapi-pokedex, --reuse-level h1x, sonnet-4-6 (~3h). Output `confirm-k5-pokeapi-h1x/`. Harness/parity/preseed all working (Blockers A+C fixed).
+
+**HEADLINE (honest): the cross-session amortisation thesis is NOT supported — the warm path is not cheaper in ANY cost unit, and is less correct.**
+- M* = +Infinity / CLEAN FAIL. The arm4-vs-arm1 marginal (parity-VALID; arm1↔arm4 parity held) shows arm4 warm > arm1 inline in EVERY unit:
+  - full-weight: arm1 168,577 vs arm4 235,098 → denom **−66,521**
+  - fresh+output (cache excluded): arm1 2,911 vs arm4 3,008 → denom **−97** (still negative — NOT a cached-hydration artifact)
+  - dollar-equivalent (cached ×0.1): arm1 19,477 vs arm4 26,217 → denom **−6,740**
+  Calling the persisted/crystallised `toolFanout` costs about the same (fresh+output) to much more (full-weight) than the agent writing a tight inline loop. For these small per-entity fan-outs, inline re-derivation is already cheap, so there is nothing to amortise.
+- Correctness: arm4 h1x pass = **2/5** (the 3 fails scored 30% with lic=1/callable=1 — it REUSED toolFanout but produced wrong output); arm1 h1x = 4/5, arm5a = 5/5, arm3 = 5/5. arm4 vs arm1 Δ=-33pp (NI not established). Overall pass: arm0 4/30, arm1 27/30, arm2 26/30, arm3 28/30, arm4 21/30, arm5a 26/30, arm5b 27/30 — arm4 is the weakest non-arm0 arm.
+- Attribution: arm4 "beats" arm5a/arm5b on tokens in all units (−137k full / −3k fresh / −16k dollar) BUT niToBoth=false → claimUpheld=false. The token "win" over the floors is because arm5a/arm5b re-fetch live and arm4 is LESS correct — not a real win.
+
+**Run still INVALID by gates (15 violations) — but fixable + immaterial to the headline.** All 15 are arm5a R4 cache-hits (5 seeds × {decisiveCacheHit, cacheHitCount==1, cross-arm phase-2 decisiveCacheHit}). Root cause: my h1x entity set {1,4,7,133,143} is disjoint on pokemon_id but NOT on evolution chain_id — Charmander(4) shares evolution chain_id 2 with phase-1's Charizard(6), so `pokemon_get_evolution(chain_id=2)` cache-hits (exactly 1 hit/seed). Fix = pick h1x pokemon whose evolution CHAINS also don't overlap phase-1 (drop Charmander). BUT this only affects the arm5a floor; the arm4-vs-arm1 negative is parity-valid and independent — fixing R4 would not make M* positive (denom is −66k regardless of arm5a).
+
+**Bottom line:** with a now methodologically-sound harness (parity holds, preseed fires, crystallise→reuse works, R4 nearly holds), the cross-session warm-reuse amortisation claim is robustly FALSIFIED on this corpus across all token units, and reuse degrades correctness. This extends the conceded single-session null ([[project_crag_within_session_negative]]: frontier models don't benefit from small-composition reuse) to the cross-session case. The ONE recurring positive (single-session arm2/arm3 ≈/> arm1 correctness) is not the headline and is confounded. Surfacing to the user: this is the honest result; recommend conceding it rather than tuning for a win.
