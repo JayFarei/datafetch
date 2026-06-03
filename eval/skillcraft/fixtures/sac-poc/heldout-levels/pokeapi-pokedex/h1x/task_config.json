@@ -1,0 +1,39 @@
+{
+    "task_name": "pokeapi-pokedex-h1x",
+    "task_type": "SingleUserTurn",
+    "needed_mcp_servers": [
+        "filesystem"
+    ],
+    "needed_local_tools": [
+        "pokemon_tools",
+        "skill_cache",
+        "claim_done"
+    ],
+    "max_turns": 100,
+    "timeout": 2400,
+    "stop": {
+        "tool_names": [
+            "local-claim_done"
+        ]
+    },
+    "meta": {
+        "category": "scaled_tasks",
+        "difficulty": "hard",
+        "estimated_api_calls": 25,
+        "subtask_count": 5,
+        "calls_per_subtask": 5,
+        "tools_used": [
+            "pokemon_get_details",
+            "pokemon_get_species",
+            "pokemon_get_evolution",
+            "pokemon_get_moves",
+            "pokemon_get_abilities"
+        ],
+        "skill_mode_target": true,
+        "expected_repetitions": 5,
+        "description": "Pokemon Pokedex with 5 NEW-ARGUMENT Pokemon x 5 APIs (h1x). Held-out new-entity sibling for the SaC PoC: entities are disjoint from the e1..m2 learning levels so a strict memoization floor (arm5a) cannot answer them from a phase-1 cache (R4 new-argument requirement).",
+        "base_task": "pokeapi-pokedex",
+        "scale_level": "h1x",
+        "constraint": "evolution requires species to be called first"
+    }
+}

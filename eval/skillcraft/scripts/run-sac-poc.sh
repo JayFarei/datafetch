@@ -47,7 +47,11 @@ MODEL=""
 REASONING=""
 LIVE=""
 PHASE1_LEVELS="e1,e2,e3,m1,m2"
-PHASE2_LEVELS="h1"
+# Held-out phase-2 reuse level. Two-phase arms (arm4/5a/5b) run it as phase-2;
+# single-phase arms (arm0..3) append it after the build levels. Override with
+# --reuse-level h1x to use a NEW-ARGUMENT sibling whose entities are disjoint
+# from e1..m2, so the arm5a memoization floor cannot cache-hit it (R4).
+REUSE_LEVEL="h1"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -65,6 +69,8 @@ while [[ $# -gt 0 ]]; do
     --model=*) MODEL="${1#*=}"; shift;;
     --reasoning) REASONING="$2"; shift 2;;
     --reasoning=*) REASONING="${1#*=}"; shift;;
+    --reuse-level) REUSE_LEVEL="$2"; shift 2;;
+    --reuse-level=*) REUSE_LEVEL="${1#*=}"; shift;;
     --live) LIVE="--live"; shift;;
     *) echo "unknown argument: $1" >&2; exit 2;;
   esac
@@ -77,6 +83,10 @@ fi
 
 cd "${ROOT}"
 mkdir -p "${OUT_ROOT}"
+
+# Two-phase arms run REUSE_LEVEL as their phase-2; single-phase arms append it.
+PHASE2_LEVELS="${REUSE_LEVEL}"
+SINGLE_LEVELS="${PHASE1_LEVELS},${REUSE_LEVEL}"
 
 IFS=',' read -r -a ARM_ARR <<< "${ARMS}"
 
@@ -110,8 +120,10 @@ for seed in $(seq 1 "${SEEDS}"); do
     base="${OUT_ROOT}/${arm}/seed-${seed}"
     case "${arm}" in
       arm0|arm1|arm2|arm3)
-        # Single-phase arms: run the full level set (e1..h1) in one process.
-        run_one "${arm}" "${seed}" 1 "e1,e2,e3,m1,m2,h1" "${base}/single"
+        # Single-phase arms: run the build levels + the held-out reuse level in
+        # one process (so they produce a REUSE_LEVEL episode matchable to the
+        # two-phase arms' phase-2 for the cross-arm comparison).
+        run_one "${arm}" "${seed}" 1 "${SINGLE_LEVELS}" "${base}/single"
         ;;
       arm4)
         # Two-phase: phase-1 build+freeze on LEARN_FROM_LEVELS, then phase-2

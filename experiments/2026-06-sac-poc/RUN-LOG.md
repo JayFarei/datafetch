@@ -194,3 +194,37 @@ Phase-3 WideSearch-vs-alternative corpus choice also remains open (deferred unti
 **Blockers A + C: RESOLVED + verified.** The arm4 two-phase warm path now: builds (phase-1 100%), crystallises + freezes a real helper, hydrates it in a fresh phase-2 process, reuses it, and keeps arm1↔arm4 parity intact.
 
 **Only Blocker B remains** before a valid k≥5 confirmatory run: held-out h1 is not new-argument for these families → the arm5a memoization floor cache-hits it (R4). Investigating the SkillCraft level/entity structure next to find families/splits where h1 entities are disjoint from e1..m2.
+
+---
+
+## 2026-06-03 — Attempt 9: Blocker B root-caused (dataset cumulative scaffold) + options (needs user)
+
+**Root cause (read-only investigation, all 17 families):** SkillCraft uses a CUMULATIVE difficulty scaffold — each harder level ADDS ~1 entity to a growing set, so **h1 ⊇ (e1∪e2∪e3∪m1∪m2)** with ≈80% entity overlap. cat-facts: e1..m2 = {Persian,Siamese,MaineCoon,Ragdoll}, h1 adds Bengal. dog-breeds: +Terrier. pokeapi: ids {25,6,445,94}, h1 +150. countries: regions {Europe,Asia,Americas,Africa}, h1 +Oceania. NO family has a disjoint h1. Cache-hit confirmed: arm5a key = sha256(toolName+stableStringify(args)); h1 re-calls tools with the SAME entity args as phase-1 → 4/5 hit, only the 1 new entity misses. R4 ("new-argument held-out") was mismatched to the dataset's design, not a harness bug. Entities come from per-level task.md literals → df.lib.per_entity({entityIds}); no randomisation/seed-dependence.
+
+**Options (A/B-corpus infeasible — no disjoint h1 exists):**
+- **Option C — synthetic new-entity phase-2 level (`h1x`) per family:** disjoint entity set by construction (e.g. cat: Burmese/British-Shorthair/Abyssinian/Scottish-Fold/Norwegian-Forest). Cleanest R4 validity (truly tests arm4 generalisation vs arm5a miss). NO harness code change (run phase-2 with `--levels h1x`). Cost: author task.md + evaluation/main.py + initial_workspace (+ groundtruth) per family; open-universe API families (cat/dog/pokemon/countries) are HIGH feasibility.
+- **Option D — phase-2 entity blocklist in the cache shim (`renderResultsCacheRunnerPy`):** force arm5a MISS on phase-1 entities. ~20 lines of harness, keeps h1, no new task files. WEAKER test: arm4 still reuses mostly on SEEN entities, so it doesn't cleanly demonstrate new-argument generalisation.
+- Since the PoC is an existence proof (PRE-REG §6), Option C on ONE clean family would suffice for a valid headline; full generality is not claimed.
+
+**SURFACED to user (experiment-design decision):** C (cleaner, more authoring) vs D (surgical, weaker) vs C-on-one-family (pragmatic existence proof). Awaiting choice before building B and re-running k≥5. Blockers A + C are committed (`41e3eb77c`, `1d5f7b05b`).
+
+---
+
+## 2026-06-03 — Attempt 10: Blocker B FIXED via synthetic new-argument level (h1x) + verified
+
+**User decision:** Option C on ONE family (existence proof).
+
+**Family choice + feasibility check:** pokeapi-pokedex — `pokemon_tools.py` hits the LIVE PokeAPI (`https://pokeapi.co/api/v2`, real requests), so any valid id returns real data (open universe); the h1 evaluator is STRUCTURAL (groundtruth_dir unused; only `EXPECTED_IDS` hardcoded). cat-facts was the alternative but pokeapi is the safest open-universe.
+
+**Built:** a new held-out level `eval/skillcraft/vendor/skillcraft/tasks/scaled_tasks/pokeapi-pokedex/h1x/` (task_config.json, docs/task.md, docs/agent_system_prompt.md, evaluation/main.py) with entities {1,4,7,133,143} (Bulbasaur/Charmander/Squirtle/Eevee/Snorlax) — DISJOINT from the phase-1 set {25,6,445,94} (verified: e1..e3=25,6,445; m1,m2=+94). Evaluator = h1's with `EXPECTED_IDS=[1,4,7,133,143]`. Added a `--reuse-level` flag to `run-sac-poc.sh` (default h1): two-phase arms run it as phase-2, single-phase arms append it after the build levels. `bash -n` clean; dry-run discovers h1x.
+
+**Verification smoke (arm1+arm4+arm5a × pokeapi-pokedex × 1 seed × --reuse-level h1x):**
+- `invariants: ALL HELD` — **0 violations** (no R4 cache-hits, no parity breaks).
+- **arm5a phase-2/h1x: decisiveCacheHit=0, cacheHit count 0** — the memoization floor got ZERO cache hits on the new entities (it re-fetched live, lic3). **R4 finally satisfied.**
+- **arm4 6/6, phase-2/h1x reused df.lib.toolFanout on the NEW ids and PASSED** (call1, lic1) — the learned interface GENERALISES to new arguments (the thesis).
+- arm1 inline baseline 5/6.
+- (M* still Inf at n=1 — meaningless single-seed; resolved by k≥5.)
+
+**Blockers A + B + C all RESOLVED + verified.** This is the first configuration where M*, the attribution ladder, and R4 are all methodologically sound. Next: commit h1x + the orchestrator flag, then launch the VALID k≥5 confirmatory run on pokeapi-pokedex with --reuse-level h1x across all 7 arms (~3h).
+
+**Tracking note:** `eval/skillcraft/vendor/` is gitignored (blanket `*`), so the h1x level cannot be committed in place. The TRACKED source of truth is `eval/skillcraft/fixtures/sac-poc/heldout-levels/pokeapi-pokedex/h1x/` (+ README with the install one-liner). The runner reads from vendor, so the level is copied into the vendor tree before running (it is already on disk there for this run; a fresh checkout installs it via the README).
