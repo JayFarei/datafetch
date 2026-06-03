@@ -448,3 +448,16 @@ So #3 IS safely guardable; my "untestable" blocker was overstated.
 **What I deliberately did NOT do:** build the characterization harness or the refactor unilaterally. The characterization test's primary value is as #3 prep (+ it would require exporting a generatePureSource test-seam from author.ts), and #3 is user-gated; building elaborate prep presumes the direction. No src/ changes; gates unchanged (typecheck 0 / test 0 / 425 / probes 4/4).
 
 **Unlocking input (refined):** "do #3" + approve the SpecializationRenderer seam direction -> I implement it with (1) a golden-master test reproducing a real `.snippet-cache` rangeTableMetric output as the safety net, (2) the move-don't-rewrite relocation to src/eval, (3) a dispatch-wiring test, (4) grep-clean + typecheck + tests green; OR ask me to first prepare a reviewable design doc + characterization PoC (no refactor) for your approval. The earlier "needs a FinChain test path" framing is superseded: the code-gen is testable here without the vendor.
+
+---
+
+## 2026-06-03 — Attempt 24: CORRECTION to Attempt 23 — there are NO real captured rangeTableMetric outputs (.snippet-cache is all one fixture)
+
+**Second correction; I tried to PROVE Attempt-23's feasibility claim with evidence and the evidence REFUTED it.** Attempt 23 asserted `.snippet-cache/rangeTableMetric.*.ts` holds "dozens of REAL captured outputs" usable as a golden master. Verified false: all **297** files are byte-identical (1 distinct content modulo the abs-path import line), all 22 lines, all the SAME test fixture (`shape-hash: deadbeef`, `trajectory: traj_1`, `body: ({ limit }) => ({ answer: limit })`). NONE contain the real `renderRangeTableMetricBody` candidate-validation loop (`grep -rl isNumericTableMathResult .snippet-cache` -> empty). So no real rangeTableMetric code-gen output is captured anywhere I can find.
+
+**The honest, twice-corrected position on #3 testability:**
+- Attempt 18 said "FinChain-untestable" -> too pessimistic (the code-gen is a pure fn).
+- Attempt 23 said "real captured outputs exist for a golden master" -> too optimistic (they are fixtures).
+- TRUE state: the rangeTableMetric code-gen can be pinned only by a SYNTHETIC golden (construct a template that flows through generatePureSource and snapshot whatever it currently emits). For a VERBATIM move-don't-rewrite relocation, a synthetic branch-covering golden IS sufficient (identical code -> identical output for any input). BUT I have NOT validated that such a synthetic template flows through `pickExample`/`renderRangeTableMetricBody` without returning null, so even the synthetic-golden path is unproven, not just unbuilt.
+
+**Net:** #3 remains gated on (1) the foundational `SpecializationRenderer` API-design decision (user-reserved) and (2) a still-unproven synthetic-golden safety net. Having mis-assessed its testability twice, I am recording facts, not confidence. I did not build the synthetic golden this attempt: constructing+validating the fixture is itself #3-prep on a user-gated, foundational item, and I have demonstrated I should not keep re-litigating it autonomously. Evidence: `for f in .snippet-cache/rangeTableMetric.*.ts; do grep -v 'file:///' "$f" | md5 -q; done | sort -u | wc -l` -> 1. No src/ changes; gates unchanged (typecheck 0 / test 0 / 425 / probes 4/4).
