@@ -112,7 +112,20 @@ the Phase-1 success criterion in light of the robust negative, is the user's
 open decision (see RUN-LOG Attempt 11 options A/B/C/D and the consolidated
 decision table at Attempt 19).
 
+## Artifacts (honest Phase-1 deliverables, produced around the null)
+
+- **Cost-frontier figure**: [`figures/cost-frontier.svg`](./figures/cost-frontier.svg),
+  generated from the real `score.json` by the dependency-free
+  [`figures/make-cost-frontier.mjs`](./figures/make-cost-frontier.mjs). Shows
+  arm4 diverging above arm1 (M\* = +Infinity). Renders in any browser.
+- **Demo artifact**: [`DEMO.md`](./DEMO.md) — three panels of REAL output:
+  df.d.ts evolving across sessions, the conditional warm-path source collapse,
+  and the governance gate declining a bad helper.
+- **Verification gates** (this checkout): `pnpm typecheck` exit 0; `pnpm test`
+  exit 0 (50 files / 424 tests; 8 smokes pass, finchain-mount SKIPs gracefully);
+  governance probes 4/4 + blind 20+20 = 0 false-accept / 0 false-reject.
+
 **Evidence pointers:** RUN-LOG Attempts 6 (run mechanics), 11 (the valid run +
-numbers), 12 (thesis regeneration), 13 (ceiling probe). Commits: `0665d5a27`
-(valid run), `a26d84647` (metric definition), `41e3eb77c` / `1d5f7b05b` /
-`355747fb0` (blockers A/C/B). Run output: `confirm-k5-pokeapi-h1x/`.
+numbers), 12 (thesis regeneration), 13 (ceiling probe), 21 (these artifacts).
+Commits: `0665d5a27` (valid run), `a26d84647` (metric definition), `41e3eb77c` /
+`1d5f7b05b` / `355747fb0` (blockers A/C/B). Run output: `confirm-k5-pokeapi-h1x/`.

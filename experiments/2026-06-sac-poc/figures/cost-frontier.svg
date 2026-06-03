@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1010" height="560" viewBox="0 0 1010 560" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+  <rect width="1010" height="560" fill="#ffffff"/>
+  <text x="96" y="28" font-size="18" font-weight="700" fill="#111">Cost-frontier: warm reuse (arm4) vs inline re-derivation (arm1)</text>
+  <text x="96" y="48" font-size="12.5" fill="#b00020" font-weight="600">Honest NEGATIVE result: arm4 diverges ABOVE arm1 — no break-even (M* = +Infinity). pokeapi-pokedex, k=5, sonnet-4-6.</text>
+
+  <!-- y grid + labels -->
+  <line x1="96" y1="490.0" x2="710" y2="490.0" stroke="#eee" stroke-width="1"/><text x="86" y="494.0" font-size="11" fill="#666" text-anchor="end">0k</text>
+  <line x1="96" y1="419.0" x2="710" y2="419.0" stroke="#eee" stroke-width="1"/><text x="86" y="423.0" font-size="11" fill="#666" text-anchor="end">690k</text>
+  <line x1="96" y1="348.0" x2="710" y2="348.0" stroke="#eee" stroke-width="1"/><text x="86" y="352.0" font-size="11" fill="#666" text-anchor="end">1380k</text>
+  <line x1="96" y1="277.0" x2="710" y2="277.0" stroke="#eee" stroke-width="1"/><text x="86" y="281.0" font-size="11" fill="#666" text-anchor="end">2070k</text>
+  <line x1="96" y1="206.0" x2="710" y2="206.0" stroke="#eee" stroke-width="1"/><text x="86" y="210.0" font-size="11" fill="#666" text-anchor="end">2760k</text>
+  <line x1="96" y1="135.0" x2="710" y2="135.0" stroke="#eee" stroke-width="1"/><text x="86" y="139.0" font-size="11" fill="#666" text-anchor="end">3450k</text>
+  <line x1="96" y1="64.0" x2="710" y2="64.0" stroke="#eee" stroke-width="1"/><text x="86" y="68.0" font-size="11" fill="#666" text-anchor="end">4140k</text>
+
+  <!-- axes -->
+  <line x1="96" y1="64" x2="96" y2="490" stroke="#333" stroke-width="1.5"/>
+  <line x1="96" y1="490" x2="710" y2="490" stroke="#333" stroke-width="1.5"/>
+  <text x="403" y="536" font-size="13" fill="#333" text-anchor="middle">Number of warm-reuse sessions M (questions answered against the frozen interface)</text>
+  <text x="26" y="277" font-size="13" fill="#333" text-anchor="middle" transform="rotate(-90 26 277)">Cumulative full-weight model-context tokens</text>
+
+  <!-- x ticks -->
+  <line x1="96.0" y1="490" x2="96.0" y2="495" stroke="#333"/><text x="96.0" y="510" font-size="11" fill="#666" text-anchor="middle">0</text>
+  <line x1="172.8" y1="490" x2="172.8" y2="495" stroke="#333"/><text x="172.8" y="510" font-size="11" fill="#666" text-anchor="middle">2</text>
+  <line x1="249.5" y1="490" x2="249.5" y2="495" stroke="#333"/><text x="249.5" y="510" font-size="11" fill="#666" text-anchor="middle">4</text>
+  <line x1="326.3" y1="490" x2="326.3" y2="495" stroke="#333"/><text x="326.3" y="510" font-size="11" fill="#666" text-anchor="middle">6</text>
+  <line x1="403.0" y1="490" x2="403.0" y2="495" stroke="#333"/><text x="403.0" y="510" font-size="11" fill="#666" text-anchor="middle">8</text>
+  <line x1="479.8" y1="490" x2="479.8" y2="495" stroke="#333"/><text x="479.8" y="510" font-size="11" fill="#666" text-anchor="middle">10</text>
+  <line x1="556.5" y1="490" x2="556.5" y2="495" stroke="#333"/><text x="556.5" y="510" font-size="11" fill="#666" text-anchor="middle">12</text>
+  <line x1="633.3" y1="490" x2="633.3" y2="495" stroke="#333"/><text x="633.3" y="510" font-size="11" fill="#666" text-anchor="middle">14</text>
+  <line x1="710.0" y1="490" x2="710.0" y2="495" stroke="#333"/><text x="710.0" y="510" font-size="11" fill="#666" text-anchor="middle">16</text>
+
+  <!-- M0 reference -->
+  <line x1="403.0" y1="64" x2="403.0" y2="490" stroke="#888" stroke-width="1" stroke-dasharray="4 4"/>
+  <text x="408.0" y="78" font-size="11" fill="#888">M0 = 8 (success threshold)</text>
+
+  <!-- arm4 build-cost intercept -->
+  <circle cx="96.0" cy="475.2" r="4" fill="#b00020"/>
+  <text x="104.0" y="467.2" font-size="11" fill="#b00020">build cost 143,928</text>
+
+  <!-- lines -->
+  <polyline points="96.0,490.0 134.4,472.7 172.8,455.3 211.1,438.0 249.5,420.6 287.9,403.3 326.3,385.9 364.6,368.6 403.0,351.2 441.4,333.9 479.8,316.5 518.1,299.2 556.5,281.8 594.9,264.5 633.3,247.1 671.6,229.8 710.0,212.4" fill="none" stroke="#1565c0" stroke-width="2.5"/>
+  <polyline points="96.0,475.2 134.4,451.0 172.8,426.8 211.1,402.6 249.5,378.4 287.9,354.2 326.3,330.0 364.6,305.8 403.0,281.7 441.4,257.5 479.8,233.3 518.1,209.1 556.5,184.9 594.9,160.7 633.3,136.5 671.6,112.3 710.0,88.1" fill="none" stroke="#b00020" stroke-width="2.5"/>
+
+  <!-- end labels -->
+  <text x="706.0" y="216.4" font-size="12" fill="#1565c0" text-anchor="end" font-weight="600">arm1 inline</text>
+  <text x="706.0" y="80.1" font-size="12" fill="#b00020" text-anchor="end" font-weight="600">arm4 warm</text>
+
+  <!-- annotation box -->
+  <g transform="translate(728, 70)">
+    <text x="0" y="0" font-size="12.5" font-weight="700" fill="#111">Per-session slope</text>
+    <text x="0" y="18" font-size="11.5" fill="#1565c0">arm1: 168,577 tok/session</text>
+    <text x="0" y="34" font-size="11.5" fill="#b00020">arm4: 235,098 tok/session</text>
+    <text x="0" y="56" font-size="11.5" fill="#111" font-weight="600">slope gap (arm1 - arm4):</text>
+    <text x="0" y="72" font-size="11.5" fill="#b00020">-66,521 (negative)</text>
+    <text x="0" y="96" font-size="11.5" fill="#111">M* = build / (arm1 - arm4)</text>
+    <text x="0" y="112" font-size="11.5" fill="#b00020">= 143,928 / (-66,521)</text>
+    <text x="0" y="128" font-size="12" fill="#b00020" font-weight="700">= +Infinity (never pays back)</text>
+    <text x="0" y="156" font-size="11" fill="#444" font-weight="600">All three cost units agree:</text>
+    <text x="0" y="172" font-size="10.8" fill="#666">full-weight gap  -66,521</text>
+    <text x="0" y="186" font-size="10.8" fill="#666">fresh+output gap     -97</text>
+    <text x="0" y="200" font-size="10.8" fill="#666">dollar-equiv gap  -6,740</text>
+    <text x="0" y="224" font-size="10.5" fill="#444" font-weight="600">Why arm4 loses:</text>
+    <text x="0" y="239" font-size="10.2" fill="#666">crystallised helper was</text>
+    <text x="0" y="252" font-size="10.2" fill="#666">shallow + non-invocable;</text>
+    <text x="0" y="265" font-size="10.2" fill="#666">+66k is a turn-count tax.</text>
+    <text x="0" y="288" font-size="10.2" fill="#666">(arm4 DID beat the no-reuse</text>
+    <text x="0" y="301" font-size="10.2" fill="#666">floors arm5a/arm5b by ~137k,</text>
+    <text x="0" y="314" font-size="10.2" fill="#666">but loses to cheap inline arm1.)</text>
+  </g>
+</svg>
