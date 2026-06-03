@@ -501,3 +501,21 @@ So #3 IS safely guardable; my "untestable" blocker was overstated.
 **Ready-to-execute plan when the corpus is picked:** extend `MountRuntime` with optional `tools` (additive: existing db-only mounts -> undefined -> no df.tool block, output unchanged); add an additive df.tool.* branch in `renderManifest` using the `renderLiveDfDts` shape as reference; migrate SkillCraft to register its toolCatalog via the mount contract; unit-test (mount with synthetic tools -> df.tool.* present; without -> absent). The "SkillCraft/FinChain migration" the hook lists reduces to this: FinChain is already migrated (rangeTableMetric specialization registered + answerEquals gate); SkillCraft uses the answerEquals gate already, and its only remaining migration is exactly this df.tool.* contract move (= #4).
 
 **Verification:** read-only, no src/ changes; gates unchanged (typecheck 0 / test 0 / 429). Unlocking input: the Phase-3 corpus pick + df.tool.* semantics. Holding.
+
+---
+
+## 2026-06-03 — Attempt 27: investigated the Phase-3 corpus to INFORM the user's reserved decision (not make it)
+
+**Goal explicitly reserves the corpus choice for the user** ("the Phase-3 WideSearch-vs-alternative corpus choice, which depends on whether it needs callable df.tool.* and its row-equality semantics"). I cannot make it, but I investigated to sharpen it (read-only).
+
+**Findings:**
+- **WideSearch (arXiv 2508.07999, kb/br/20):** a WIDE-SEARCH set-gathering benchmark (agents gather many items matching criteria). Data is EXTERNAL and NOT present in this environment (no vendor) — so even once the corpus is confirmed, a live "helpers learned in hooks-draft" proof needs the data prepared. kb/br/20 also flags WANDR/wide-research as "the regime our crystallisation+persistence should most help."
+- **#4 necessity confirmed:** the Phase-3 reference `productFlow` IS tool-shaped — it exposes `df.tool.jsonplaceholder.*` (runProductFlowMicroEval.ts:271/281/317) — but injects those tool docs via its OWN prompt-builder, NOT regenerateManifest (which still emits only df.db + df.lib). SkillCraft's renderLiveDfDts (df.tool at :2454) is the same pattern. So onboarding a TOOL-shaped corpus with ZERO src/ changes genuinely requires #4 (teach the SUBSTRATE renderer to emit df.tool.*). A DB-shaped corpus needs no #4 (df.db + df.lib + answerEquals row-equality already exist).
+- **Row-equality:** WideSearch answers are SETS of items, so order-independent set-equality — `answerEquals` currently does canonical key-sorted deep-eq on structured values (close, but set-vs-list semantics may need a small extension; a genuine design point).
+
+**Concrete options for the user (the unlocking decision):**
+- (A) Fast zero-src proof: pick a DB-shaped corpus whose data is available in-env → onboard via df.db + df.lib + answerEquals, NO #4 needed. Cleanest Phase-3 proof.
+- (B) WideSearch (tool-shaped): I do #4 first (additive substrate df.tool.* rendering, per the Attempt-26 plan) + likely a set-equality answerEquals extension, then onboard — REQUIRES the WideSearch data/vendor in-env.
+- (C) Use the in-repo tool-shaped productFlow/jsonplaceholder corpus as the Phase-3 onboarding subject (data via the live jsonplaceholder API) — exercises #4 + zero-src, without an external vendor.
+
+**Verification:** read-only, no src/ changes; gates unchanged. Unlocking input: pick (A/B/C) + (for B) provide WideSearch data + confirm set-equality semantics. Holding — the corpus choice is Goal-reserved for the user; I will not presume it by building a shape-specific scaffold.
