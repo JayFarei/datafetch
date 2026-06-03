@@ -114,9 +114,16 @@ The first three show the gate catching a bad helper; the fourth shows the
 Phase-2 generalisation (the gate now validates a non-numeric helper, not just
 numeric). Blind 20+20 mutant/valid suite: 0 false-accept / 0 false-reject.
 
+And the Phase-2 (b) verification, the maturity flip itself: with a hook registry
+installed, that same non-numeric (string-answer) helper is promoted all the way
+to `validated-typescript` maturity and becomes callable, purely in-process (no
+LLM / live run). This is the dataset-neutral governance loop end to end: gate
+validates a non-numeric helper -> registry promotes it -> callable.
+
 Reproduce:
 ```bash
 npx tsx eval/skillcraft/scripts/run-governance-probes.ts          # 4/4 + blind 0/0
+npx vitest run tests/sac-nonnumeric-maturity.test.ts              # non-numeric -> validated-typescript
 ```
 
 ---

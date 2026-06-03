@@ -12,10 +12,13 @@ than arm1 inline in every cost unit (M\* = +Infinity, claimUpheld=false) and
 is less correct (arm4 h1x 2/5 vs arm1 4/5). This is reported as a rigorous
 negative, not fabricated into a positive.
 
-Phase 2 (generalize the substrate) is partly done: #1 (answer-kit equality
-gate) + #2 gate-replay half are landed and green; #3 (de-hardcode src/observer)
-and #4 (df.tool.\* in regenerateManifest) are investigated and BLOCKED on user
-decisions (RUN-LOG Attempts 18-19). Phase 3 not started.
+Phase 2 (generalize the substrate) is half-verified: #1 (answer-kit equality
+gate) + #2 gate-replay half are landed and green, and verification criterion (b)
+"a non-numeric helper reaches validated-typescript maturity via the registry" is
+MET (RUN-LOG Attempt 22, `tests/sac-nonnumeric-maturity.test.ts`). The other
+verification criterion (a) `grep -rn` clean is NOT met: #3 (de-hardcode
+src/observer) and #4 (df.tool.\* in regenerateManifest) are investigated and
+BLOCKED on user decisions (RUN-LOG Attempts 18-19). Phase 3 not started.
 
 **Three user decisions unblock the program:** (1) the Phase-1 reframe given the
 null; (2) the strategic headline (cost-island vs governance-under-staleness vs

@@ -416,3 +416,19 @@ No safe, headline-independent, verifiable autonomous increment remains. The prog
 **Evidence:** all numbers transcribed from `score.json` / captured df.d.ts / live probe run, not memory. Figure data->geometry mapping printed by the generator. PNG visually confirmed (diverging lines, no break-even). No src/ changes; gates green (typecheck 0 / test 0 / probes 4/4).
 
 **What remains genuinely unfabricatable (Phase 1):** finite M* with 95% upper CI <= M0=8, and claimUpheld=true. Both are empirically falsified (Attempt 11). The honest framing of the figure/demo around the conceded null is the most that can be produced without fabricating the positive. The reframe of the Phase-1 success criterion remains the user's open decision; Phase-2 #3/#4 and Phase 3 remain blocked per Attempts 18-19.
+
+---
+
+## 2026-06-03 — Attempt 22: Phase-2 criterion (b) MET — non-numeric helper reaches validated-typescript maturity (no live run)
+
+**Correction of another wrong "needs a live run" assumption.** Attempts 16/19-21 said the maturity flip to validated-typescript "needs a registry-equipped live run". Investigation proved otherwise: the flip is in-process substrate machinery. On a governed PASS, `validateOne` (quarantineValidator.ts:220-250) calls `registry.validateImplementation` (load+export check -> candidate-typescript) then `registry.smokeReplayAndPromote({expectedPrimitives:[]})`; the non-numeric classifier body is pure computation (no df.* primitives), so `extractAuthoredPrimitives === []` matches the empty expected list and `smokeReplayAndPromote` (registry.ts:438-443) flips maturity to validated-typescript. The governance PROBES deliberately omit an installed registry (governanceGate.ts documents `promoted=false`), which is exactly why criterion (b) had not been shown.
+
+**Change:** new integration test `tests/sac-nonnumeric-maturity.test.ts`. It reuses the `nonNumericAcceptFixture` (string-answer classifier `years>=3 ? "long-term" : "short-term"`), materialises helper + originating + sibling into a temp baseDir, installs a real `HookRegistry({baseDir, resolver: new DiskLibraryResolver({baseDir}), mode:"hooks-draft"})` (same disk resolver loadHelper uses, so the `@datafetch/sdk` import rewrite applies), runs `validateAuthoredFromSourceHelpers`, and asserts the helper is promoted: `idempotent && generic && promoted`, manifest `maturity === "validated-typescript"`, and callable.
+
+**Evidence:** `npx vitest run tests/sac-nonnumeric-maturity.test.ts` -> 1 passed. Full regression: `pnpm typecheck` exit 0; `pnpm test` exit **0** = 51 files / **425 tests** (+1). No cross-test pollution (afterEach resets the global registry to null; vitest isolates files). This is the Phase-2 verification "a non-numeric helper reaching validated-typescript maturity via the registry" — DEMONSTRATED, no LLM/live run.
+
+**Phase-2 verification status (the Goal names two criteria):**
+- (b) non-numeric helper at validated-typescript maturity: **MET** (this attempt). Combined with #1 (dataset-neutral answerEquals gate) and #2 gate-half (string/boolean promotion), the governance loop is demonstrably dataset-neutral end to end for a non-numeric helper: gate validates it -> registry promotes it to validated-typescript -> callable.
+- (a) `grep -rn` for dataset names in src/ outside src/eval returning nothing: **NOT met** — still blocked by #3 (the finqacases/rangeTableMetric code-gen relocation, Attempt 18). #4 blocked on the Phase-3 corpus decision (Attempt 19); #5 downstream.
+
+So Phase 2 is now half-verified autonomously; the remaining half (grep-clean) needs the #3 user decision. Phase-1's two unfabricatable verifications and the reframe remain the user's call.
