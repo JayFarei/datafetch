@@ -134,3 +134,29 @@ Phase-3 WideSearch-vs-alternative corpus choice also remains open (deferred unti
 **Run:** all 7 arms × 5 interleaved seeds × 3 families via `run-sac-poc.sh --live` (`DATAFETCH_AGENT=claude`, sonnet-4-6). Structured PER-FAMILY (separate orchestrator invocations to `eval/skillcraft/results/sac-poc/confirm-k5/<fam>`) so a single-family crash cannot abort the whole run; the first family (~3h of ~9h total at ~50s/episode) is an early end-to-end checkpoint on the arm4 warm path. After all families, the union of normalized.jsonl is scored once with `score-cross-arm.ts --m0 8`.
 
 **Evidence to surface on completion:** per-arm M* + 95% upper CI vs M0=8 (full-weight headline + dollarEquivalent tie-breaker), realised b/c/b+c (clustered McNemar), the arm4-vs-arm5a/5b attribution ladder + claimSurvivesDollarLedger, and `pnpm typecheck` + `pnpm test` exit lines. Running now; results pending.
+
+---
+
+## 2026-06-03 — Attempt 6: confirmatory k=5 run COMPLETE — headline FAILS + run INVALID by its own gates
+
+**Run:** 630 episodes, 7 arms × 5 seeds × 3 families (cat-facts-collector / dog-breeds-encyclopedia / pokeapi-pokedex), claude-sonnet-4-6, ~8h (23:46→07:56). All families completed; union scored (`confirm-k5/score.json`; the scorer exited 2 — correctly — because of pinned-invariant violations, but the scorecard was written).
+
+**HEADLINE RESULT — the PoC claim does NOT hold as run (honest negative):**
+- PRIMARY M* = **+Infinity / CLEAN FAIL**: denominator = arm1_inline (143,943 tok/q) − arm4_warm (145,065 tok/q) = **−1,121.6** (warm path costs MORE than inline; no amortisation). Only 3 eligible warm-reuse questions. M* survives dollar ledger = false (moot — clean fail).
+- ATTRIBUTION: arm4 beats BOTH floors on tokens (vs5a −179,246; vs5b −159,373; beats=true) BUT fails correctness NI to both (niHolds=false). `claimUpheld=false`. The "cheaper" is an artefact of arm4 FAILING (failed/abstained answers are cheap), not a real win.
+
+**WHY — two real defects the run exposed (not just a null):**
+1. **arm4 two-phase runner is broken on correctness.** arm4 pass = **9/90 (10%)**; phase-2 = 2/15; phase-1 = 7/75 (~9%). On the SAME phase-1 levels (e1..m2), single-phase **arm2 passes 69/90 (77%)** and arm1 32%. The only difference is arm4's two-phase fresh-process path → its phase-1 correctness collapses, so little/nothing good crystallises to freeze, and phase-2 (hydrating an empty/poor frozen lib while mandated to call it) fails. This is a substrate bug in the named two-phase runner, not a property of the thesis.
+2. **R4 held-out assumption is FALSE for these families.** 25 of 39 invariant violations are `arm5a phase-2 decisiveCacheHit==true / cacheHitCount 12-20` — i.e. h1 reuses phase-1 entities/args, so the memoization floor (arm5a) CACHE-HITS the "held-out" siblings. h1 is not new-argument here, which both invalidates the attribution comparison and lets arm5a win trivially. Plus 2× arm1↔arm4 promptParityHash mismatch (parity broke on 2 questions at scale; held in the smoke).
+
+**Unexpected (NOT the headline; flag, do not over-claim):** arm2 (governed single-session reuse) shows **+38.89pp correctness over arm1** (b=9 c=2, NI=true), with heavy reuse (callable 85/90, learnedInterfaceCalls=138). This CONTRADICTS the pre-registered single-session correctness null (§3 predicted ~0). It may be a real governed-reuse correctness benefit OR a confound (arm1's wipe-between-questions inline-rewrite is a weak baseline at 32%). Either way it is the cross-SESSION (arm4) claim that is the headline, and that failed. Report arm2's delta as a surprising secondary observation needing its own clean test, not a win.
+
+**VERDICT:** this run is NOT a valid confirmatory result — it violates its own pre-registered invariants (R4 new-argument, R2 parity) and the cross-session arm is broken. It is an informative FAILED run. No headline number can be claimed from it. Concede plainly.
+
+### BLOCKED — two fixes required before a valid confirmatory run (needs user)
+
+**Blocker A (substrate bug, runner-logic):** arm4 two-phase path collapses phase-1 correctness (10% vs arm2 77% on identical levels). Must root-cause the two-phase fresh-process / frozen-lib / phase-2 path. This requires editing `src/eval/skillcraftFullDatafetch.ts` two-phase logic — which the Goal says not to churn during Phase 1, so it needs the user's explicit OK (the metric/preseed work is committed and unaffected).
+
+**Blocker B (experiment design):** the phase-1/phase-2 held-out split (`LEARN_FROM_LEVELS` e1..m2 / h1) does NOT make h1 new-argument for these families → memoization (arm5a) trivially wins and R4 is violated. Need either families where h1 is genuinely new-argument, or a different held-out construction that guarantees novelty (the R4 assertion is the canary).
+
+**Input that would unlock progress:** (1) OK to debug/fix the arm4 two-phase runner (Blocker A); (2) guidance on the held-out/family design so phase-2 is provably new-argument (Blocker B). Until both hold, re-running k≥5 will keep producing clean-fail + invariant-violation results.
