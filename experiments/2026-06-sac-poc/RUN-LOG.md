@@ -321,3 +321,15 @@ User directed: stop grinding the falsified line; use a dynamic workflow to gener
 **Phase-2 criterion (b) status:** the GATE-DECISION (idempotent && generic) now fires for non-numeric answers — demonstrated. The literal registry maturity flip to `validated-typescript` is a run-side step the probe context (no installed hook registry) does not exercise; that final hop needs a live run or a registry-equipped test. Phase-2 #1 is functionally complete + demonstrated.
 
 **Remaining Phase 2:** #2 string/boolean literal promotion in authorFromSource/extractPromotedValuesFromSource (so string-INPUT helpers crystallise); #3 de-hardcode finqacases/rangeTableMetric from src/observer → grep-clean (FinChain-behaviour-risky; needs care/FinChain check); #4 df.tool.* branch in regenerateManifest; #5 migrate. STRATEGIC HEADLINE (cost-crystallisation vs governance-under-staleness vs SDK) still the user's open call. Pausing autonomous progress at this clean verified checkpoint — remaining items are either FinChain-risky or headline-dependent.
+
+---
+
+## 2026-06-03 — Attempt 17: Phase-2 #2 (gate-replay half) — string/boolean literal promotion
+
+**Change:** extended + exported `extractPromotedValuesFromSource` (`src/observer/quarantineValidator.ts`) from numeric-only to also promote STRING + BOOLEAN literals (additive: numeric arithmetic extraction unchanged; return type number→unknown). The gate can now replay helpers whose promoted INPUTS are non-numeric, completing (with Attempt 15's non-numeric ANSWER support) the gate's non-numeric replay path. Added `tests/sac-promote-literals.test.ts` (5 cases: numeric unchanged, string, boolean, mixed, non-literal-ignored).
+
+**Evidence:** `pnpm typecheck` exit 0; `pnpm test:unit` 50 files / **424/424** (+5); governance probes **4/4 PASS + blind 20+20 = 0/0** (numeric path unaffected — probe sourceText consts are numeric → still extracted as numbers).
+
+**DEFERRED (honest, FinChain-untestable):** the Goal names "string/boolean literals in **authorFromSource**". That is the CRYSTALLISATION-side promotion (`authorFromSource.extractPromotedParameters` / `isPureLiteralArithmetic`, line ~349/357) — extending it would change which `const`s become helper-signature params, which could alter FinChain crystallisation, and there is no FinChain test here (the finchain smoke skips when vendor absent). I did NOT change it blind. It's the remaining #2 sub-part, pending a FinChain check or the user's go. The GATE half (done) is what lets a non-numeric-input helper be VALIDATED.
+
+**Phase 2 status:** #1 done + demonstrated; #2 gate-half done (authorFromSource crystallisation-half deferred). Remaining: #3 de-hardcode src/observer → grep-clean (FinChain-risky), #4 df.tool.* in regenerateManifest, #5 migrate, criterion-(b) full registry maturity flip (needs a registry-equipped run). Strategic headline (cost vs governance vs SDK) + the Phase-1 reframe remain the user's open decision.

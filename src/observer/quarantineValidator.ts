@@ -352,7 +352,7 @@ async function replayOnTrajectory(input: {
 // declarations, return a {name → number} map. Duplicates ~20 LoC of AST
 // work rather than importing private helpers from authorFromSource so
 // this module stays usable independently of the author module.
-function extractPromotedValuesFromSource(source: string): Record<string, number> {
+export function extractPromotedValuesFromSource(source: string): Record<string, unknown> {
   const sf = ts.createSourceFile(
     "trajectory-source.ts",
     source,
@@ -379,7 +379,7 @@ function extractPromotedValuesFromSource(source: string): Record<string, number>
   visit(sf);
   const mainBody = mainBodyHolder.value;
   if (!mainBody) return {};
-  const out: Record<string, number> = {};
+  const out: Record<string, unknown> = {};
   const evaluate = (expr: ts.Expression): number | null => {
     if (ts.isNumericLiteral(expr)) return Number(expr.text);
     if (ts.isPrefixUnaryExpression(expr)) {
@@ -406,14 +406,24 @@ function extractPromotedValuesFromSource(source: string): Record<string, number>
     }
     return null;
   };
+  // Phase 2: also promote string + boolean literals (not only numeric), so the
+  // gate can replay helpers whose promoted inputs are non-numeric.
+  const evaluateNonNumeric = (expr: ts.Expression): string | boolean | undefined => {
+    if (ts.isParenthesizedExpression(expr)) return evaluateNonNumeric(expr.expression);
+    if (ts.isStringLiteral(expr) || ts.isNoSubstitutionTemplateLiteral(expr)) return expr.text;
+    if (expr.kind === ts.SyntaxKind.TrueKeyword) return true;
+    if (expr.kind === ts.SyntaxKind.FalseKeyword) return false;
+    return undefined;
+  };
   for (const stmt of mainBody.statements) {
     if (!ts.isVariableStatement(stmt)) continue;
     for (const decl of stmt.declarationList.declarations) {
       if (!ts.isIdentifier(decl.name)) continue;
       if (!decl.initializer) continue;
-      const value = evaluate(decl.initializer);
-      if (value === null) continue;
-      out[decl.name.text] = value;
+      const numValue = evaluate(decl.initializer);
+      if (numValue !== null) { out[decl.name.text] = numValue; continue; }
+      const litValue = evaluateNonNumeric(decl.initializer);
+      if (litValue !== undefined) out[decl.name.text] = litValue;
     }
   }
   return out;
