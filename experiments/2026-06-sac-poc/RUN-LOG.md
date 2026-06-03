@@ -247,3 +247,41 @@ Phase-3 WideSearch-vs-alternative corpus choice also remains open (deferred unti
 **Run still INVALID by gates (15 violations) — but fixable + immaterial to the headline.** All 15 are arm5a R4 cache-hits (5 seeds × {decisiveCacheHit, cacheHitCount==1, cross-arm phase-2 decisiveCacheHit}). Root cause: my h1x entity set {1,4,7,133,143} is disjoint on pokemon_id but NOT on evolution chain_id — Charmander(4) shares evolution chain_id 2 with phase-1's Charizard(6), so `pokemon_get_evolution(chain_id=2)` cache-hits (exactly 1 hit/seed). Fix = pick h1x pokemon whose evolution CHAINS also don't overlap phase-1 (drop Charmander). BUT this only affects the arm5a floor; the arm4-vs-arm1 negative is parity-valid and independent — fixing R4 would not make M* positive (denom is −66k regardless of arm5a).
 
 **Bottom line:** with a now methodologically-sound harness (parity holds, preseed fires, crystallise→reuse works, R4 nearly holds), the cross-session warm-reuse amortisation claim is robustly FALSIFIED on this corpus across all token units, and reuse degrades correctness. This extends the conceded single-session null ([[project_crag_within_session_negative]]: frontier models don't benefit from small-composition reuse) to the cross-session case. The ONE recurring positive (single-session arm2/arm3 ≈/> arm1 correctness) is not the headline and is confounded. Surfacing to the user: this is the honest result; recommend conceding it rather than tuning for a win.
+
+### BLOCKED — Phase-1 success condition empirically falsified; direction decision needs the user
+
+**Attempted paths (the full program this session):** metric definition (`a26d84647`), preseed so reuse fires (`d30903917`), frozen pre-reg (`bfce8bd60`), Run 1 invalid-negative (`bdb0ac18e`), Blocker A arm4-binding (`41e3eb77c`), Blocker C parity-body (`1d5f7b05b`), Blocker B new-argument h1x (`355747fb0`), pre-reg amendment (`5e4324eb2`), the VALID Run 2 (`0665d5a27`). Plus the token-breakdown diagnosis (Attempt 11 + this entry): arm4 loses because the crystallised `toolFanout` is SHALLOW (warm output 2,998 ≈ inline 2,902 → no write savings; arm4 answer.ts is LONGER, still writes evolution/abilities/aggregation inline) AND hydration adds +66k cached.
+
+**Blocker:** the pre-registered Phase-1 success condition — arm4 beats BOTH arm5a and arm5b at non-inferior correctness, with finite M* whose 95% upper CI ≤ M0=8 — is EMPIRICALLY FALSIFIED on a valid harness (M* = +Inf in all units, claimUpheld=false, arm4 h1x 2/5 vs arm1 4/5). This is an honest scientific negative, not a fixable defect. The intellectual-honesty mandate (concede the null, fabricate no numbers) PROHIBITS tuning the experiment to force a pass, so Phase 1 cannot be "completed as written" by producing the contracted positive. The remaining demo/figure/`pnpm test` deliverables are downstream of a result that does not exist.
+
+**Open decision (needs the user; they asked to clarify before choosing):** how to proceed given the falsification —
+- (A) Test the thesis where it COULD hold (deep self-contained helper): pivot to FinChain (existing harness; iter-3.0a helper-call signal) — out of SkillCraft Phase-1 scope.
+- (B) Build a synthetic deep-pipeline SkillCraft family (in-corpus; more authoring).
+- (C) Attack the substrate inefficiency first (lean hydration to kill the +66k cached penalty; deeper crystallisation so the helper captures the pipeline) then re-test.
+- (D) REFRAME the deliverable around the honest finding: "learning-in-the-interface amortises iff the crystallised helper captures expensive-to-rewrite logic AND hydration is lean; on small fan-outs it does not" — arguably the more honest/valuable Phase-1 output than a forced positive.
+
+**Input that would unlock progress:** the user's direction on (A/B/C/D), corpus scope (stay SkillCraft vs pivot), live-run budget, and — critically — whether the Phase-1 success criterion itself should be reframed given the robust negative. Holding for clarification.
+
+---
+
+## 2026-06-03 — Attempt 12: thesis-regeneration workflow (33 agents) → reframe (see [[project_sac_thesis_regeneration]])
+
+User directed: stop grinding the falsified line; use a dynamic workflow to generate many parallel theses for how/where the thesis wins, anchored in experience + fundamentals. Workflow (`tasks/wcglg4mqr.output`) generated 24 theses across 8 lenses, adversarially stress-tested each (it ran regressions on our episodes), ranked survivors.
+
+**Refuted with evidence (dead levers):** (i) hydration-bytes — the +66k is a TURN-COUNT tax (cached/req arm-invariant ~36k; arm4 +1.8 turns), not bloat; lean hydration can't recover it. (ii) fan-out WIDTH / reuse-density-over-entities — arm1 batches the fan-out into one snippet (turns flat in width). (iii) governance-as-correctness on PokeAPI — INVERTED (arm3 ungoverned 5/5 best, arm4 governed 2/5 worst; gate never organically fired — numeric FAC vs JSON rubric, governanceGatePassed 0/30). (iv) the shallow helper was also NON-invocable (lic=1 ceremonial).
+
+**Surviving islands:** (1) COST — one narrow unproven island: a DEEP, INVOCABLE helper on serial-dependency-DEPTH tasks, measured in TURNS not tokens; bounded out of LLM-cored regimes until `df.llm.*` ships. (2) GOVERNANCE — stale-persistence safety vs an UNGOVERNED-PERSISTENT arm under source drift, on a NUMERIC corpus (but FinChain correctness saturated → screen for r>0 first). (3) SDK ZERO-SRC ONBOARDING — highest promise; sidesteps the token diagnosis.
+
+**Recommended next ($0 model spend):** a 30-min hand-built CEILING PROBE — hand-author the deepest+invocable pokeapi helper + a call-and-format answer.ts; measure vs arm1 median (80 lines / ~2,910 fresh+output). GATE routes all further effort. Surfaced to user: the differentiator is NOT cost-on-cheap-tasks; recommend reframing the Phase-1 headline toward governance-under-staleness + zero-src onboarding. Awaiting direction.
+
+---
+
+## 2026-06-03 — Attempt 13: $0 cost-ceiling probe — GATE CLEARS (cost island reopened, conditional)
+
+**Change:** hand-authored `experiments/2026-06-sac-poc/ceiling-probe/{lib_pokedexEntries.ts, answer_deep.ts, CEILING-PROBE.md}` — a DEEP+INVOCABLE pokeapi helper (walks the per-pokemon DAG, returns finished entries, fully-typed `{ids}` signature) + the minimal call+aggregate+emit answer.ts it enables. No model spend, no runner churn.
+
+**Evidence:** deep-helper `answer_deep.ts` = **20 code lines / 730 chars (~183 tok)** vs arm1 inline baseline **72 lines / 2,539 chars (~635 tok)** (arm1 measured fresh+output 2,911). GATE (< 80 lines AND < ~2,910 fresh+output at correct output) **CLEARS** — a deep+invocable helper collapses caller write-cost ~3.5×. So the cost pillar is NOT refuted; it died for SHALLOW helpers (the live shallow toolFanout made arm4's answer.ts 124 lines, LONGER than arm1).
+
+**Caveats (honest):** (1) the deep helper is ~51 lines the observer must crystallise ONCE — and today it only crystallises SHALLOW, so this needs a substrate change (deep crystallisation + invocable signature) or a preseed. (2) The live driver is TURNS not answer-size; the probe shows output drops ~3.5× (strongly suggests fewer turns) but a live k≥5 run measuring arm4 turns vs 4.6 confirms. (3) Correctness by-construction.
+
+**Routing / decision surfaced:** cost island = REOPENED but conditional (deep+invocable crystallisation substrate work → live turn-measuring run), bounded out of LLM-cored regimes. Compare vs the SDK zero-src onboarding island (highest promise, cheapest). Awaiting user's strategic pick (pursue the deep-crystallisation cost path vs pivot to the SDK/governance headline).
