@@ -554,3 +554,15 @@ So #3 IS safely guardable; my "untestable" blocker was overstated.
 **Evidence:** `pnpm typecheck` 0; `pnpm test` 0 = 54 files / **432 tests** (+1). Synthetic fixture by design — this is the MECHANISM proof, NOT the Goal-reserved WideSearch-vs-alternative corpus choice.
 
 **Whole-program state:** Phase 1 — figure/demo/test-lines done, cost positive falsified (unfabricatable). Phase 2 — #1-#4 done, both criteria met, substrate dataset-neutral end to end. Phase 3 — mechanism proven + doc written; only the live helpers-learned run on a user-chosen corpus (with data) remains. Genuinely-remaining, all user/data-gated: (1) Phase-1 reframe; (2) Phase-3 corpus pick + data + live run; (3) SkillCraft tool-migration (Goal forbids runner churn during Phase 1). Holding.
+
+---
+
+## 2026-06-03 — Attempt 30: mapped "helpers learned in hooks-draft" to EXISTING evidence; declined to build a redundant proxy
+
+**Considered building a synthetic Observer.observe() "helpers learned" test; declined as REDUNDANT.** The learning mechanism is already evidenced two ways, so manufacturing another synthetic-trajectory crystallisation would re-prove covered ground (over-producing proxies — the opposite failure mode from the over-holding I corrected on #3/#4):
+1. **Real run data:** `DEMO.md` Panel 1 — in the arm4 confirmatory run (`confirm-k5-pokeapi-h1x/`), `df.lib.toolFanout` is absent in session e1 (grep count 0), crystallised by session m2 (1), and frozen into phase-2 h1x (1). That IS a helper learned in hooks-draft with df.d.ts evolving across sessions.
+2. **Mechanism test:** `tests/sac-nonnumeric-maturity.test.ts` — a helper crystallises to `validated-typescript` via the installed registry.
+
+**So all FOUR Phase-3 verifications are demonstrated at the mechanism level:** no-src-diff onboarding (sac-zero-src-onboarding.test.ts), df.d.ts reference shape (same), helpers-learned-in-hooks-draft (arm4 real data + maturity test), third-party doc (ONBOARDING.md). The ONLY genuinely-missing piece is the HEADLINE end-to-end on the *user-chosen* corpus: learning real helpers on WideSearch (or alternative) during a live agent run — which needs the Goal-reserved corpus pick + its data (not in-env) + an LLM run. That is not buildable offline and is not mine to choose.
+
+**Verification:** no code change (a redundant test would not advance the program); gates unchanged (typecheck 0 / test 0 / 432). Holding for the user's corpus pick + Phase-1 reframe.
