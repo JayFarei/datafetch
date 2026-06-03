@@ -485,3 +485,19 @@ So #3 IS safely guardable; my "untestable" blocker was overstated.
 **Honest scope note:** a literal grep for ANY dataset substring still finds "finqa" as a SEED-DOMAIN name, mount-id example ("finqa-2024"), Atlas default-db, and CLI help across cli.ts/atlas/*/bootstrap/snippet-install. Those are configuration/examples, NOT the finqacases/rangeTableMetric code-gen hardcodes Phase-2 names; scrubbing them is a separate, larger, riskier effort (changes seed-domain/atlas defaults) outside the Phase-2 "relocate the hardcodes" scope. I did not do it autonomously.
 
 **Phase-2 verification status: BOTH criteria now MET.** (a) `grep -rn` clean for the named hardcodes; (b) non-numeric helper -> validated-typescript (Attempt 22). Remaining Phase-2 ACTION: #4 (df.tool.* in regenerateManifest) stays gated on the Phase-3 corpus + df.tool.* semantics (Attempt 19). Phase 3 not started (corpus pick). Phase-1's two unfabricatable verifications + the reframe remain the user's call.
+
+---
+
+## 2026-06-03 — Attempt 26: #4 re-investigated post-#3-lesson — CONFIRMED corpus-gated (evidence), distinct from #3
+
+**Applied the #3 lesson (investigate, don't assume) to #4 — but this time the evidence CONFIRMS the block.** After #3 flipped from "blocked" to "doable", I re-checked #4 (df.tool.* in regenerateManifest) with the same skepticism. Read-only findings:
+- `df.tool.*` is rendered TODAY only by SkillCraft's EVAL-SPECIFIC renderer `renderLiveDfDts` (skillcraftFullDatafetch.ts:2454, shape `tool: { <bundle>: { <name>(input): Promise<...> } }`), fed an eval-level `toolCatalog`.
+- The substrate mount/adapter/SDK layer has NO tool concept: `grep -rn "tools|toolBundle|tool:" src/adapter/runtime.ts src/sdk/index.js` -> EMPTY. `MountRuntime` carries only `identMap` (collections -> df.db.*).
+- So #4 is NOT a relocation (unlike #3, which moved an EXISTING implementation behind a byte-golden anchor). #4 is NET-NEW substrate design: it requires (i) a tool field in the mount registration contract (affects all datasets), (ii) a df.tool.* renderer in regenerateManifest, (iii) migrating SkillCraft to register tools via that contract instead of feeding renderLiveDfDts directly.
+- Its SHAPE (callable signatures? row-equality?) is EXPLICITLY coupled by the Goal to the Phase-3 corpus: "the Phase-3 WideSearch-vs-alternative corpus choice, which depends on whether it needs callable df.tool.* and its row-equality semantics." There is no existing-impl anchor for the substrate shape, so building it now means guessing a foundational contract the corpus is meant to determine.
+
+**Why this is NOT the #3 over-caution repeated:** #3 had an existing implementation + a byte-golden guard (relocation, behaviour-preserving, anchored). #4 has neither: no substrate tool concept to move, and a shape the Goal defers to the corpus. So #4 is genuinely gated, confirmed by evidence (no mount tool concept) not assumption.
+
+**Ready-to-execute plan when the corpus is picked:** extend `MountRuntime` with optional `tools` (additive: existing db-only mounts -> undefined -> no df.tool block, output unchanged); add an additive df.tool.* branch in `renderManifest` using the `renderLiveDfDts` shape as reference; migrate SkillCraft to register its toolCatalog via the mount contract; unit-test (mount with synthetic tools -> df.tool.* present; without -> absent). The "SkillCraft/FinChain migration" the hook lists reduces to this: FinChain is already migrated (rangeTableMetric specialization registered + answerEquals gate); SkillCraft uses the answerEquals gate already, and its only remaining migration is exactly this df.tool.* contract move (= #4).
+
+**Verification:** read-only, no src/ changes; gates unchanged (typecheck 0 / test 0 / 429). Unlocking input: the Phase-3 corpus pick + df.tool.* semantics. Holding.
