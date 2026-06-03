@@ -47,7 +47,7 @@ export type RenderFromAgentSourceArgs = {
 
 // Identifiers the allowlist transform accepts as free references in the
 // agent's body. `df` is the host-injected global. `Math` is the standard
-// numeric builtin every FinChain-shape benchmark uses. `console` is
+// numeric builtin every numeric-shape benchmark uses. `console` is
 // allowed for printf-debug lines the agent emits — they execute
 // harmlessly in the helper body and don't affect the return value.
 const ALLOWLIST_FREE_IDENTIFIERS = new Set([
@@ -94,7 +94,7 @@ export function renderFromAgentSource(args: RenderFromAgentSourceArgs): string |
   // safeRecordsFindExact, the bare `answer` alias). These references are
   // safe to leave in the agent body — the rewrite below will not strip
   // them, but they will only resolve if the helper-body call site
-  // provides them. For the FinChain shape, the typical outer-scope helper
+  // provides them. For the numeric table-math shape, the typical outer-scope helper
   // is the safe-wrapper around df.db.records.findExact; calling it from
   // the helper is harmless since the helper's body re-imports nothing
   // and only references `df.db.records.findExact` via the safe wrapper —
@@ -194,7 +194,7 @@ function collectTopLevelDeclaredNames(sf: ts.SourceFile): Set<string> {
     if (ts.isVariableStatement(node)) {
       for (const decl of node.declarationList.declarations) {
         if (ts.isIdentifier(decl.name)) out.add(decl.name.text);
-        // Destructuring not handled — top-level FinChain agent code uses
+        // Destructuring not handled — top-level numeric-shape agent code uses
         // bare consts in practice; the iter 4 demonstration verifies.
       }
     }

@@ -31,6 +31,10 @@ import { getMountRuntimeRegistry, type MountRuntime } from "../adapter/runtime.j
 import { installObserver } from "../observer/install.js";
 import { validateAuthoredFromSourceHelpers } from "../observer/quarantineValidator.js";
 import { installSnippetRuntime } from "../snippet/install.js";
+// Phase-2 #3: registers FinChain's rangeTableMetric code-gen specialization
+// (relocated out of the substrate). Side-effect import: must load before any
+// authoring so crystallisation produces the same helper as before.
+import "./finchainSpecialization.js";
 
 import {
   buildFinChainMount,

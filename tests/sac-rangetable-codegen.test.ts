@@ -3,6 +3,10 @@ import { describe, expect, it } from "vitest";
 import { generatePureSource } from "../src/observer/author.js";
 import type { CallTemplate } from "../src/observer/template.js";
 import type { TrajectoryRecord } from "../src/trajectory/recorder.js";
+// Phase-2 #3: the rangeTableMetric specialization now lives in src/eval and is
+// registered on import. The byte-golden below must remain IDENTICAL to the
+// pre-relocation snapshot — that is the proof the move was verbatim.
+import "../src/eval/finchainSpecialization.js";
 
 // Phase-2 #3 characterisation (safety net + feasibility proof).
 //

@@ -48,12 +48,12 @@ export const ANSWER_KIT_HELPERS = [
 // boolean / structured value could never reach validated-typescript maturity —
 // the gate logged "not numeric" and declined. `answerEquals` dispatches by type:
 //   - numeric (incl. numeric-coercible strings like "$1,000"): relative FAC
-//     tolerance (default 1e-2, matching the FinChain FAC contract / isFacMatch)
+//     tolerance (default 1e-2, matching the numeric FAC contract / isFacMatch)
 //   - boolean: strict equality
 //   - string: normalised equality (trim, case-fold, collapse internal whitespace)
 //   - array/object: canonical (recursively key-sorted) deep equality
 // The numeric branch is behaviourally identical to the prior gate, so wiring
-// this into replayOnTrajectory is ADDITIVE for numeric corpora (FinChain) and
+// this into replayOnTrajectory is ADDITIVE for numeric corpora and
 // net-new capability for the rest. Pure + deterministic for unit-testing.
 export const ANSWER_FAC_REL_TOLERANCE = 1e-2;
 

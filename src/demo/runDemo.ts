@@ -32,6 +32,10 @@ import {
 } from "../adapter/runtime.js";
 import { atlasMount } from "../adapter/atlasMount.js";
 import { publishMount, type MountHandle } from "../adapter/publishMount.js";
+// The demo composes the finqa table-math shape; register its code-gen
+// specialization (Phase-2 #3 relocated it out of the substrate). Side-effect
+// import: must load before the observer authors the learned interface.
+import "../eval/finchainSpecialization.js";
 import { searchLibrary, type RankedFunction } from "../discovery/librarySearch.js";
 import { installFlueDispatcher } from "../flue/install.js";
 import { installObserver, type InstallObserverResult } from "../observer/install.js";
@@ -328,8 +332,8 @@ function pickCasesIdent(mountId: string): string {
 function q1Snippet(args: { question: string; mountIdent: string }): string {
   // The demo's job is to compose findSimilar + pickFiling + inferTableMathPlan
   // + executeTableMath into a multi-step novel trajectory the observer can
-  // learn. The observer names the interface by the task shape
-  // (`rangeTableMetric`) while keeping the shape hash in metadata.
+  // learn. The observer names the interface by the task shape (a table-math
+  // metric shape) while keeping the shape hash in metadata.
   return [
     `const cands = await df.db.${args.mountIdent}.findSimilar(${JSON.stringify(args.question)}, 5);`,
     `console.log("[Q1] candidates=" + cands.length);`,
