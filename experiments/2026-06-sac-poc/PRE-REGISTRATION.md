@@ -181,3 +181,32 @@ for fam in cat-facts-collector dog-breeds-encyclopedia pokeapi-pokedex; do
 done
 # then concat all normalized.jsonl and score-cross-arm.ts --m0 8 over the union.
 ```
+
+### Amendment 2026-06-03 (disclosed; protocol correction, NOT a data-driven change)
+
+Run 1 under the config above (committed `bfce8bd60`) was executed and is INVALID
+by its own gates (RUN-LOG Attempt 6): 39 invariant violations. Diagnosis surfaced
+three defects, now fixed:
+- **Blocker A** (`41e3eb77c`): arm4's parity binding told the agent to call a
+  hardcoded non-existent helper `df.lib.familyFanout` in both phases → arm4
+  phase-1 collapsed to ~9% correctness, crystallised nothing. Fixed (phase-aware
+  binding); arm4 phase-1 now ~100%, crystallises + freezes `toolFanout`.
+- **Blocker C** (`1d5f7b05b`): the parity body embedded df.d.ts, which diverged
+  once arm4 hydrated a learned helper → parity broke. Fixed (mask the learned
+  `df.lib.*` block in the parity body); 0 parity violations.
+- **Blocker B** (`355747fb0`): SkillCraft's h1 is a CUMULATIVE superset of e1..m2
+  (~80% entity overlap), so h1 is NOT new-argument and the arm5a memoization floor
+  cache-hit it (R4 violated). Fixed (Option C, existence proof): a synthetic
+  new-argument held-out level.
+
+**Amended confirmatory config (Run 2):**
+- Family set: **pokeapi-pokedex ONLY** (existence proof per §6; the other two
+  families are dropped for this corrected run, disclosed). Live open-universe API.
+- Held-out phase-2: **`h1x`** (synthetic), entities {1,4,7,133,143} DISJOINT from
+  the phase-1 set {25,6,445,94} → arm5a cannot cache-hit (R4 holds; verified
+  Attempt 10: 0 violations, arm5a 0 cache hits, arm4 reuses on new ids).
+- `M0 = 8`, `k = 5`, model `claude-sonnet-4-6` — UNCHANGED. M0 still NOT adjusted
+  from observed data (the forking-paths prohibition stands).
+- Run command: `run-sac-poc.sh --families pokeapi-pokedex --seeds 5 --m0 8 --model
+  claude-sonnet-4-6 --reuse-level h1x --live` (all 7 arms).
+- This amendment is committed BEFORE Run 2 launches.
