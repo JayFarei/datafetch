@@ -100,7 +100,9 @@ export function answerEquals(
   const eg = answerKitCoerceNumeric(expected);
   const gg = answerKitCoerceNumeric(got);
   if (eg !== null && gg !== null) {
-    const denom = Math.max(Math.abs(eg), 1e-9);
+    // denom matches the gate's prior isFacMatch exactly (max(|got|,|expected|,1))
+    // so wiring this into the numeric path is behaviourally identical.
+    const denom = Math.max(Math.abs(gg), Math.abs(eg), 1);
     return Math.abs(gg - eg) / denom <= tol;
   }
   if (typeof expected === "boolean" || typeof got === "boolean") return got === expected;

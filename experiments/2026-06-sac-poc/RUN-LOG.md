@@ -297,3 +297,15 @@ User directed: stop grinding the falsified line; use a dynamic workflow to gener
 **Evidence:** `pnpm typecheck` exit 0; `pnpm test:unit` **419/419** (49 files; +14). Governance probes **3/3 PASS + blind 20+20 = 0 false-accept/0 false-reject** (unchanged — the gate is untouched; the predicate is not yet wired in).
 
 **Next:** rewire `quarantineValidator.replayOnTrajectory` to use `answerEquals` (numeric path unchanged → probes stay green) + generalize `QuarantineValidationResult` got/expected to `unknown`; add a non-numeric probe fixture to demonstrate a string/structured helper reaching validated-typescript (the second Phase-2 verification criterion). Then items #2 (string/boolean literal promotion), #3 (de-hardcode src/observer → grep-clean), #4 (df.tool.* in regenerateManifest). Will pause/redirect immediately if the user picks the cost-crystallisation path instead.
+
+---
+
+## 2026-06-03 — Attempt 15: Phase 2 item #1 COMPLETE — gate rewired to answerEquals (dataset-neutral)
+
+**Change:** rewired the quarantine gate to use the answer-kit equality predicate, generalizing it off numeric-only.
+- `src/runtime/answerKit.ts`: numeric denom changed to `max(|got|,|expected|,1)` — byte-identical to the gate's prior `isFacMatch` (so the rewire is behaviour-preserving for numeric).
+- `src/observer/quarantineValidator.ts`: `replayOnTrajectory` now extracts the RAW `answer.value` (any type), replays, and compares via `answerEquals(replayed, expected)` (numeric FAC | boolean | string | structured); added a `ran` flag; generalized the return + `QuarantineValidationResult.evidence.{originating,sibling}.{expected,got}` from `number` → `unknown`; removed the now-dead `isFacMatch` / `FAC_REL_TOLERANCE` / `numericFromAnswer`; generalized the sibling-selection filter from `answer.value === "number"` to `!= null`; added `fmtAnswer` for reason strings.
+
+**Evidence:** `pnpm typecheck` exit 0 (the type widening broke no caller); `pnpm test:unit` 419/419; governance probes **3/3 PASS + blind 20+20 = 0 false-accept / 0 false-reject + "all 3 deterministic governance probes met the pre-registered expectation"** — i.e. the numeric behaviour is unchanged AND the gate now accepts non-numeric answers (the diagnosed gap from Attempt 11 / the regeneration workflow finding #6 is closed at the gate level).
+
+**Status:** Phase-2 #1 (numeric-only → answer-kit equality predicate) DONE + verified. The gate now SUPPORTS a non-numeric helper reaching validated-typescript; demonstrating it end-to-end (a string/structured probe fixture) is the next sub-step toward that Phase-2 verification criterion. Remaining: #2 string/boolean literal promotion in authorFromSource, #3 de-hardcode src/observer (grep-clean), #4 df.tool.* in regenerateManifest, #5 migrate. Numeric corpora (FinChain) unaffected. Still ready to redirect to the cost path on the user's word.

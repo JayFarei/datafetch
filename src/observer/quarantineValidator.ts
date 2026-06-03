@@ -31,6 +31,7 @@ import ts from "typescript";
 
 import type { TrajectoryRecord } from "../sdk/index.js";
 import { getHookRegistry } from "../hooks/registry.js";
+import { answerEquals } from "../runtime/answerKit.js";
 
 export interface QuarantineValidationResult {
   helperName: string;
@@ -43,19 +44,23 @@ export interface QuarantineValidationResult {
   // each replay used. Surfaced into walk-artifacts so R4 / R6 / R7 have
   // measurement points without a side disk fetch.
   evidence: {
-    originating?: { trajectoryId: string; expected: number; got: number };
-    sibling?: { trajectoryId: string; expected: number; got: number };
+    // Phase 2: generalized from number to unknown so non-numeric (string /
+    // boolean / structured) answers carry measurement points too. The numeric
+    // FAC contract still lives inside answerEquals (src/runtime/answerKit.ts).
+    originating?: { trajectoryId: string; expected: unknown; got: unknown };
+    sibling?: { trajectoryId: string; expected: unknown; got: unknown };
   };
 }
 
-// 1% relative tolerance — matches the FAC contract used by the FinChain
-// scorer at src/eval/finchainFullDatafetch.ts:isFacMatch.
-const FAC_REL_TOLERANCE = 1e-2;
-
-function isFacMatch(got: number, expected: number): boolean {
-  if (!Number.isFinite(got) || !Number.isFinite(expected)) return false;
-  const denom = Math.max(Math.abs(got), Math.abs(expected), 1);
-  return Math.abs(got - expected) / denom <= FAC_REL_TOLERANCE;
+// Compact rendering of an answer value for reason strings.
+function fmtAnswer(value: unknown): string {
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (typeof value === "string") return JSON.stringify(value);
+  try {
+    return JSON.stringify(value)?.slice(0, 120) ?? String(value);
+  } catch {
+    return String(value);
+  }
 }
 
 export async function validateAuthoredFromSourceHelpers(input: {
@@ -155,10 +160,10 @@ async function validateOne(input: {
   // --- Idempotency check ---------------------------------------------------
   const idempotency = await replayOnTrajectory({ helperFn, trajectory: originating });
   const evidence: QuarantineValidationResult["evidence"] = {};
-  if (idempotency.replayed !== null) {
+  if (idempotency.ran) {
     evidence.originating = {
       trajectoryId: originating.id,
-      expected: idempotency.expected ?? 0,
+      expected: idempotency.expected,
       got: idempotency.replayed,
     };
   }
@@ -179,7 +184,7 @@ async function validateOne(input: {
     t.id !== originating.id &&
     t.sourceText !== undefined &&
     t.sourceHash !== originSourceHash &&
-    typeof (t.answer as { value?: unknown } | undefined)?.value === "number",
+    (t.answer as { value?: unknown } | undefined)?.value != null,
   );
   if (!sibling) {
     return {
@@ -193,10 +198,10 @@ async function validateOne(input: {
     };
   }
   const genericity = await replayOnTrajectory({ helperFn, trajectory: sibling });
-  if (genericity.replayed !== null) {
+  if (genericity.ran) {
     evidence.sibling = {
       trajectoryId: sibling.id,
-      expected: genericity.expected ?? 0,
+      expected: genericity.expected,
       got: genericity.replayed,
     };
   }
@@ -301,53 +306,45 @@ async function loadHelper(filePath: string, name: string): Promise<((input: unkn
 async function replayOnTrajectory(input: {
   helperFn: (input: unknown) => Promise<unknown>;
   trajectory: TrajectoryRecord;
-}): Promise<{ match: boolean; replayed: number | null; expected: number | null; reason: string }> {
+}): Promise<{ match: boolean; ran: boolean; replayed: unknown; expected: unknown; reason: string }> {
   const { helperFn, trajectory } = input;
   if (!trajectory.sourceText) {
-    return { match: false, replayed: null, expected: null, reason: "trajectory has no sourceText" };
+    return { match: false, ran: false, replayed: undefined, expected: undefined, reason: "trajectory has no sourceText" };
   }
   const promoted = extractPromotedValuesFromSource(trajectory.sourceText);
   if (Object.keys(promoted).length === 0) {
-    return { match: false, replayed: null, expected: null, reason: "no promoted-param literals in trajectory.sourceText" };
+    return { match: false, ran: false, replayed: undefined, expected: undefined, reason: "no promoted-param literals in trajectory.sourceText" };
   }
-  const expected = numericFromAnswer((trajectory.answer as { value?: unknown } | undefined)?.value);
-  if (expected === null) {
-    return { match: false, replayed: null, expected: null, reason: "trajectory.answer.value not numeric" };
+  // Phase 2: the expected answer can be any type (numeric / string / boolean /
+  // structured), not just numeric. Equality is decided by answerEquals.
+  const expected = (trajectory.answer as { value?: unknown } | undefined)?.value;
+  if (expected === undefined || expected === null) {
+    return { match: false, ran: false, replayed: undefined, expected: undefined, reason: "trajectory.answer.value is absent" };
   }
-  let replayed: number | null = null;
+  let replayed: unknown;
   try {
-    const out = await helperFn(promoted);
-    replayed = numericFromAnswer(out);
+    replayed = await helperFn(promoted);
   } catch (err) {
     return {
       match: false,
-      replayed: null,
+      ran: false,
+      replayed: undefined,
       expected,
       reason: `helper invocation threw: ${err instanceof Error ? err.message : String(err)}`,
     };
   }
-  if (replayed === null) {
-    return { match: false, replayed: null, expected, reason: "helper returned non-numeric value" };
-  }
-  if (!isFacMatch(replayed, expected)) {
+  // Dataset-neutral equality: numeric FAC (byte-identical to the prior gate) |
+  // boolean | normalised string | canonical structured deep-equality.
+  if (!answerEquals(replayed, expected)) {
     return {
       match: false,
+      ran: true,
       replayed,
       expected,
-      reason: `FAC mismatch: helper returned ${replayed}, expected ${expected}`,
+      reason: `answer mismatch: helper returned ${fmtAnswer(replayed)}, expected ${fmtAnswer(expected)}`,
     };
   }
-  return { match: true, replayed, expected, reason: "match" };
-}
-
-function numericFromAnswer(value: unknown): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string") {
-    const cleaned = value.replace(/[$£€,\s%]/g, "");
-    const n = Number(cleaned);
-    return Number.isFinite(n) ? n : null;
-  }
-  return null;
+  return { match: true, ran: true, replayed, expected, reason: "match" };
 }
 
 // Re-implements the relevant portion of authorFromSource's promotion
