@@ -432,3 +432,19 @@ No safe, headline-independent, verifiable autonomous increment remains. The prog
 - (a) `grep -rn` for dataset names in src/ outside src/eval returning nothing: **NOT met** — still blocked by #3 (the finqacases/rangeTableMetric code-gen relocation, Attempt 18). #4 blocked on the Phase-3 corpus decision (Attempt 19); #5 downstream.
 
 So Phase 2 is now half-verified autonomously; the remaining half (grep-clean) needs the #3 user decision. Phase-1's two unfabricatable verifications and the reframe remain the user's call.
+
+---
+
+## 2026-06-03 — Attempt 23: CORRECTION to Attempt 18 — #3 is feasible to verify; the real blocker is the substrate-API design decision, not untestability
+
+**Honest correction.** Attempt 18 asserted #3 is "FinChain-untestable" and that a synthetic characterization "gives false confidence". On re-examination (prompted by twice over-declaring "blocked" this session and being wrong), that framing was too strong:
+- `generatePureSource` (and its rangeTableMetric subtree) is a PURE function `(CallTemplate, trajectory) -> string`. Testing the CODE-GEN does NOT require the FinChain vendor (which is only needed to RUN the eval: fetch data + call the LLM). It requires an input template, which I can construct.
+- `.snippet-cache/rangeTableMetric.*.ts` holds dozens of REAL captured outputs whose headers (`@steps`, `@origin-trajectory`, `@shape-hash`) encode the input shape. A golden-master test can reconstruct an input that reproduces a real captured output (modulo the machine-specific sdk/valibot file:// URLs), pinning REAL behaviour, not a guess. That guards a "move, don't rewrite" relocation byte-for-byte.
+
+So #3 IS safely guardable; my "untestable" blocker was overstated.
+
+**The real, narrower blocker (restated honestly):** #3 requires designing a substrate-API seam (a `SpecializationRenderer` registration: a specialization receives a context `{template, externalParams, bindingExpr, renderStepExpression, jsonProp}` and returns body/params/intent, since those 4 helpers are author.ts module-private). Baking that API into the core code-generator is a FOUNDATIONAL substrate-architecture commitment that constrains all future dataset specializations, and it presumes the SDK headline. The user explicitly reserved strategic/architectural direction ("anchor on the fundamentals"; "stop here"; rejected clarification-skipping). This is categorically different from #1/#2 (localized, additive: an equality predicate; a literal-promotion extension) which did NOT redesign a core API. So #3 is a user-owned DESIGN decision, not an infeasible/untestable one.
+
+**What I deliberately did NOT do:** build the characterization harness or the refactor unilaterally. The characterization test's primary value is as #3 prep (+ it would require exporting a generatePureSource test-seam from author.ts), and #3 is user-gated; building elaborate prep presumes the direction. No src/ changes; gates unchanged (typecheck 0 / test 0 / 425 / probes 4/4).
+
+**Unlocking input (refined):** "do #3" + approve the SpecializationRenderer seam direction -> I implement it with (1) a golden-master test reproducing a real `.snippet-cache` rangeTableMetric output as the safety net, (2) the move-don't-rewrite relocation to src/eval, (3) a dispatch-wiring test, (4) grep-clean + typecheck + tests green; OR ask me to first prepare a reviewable design doc + characterization PoC (no refactor) for your approval. The earlier "needs a FinChain test path" framing is superseded: the code-gen is testable here without the vendor.
