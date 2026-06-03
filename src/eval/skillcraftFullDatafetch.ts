@@ -443,9 +443,31 @@ async function main(): Promise<void> {
     agentBackend === "claude"
       ? resolveClaudeEffort(args.reasoningEffort)
       : resolveCodexReasoningEffort(args.reasoningEffort, "DF_SKILLCRAFT_FULL_REASONING_EFFORT");
+  // B-1: link this episode to the sealed run-manifest (verifier P2/P3 provenance).
+  // run-sac-poc.sh exports SAC_RUN_MANIFEST after sealing; read its configHash +
+  // runner sha so the per-episode artifact is self-describing about the run it
+  // belongs to. Null on legacy/un-sealed runs.
+  const runManifestPath = process.env["SAC_RUN_MANIFEST"] ?? null;
+  let runManifestConfigHash: string | null = null;
+  let runManifestRunnerSha: string | null = null;
+  if (runManifestPath) {
+    try {
+      const m = JSON.parse(await fsp.readFile(runManifestPath, "utf8")) as {
+        configHash?: string;
+        shas?: { runner?: string };
+      };
+      runManifestConfigHash = m.configHash ?? null;
+      runManifestRunnerSha = m.shas?.runner ?? null;
+    } catch {
+      runManifestConfigHash = null;
+    }
+  }
   const runInfo = {
     generatedAt: new Date().toISOString(),
     adapterReady: FULL_SKILLCRAFT_DATAFETCH_ADAPTER_READY,
+    runManifestPath,
+    configHash: runManifestConfigHash,
+    runnerSha: runManifestRunnerSha,
     skillcraftDir: args.skillcraftDir,
     outDir: args.outDir,
     libCacheDir: libCacheDir ?? null,

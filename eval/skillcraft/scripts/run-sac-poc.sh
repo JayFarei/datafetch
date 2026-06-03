@@ -90,6 +90,17 @@ SINGLE_LEVELS="${PHASE1_LEVELS},${REUSE_LEVEL}"
 
 IFS=',' read -r -a ARM_ARR <<< "${ARMS}"
 
+# B-1: seal the run-manifest BEFORE any episode runs, so the run is verifiable
+# (RESEARCH-STRATEGY.md P1/P2: pin code state to a clean commit + a config_hash).
+# REFUSES to launch (exit 3) on a dirty CODE tree unless DATAFETCH_ALLOW_DIRTY=1.
+# Exports SAC_RUN_MANIFEST so every per-episode run-info.json links to it.
+seal_args=(--out-root "${OUT_ROOT}" --arms "${ARMS}" --seeds "${SEEDS}" --families "${FAMILIES}" --reuse-level "${REUSE_LEVEL}")
+[[ -n "${M0}" ]] && seal_args+=(--m0 "${M0}")
+[[ -n "${MODEL}" ]] && seal_args+=(--model "${MODEL}")
+[[ -n "${LIVE}" ]] && seal_args+=(--live)
+pnpm tsx "${ROOT}/eval/skillcraft/scripts/seal-manifest.ts" "${seal_args[@]}" || exit $?
+export SAC_RUN_MANIFEST="${OUT_ROOT}/run-manifest.json"
+
 run_one() {
   # run_one <arm> <seed> <phase> <levels> <out-dir> [extra-args...]
   local arm="$1"; local seed="$2"; local phase="$3"; local levels="$4"; local out="$5"; shift 5
