@@ -70,8 +70,10 @@ async function main(): Promise<void> {
   for (const o of detOutcomes) {
     const arm3 = o.arm3WouldEmit;
     const gold = o.siblingExpected;
-    if (arm3 !== null && gold !== null) {
-      console.log(`    ${o.id}: arm2 DECLINES | arm3 EMITS ${arm3} (held-out gold ${gold})`);
+    if (o.gatePromotes) {
+      console.log(`    ${o.id}: arm2 PROMOTES (non-numeric helper validated; replayed ${String(arm3)} == held-out gold ${String(gold)})`);
+    } else if (arm3 != null && gold != null) {
+      console.log(`    ${o.id}: arm2 DECLINES | arm3 EMITS ${String(arm3)} (held-out gold ${String(gold)})`);
     } else {
       console.log(`    ${o.id}: arm2 DECLINES | arm3 contrast value unavailable`);
     }

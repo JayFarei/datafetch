@@ -309,3 +309,15 @@ User directed: stop grinding the falsified line; use a dynamic workflow to gener
 **Evidence:** `pnpm typecheck` exit 0 (the type widening broke no caller); `pnpm test:unit` 419/419; governance probes **3/3 PASS + blind 20+20 = 0 false-accept / 0 false-reject + "all 3 deterministic governance probes met the pre-registered expectation"** — i.e. the numeric behaviour is unchanged AND the gate now accepts non-numeric answers (the diagnosed gap from Attempt 11 / the regeneration workflow finding #6 is closed at the gate level).
 
 **Status:** Phase-2 #1 (numeric-only → answer-kit equality predicate) DONE + verified. The gate now SUPPORTS a non-numeric helper reaching validated-typescript; demonstrating it end-to-end (a string/structured probe fixture) is the next sub-step toward that Phase-2 verification criterion. Remaining: #2 string/boolean literal promotion in authorFromSource, #3 de-hardcode src/observer (grep-clean), #4 df.tool.* in regenerateManifest, #5 migrate. Numeric corpora (FinChain) unaffected. Still ready to redirect to the cost path on the user's word.
+
+---
+
+## 2026-06-03 — Attempt 16: Phase-2 #1 demonstrated — non-numeric helper PROMOTED by the gate
+
+**Change:** added a 4th governance probe `nonnumeric-accept` (eval/skillcraft/probes/fixtures.ts) — a STRING-answer classifier helper (`years>=3 ? "long-term" : "short-term"`, numeric input, string answer) that reproduces the gold on the originating AND held-out sibling. Generalized `buildTrajectory.answerValue` number→unknown + `GovernanceProbeOutcome.{arm3WouldEmit,siblingExpected}` + `explain`/report number→unknown; fixed the arm2-vs-arm3 contrast line to print "arm2 PROMOTES" for ACCEPT cases (was misleadingly "arm2 DECLINES").
+
+**Evidence:** governance probes now 4/4 — `[PASS] nonnumeric-accept: gate PROMOTED (idempotent=true, generic=true)` (a string-answer helper the NUMERIC-ONLY gate would have declined as "not numeric" now reaches the promote-decision), 3 adversarial DECLINEs still PASS, blind 20+20 = 0 false-accept/0 false-reject. `pnpm typecheck` exit 0; `pnpm test:unit` 419/419.
+
+**Phase-2 criterion (b) status:** the GATE-DECISION (idempotent && generic) now fires for non-numeric answers — demonstrated. The literal registry maturity flip to `validated-typescript` is a run-side step the probe context (no installed hook registry) does not exercise; that final hop needs a live run or a registry-equipped test. Phase-2 #1 is functionally complete + demonstrated.
+
+**Remaining Phase 2:** #2 string/boolean literal promotion in authorFromSource/extractPromotedValuesFromSource (so string-INPUT helpers crystallise); #3 de-hardcode finqacases/rangeTableMetric from src/observer → grep-clean (FinChain-behaviour-risky; needs care/FinChain check); #4 df.tool.* branch in regenerateManifest; #5 migrate. STRATEGIC HEADLINE (cost-crystallisation vs governance-under-staleness vs SDK) still the user's open call. Pausing autonomous progress at this clean verified checkpoint — remaining items are either FinChain-risky or headline-dependent.

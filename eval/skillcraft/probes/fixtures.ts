@@ -86,7 +86,7 @@ function buildTrajectory(input: {
   tenantId: string;
   sourceHash: string;
   promoted: Record<string, number>;
-  answerValue: number;
+  answerValue: unknown;
   question?: string;
 }): TrajectoryRecord {
   const literalLines = Object.entries(input.promoted)
@@ -326,11 +326,72 @@ export function sourceDriftFixture(): GovernanceProbeFixture {
   };
 }
 
-// The three deterministic probes, in pinned order.
+// ===========================================================================
+// PROBE 4 — non-numeric ACCEPT (Phase 2: dataset-neutral governance gate).
+//
+// A helper whose answer is a STRING, not a number. Before Phase-2 #1 the gate
+// bailed at "trajectory.answer.value not numeric" and could NEVER validate it.
+// With the answer-kit equality predicate (answerEquals), a GENERIC string
+// helper that reproduces the gold for BOTH the originating AND the held-out
+// sibling now passes idempotency + genericity, so the gate PROMOTES it (the
+// `idempotent && generic` decision the validator promotes on). NOTE: the
+// registry maturity flip to validated-typescript is a run-side step the probe
+// context — no installed hook registry — does not exercise; this probe
+// demonstrates the GATE DECISION now fires for non-numeric answers, the
+// dataset-neutral capability Phase-2 #1 adds.
+// ===========================================================================
+
+export function nonNumericAcceptFixture(): GovernanceProbeFixture {
+  const tenantId = "sac-probe-nonnumeric";
+  const helperName = "derived_term_classifier";
+  // pure lowercase hex (see quarantineValidator.ts:117).
+  const originSourceHash = "ce110000aaaa1111";
+  const sibSourceHash = "ce110000bbbb2222";
+
+  // Generic string classifier: years >= 3 -> "long-term" else "short-term".
+  // Reproduces the gold on BOTH trajectories (idempotent + generic).
+  const helperSource = buildHelperSource({
+    helperName,
+    sourceHash: originSourceHash,
+    promotedNames: ["years"],
+    bodyReturnExpr: `years >= 3 ? "long-term" : "short-term"`,
+  });
+
+  return {
+    id: "nonnumeric-accept",
+    description:
+      "non-numeric ACCEPT: a STRING-answer classifier (years>=3 -> 'long-term' else 'short-term') that reproduces the gold on both the originating and the held-out sibling. The numeric-only gate declined it ('not numeric'); the answerEquals gate PROMOTES it (idempotent && generic).",
+    tenantId,
+    helperName,
+    helperSource,
+    originating: buildTrajectory({
+      id: "traj_nonnumeric_origin",
+      tenantId,
+      sourceHash: originSourceHash,
+      promoted: { years: 5 },
+      answerValue: "long-term",
+      question: "Originating: classify a 5-year horizon (gold = 'long-term').",
+    }),
+    sibling: buildTrajectory({
+      id: "traj_nonnumeric_sibling",
+      tenantId,
+      sourceHash: sibSourceHash,
+      promoted: { years: 1 },
+      answerValue: "short-term",
+      question: "Held-out sibling: classify a 1-year horizon (different input, gold = 'short-term').",
+    }),
+    expectGatePromotes: true,
+  };
+}
+
+// The deterministic probes, in pinned order. The first three are adversarial
+// DECLINE cases (R8); the fourth is the Phase-2 non-numeric ACCEPT case proving
+// the gate is no longer numeric-only.
 export function deterministicProbeFixtures(): GovernanceProbeFixture[] {
   return [
     wrongSiblingCloneFixture(),
     underParameterisedCloneFixture(),
     sourceDriftFixture(),
+    nonNumericAcceptFixture(),
   ];
 }

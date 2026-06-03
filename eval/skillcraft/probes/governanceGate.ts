@@ -79,9 +79,10 @@ export interface GovernanceProbeOutcome {
   // What an ungoverned (arm3) path would have emitted for the held-out
   // sibling: the value the frozen helper actually returned, even though it
   // FAC-mismatched the gold. Null when the replay could not run.
-  arm3WouldEmit: number | null;
-  // The gold value the sibling's trajectory recorded. Null when not numeric.
-  siblingExpected: number | null;
+  arm3WouldEmit: unknown;
+  // The gold value the sibling's trajectory recorded. Null when the replay
+  // could not run. May be non-numeric (string/structured) under Phase 2.
+  siblingExpected: unknown;
   // PASS iff the gate decision matched the pre-registered expectation.
   passed: boolean;
   // Human-readable detail (the validator's `reason`, or the value contrast).
@@ -139,8 +140,8 @@ function explain(
   fixture: GovernanceProbeFixture,
   result: QuarantineValidationResult | null,
   gatePromotes: boolean,
-  arm3WouldEmit: number | null,
-  siblingExpected: number | null,
+  arm3WouldEmit: unknown,
+  siblingExpected: unknown,
 ): string {
   if (!result) return "validator returned no result for this helper (helper not found / no trajectories)";
   if (gatePromotes) {
