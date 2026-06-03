@@ -319,3 +319,42 @@ Every $0 probe (A0, B0, M5) can **kill its claim for free** and terminate cleanl
 - `/Users/jayfarei/src/tries/2026-05-01-hackathon/src/observer/author.ts` + `template.ts` — where shallow `lib.toolFanout` crystallisation is hardwired (the C5 deep-crystallisation gap)
 - `/Users/jayfarei/src/tries/2026-05-01-hackathon/src/eval/skillcraftFullDatafetch.ts` — emits per-`(arm,seed,phase)` `run-info.json` today; must emit the pre-execution sealed `run-manifest.json`
 - `/Users/jayfarei/src/tries/2026-05-01-hackathon/kb/br/19-skill-library-baseline-ladder-and-paired-eval-methodology.md` — the 5-arm ladder, the six-confound battery, the stats stack, and the Arm T persistence-as-transcript control
+
+---
+
+## CORPUS-PER-CLAIM (amendment — supersedes any single-corpus framing)
+
+### The receipt (why one corpus could never carry every claim)
+
+SkillCraft Phase-1 reported **−41% tokens at neutral correctness** — but that number was measured **only against the weak substrate-OFF baseline** (`DATAFETCH_DISABLE_LEARNING`), which re-derives nothing and persists nothing, so any reuse at all looks free. Re-measured against br19's honest adversarial bar — **Arm 1, tool-matched INLINE-REWRITE with the workspace wiped between questions, no persistence** — the cost win **collapsed to M\* = +∞** (the SaC-PoC confirmatory run, `/Users/jayfarei/src/tries/2026-05-01-hackathon/experiments/2026-06-sac-poc/eval.../confirm-k5-pokeapi-h1x`: arm4 cost > arm1 in every unit, full-weight −66,521 / fresh+output −97 / dollar-equiv −6,740, and arm4 *less* correct). The mechanism is structural, not incidental: **SkillCraft per-entity fan-out sits BELOW the inline-rewrite threshold** — the helper is cheaper to re-derive inline than to crystallise, hydrate, and invoke — so on this corpus every cost/amortisation headline collapses by construction. **Cost claims are DEAD on SkillCraft tasks** and fenced under P7 (REGIME-GUARD). The lesson generalises past the one corpus: *the corpus that proves a claim must be the corpus on which that claim's endpoint is not structurally pre-decided.* No single benchmark satisfies all four surviving claims, so each claim is pinned to the corpus where its endpoint can move.
+
+### Corpus-per-claim table
+
+| Claim | Endpoint (the thing that can move) | Corpus | One-line WHY |
+|---|---|---|---|
+| **C5 — deep-invocable helper, serial-depth** | mean **TURNS** at non-inferior correctness | **SkillCraft (pokedex DAG)** | The pokedex is a genuine serial-dependency DAG, and the TURNS endpoint is **immune to the cheap-to-inline TOKEN trap** that killed the cost claim — a one-shot invocable call cannot be cheaper-in-turns by re-deriving the chain inline. |
+| **C8 — persistence-as-abstraction beats transcript** | cost/correctness of **Arm 2 (df.lib)** vs **Arm T (raw-prior-trajectory injection)** at **EQUAL context budget**, at matched correctness | **SkillCraft** | The contrast is between two ways of carrying prior work (governed abstraction vs raw transcript) at a fixed budget; it needs reuse density, not a moving cost frontier, so the home corpus's high reuse is an asset, not a confound. |
+| **C4 — governance-under-staleness** | **Truthfulness = Accuracy − HallucinationRate** on the −1 cells; Arm 2 vs Arm 3 under injected drift | **CRAG (tri-state +1/0/−1)** | Only a grader that scores a confident-wrong answer **−1** can make "decline beats confidently-wrong" *visible*; **binary SkillCraft scoring cannot represent a hallucination penalty**, so the governance win is structurally unobservable there. Needs a drift/staleness injector + an r>0 hardness screen (FinChain disqualified — saturated). |
+| **C2 — zero-src onboarding sufficiency** | paired pass-rate of an `onboarded-no-learning` arm vs Arm 1 (`df.db` + `answerEquals`, single-phase) | **a FRESH DB-shaped corpus (BIRD / Spider)** | SkillCraft is **the substrate's home corpus**, so onboarding it proves no generality; a never-seen DB-shaped dataset tests onboarding sufficiency on a corpus the substrate has never seen, and the row-shaped data sidesteps the br17 `df.tool.*` blockers. |
+
+### HARNESS vs BENCHMARK — the distinction this amendment turns on
+
+These are two different objects that share a name, and conflating them is exactly how the −41% receipt happened.
+
+- **The SkillCraft HARNESS** (`eval/skillcraft/` — `run-sac-poc.sh`, the paired runner, the cross-arm scorer, `p1-paired-analysis.py`, the arm config in `sacArms.ts`) is the proven, reused **runner skeleton**: interleaved seeds, frozen two-phase replay, parity masking, paired McNemar/Wilcoxon plumbing, and the per-`(arm,seed,phase)` artifact emitter. It is corpus-agnostic. It is **kept and reused for every track** — C4 on CRAG and C2 on BIRD/Spider both mount their data through this same skeleton; only the MountAdapter + gold differ.
+- **The SkillCraft BENCHMARK / tasks** (the pokedex/countries/dnd fan-out questions and their binary golds) is a **specific corpus**, and it is the **wrong corpus for cost and governance headlines**: its fan-out is below the inline threshold (cost dead, per the receipt) and its binary scoring cannot represent a hallucination penalty (governance invisible). It survives only where its *shape* is the point — the serial-depth DAG for C5-TURNS and the high reuse density for the C8 budget-matched control.
+
+Reusing the harness skeleton is not the same as testing on the SkillCraft tasks. **Carrying the skeleton forward to CRAG/BIRD is a DOABLE substrate milestone, not a corpus claim.** The §4.1 corpus-acquisition steps (build the eval module + MountAdapter, port data, author `answerEquals`-gradeable gold) are the cost of pointing the *kept* harness at a corpus where the endpoint can actually move; corpus *identity* remains the one legitimately USER-GATED input.
+
+### Promotion: C5-on-SkillCraft-TURNS moves from DEFERRED to the near-term cheapest live falsifier
+
+C5 was filed under "Deferred ($0 reasoning, parallel)" in §4.0/§4.1. **It is promoted to the near-term cheapest live falsifier.** Rationale:
+
+1. **The TURNS endpoint is immune to the token trap** that voided every SkillCraft cost claim — turns cannot be re-derived-inline-for-free, so C5's headline is *not* structurally pre-decided on this corpus the way cost was. This is the one live claim SkillCraft tasks can legitimately carry.
+2. **The $0 ceiling probe is already done** (`/Users/jayfarei/src/tries/2026-05-01-hackathon/experiments/2026-06-sac-poc/ceiling-probe/`, Attempt 13), so the mandatory $0-probe-precedes-live gate is already cleared for this claim — no other surviving claim has a passed $0 gate in hand.
+3. **The harness is ready** — `eval/skillcraft/` runs the pokedex DAG today; C5 needs no fresh corpus acquisition (unlike C2/BIRD) and no drift injector + unsaturated-corpus screen (unlike C4/CRAG), which are the slow milestones gating the other tracks.
+
+C5's remaining cost is the **deep+invocable crystallisation substrate change** (`src/observer/author.ts` + `template.ts` hardwire shallow `lib.toolFanout` today) plus authoring the serial-depth trajectories; the live run measures **mean TURNS vs Arm 1's 4.6 as primary, never tokens**.
+
+This promotion does **not** condition progression on outcome direction. Both branches map to terminal states: arm4-warm mean TURNS **< 4.6 at NI correctness → DONE-POSITIVE**; mean TURNS **≥ 4.6 (delta ≥ 0) OR correctness NI breached → DONE-HONEST-NEGATIVE** (= PASS). The deep-crystallisation substrate change is **BLOCKED-DOABLE** until authored; if `df.llm.*` were required it would be **BLOCKED-ENVIRONMENTAL**, but the non-LLM-cored serial-depth island does not need it. Positioning stays vs the **ephemeral re-derivation regime** (the inline-rewrite Arm 1), never a literal Search-as-Code head-to-head, and the single-session correctness null (C9) remains conceded.
+
