@@ -35,7 +35,7 @@ import type { GovernanceProbeFixture } from "./governanceGate.js";
 // the frozen gate (quarantineValidator) treats it identically to an organic
 // crystallised helper. `bodyReturnExpr` is the value expression returned from
 // the promoted-param inputs.
-function buildHelperSource(input: {
+export function buildHelperSource(input: {
   helperName: string;
   sourceHash: string;
   promotedNames: string[];
@@ -81,7 +81,7 @@ ${bodyMid}
 // promoted-param literal `const` declarations the validator's
 // extractPromotedValuesFromSource walks (top-of-main numeric literals), and
 // whose answer.value is the gold the FAC replay compares against.
-function buildTrajectory(input: {
+export function buildTrajectory(input: {
   id: string;
   tenantId: string;
   sourceHash: string;

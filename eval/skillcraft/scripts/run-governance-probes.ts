@@ -24,6 +24,7 @@ import path from "node:path";
 import { deterministicProbeFixtures } from "../probes/fixtures.js";
 import { runGovernanceProbe, type GovernanceProbeOutcome } from "../probes/governanceGate.js";
 import { runBlindSuite, type BlindSuiteReport } from "../probes/blindSuite.js";
+import { runDriftSweep, type DriftLiveness } from "../probes/driftInjector.js";
 
 interface Args {
   outDir: string | null;
@@ -79,6 +80,27 @@ async function main(): Promise<void> {
     }
   }
 
+  // --- Drift sweep (C4 A0 mechanism-liveness kill-gate) --------------------
+  // The governance-under-staleness claim (C4) rests on the frozen gate's
+  // decline decision being SENSITIVE to source drift. Sweep a multiplier drift
+  // across the FAC-tolerance boundary and confirm the decision MOVES (and never
+  // false-accepts a supra-tolerance stale clone). A failure here KILLS C4 for
+  // $0. GATES the exit code alongside the deterministic probes.
+  console.log("\n--- drift sweep (C4 A0: governance-under-staleness mechanism liveness) ---");
+  const drift: DriftLiveness = await runDriftSweep(500, 2.0, [1.0, 1.005, 1.05, 1.75]);
+  for (const p of drift.points) {
+    const verdict = p.matched ? "OK" : "MISMATCH";
+    console.log(
+      `  [${verdict}] magnitude ${p.magnitude}x: stale ${p.staleGold} vs current ${p.driftedGold} ` +
+        `(relDiff ${(p.relDiff * 100).toFixed(2)}%) -> gate ${p.gatePromotes ? "PROMOTED" : "DECLINED"} ` +
+        `(expected ${p.expectPromote ? "PROMOTE" : "DECLINE"})`,
+    );
+  }
+  console.log(
+    `  decision-moved=${drift.decisionMoved} no-supra-tol-false-accept=${drift.noSupraToleranceFalseAccept} ` +
+      `all-matched=${drift.allMatched} -> C4-A0 ${drift.pass ? "PASS (gate is drift-sensitive)" : "FAIL (gate drift-insensitive / false-accepts stale clone)"}`,
+  );
+
   // --- Blind 20+20 mini-suite ----------------------------------------------
   let blind: BlindSuiteReport | null = null;
   if (args.runBlind) {
@@ -129,6 +151,14 @@ async function main(): Promise<void> {
           detail: o.detail,
         })),
       },
+      drift: {
+        claim: "C4-A0 governance-under-staleness mechanism liveness",
+        pass: drift.pass,
+        decisionMoved: drift.decisionMoved,
+        noSupraToleranceFalseAccept: drift.noSupraToleranceFalseAccept,
+        allMatched: drift.allMatched,
+        points: drift.points,
+      },
       blind: blind
         ? {
             n: blind.n,
@@ -154,7 +184,11 @@ async function main(): Promise<void> {
     console.error(`FAIL: ${detFailures}/${detOutcomes.length} deterministic governance probes did not meet the pre-registered expectation.`);
     process.exit(1);
   }
-  console.log(`PASS: all ${detOutcomes.length} deterministic governance probes met the pre-registered expectation (arm2 declines, arm3 emits wrong/stale).`);
+  if (!drift.pass) {
+    console.error("FAIL: C4-A0 drift sweep — the gate's decision is not drift-sensitive (or false-accepts a stale clone). This KILLS C4 governance-under-staleness for $0.");
+    process.exit(1);
+  }
+  console.log(`PASS: all ${detOutcomes.length} deterministic governance probes met the pre-registered expectation (arm2 declines, arm3 emits wrong/stale); C4-A0 drift sweep confirms the gate is drift-sensitive.`);
 }
 
 main().catch((err) => {
