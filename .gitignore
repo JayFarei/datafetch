@@ -61,3 +61,7 @@ eval/productFlow/results/
 /*_report.json
 /*_test.json
 /scripts/answer.ts
+
+# ephemeral run / report outputs (not source)
+/runs/
+/experiments/reports/
