@@ -1452,7 +1452,11 @@ type GenerateArgs = {
   identifierAttributeKeys?: readonly string[];
 };
 
-function generatePureSource(args: GenerateArgs): string | null {
+// Exported as a test seam: the rangeTableMetric specialization path (Phase-2
+// #3 relocation target) is reached through here. tests/sac-rangetable-codegen
+// characterises its current output so the eventual move-don't-rewrite
+// relocation can be guarded byte-for-byte. No behaviour change from exporting.
+export function generatePureSource(args: GenerateArgs): string | null {
   const { trajectory } = args;
   const baseTemplate =
     args.template.name === "rangeTableMetric"

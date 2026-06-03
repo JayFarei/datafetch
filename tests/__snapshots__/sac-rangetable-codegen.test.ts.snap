@@ -1,0 +1,107 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`rangeTableMetric code-gen characterisation (Phase-2 #3 relocation safety net) > matches the byte-golden snapshot (relocation guard) 1`] = `
+"/* ---
+name: rangeTableMetric
+status: provisional
+description: |
+  Learned datafetch interface for questions shaped like:
+    "What is the range of chemicals revenue between 2014 and 2018?"
+  Internally chains: db.finqacases.findSimilar -> candidate validation loop -> lib.inferTableMathPlan -> lib.executeTableMath.
+  Use when the user's question has the same task shape, even if
+  the entity, metric, period, or wording differs. Prefer this before
+  recomposing the primitive chain. Pass input as { query, limit };
+  the runtime returns the last call's output.
+trajectory: traj_synth_rtm
+shape-hash: synthrtm0001
+--- */
+
+// Learned by datafetch observer from trajectory traj_synth_rtm.
+// @shape-hash: synthrtm0001
+// @intent-signature: source(synthrtm)
+// @origin-trajectory: traj_synth_rtm
+// @origin-question: "What is the range of chemicals revenue between 2014 and 2018?"
+// @steps: db.finqacases.findSimilar -> lib.inferTableMathPlan -> lib.executeTableMath
+
+import { fn } from "<SDK>";
+import * as v from "<VALIBOT>";
+
+// Learned interface composition. The function body uses the snippet runtime's
+// global \`df\` to call the same primitives the originating trajectory
+// recorded.
+declare const df: {
+  db: Record<string, {
+    findExact(filter: Record<string, unknown>, limit?: number): Promise<unknown[]>;
+    search(query: string, opts?: { limit?: number }): Promise<unknown[]>;
+    findSimilar(query: string, limit?: number): Promise<unknown[]>;
+    hybrid(query: string, opts?: { limit?: number }): Promise<unknown[]>;
+  }>;
+  lib: Record<string, (input: unknown) => Promise<{ value: unknown }>>;
+};
+
+type Input = { query: string; limit: number };
+
+export const rangeTableMetric = fn<Input, unknown>({
+  intent: "reusable learned interface for the filing_table_metric_range intent shape; internally composes db.finqacases.findSimilar -> candidate validation loop -> lib.inferTableMathPlan -> lib.executeTableMath",
+  examples: [
+    {
+      input: {
+  "query": "What is the range of chemicals revenue between 2014 and 2018?",
+  "limit": 5
+},
+      output: {
+  "answer": 700,
+  "roundedAnswer": 700,
+  "operation": "range"
+},
+    },
+  ],
+  input: v.object({ query: v.string(), limit: v.number() }),
+  output: v.unknown(),
+  body: async (input: Input): Promise<unknown> => {
+  const isNumericTableMathResult = (value: unknown): boolean => {
+    if (!value || typeof value !== "object") return false;
+    const result = value as { answer?: unknown; roundedAnswer?: unknown };
+    return (
+      (typeof result.answer === "number" && Number.isFinite(result.answer)) ||
+      (typeof result.roundedAnswer === "number" &&
+        Number.isFinite(result.roundedAnswer))
+    );
+  };
+  const candidates = await df.db.finqacases.findSimilar(input.query, input.limit);
+  const candidates = Array.isArray(candidates) ? candidates : [];
+  const failures: Array<{ reason: string; message?: string }> = [];
+  for (const candidate of candidates) {
+    try {
+      const plan = (await df.lib.inferTableMathPlan({
+        question: input.query,
+        filing: candidate,
+      })).value as { years?: unknown[] };
+      if (!Array.isArray(plan.years) || plan.years.length === 0) {
+        failures.push({ reason: "missing_year_coverage" });
+        continue;
+      }
+      const result = (await df.lib.executeTableMath({
+        filing: candidate,
+        plan,
+      })).value;
+      if (isNumericTableMathResult(result)) return result;
+      failures.push({ reason: "non_numeric_result" });
+    } catch (error) {
+      failures.push({
+        reason: "candidate_failed",
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+  return {
+    answer: null,
+    roundedAnswer: null,
+    operation: "range",
+    evidence: [],
+    failures,
+  };
+  },
+});
+"
+`;
