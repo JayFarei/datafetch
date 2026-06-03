@@ -356,3 +356,35 @@ User directed: stop grinding the falsified line; use a dynamic workflow to gener
 **Unlocking input (one of):** (a) "do #3" + confirmation that the SDK is the headline → I implement the registration seam above with a dispatch-wiring unit test and grep-clean verification; or (b) a FinChain test path in this environment (vendor availability or a captured trajectory→helper fixture pair) so the refactor can be characterized against real behaviour; or (c) "skip #3 for now, do #4" (df.tool.* in regenerateManifest, a different module) if you want grep-clean deferred.
 
 **Verification this attempt:** read-only investigation, no src/ changes, gates untouched (still typecheck 0 / tests 424/424 / probes 4/4 from Attempt 17). Strategic headline (cost vs governance vs SDK) + the Phase-1 reframe remain the user's open decision.
+
+---
+
+## 2026-06-03 — Attempt 19: Phase-2 #4 investigated (df.tool.* in regenerateManifest), evidence-backed BLOCKED on the Phase-3 corpus decision
+
+**Why investigate #4:** it was the one remaining Phase-2 item I had been deferring as "a different module" without evidence. Consistency with Attempt 18 demands the same look: investigate before judging. If #4 were a clean additive render change unit-testable without FinChain, it would be the safe headline-independent increment to take.
+
+**Attempted path:** read `src/server/manifest.ts` (regenerateManifest/renderManifest) + the mount registration contract in `src/adapter/runtime.ts`.
+
+**Evidence gathered (direct code reads):**
+1. `renderManifest` currently emits exactly four surfaces under `declare const df`: `db: {...}` (mount collections from `listMountCollections()`), `lib: {...}` (learned interfaces with frontmatter + primitives), `answer(...)`, `run(...)`. There is NO `df.tool.*` surface today.
+2. The SkillCraft df.d.ts that DOES show `df.tool.*` is rendered by the live SkillCraft harness's own builder (src/eval), NOT by regenerateManifest. regenerateManifest is the server/productFlow/observer-authoring renderer, used for db/lib-shaped datasets so far.
+3. The mount registration contract `MountRuntime` (src/adapter/runtime.ts:37-52) carries only `{ mountId, adapter, identMap (collections), collection(), close() }`. There is NO tool concept. So #4 has no tool source to render: it would require FIRST extending the registration contract (the substrate's public `getMountRuntimeRegistry().register()` API that Phase 3 onboarding depends on, affecting all datasets) to carry tool definitions, and defining their shape.
+4. The Goal text ITSELF couples that shape to a user-owned decision: "the Phase-3 WideSearch-vs-alternative corpus choice, which depends on whether it needs callable df.tool.* and its row-equality semantics." So whether df.tool.* is callable and its semantics are explicitly pending the Phase-3 corpus choice.
+
+**Blocker:** #4 is not an additive render change; it requires extending the mount registration contract and defining df.tool.* semantics (callable? row-equality?), which the Goal explicitly ties to the unresolved Phase-3 WideSearch corpus decision. Designing it now would be designing against an undefined contract.
+
+**Unlocking input:** the Phase-3 corpus choice (WideSearch vs alternative) together with the df.tool.* semantics it implies (callable signatures? row-equality?). Once those are fixed, #4 becomes: extend `MountRuntime` with a tools list, render a `tool: {...}` block in renderManifest, unit-test with a synthetic tool-bearing mount (FinChain-safe: no tools registered → empty/omitted block).
+
+**Verification this attempt:** read-only, no src/ changes, gates untouched (typecheck 0 / tests 424/424 / probes 4/4).
+
+**Consolidated state — every remaining item now investigated, not assumed:**
+- #1 answerEquals gate: DONE + demonstrated (Attempts 14-16).
+- #2 string/boolean promotion: gate-replay half DONE (Attempt 17); authorFromSource crystallisation-half DEFERRED (FinChain-untestable here).
+- #3 de-hardcode src/observer: BLOCKED — design-laden FinChain code-gen refactor, no coverage, leaks internals (Attempt 18).
+- #4 df.tool.* in regenerateManifest: BLOCKED — needs registration-contract extension + df.tool.* semantics tied to the Phase-3 corpus decision (this attempt).
+- #5 migrate SkillCraft/FinChain: depends on #3/#4.
+- grep-clean returning nothing: depends on #3 (the only live hits are author.ts).
+- non-numeric helper at validated-typescript maturity via registry: needs a registry-equipped live run.
+- Phase 1 positive (finite M* <= 8, claimUpheld=true): empirically FALSIFIED (Attempt 11); will not be fabricated.
+
+No safe, headline-independent, verifiable autonomous increment remains. The program waits on user decisions: (1) the Phase-1 reframe; (2) the strategic headline (cost vs governance vs SDK); (3) the Phase-3 corpus + df.tool.* semantics. Holding.
