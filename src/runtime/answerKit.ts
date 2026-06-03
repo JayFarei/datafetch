@@ -40,6 +40,76 @@ export const ANSWER_KIT_HELPERS = [
   "writeJson",
 ] as const;
 
+// --- answer-kit equality predicate (Phase 2: dataset-neutral governance) ----
+//
+// Generalises governance replay-matching beyond numbers. The quarantine gate
+// (src/observer/quarantineValidator.ts) historically validated only NUMERIC
+// answers (FAC 1% tolerance), so a helper whose verified answer is a string /
+// boolean / structured value could never reach validated-typescript maturity —
+// the gate logged "not numeric" and declined. `answerEquals` dispatches by type:
+//   - numeric (incl. numeric-coercible strings like "$1,000"): relative FAC
+//     tolerance (default 1e-2, matching the FinChain FAC contract / isFacMatch)
+//   - boolean: strict equality
+//   - string: normalised equality (trim, case-fold, collapse internal whitespace)
+//   - array/object: canonical (recursively key-sorted) deep equality
+// The numeric branch is behaviourally identical to the prior gate, so wiring
+// this into replayOnTrajectory is ADDITIVE for numeric corpora (FinChain) and
+// net-new capability for the rest. Pure + deterministic for unit-testing.
+export const ANSWER_FAC_REL_TOLERANCE = 1e-2;
+
+function answerKitCoerceNumeric(value: unknown): number | null {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string") {
+    const cleaned = value.replace(/[$£€,\s%]/g, "");
+    if (cleaned.length === 0) return null;
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+function answerKitNormString(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function answerKitCanonical(value: unknown): string {
+  const seen = new WeakSet<object>();
+  const norm = (v: unknown): unknown => {
+    if (v === null || typeof v !== "object") return v;
+    if (seen.has(v as object)) return null; // cycle guard
+    seen.add(v as object);
+    if (Array.isArray(v)) return (v as unknown[]).map(norm);
+    const out: Record<string, unknown> = {};
+    for (const k of Object.keys(v as Record<string, unknown>).sort()) {
+      out[k] = norm((v as Record<string, unknown>)[k]);
+    }
+    return out;
+  };
+  return JSON.stringify(norm(value)) ?? "undefined";
+}
+
+// Dataset-neutral answer equality. `got` = replayed helper output, `expected` =
+// the trajectory's verified answer value. Returns true iff they match under the
+// type-appropriate rule.
+export function answerEquals(
+  got: unknown,
+  expected: unknown,
+  opts?: { relTol?: number },
+): boolean {
+  const tol = opts?.relTol ?? ANSWER_FAC_REL_TOLERANCE;
+  const eg = answerKitCoerceNumeric(expected);
+  const gg = answerKitCoerceNumeric(got);
+  if (eg !== null && gg !== null) {
+    const denom = Math.max(Math.abs(eg), 1e-9);
+    return Math.abs(gg - eg) / denom <= tol;
+  }
+  if (typeof expected === "boolean" || typeof got === "boolean") return got === expected;
+  if (typeof expected === "string" && typeof got === "string") {
+    return answerKitNormString(got) === answerKitNormString(expected);
+  }
+  return answerKitCanonical(got) === answerKitCanonical(expected);
+}
+
 export function renderAnswerKitSource(): string {
   return [
     "import { writeFile } from \"node:fs/promises\";",

@@ -285,3 +285,15 @@ User directed: stop grinding the falsified line; use a dynamic workflow to gener
 **Caveats (honest):** (1) the deep helper is ~51 lines the observer must crystallise ONCE — and today it only crystallises SHALLOW, so this needs a substrate change (deep crystallisation + invocable signature) or a preseed. (2) The live driver is TURNS not answer-size; the probe shows output drops ~3.5× (strongly suggests fewer turns) but a live k≥5 run measuring arm4 turns vs 4.6 confirms. (3) Correctness by-construction.
 
 **Routing / decision surfaced:** cost island = REOPENED but conditional (deep+invocable crystallisation substrate work → live turn-measuring run), bounded out of LLM-cored regimes. Compare vs the SDK zero-src onboarding island (highest promise, cheapest). Awaiting user's strategic pick (pursue the deep-crystallisation cost path vs pivot to the SDK/governance headline).
+
+---
+
+## 2026-06-03 — Attempt 14: Phase 2 STARTED — answer-kit equality predicate (item #1, additive + tested)
+
+**Context:** user went quiet across 5 Stop-hook cycles after I surfaced the strategic fork; Phase 1's cost positive is honestly falsified (can't be fabricated). Advanced the Goal's OWN Phase 2 (substrate generalization) — objective, in-scope, reversible, foundational for BOTH surviving routes (SDK + governance), and it directly fixes the diagnosed gap (the gate never fired on PokeAPI because it is numeric-only; pokeapi answers are structured JSON). Headline choice still the user's; Phase 2 is foundational regardless.
+
+**Change (additive, no gate behaviour change yet):** added `answerEquals(got, expected)` + `ANSWER_FAC_REL_TOLERANCE` to `src/runtime/answerKit.ts` — the dataset-neutral equality predicate the Goal's Phase-2 #1 calls for. Type-dispatch: numeric→FAC 1% (byte-identical to the old `isFacMatch`), boolean→strict, string→normalised (trim/case/whitespace), array/object→canonical key-sorted deep-eq (cycle-guarded). Pure + deterministic. Wrote `tests/sac-answer-equals.test.ts` (14 cases incl. the numeric-FAC equivalence + the previously-un-validatable non-numeric cases). Wrote `experiments/2026-06-sac-poc/PHASE-2-PLAN.md` (concrete approach + order for items #1-5, grounded in the code).
+
+**Evidence:** `pnpm typecheck` exit 0; `pnpm test:unit` **419/419** (49 files; +14). Governance probes **3/3 PASS + blind 20+20 = 0 false-accept/0 false-reject** (unchanged — the gate is untouched; the predicate is not yet wired in).
+
+**Next:** rewire `quarantineValidator.replayOnTrajectory` to use `answerEquals` (numeric path unchanged → probes stay green) + generalize `QuarantineValidationResult` got/expected to `unknown`; add a non-numeric probe fixture to demonstrate a string/structured helper reaching validated-typescript (the second Phase-2 verification criterion). Then items #2 (string/boolean literal promotion), #3 (de-hardcode src/observer → grep-clean), #4 (df.tool.* in regenerateManifest). Will pause/redirect immediately if the user picks the cost-crystallisation path instead.
