@@ -1,13 +1,36 @@
 # STATUS — SaC-aligned PoC on SkillCraft
 
-> Snapshot: 2026-06-02. Update when a stream lands or a phase closes.
+> Snapshot: 2026-06-03. Update when a stream lands or a phase closes.
 
-## Current phase: BUILD
+## Current phase: PHASE-1 RESULT IN (negative) — AWAITING USER DECISION
 
-Contract keystone landed; four build streams may now proceed in parallel
-against the pinned interfaces in [`CONTRACT.md`](./CONTRACT.md). Branch:
-`sac-poc-build` (main working tree). Pre-registration values are NOT yet
-frozen (that is Milestone 8, gated on phase-1 build cost).
+The pre-registered confirmatory run COMPLETED and the Phase-1 hypothesis is
+EMPIRICALLY FALSIFIED on a methodologically sound harness. See the honest
+synthesis in [`PHASE-1-FINDINGS.md`](./PHASE-1-FINDINGS.md) and the attempt
+trail in [`RUN-LOG.md`](./RUN-LOG.md). Headline: arm4 warm reuse costs MORE
+than arm1 inline in every cost unit (M\* = +Infinity, claimUpheld=false) and
+is less correct (arm4 h1x 2/5 vs arm1 4/5). This is reported as a rigorous
+negative, not fabricated into a positive.
+
+Phase 2 (generalize the substrate) is partly done: #1 (answer-kit equality
+gate) + #2 gate-replay half are landed and green; #3 (de-hardcode src/observer)
+and #4 (df.tool.\* in regenerateManifest) are investigated and BLOCKED on user
+decisions (RUN-LOG Attempts 18-19). Phase 3 not started.
+
+**Three user decisions unblock the program:** (1) the Phase-1 reframe given the
+null; (2) the strategic headline (cost-island vs governance-under-staleness vs
+SDK); (3) the Phase-3 corpus + df.tool.\* semantics. See the consolidated table
+at RUN-LOG Attempt 19.
+
+Branch: `sac-poc-build` (main working tree). Gates green: typecheck 0, unit
+tests 424/424, governance probes 4/4 + blind 20+20 = 0/0.
+
+---
+
+## Historical build record (Phase-1 harness construction)
+
+> The sections below recorded the BUILD phase before the confirmatory run.
+> Retained as a build record; the live state is the section above.
 
 ## Keystone deliverables (done)
 
@@ -31,15 +54,15 @@ frozen (that is Milestone 8, gated on phase-1 build cost).
 
 ## Milestone trace (from plan 009)
 
-1. [ ] hooks-draft per-arm wiring + governance-as-callability framing — S1/S2
-2. [ ] shared prompt renderer + machine-checked Arm-1 parity gate — S1
-3. [ ] preseed rewrite (composition few-shot; name df.tool) — S4
-4. [ ] arm1 inline-rewrite-no-persistence + arm3 ablation-without-governance — S1/S2
-5. [ ] arm4 two-phase fresh-process + arm5a results-cache + arm5b recipe + cache-hit assertion — S1
-6. [x] cross-arm scorer (M* + CI, attribution, clustered NI) — S3 (+ §c cost-unit decision: full-weight headline + dollar tie-breaker, 2026-06-02)
-7. [ ] three deterministic governance probes + blind 20+20 — S2/S4
-8. [ ] pre-register + run k≥5 interleaved seeds — all
-9. [ ] blog + interactive demo — (post-build)
+1. [x] hooks-draft per-arm wiring + governance-as-callability framing — S1/S2
+2. [x] shared prompt renderer + machine-checked Arm-1 parity gate — S1 (parity held in the valid run)
+3. [x] preseed rewrite (composition few-shot; name df.tool) — S4 (mandate preseed fires, commit d30903917)
+4. [x] arm1 inline-rewrite-no-persistence + arm3 ablation-without-governance — S1/S2
+5. [x] arm4 two-phase fresh-process + arm5a results-cache + arm5b recipe + cache-hit assertion — S1
+6. [x] cross-arm scorer (M* + CI, attribution, clustered NI) — S3 (full-weight headline + dollar tie-breaker, 2026-06-02)
+7. [x] three deterministic governance probes + blind 20+20 — S2/S4 (4/4 incl. non-numeric; blind 0/0)
+8. [x] pre-register + run k≥5 interleaved seeds — all (Run 2 VALID; result NEGATIVE, see PHASE-1-FINDINGS.md)
+9. [ ] blog + interactive demo — BLOCKED: downstream of a Phase-1 positive that does not exist; awaiting the reframe decision
 
 ## Open risks carried from the contract (see CONTRACT.md "Risks")
 

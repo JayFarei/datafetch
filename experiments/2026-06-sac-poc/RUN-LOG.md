@@ -388,3 +388,15 @@ User directed: stop grinding the falsified line; use a dynamic workflow to gener
 - Phase 1 positive (finite M* <= 8, claimUpheld=true): empirically FALSIFIED (Attempt 11); will not be fabricated.
 
 No safe, headline-independent, verifiable autonomous increment remains. The program waits on user decisions: (1) the Phase-1 reframe; (2) the strategic headline (cost vs governance vs SDK); (3) the Phase-3 corpus + df.tool.* semantics. Holding.
+
+---
+
+## 2026-06-03 — Attempt 20: honest-record consolidation (negative-result writeup + stale STATUS corrected)
+
+**Change:** the experiment dir had no consolidated honest Phase-1 result, and `STATUS.md` was stale (snapshot 2026-06-02, "Current phase: BUILD", milestones unchecked) so it MISREPRESENTED the dir as pre-run. Two doc-only fixes, both squarely the intellectual-honesty mandate ("concede the single-session correctness null, fabricate no numbers"):
+1. New [`PHASE-1-FINDINGS.md`](./PHASE-1-FINDINGS.md): the rigorous negative-result synthesis with the REAL cited numbers from `confirm-k5-pokeapi-h1x/` (M* = +Inf; full-weight denom -66,521; fresh+output -97; dollar -6,740; arm4 h1x 2/5 vs arm1 4/5; overall pass per arm), the diagnosis (shallow non-invocable helper + turn-count tax), what IS established (sound harness, dataset-neutral gate, ceiling-probe cost island), and the surviving differentiators — with the headline/reframe explicitly flagged as the user's call.
+2. `STATUS.md` header + milestone trace updated to reality (phase = result-in/negative/awaiting-user; milestones 1-8 checked; 9 blocked downstream of a non-existent positive); build-stream detail retained as a historical record.
+
+**Evidence:** numbers transcribed from RUN-LOG Attempt 11 (the valid run), not from memory. No src/ changes; gates untouched (typecheck 0 / tests 424/424 / probes 4/4). This corrects the on-disk record so a returning reader is not misled; it does NOT manufacture the falsified Phase-1 positive.
+
+**Next-step rationale:** every code path is investigated + blocked on a user decision; the honest record is now consolidated and citable. There is no further safe, honest, verifiable autonomous increment. Holding for the user's reframe / headline / corpus decision.
