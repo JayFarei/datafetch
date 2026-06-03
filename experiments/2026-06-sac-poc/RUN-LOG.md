@@ -519,3 +519,18 @@ So #3 IS safely guardable; my "untestable" blocker was overstated.
 - (C) Use the in-repo tool-shaped productFlow/jsonplaceholder corpus as the Phase-3 onboarding subject (data via the live jsonplaceholder API) — exercises #4 + zero-src, without an external vendor.
 
 **Verification:** read-only, no src/ changes; gates unchanged. Unlocking input: pick (A/B/C) + (for B) provide WideSearch data + confirm set-equality semantics. Holding — the corpus choice is Goal-reserved for the user; I will not presume it by building a shape-specific scaffold.
+
+---
+
+## 2026-06-03 — Attempt 28: Phase-2 #4 DONE — df.tool.* branch in regenerateManifest (corrects Attempt 26's over-gating)
+
+**Corrected Attempt 26's over-gating (same error as #3).** Re-read the Goal: "adding a df.tool.* branch to regenerateManifest" is an UNCONDITIONAL Phase-2 action, listed with #1/#2/#3. Only the CORPUS CHOICE is user-reserved. The df.tool.* SHAPE is already established in-repo (renderLiveDfDts at skillcraftFullDatafetch.ts:2454 + productFlow's df.tool.jsonplaceholder), and the substrate ALREADY owns the type (`ToolCatalogEntry`/`ToolDescriptor` in src/runtime/toolCatalog.ts). The corpus-coupled "row-equality semantics" is about answerEquals (answer comparison), ORTHOGONAL to df.tool.* RENDERING. So #4-the-branch is additive + shape-established + testable without corpus/data — doable now, like #3.
+
+**Change (commit 5927bf1eb):**
+- `src/adapter/runtime.ts`: `MountRuntime` gains optional `readonly tools?: readonly ToolCatalogEntry[]` (reuses the existing substrate type); `makeMountRuntime` threads it. Additive.
+- `src/server/manifest.ts`: `regenerateManifest` gathers tools generically from the registry (`listMountTools`, parallel to `listMountCollections`) and renders a `tool: { <bundle>: { [name:string]: (input:any)=>Promise<unknown>; <name>(input: Record<string,unknown>): Promise<unknown>; } }` block between db and lib — ONLY when tools are present. The substrate names no dataset.
+- `tests/sac-manifest-tool-block.test.ts`: tool-shaped mount -> df.tool.* present (incl. quoted non-identifier names + JSDoc descriptions); db-only mount -> NO tool block (additive, existing df.d.ts unchanged).
+
+**Evidence:** `pnpm typecheck` exit 0; `pnpm test` exit **0** = 53 files / **431 tests** (+2). Does NOT touch the SkillCraft runner (no Phase-1 churn). The branch is dead until a mount registers tools — exactly the forward-enabling capability the Goal lists for Phase-3 to exercise.
+
+**Phase-2 status now:** #1 done; #2 gate-half done (crystallise-half deferred, FinChain-untestable); #3 done; #4-the-branch done; both verification criteria (grep-clean + non-numeric maturity) MET. The only remaining Phase-2 ACTION is the SkillCraft tool-rendering MIGRATION onto regenerateManifest's df.tool.* (replace its own renderLiveDfDts) — this WOULD churn the SkillCraft runner ("do not churn the SkillCraft runners during Phase 1"), so DEFERRED. FinChain is migrated (rangeTableMetric specialization registered + answerEquals gate). Phase 3 (onboard a corpus) remains Goal-reserved on the corpus pick + data. Phase-1's two unfabricatable verifications + the reframe remain the user's call.
