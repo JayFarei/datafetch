@@ -3040,7 +3040,7 @@ async function renderSharedParityPrompt(input: {
       "",
       "## callable surface",
       "```ts",
-      compactBriefDfDts(dfDts),
+      compactBriefDfDts(maskLearnedLibForParity(dfDts)),
       "```",
       "",
       initialWorkspace,
@@ -4346,6 +4346,39 @@ function compactBriefDfDts(source: string): string {
     out.push(line);
   }
   return out.join("\n").trimEnd();
+}
+
+// Parity normalisation (CONTRACT §d / Blocker C). The arm1<->arm4 parity body
+// must be byte-identical, but the workspace df.d.ts lists hydrated `df.lib.*`
+// helpers that DIFFER once arm4 crystallises a learned helper (arm4 phase-2 has
+// `toolFanout` + `per_entity`; arm1 has only `per_entity`) — which broke parity
+// on every post-crystallisation level. Replace the whole `lib: { ... }` block
+// with a fixed canonical view so the parity body never reflects hydrated lib
+// state. The agent still reads the REAL workspace df.d.ts (untouched) for the
+// exact callable set, and the binding line names the specific helper to call.
+function maskLearnedLibForParity(dfDts: string): string {
+  const out: string[] = [];
+  let inLib = false;
+  for (const line of dfDts.split(/\r?\n/)) {
+    if (!inLib && /^\s*lib:\s*\{/.test(line)) {
+      inLib = true;
+      out.push(
+        "  lib: {",
+        "    // df.lib.* interfaces (seed + any learned helpers) are hydrated per",
+        "    // episode; see the workspace df.d.ts file for the exact callable set",
+        "    // and input shapes. Call the helper named in the BINDING instruction.",
+        "    [name: string]: (input: any) => Promise<{ value: any }>;",
+        "  };",
+      );
+      continue;
+    }
+    if (inLib) {
+      if (/^\s*\};/.test(line)) inLib = false; // closing brace of the lib block
+      continue; // drop the original (hydration-dependent) lib body + its close
+    }
+    out.push(line);
+  }
+  return out.join("\n");
 }
 
 function firstLearnedRecordHelperName(source: string): string | null {

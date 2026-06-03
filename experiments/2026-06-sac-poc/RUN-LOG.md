@@ -180,3 +180,17 @@ Phase-3 WideSearch-vs-alternative corpus choice also remains open (deferred unti
 **NEW Blocker C surfaced (predicted, now dominant):** all 4 invariant violations are `arm1.promptParityHash !== arm4.promptParityHash` at e3/m1/m2/h1 — i.e. exactly the levels AFTER arm4 crystallised toolFanout (e1/e2 held). The parity-prompt BODY embeds `df.d.ts` (`compactBriefDfDts`), which now lists arm4's learned `df.lib.toolFanout`, diverging from arm1's (no learned helper). Fixing Blocker A (arm4 now reliably crystallises) is what surfaced it on every post-crystallisation level. FIX: mask/normalise the learned `df.lib.*` section of `df.d.ts` in the parity body so arm1/arm4 bodies stay byte-identical regardless of hydration (the comment at renderSharedParityPrompt already CLAIMS body-independence from hydrated state; it just isn't enforced for the df.d.ts surface).
 
 **Remaining for a valid confirmatory run:** Blocker C (parity-body, contained runner fix) + Blocker B (held-out h1 not new-argument → arm5a memoization cache-hits; experiment-design). Then re-run k≥5.
+
+---
+
+## 2026-06-03 — Attempt 8: Blocker C FIXED + verified (parity holds with hydration; warm path works end-to-end)
+
+**Fix (commit pending):** `maskLearnedLibForParity()` in the runner replaces the whole `lib: { ... }` block of the embedded df.d.ts with a fixed canonical view in the PARITY body only (renderSharedParityPrompt line ~3043; `compactBriefDfDts` itself unchanged so the non-parity renderers at :4122/:4196 are unaffected). The agent still reads the REAL workspace df.d.ts + the binding names the helper. `renderInitialWorkspaceContext` confirmed parity-safe (root .json only, not lib/). `pnpm typecheck` 0; `pnpm test:unit` green.
+
+**Verification smoke (arm1+arm4 × cat-facts-collector × 1 seed):**
+- `invariants: ALL HELD` — **0 violations, 0 parity-hash mismatches** (was 4/6 parity breaks). And arm4 STILL crystallised `toolFanout` (frozen `phase1-frozen/cat-facts-collector/toolFanout.ts`), so parity held WITH hydration — the meaningful case.
+- **arm4 pass = 6/6 (100%)**, including **phase2-reuse/h1: passed + reused** (callable=1, lic=1, called `df.lib.toolFanout`). The cross-session warm path fired correctly end-to-end on this seed (prior smoke's phase-2 h1 had failed the answer — single-seed variance, but it CAN succeed now).
+
+**Blockers A + C: RESOLVED + verified.** The arm4 two-phase warm path now: builds (phase-1 100%), crystallises + freezes a real helper, hydrates it in a fresh phase-2 process, reuses it, and keeps arm1↔arm4 parity intact.
+
+**Only Blocker B remains** before a valid k≥5 confirmatory run: held-out h1 is not new-argument for these families → the arm5a memoization floor cache-hits it (R4). Investigating the SkillCraft level/entity structure next to find families/splits where h1 entities are disjoint from e1..m2.
