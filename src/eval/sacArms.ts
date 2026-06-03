@@ -279,11 +279,31 @@ export function arm1BindingLine(): string {
   ].join(" ");
 }
 
+// arm4 phase-2 (warm reuse): call the ACTUAL persisted/hydrated helper by its
+// real name (resolved from df.d.ts / availableLibFunctions by the caller). The
+// "(read its exact input in df.d.ts)" + "never call a name not in df.d.ts"
+// clauses prevent the agent from inventing a non-existent helper name.
 export function arm4BindingLine(helperName: string): string {
   return [
-    `BINDING (arm4, frozen-library reuse): For the repeated per-entity/per-tool fan-out in this task, CALL the`,
-    `persisted learned helper \`df.lib.${helperName}(...)\` (already listed in df.d.ts) instead of re-deriving the`,
-    "fan-out; unwrap once with `(await df.lib." + helperName + "({...})).value`.",
+    `BINDING (arm4 phase-2, frozen-library reuse): For the repeated per-entity/per-tool fan-out in this task, CALL the`,
+    `persisted learned helper \`df.lib.${helperName}(...)\` (it is listed in df.d.ts — read its exact input shape there)`,
+    "instead of re-deriving the fan-out inline; unwrap once with `(await df.lib." + helperName + "({...})).value`.",
+    "Never call a `df.lib.*` name that is not listed in df.d.ts.",
+  ].join(" ");
+}
+
+// arm4 phase-1 (library BUILD): there is NO frozen helper yet, so DO NOT
+// instruct calling a named learned helper. Route the fan-out through the real
+// always-present seed so the substrate crystallises + persists a reusable
+// helper for phase-2. (Replaces the old phase-blind binding that told phase-1
+// to call a non-existent `df.lib.<placeholder>`, which caused phase-1 to fail.)
+export function arm4Phase1BindingLine(): string {
+  return [
+    "BINDING (arm4 phase-1, library BUILD): For the repeated per-entity/per-tool fan-out in this task, do NOT re-derive",
+    "it inline. Route the fan-out through the persisted seed interface",
+    "`df.lib.per_entity({ entityIds, toolBundle, toolNames, paramName })` (listed in df.d.ts) so the substrate LEARNS",
+    "and persists a reusable helper for the next session. If a learned `df.lib.<name>` fan-out helper is already listed",
+    "in df.d.ts, call that instead. Never call a `df.lib.*` name that is not listed in df.d.ts.",
   ].join(" ");
 }
 

@@ -34,6 +34,7 @@ import {
   approxTokenCount,
   arm1BindingLine,
   arm4BindingLine,
+  arm4Phase1BindingLine,
   armConfig,
   assertNoArmToggleConflict,
   computeParityHashes,
@@ -1033,6 +1034,7 @@ async function runLiveExperimental(input: {
   // Other arms keep the existing renderer (arm5b also injects the recipe).
   const parity = await renderSacPromptForArm({
     arm,
+    phase: sac?.phase ?? 1,
     task: input.task,
     workspace,
     records: familyRecords,
@@ -2946,6 +2948,7 @@ interface SacParityResult {
 // renderer (arm5b additionally injects the recipe text; arm0 drops tools).
 async function renderSacPromptForArm(input: {
   arm: SacArm | null;
+  phase: 1 | 2;
   task: SkillCraftTask;
   workspace: string;
   records: EvalRecord[];
@@ -2986,9 +2989,11 @@ async function renderSacPromptForArm(input: {
 // of whether the helper is callable this arm.
 async function renderSharedParityPrompt(input: {
   arm: SacArm | null;
+  phase: 1 | 2;
   task: SkillCraftTask;
   workspace: string;
   records: EvalRecord[];
+  availableLibFunctions?: string[];
 }): Promise<SacParityResult> {
   const taskMd = await readPromptContextFile(path.join(input.workspace, "task.md"), 16_000);
   const dfDts = await readPromptContextFile(path.join(input.workspace, "df.d.ts"), 18_000);
@@ -2998,7 +3003,6 @@ async function renderSharedParityPrompt(input: {
   // A deterministic, arm-agnostic helper name so the BODY never differs by arm:
   // the only arm-specific text is the binding line itself.
   const fanoutPlan = buildPureToolFanoutPlan(input.task, dfDts);
-  const helperName = "familyFanout";
 
   // The body assembler. The {binding} slot is the ONLY place the per-arm line
   // appears, so masking it yields a byte-identical parity body across arms.
@@ -3044,7 +3048,25 @@ async function renderSharedParityPrompt(input: {
       .filter((part) => part.length > 0)
       .join("\n");
 
-  const bindingLine = input.arm === "arm4" ? arm4BindingLine(helperName) : arm1BindingLine();
+  // Phase-aware binding (the binding is masked in the parity hash, so this does
+  // not affect arm1<->arm4 parity). arm4 phase-1 BUILDS via the real per_entity
+  // seed (no frozen helper exists yet); arm4 phase-2 CALLS the actually-hydrated
+  // learned helper by its real name (the non-seed entry in df.d.ts), falling back
+  // to the seed. This replaces the old bug where arm4 was told to call a fixed
+  // placeholder name (`familyFanout`) that never existed in df.d.ts.
+  let bindingLine: string;
+  if (input.arm === "arm4") {
+    if (input.phase === 2) {
+      const learned = (input.availableLibFunctions ?? []).find(
+        (name) => name !== PER_ENTITY_SEED_NAME,
+      );
+      bindingLine = arm4BindingLine(learned ?? PER_ENTITY_SEED_NAME);
+    } else {
+      bindingLine = arm4Phase1BindingLine();
+    }
+  } else {
+    bindingLine = arm1BindingLine();
+  }
   const hashes = computeParityHashes({ assemble, bindingLine });
   // The parity floor is the masked body's tokens (identical across arm1/arm4).
   const maskedBody = assemble("<<<SAC_BINDING_LINE>>>");

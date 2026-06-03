@@ -160,3 +160,23 @@ Phase-3 WideSearch-vs-alternative corpus choice also remains open (deferred unti
 **Blocker B (experiment design):** the phase-1/phase-2 held-out split (`LEARN_FROM_LEVELS` e1..m2 / h1) does NOT make h1 new-argument for these families → memoization (arm5a) trivially wins and R4 is violated. Need either families where h1 is genuinely new-argument, or a different held-out construction that guarantees novelty (the R4 assertion is the canary).
 
 **Input that would unlock progress:** (1) OK to debug/fix the arm4 two-phase runner (Blocker A); (2) guidance on the held-out/family design so phase-2 is provably new-argument (Blocker B). Until both hold, re-running k≥5 will keep producing clean-fail + invariant-violation results.
+
+---
+
+## 2026-06-03 — Attempt 7: Blocker A ROOT-CAUSED + FIXED + verified (arm4 warm path now fires)
+
+**Root cause (confirmed from artifacts):** `renderSharedParityPrompt` used a phase-blind, hardcoded placeholder `helperName = "familyFanout"` and gave arm4 the binding "CALL `df.lib.familyFanout(...)` (already listed in df.d.ts)" in BOTH phases. `familyFanout` is never in df.d.ts (seed is `per_entity`; crystallised helper is `toolFanout`). 48/69 arm4 answer.ts files literally did `await (df.lib as any).familyFanout({...})` → runtime "not a function" → arm4 phase-1 failed (~9%), built nothing, phase-2 had nothing to reuse.
+
+**Fix (commit pending):** made the arm4 binding PHASE-AWARE (`src/eval/sacArms.ts` + `renderSharedParityPrompt`): phase-1 = BUILD via the real `df.lib.per_entity` seed (no call to a non-existent name); phase-2 = call the ACTUALLY-hydrated learned helper (the non-seed entry in `availableLibFunctions`, e.g. `toolFanout`), fallback to `per_entity`; both bindings add "Never call a `df.lib.*` name not listed in df.d.ts." Threaded `phase` into `renderSacPromptForArm`/`renderSharedParityPrompt`. Binding is masked in the parity hash, so this does not change the parity-hash contract. `pnpm typecheck` exit 0; `pnpm test:unit` 405/405.
+
+**Verification smoke (arm1+arm4 × cat-facts-collector × 1 seed):**
+- `df.lib.familyFanout` calls = **0** (was 48). arm4 routes through `per_entity` (11 calls).
+- arm4 phase-1 pass = **5/5 (100%)** (was ~9%); every level callable, lic=1.
+- Crystallisation FIRED + froze a REAL helper: `phase1-frozen/cat-facts-collector/toolFanout.ts` + `__intent__/toolFanout.ts` (was empty).
+- arm4 phase-2/h1 hydrated + **called `df.lib.toolFanout`** (callable=1, lic=1) — the cross-session warm path mechanically fires. (It failed the h1 ANSWER, pass=0; single-seed correctness/noise, not the mechanism. arm1 also 0/6 on this single seed — noise; arm1 was 32% at k=5.)
+
+**Blocker A: RESOLVED.** The arm4 two-phase correctness collapse is fixed and the warm path reuses the crystallised helper.
+
+**NEW Blocker C surfaced (predicted, now dominant):** all 4 invariant violations are `arm1.promptParityHash !== arm4.promptParityHash` at e3/m1/m2/h1 — i.e. exactly the levels AFTER arm4 crystallised toolFanout (e1/e2 held). The parity-prompt BODY embeds `df.d.ts` (`compactBriefDfDts`), which now lists arm4's learned `df.lib.toolFanout`, diverging from arm1's (no learned helper). Fixing Blocker A (arm4 now reliably crystallises) is what surfaced it on every post-crystallisation level. FIX: mask/normalise the learned `df.lib.*` section of `df.d.ts` in the parity body so arm1/arm4 bodies stay byte-identical regardless of hydration (the comment at renderSharedParityPrompt already CLAIMS body-independence from hydrated state; it just isn't enforced for the df.d.ts surface).
+
+**Remaining for a valid confirmatory run:** Blocker C (parity-body, contained runner fix) + Blocker B (held-out h1 not new-argument → arm5a memoization cache-hits; experiment-design). Then re-run k≥5.
