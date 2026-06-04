@@ -30,7 +30,15 @@ export type SacArm =
   | "arm3"
   | "arm4"
   | "arm5a"
-  | "arm5b";
+  | "arm5b"
+  // C2 comparator: a brand-new dataset ONBOARDED (generated df.d.ts) but with NO
+  // online crystallisation/governance — distinct from arm2 (learning-on). Tests
+  // zero-src onboarding SUFFICIENCY vs the arm1 inline-rewrite bar (B-3).
+  | "armOnb"
+  // C8 control: persistence-as-TRANSCRIPT — raw prior trajectories injected into
+  // context at an EQUAL token budget vs arm2's df.lib abstraction (B-4). NO
+  // callable learned interface; the br19 control the 7-arm ladder omitted.
+  | "armT";
 
 export const SAC_ARMS: readonly SacArm[] = [
   "arm0",
@@ -40,6 +48,8 @@ export const SAC_ARMS: readonly SacArm[] = [
   "arm4",
   "arm5a",
   "arm5b",
+  "armOnb",
+  "armT",
 ] as const;
 
 export type SacArmId =
@@ -49,7 +59,9 @@ export type SacArmId =
   | "sac-arm3"
   | "sac-arm4"
   | "sac-arm5a"
-  | "sac-arm5b";
+  | "sac-arm5b"
+  | "sac-armOnb"
+  | "sac-armT";
 
 export type PhaseTag = "single" | "phase1-build" | "phase2-reuse";
 
@@ -79,6 +91,11 @@ export interface ArmConfig {
   withholdTools: boolean;
   // arm1 only: wipe the lib overlay between every question (no persistence).
   wipeLibBetweenQuestions: boolean;
+  // armT only (C8 control): inject the raw prior trajectories into context at an
+  // equal token budget instead of exposing a callable df.lib abstraction. The
+  // runner threads captured TrajectoryRecords through truncateTrajectoriesToBudget.
+  // Omitted/false for every other arm.
+  rawTranscriptInjection?: boolean;
 }
 
 export function armConfig(arm: SacArm): ArmConfig {
@@ -177,6 +194,42 @@ export function armConfig(arm: SacArm): ArmConfig {
         phases: 2,
         withholdTools: false,
         wipeLibBetweenQuestions: false,
+      };
+    case "armOnb":
+      // C2 (B-3): onboarded dataset, generated df.d.ts surface, NO online
+      // crystallisation and NO governance gate — the agent uses the zero-src
+      // onboarded interface as-is. Single-phase; tools available; lib NOT wiped
+      // (a stable onboarded overlay, just no learning). Distinct from arm2,
+      // which learns mid-run.
+      return {
+        arm,
+        armId,
+        interfaceMode: "legacy",
+        learningEnabled: false,
+        governanceGate: null,
+        resultsCache: false,
+        recipeHint: false,
+        phases: 1,
+        withholdTools: false,
+        wipeLibBetweenQuestions: false,
+      };
+    case "armT":
+      // C8 (B-4): persistence-as-transcript control. Same tool surface as arm2,
+      // NO callable learned interface; the runner injects the raw prior
+      // trajectories into context at a budget matched to arm2's learned-interface
+      // payload (truncateTrajectoriesToBudget). Single-phase, no learning, no gate.
+      return {
+        arm,
+        armId,
+        interfaceMode: "hooks-candidate-only",
+        learningEnabled: false,
+        governanceGate: null,
+        resultsCache: false,
+        recipeHint: false,
+        phases: 1,
+        withholdTools: false,
+        wipeLibBetweenQuestions: false,
+        rawTranscriptInjection: true,
       };
     default: {
       const exhaustive: never = arm;
@@ -434,4 +487,72 @@ export function marginalCostPerQ(input: {
 // because the floor is byte-identical across the pair.
 export function approxTokenCount(text: string): number {
   return Math.ceil(text.length / 4);
+}
+
+// --- C8 equal-budget mechanic (B-4) ----------------------------------------
+//
+// The persistence-as-abstraction-vs-transcript contrast (C8) is only fair if
+// armT (raw prior-trajectory injection) is given the SAME context-token budget
+// the arm2 learned-interface payload occupies. This packs the most-RECENT prior
+// trajectories into a token budget B: it fills whole trajectories newest-first,
+// then truncates the single boundary trajectory to the remaining budget. Pure +
+// deterministic (recency by input order: oldest-first in, chronological out), so
+// the budget match is reproducible and the scorer can recompute it.
+export interface BudgetedTranscript {
+  // Trajectory ids included (chronological order), in the emitted payload.
+  includedIds: string[];
+  // The injected raw-transcript payload (chronological), <= budget once counted.
+  payload: string;
+  // approxTokenCount(payload) — the realised injected budget the scorer matches.
+  tokens: number;
+  // The single trajectory truncated at the budget boundary, if any.
+  truncatedId: string | null;
+}
+
+export function truncateTrajectoriesToBudget(
+  // Prior trajectories as serialised text payloads, in CHRONOLOGICAL order
+  // (oldest first). The newest are preferred when the budget cannot hold all.
+  trajectories: ReadonlyArray<{ id: string; text: string }>,
+  budgetTokens: number,
+): BudgetedTranscript {
+  const SEP = "\n\n";
+  if (budgetTokens <= 0 || trajectories.length === 0) {
+    return { includedIds: [], payload: "", tokens: 0, truncatedId: null };
+  }
+  const sepCost = approxTokenCount(SEP); // join separator between included trajectories
+  const chosen: { id: string; text: string }[] = [];
+  let remaining = budgetTokens;
+  let truncatedId: string | null = null;
+  // Walk newest -> oldest; unshift so the payload stays chronological. Each
+  // trajectory after the first also costs the join separator, so the realised
+  // payload token count stays within budget.
+  for (let i = trajectories.length - 1; i >= 0; i -= 1) {
+    const t = trajectories[i]!;
+    if (remaining <= 0) break;
+    const lead = chosen.length > 0 ? sepCost : 0;
+    const tk = approxTokenCount(t.text);
+    if (tk + lead <= remaining) {
+      chosen.unshift({ id: t.id, text: t.text });
+      remaining -= tk + lead;
+    } else {
+      // Truncate this boundary trajectory to the remaining token budget
+      // (after reserving the separator if anything is already chosen).
+      const textBudget = Math.max(0, remaining - lead);
+      const chars = textBudget * 4;
+      const truncated = t.text.slice(0, chars);
+      if (truncated.length > 0) {
+        chosen.unshift({ id: t.id, text: truncated });
+        truncatedId = t.id;
+      }
+      remaining = 0;
+      break;
+    }
+  }
+  const payload = chosen.map((c) => c.text).join(SEP);
+  return {
+    includedIds: chosen.map((c) => c.id),
+    payload,
+    tokens: approxTokenCount(payload),
+    truncatedId,
+  };
 }

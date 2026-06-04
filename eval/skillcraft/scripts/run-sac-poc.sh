@@ -130,10 +130,12 @@ for seed in $(seq 1 "${SEEDS}"); do
   for arm in "${ARM_ARR[@]}"; do
     base="${OUT_ROOT}/${arm}/seed-${seed}"
     case "${arm}" in
-      arm0|arm1|arm2|arm3)
+      arm0|arm1|arm2|arm3|armOnb|armT)
         # Single-phase arms: run the build levels + the held-out reuse level in
         # one process (so they produce a REUSE_LEVEL episode matchable to the
-        # two-phase arms' phase-2 for the cross-arm comparison).
+        # two-phase arms' phase-2 for the cross-arm comparison). armOnb (C2
+        # onboarded-no-learning) and armT (C8 raw-transcript control) are
+        # single-phase like arm0..arm3.
         run_one "${arm}" "${seed}" 1 "${SINGLE_LEVELS}" "${base}/single"
         ;;
       arm4)
