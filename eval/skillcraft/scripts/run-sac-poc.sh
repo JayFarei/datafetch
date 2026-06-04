@@ -34,7 +34,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-ENTRYPOINT="${ROOT}/src/eval/skillcraftFullDatafetch.ts"
+ENTRYPOINT="${ROOT}/eval/harness/skillcraftFullDatafetch.ts"
 NORMALIZE="${ROOT}/eval/skillcraft/scripts/normalize-results.ts"
 SCORER="${ROOT}/eval/skillcraft/scripts/score-cross-arm.ts"
 

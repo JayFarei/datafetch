@@ -8,8 +8,8 @@
 //
 // Seed shim format
 // ----------------
-// Each seed file under `<repo>/seeds/generic/lib` or an explicitly enabled
-// domain pack at `<repo>/seeds/domains/<name>/lib` is a canonical authored
+// Each seed file under `<repo>/eval/seeds/generic/lib` or an explicitly enabled
+// domain pack at `<repo>/eval/seeds/domains/<name>/lib` is a canonical authored
 // seed (uses `fn({...})` against the repo SDK). `installSnippetRuntime`
 // writes a thin re-export shim under `<baseDir>/lib/__seed__/<name>.ts`.
 // The DiskLibraryResolver follows that re-export to the canonical file at
@@ -122,7 +122,7 @@ async function mirrorSeedShims(
 
 async function resolveSeedLibDirs(domains: string[]): Promise<string[]> {
   const dirs: string[] = [];
-  const genericDir = await locateRepoSubdir(path.join("seeds", "generic", "lib"));
+  const genericDir = await locateRepoSubdir(path.join("eval", "seeds", "generic", "lib"));
   if (genericDir) {
     dirs.push(genericDir);
   } else {
@@ -136,7 +136,7 @@ async function resolveSeedLibDirs(domains: string[]): Promise<string[]> {
     const clean = normalizeSeedDomain(domain);
     if (clean === null) continue;
     const domainDir = await locateRepoSubdir(
-      path.join("seeds", "domains", clean, "lib"),
+      path.join("eval", "seeds", "domains", clean, "lib"),
     );
     if (domainDir) {
       dirs.push(domainDir);

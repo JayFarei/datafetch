@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-ENTRYPOINT="${ROOT}/src/eval/skillcraftFullDatafetch.ts"
+ENTRYPOINT="${ROOT}/eval/harness/skillcraftFullDatafetch.ts"
 
 if [[ ! -f "${ENTRYPOINT}" ]]; then
   cat >&2 <<MSG

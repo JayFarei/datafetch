@@ -9,7 +9,7 @@ import { extractTemplate, extractTemplateFromCalls } from "../src/observer/templ
 import type { LibraryResolver } from "../src/sdk/index.js";
 // Phase-2 #3: the rangeTableMetric specialization moved to src/eval; register it
 // so these authoring fixtures produce the specialized helper as before.
-import "../src/eval/finchainSpecialization.js";
+import "../eval/harness/finchainSpecialization.js";
 
 const ISO = new Date().toISOString();
 

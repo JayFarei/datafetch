@@ -120,7 +120,7 @@ async function mirrorSeedSkills(
 
 async function resolveSeedSkillDirs(domains: string[]): Promise<string[]> {
   const dirs: string[] = [];
-  const genericDir = await locateRepoSubdir(path.join("seeds", "generic", "skills"));
+  const genericDir = await locateRepoSubdir(path.join("eval", "seeds", "generic", "skills"));
   if (genericDir) {
     dirs.push(genericDir);
   } else {
@@ -135,7 +135,7 @@ async function resolveSeedSkillDirs(domains: string[]): Promise<string[]> {
     const clean = normalizeSeedDomain(domain);
     if (clean === null) continue;
     const domainDir = await locateRepoSubdir(
-      path.join("seeds", "domains", clean, "skills"),
+      path.join("eval", "seeds", "domains", clean, "skills"),
     );
     if (domainDir) {
       dirs.push(domainDir);

@@ -87,7 +87,7 @@ export async function locateRepoRoot(): Promise<string> {
 
 /**
  * Locate a directory relative to the repo root, e.g.
- * `locateRepoSubdir("seeds/generic/lib")` → `<repo>/seeds/generic/lib`.
+ * `locateRepoSubdir("eval/seeds/generic/lib")` → `<repo>/seeds/generic/lib`.
  * Returns null if the subdir does not exist.
  */
 export async function locateRepoSubdir(rel: string): Promise<string | null> {

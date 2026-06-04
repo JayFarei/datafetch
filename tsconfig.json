@@ -11,5 +11,11 @@
     "types": ["node", "vitest/globals"],
     "outDir": "dist"
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "seeds/**/*.ts"]
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "eval/harness/**/*.ts",
+    "eval/tests/**/*.ts",
+    "eval/seeds/**/*.ts"
+  ]
 }

@@ -1662,7 +1662,7 @@ function renderReplayBody(args: {
 // Phase-2 #3: renderSpecializedBody / renderRangeTableMetricBody /
 // fallbackQuestionExpr / specializeExternalParams /
 // renderRangeTableCandidateRetrieval / caseCollectionIdent were RELOCATED
-// VERBATIM to src/eval/finchainSpecialization.ts and are now reached through
+// VERBATIM to eval/harness/finchainSpecialization.ts and are now reached through
 // the dataset-neutral CodegenSpecialization registry (see generatePureSource).
 // The substrate no longer names any dataset.
 

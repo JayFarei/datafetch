@@ -21,13 +21,13 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
 
-import { armConfig, stableStringify, SAC_ARMS, type SacArm } from "../../../src/eval/sacArms.js";
+import { armConfig, stableStringify, SAC_ARMS, type SacArm } from "../../harness/sacArms.js";
 
 // Untracked files under these prefixes are CODE and make a run unreproducible.
 // Untracked artifacts elsewhere (runs/, results/, experiments/, kb/) do not.
 const CODE_PREFIXES = [
   "src/",
-  "src/eval/",
+  "eval/harness/",
   "eval/skillcraft/scripts/",
   "eval/skillcraft/probes/",
 ];
@@ -171,9 +171,9 @@ function main(): void {
     configHash,
     preregSha: preregSha(root, args.prereg),
     shas: {
-      runner: sha256OfFile(root, "src/eval/skillcraftFullDatafetch.ts"),
+      runner: sha256OfFile(root, "eval/harness/skillcraftFullDatafetch.ts"),
       wrapper: sha256OfFile(root, "eval/skillcraft/scripts/run-sac-poc.sh"),
-      armsModule: sha256OfFile(root, "src/eval/sacArms.ts"),
+      armsModule: sha256OfFile(root, "eval/harness/sacArms.ts"),
       scorer: sha256OfFile(root, "eval/skillcraft/scripts/score-cross-arm.ts"),
       normalizer: sha256OfFile(root, "eval/skillcraft/scripts/normalize-results.ts"),
     },

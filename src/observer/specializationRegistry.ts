@@ -7,7 +7,7 @@
 // dataset name into the substrate and made "onboard a dataset with zero src/
 // changes" impossible.
 //
-// This registry inverts the dependency: a dataset's eval module (src/eval/*)
+// This registry inverts the dependency: a dataset's eval module (eval/harness/*)
 // REGISTERS its specialization here, and the substrate consults the registry
 // generically, naming no dataset. Mirrors the existing setHookRegistry /
 // setMountRuntimeRegistry convention.

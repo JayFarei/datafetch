@@ -33,9 +33,10 @@ import {
 import { atlasMount } from "../adapter/atlasMount.js";
 import { publishMount, type MountHandle } from "../adapter/publishMount.js";
 // The demo composes the finqa table-math shape; register its code-gen
-// specialization (Phase-2 #3 relocated it out of the substrate). Side-effect
-// import: must load before the observer authors the learned interface.
-import "../eval/finchainSpecialization.js";
+// specialization (Phase-2 #3 relocated it out of the substrate, now under
+// eval/harness/). Side-effect import: must load before the observer authors
+// the learned interface.
+import "../../eval/harness/finchainSpecialization.js";
 import { searchLibrary, type RankedFunction } from "../discovery/librarySearch.js";
 import { installFlueDispatcher } from "../flue/install.js";
 import { installObserver, type InstallObserverResult } from "../observer/install.js";

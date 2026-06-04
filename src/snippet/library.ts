@@ -5,8 +5,8 @@
 //      disk where the bash session's `flushLib()` lands heredoc edits.)
 //   2. <baseDir>/lib/__seed__/<name>.ts     (seed fallback; populated at
 //      install time by `installSnippetRuntime`. The seed shim re-exports a
-//      canonical file from `seeds/generic/lib` or an explicitly enabled
-//      `seeds/domains/<domain>/lib` pack.)
+//      canonical file from `eval/seeds/generic/lib` or an explicitly enabled
+//      `eval/seeds/domains/<domain>/lib` pack.)
 //
 // The resolver returns the typed `Fn<unknown, unknown>` callable. `list()`
 // walks both layers and returns `{name, spec}` for each.

@@ -68,7 +68,7 @@ import path from "node:path";
 // Single source of truth for the model-context cost arithmetic (so the scorer
 // and the runner ledger cannot drift). The full-weight definition is the
 // headline; the weighted variant powers the sensitivity ladder (CONTRACT §c).
-import { modelContextCostAtCachedWeight } from "../../../src/eval/sacArms.js";
+import { modelContextCostAtCachedWeight } from "../../harness/sacArms.js";
 
 // --- the SaC arm enum (CONTRACT.md §(a)) ----------------------------------
 

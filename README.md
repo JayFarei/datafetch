@@ -240,16 +240,20 @@ bin/                  CLI binary shim
 kb/docs/              product, runtime, learning-loop, architecture, eval docs
 kb/                   knowledge base (plans, prd, background research, archive)
 skills/datafetch/     installable client-agent skill
-seeds/generic/        provider-neutral seed functions and Flue skills
-seeds/domains/        optional domain/demo seed packs
-scripts/              acceptance harnesses + iteration launch scripts
-tests/                vitest unit/integration tests
-experiments/          experiment log, status, and plans
+scripts/acceptance/   substrate acceptance harnesses
+tests/                vitest unit/integration tests (substrate)
+experiments/          experiment log by episode (episodes/ + log/)
 
+eval/                 ALL eval work (depends on src/, never the reverse)
+eval/harness/         eval drivers (skillcraft/finchain/sac/crag runners)
+eval/seeds/           substrate seed library: generic + domain packs
+                      (runtime-loaded via locateRepoSubdir("eval/seeds/..."))
+eval/tests/           eval-specific vitest suites (sac-*, crag, planner)
+eval/scripts/         cross-suite eval orchestration scripts
 eval/skillcraft/      SkillCraft benchmark harness (21 families x 6 levels)
 eval/productFlow/     non-benchmark product-flow cross-eval
 eval/finchain/        FinChain benchmark harness
-                      (each: scripts/invoke-tool.py runner, prepare script,
+                      (each: configs, prepare/runner scripts,
                        results/ — gitignored)
 
 src/runtime/          cross-cutting substrate utilities: answer-kit emitter
@@ -263,7 +267,6 @@ src/bash/             just-bash session integration
 src/cli/              CLI command implementations
 src/demo/             FinQA two-question demo
 src/discovery/        library search / apropos
-src/eval/             eval entrypoints (per-dataset harness drivers)
 src/flue/             Flue dispatcher and skill loading
 src/sdk/              public TypeScript SDK primitives
 src/server/           Hono data plane and catalog routes
