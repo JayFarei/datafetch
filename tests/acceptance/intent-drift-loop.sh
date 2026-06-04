@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/acceptance/intent-drift-loop.sh
+# tests/acceptance/intent-drift-loop.sh
 #
 # Live behavior experiment for broad mounted intents. A client agent receives
 # a credible open-ended dataset task, works inside a normal intent workspace,

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/acceptance/intent-drift.sh
+# tests/acceptance/intent-drift.sh
 #
 # Direct no-LLM regression for broad-worktree / narrow-commit semantics.
 # It proves the artifact layer can preserve a committed sub-intent without

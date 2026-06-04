@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/acceptance/session-switch.sh
+# tests/acceptance/session-switch.sh
 #
 # Two-tenant overlay smoke test. Does NOT need Atlas or Anthropic — just the
 # server, the heredoc-author flow, and `datafetch apropos` returning the

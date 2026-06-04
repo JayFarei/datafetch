@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/acceptance/intent-workspace.sh
+# tests/acceptance/intent-workspace.sh
 #
 # Direct no-LLM acceptance test for the VFS-mounted intent workspace flow:
 #   mount -> run scratch -> commit answer.ts -> result/* + commit history/tests

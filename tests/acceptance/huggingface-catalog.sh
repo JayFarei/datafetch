@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/acceptance/huggingface-catalog.sh
+# tests/acceptance/huggingface-catalog.sh
 #
 # No-LLM external-adapter acceptance test:
 #   add HF URL -> list/inspect -> mount by id -> run/commit -> telemetry.

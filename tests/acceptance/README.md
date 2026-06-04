@@ -6,13 +6,13 @@ bridge between unit tests and future evals.
 Run the default suite:
 
 ```sh
-bash scripts/acceptance/run-all.sh
+bash tests/acceptance/run-all.sh
 ```
 
 Show the runner help:
 
 ```sh
-bash scripts/acceptance/run-all.sh --help
+bash tests/acceptance/run-all.sh --help
 ```
 
 ## Default Suite
@@ -35,7 +35,7 @@ clean-client path more completely.
 Set `RUN_AGENT_E2E=1` to include the live client-agent scripts:
 
 ```sh
-RUN_AGENT_E2E=1 ATLAS_URI='mongodb+srv://...' bash scripts/acceptance/run-all.sh
+RUN_AGENT_E2E=1 ATLAS_URI='mongodb+srv://...' bash tests/acceptance/run-all.sh
 ```
 
 | Script | External services | Client | Purpose |

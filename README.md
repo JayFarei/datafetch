@@ -178,18 +178,18 @@ pnpm test
 Acceptance harnesses:
 
 ```sh
-bash scripts/acceptance/run-all.sh
+bash tests/acceptance/run-all.sh
 ```
 
 The default acceptance run covers no-LLM/no-Atlas flows plus the public
 Hugging Face catalog path. Live client-agent and Atlas/FinQA loops are opt-in:
 
 ```sh
-RUN_AGENT_E2E=1 ATLAS_URI='mongodb+srv://...' bash scripts/acceptance/run-all.sh
+RUN_AGENT_E2E=1 ATLAS_URI='mongodb+srv://...' bash tests/acceptance/run-all.sh
 ```
 
 The harness matrix is documented in
-[`scripts/acceptance/README.md`](./scripts/acceptance/README.md).
+[`tests/acceptance/README.md`](./tests/acceptance/README.md).
 
 ## Telemetry For Evals
 
@@ -240,8 +240,8 @@ bin/                  CLI binary shim
 kb/docs/              product, runtime, learning-loop, architecture, eval docs
 kb/                   knowledge base (plans, prd, background research, archive)
 skills/datafetch/     installable client-agent skill
-scripts/acceptance/   substrate acceptance harnesses
 tests/                vitest unit/integration tests (substrate)
+tests/acceptance/     substrate CLI/server e2e acceptance harnesses
 experiments/          experiment log by episode (episodes/ + log/)
 
 eval/                 ALL eval work (depends on src/, never the reverse)

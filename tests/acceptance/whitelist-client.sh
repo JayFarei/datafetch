@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/acceptance/whitelist-client.sh
+# tests/acceptance/whitelist-client.sh
 #
 # Clean-sandbox client/server prototype flow:
 #   server whitelist init -> client attach -> list -> mount -> run -> derived commit

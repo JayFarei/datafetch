@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/acceptance/agent-loop.sh
+# tests/acceptance/agent-loop.sh
 #
 # Headline live acceptance test. Drives a headless client agent through the
 # VFS-mounted intent workspace flow against live Atlas:
@@ -59,7 +59,7 @@ Required tools: datafetch (or the bin/datafetch.mjs shim), tmux,
                 jq, curl.
 
 Default intents are derived from
-scripts/acceptance/fixtures/finqa-intent-batch.json.
+tests/acceptance/fixtures/finqa-intent-batch.json.
 EOF
 }
 

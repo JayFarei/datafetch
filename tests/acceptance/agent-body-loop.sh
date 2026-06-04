@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/acceptance/agent-body-loop.sh
+# tests/acceptance/agent-body-loop.sh
 #
 # Drives a task that requires writing an `agent({prompt})` function. Asserts:
 #   - the function file exists at the expected path

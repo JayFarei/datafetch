@@ -1,4 +1,4 @@
-# scripts/acceptance/lib/common.sh
+# tests/acceptance/lib/common.sh
 #
 # Shared helpers sourced by the three acceptance scripts. Provides:
 #

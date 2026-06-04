@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/acceptance/run-all.sh
+# tests/acceptance/run-all.sh
 #
 # Sequentially runs the default acceptance scripts and prints a final summary.
 # Continues past failures (so you see every script's verdict in one log)
@@ -14,7 +14,7 @@ show_help() {
   cat <<EOF
 run-all.sh — run every acceptance script and report a summary.
 
-See scripts/acceptance/README.md for the harness matrix, environment
+See tests/acceptance/README.md for the harness matrix, environment
 variables, artifact locations, and eval-readiness notes.
 
 Order:
