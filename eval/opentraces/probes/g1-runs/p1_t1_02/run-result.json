@@ -1,0 +1,32 @@
+{
+  "session": "p1_t1_02",
+  "family": "P1-T1",
+  "row_id": "otc-0002",
+  "params": {
+    "group_by": "project",
+    "window": {
+      "end": "2026-06-01T00:00:00Z",
+      "label": "May 2026",
+      "start": "2026-05-01T00:00:00Z"
+    }
+  },
+  "record_count": 1592,
+  "execution_path": "DiskSnippetRuntime + EvalRecordsMount",
+  "fallback_used": false,
+  "exitCode": 0,
+  "trajectoryId": "traj_g1_p1_t1_02",
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 0.1650419999987207
+    },
+    "llmCalls": 0
+  },
+  "stdout": "",
+  "stderr": ""
+}

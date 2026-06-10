@@ -64,3 +64,6 @@ eval/productFlow/results/
 # ephemeral run / report outputs (not source)
 /runs/
 /experiments/reports/
+
+# OpenTraces dark-store corpus (plan 011): frozen snapshot, never committed
+eval/opentraces/vendor/

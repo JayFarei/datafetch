@@ -1,0 +1,27 @@
+{
+  "session": "p3_t2_01",
+  "family": "P3-T2",
+  "row_id": "otc-0113",
+  "params": {
+    "project": "2026-03-27-community-traces-hf-24eb286b"
+  },
+  "record_count": 1592,
+  "execution_path": "DiskSnippetRuntime + EvalRecordsMount",
+  "fallback_used": false,
+  "exitCode": 0,
+  "trajectoryId": "traj_g1_p3_t2_01",
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 3.981499999999869
+    },
+    "llmCalls": 0
+  },
+  "stdout": "",
+  "stderr": ""
+}

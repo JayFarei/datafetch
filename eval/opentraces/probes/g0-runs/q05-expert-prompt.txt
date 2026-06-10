@@ -1,0 +1,11 @@
+You are answering a measurement question over a frozen local data snapshot.
+
+Question: Produce the third-party usage report for the project with the most sessions, May 2026: session count, first and last session date, total input+output tokens, and the fraction of sessions marked shareable.
+
+The reference interface already exists. From this repository root:
+/Users/jayfarei/src/tries/2026-05-01-hackathon
+
+Run exactly this one-line command, then state the answer from its JSON output:
+python3 eval/opentraces/solvers/q05.py
+
+Do not inspect other files. End with a concise final answer.

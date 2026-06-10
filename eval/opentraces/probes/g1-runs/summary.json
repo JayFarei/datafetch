@@ -1,0 +1,229 @@
+{
+  "generated_at": "2026-06-10T15:01:05.085Z",
+  "protocol": {
+    "execution_path": "real snippet runtime over EvalRecordsMount",
+    "fallback_used": false,
+    "llm_calls_total": 0,
+    "max_records_per_session": 5000,
+    "snapshot_root": "eval/opentraces/vendor/snapshot"
+  },
+  "table": [
+    {
+      "session": "p1_t1_01",
+      "family": "P1-T1",
+      "params": {
+        "group_by": "model",
+        "window": {
+          "end": "2026-05-02T00:00:00Z",
+          "label": "April 26 through May 1, 2026",
+          "start": "2026-04-26T00:00:00Z"
+        }
+      },
+      "recordCount": 1592,
+      "trajectoryPath": "p1_t1_01/trajectory.json",
+      "callCount": 1,
+      "primitives": [
+        "db.records.findExact"
+      ],
+      "intentSignature": "db",
+      "shapeHash": "1fd210b3",
+      "llmCalls": 0
+    },
+    {
+      "session": "p1_t1_02",
+      "family": "P1-T1",
+      "params": {
+        "group_by": "project",
+        "window": {
+          "end": "2026-06-01T00:00:00Z",
+          "label": "May 2026",
+          "start": "2026-05-01T00:00:00Z"
+        }
+      },
+      "recordCount": 1592,
+      "trajectoryPath": "p1_t1_02/trajectory.json",
+      "callCount": 1,
+      "primitives": [
+        "db.records.findExact"
+      ],
+      "intentSignature": "db",
+      "shapeHash": "1fd210b3",
+      "llmCalls": 0
+    },
+    {
+      "session": "p1_t1_03",
+      "family": "P1-T1",
+      "params": {
+        "group_by": "day",
+        "window": {
+          "end": "2026-05-24T00:00:00Z",
+          "label": "the week of May 17, 2026",
+          "start": "2026-05-17T00:00:00Z"
+        }
+      },
+      "recordCount": 1592,
+      "trajectoryPath": "p1_t1_03/trajectory.json",
+      "callCount": 1,
+      "primitives": [
+        "db.records.findExact"
+      ],
+      "intentSignature": "db",
+      "shapeHash": "1fd210b3",
+      "llmCalls": 0
+    },
+    {
+      "session": "p3_t2_01",
+      "family": "P3-T2",
+      "params": {
+        "project": "2026-03-27-community-traces-hf-24eb286b"
+      },
+      "recordCount": 1592,
+      "trajectoryPath": "p3_t2_01/trajectory.json",
+      "callCount": 1,
+      "primitives": [
+        "db.records.search"
+      ],
+      "intentSignature": "db",
+      "shapeHash": "b577b96a",
+      "llmCalls": 0
+    },
+    {
+      "session": "p3_t2_02",
+      "family": "P3-T2",
+      "params": {
+        "project": "project-24eb286b"
+      },
+      "recordCount": 1592,
+      "trajectoryPath": "p3_t2_02/trajectory.json",
+      "callCount": 1,
+      "primitives": [
+        "db.records.search"
+      ],
+      "intentSignature": "db",
+      "shapeHash": "b577b96a",
+      "llmCalls": 0
+    },
+    {
+      "session": "p3_t2_03",
+      "family": "P3-T2",
+      "params": {
+        "project": "project-76420f2c"
+      },
+      "recordCount": 1592,
+      "trajectoryPath": "p3_t2_03/trajectory.json",
+      "callCount": 1,
+      "primitives": [
+        "db.records.search"
+      ],
+      "intentSignature": "db",
+      "shapeHash": "b577b96a",
+      "llmCalls": 0
+    },
+    {
+      "session": "p4_t1_01",
+      "family": "P4-T1",
+      "params": {
+        "commit": "05ecab6e9564a2a9d07b0ef8b190f12188284401"
+      },
+      "recordCount": 4141,
+      "trajectoryPath": "p4_t1_01/trajectory.json",
+      "callCount": 2,
+      "primitives": [
+        "db.records.findExact",
+        "db.records.findExact"
+      ],
+      "intentSignature": "FANOUT(db)",
+      "shapeHash": "8ffc245b",
+      "llmCalls": 0
+    },
+    {
+      "session": "p4_t1_02",
+      "family": "P4-T1",
+      "params": {
+        "commit": "067599b03f0bfcd8ac9650b18aa7511c7299641a"
+      },
+      "recordCount": 4141,
+      "trajectoryPath": "p4_t1_02/trajectory.json",
+      "callCount": 2,
+      "primitives": [
+        "db.records.findExact",
+        "db.records.findExact"
+      ],
+      "intentSignature": "FANOUT(db)",
+      "shapeHash": "8ffc245b",
+      "llmCalls": 0
+    },
+    {
+      "session": "p4_t1_03",
+      "family": "P4-T1",
+      "params": {
+        "commit": "1126d01f2de6067feec1128e76be283cbeae40be"
+      },
+      "recordCount": 4141,
+      "trajectoryPath": "p4_t1_03/trajectory.json",
+      "callCount": 2,
+      "primitives": [
+        "db.records.findExact",
+        "db.records.findExact"
+      ],
+      "intentSignature": "FANOUT(db)",
+      "shapeHash": "8ffc245b",
+      "llmCalls": 0
+    }
+  ],
+  "checks": {
+    "clusters": [
+      {
+        "signature": "db",
+        "families": [
+          "P1-T1",
+          "P3-T2"
+        ],
+        "family_bounded": false
+      },
+      {
+        "signature": "FANOUT(db)",
+        "families": [
+          "P4-T1"
+        ],
+        "family_bounded": true
+      }
+    ],
+    "by_family": [
+      {
+        "family": "P1-T1",
+        "signatures": [
+          "db"
+        ],
+        "stable": true,
+        "all_unique_within_family": false
+      },
+      {
+        "family": "P3-T2",
+        "signatures": [
+          "db"
+        ],
+        "stable": true,
+        "all_unique_within_family": false
+      },
+      {
+        "family": "P4-T1",
+        "signatures": [
+          "FANOUT(db)"
+        ],
+        "stable": true,
+        "all_unique_within_family": false
+      }
+    ],
+    "distinct_intent_signature_count": 2,
+    "family_bounded_cluster_count": 1,
+    "separation_pass": false,
+    "stable_family_count": 3,
+    "stability_pass": true,
+    "all_9_collapse_to_one_signature": false,
+    "all_unique_within_family_count": 0,
+    "all_unique_within_families": [],
+    "explicit_fail_condition_triggered": false
+  },
+  "markdown_table": "| session | family | params | records | calls | intent signature | shape hash |\n|---|---|---|---:|---:|---|---|\n| p1_t1_01 | P1-T1 | `{\"group_by\":\"model\",\"window\":{\"end\":\"2026-05-02T00:00:00Z\",\"label\":\"April 26 through May 1, 2026\",\"start\":\"2026-04-26T00:00:00Z\"}}` | 1592 | 1 | `db` | `1fd210b3` |\n| p1_t1_02 | P1-T1 | `{\"group_by\":\"project\",\"window\":{\"end\":\"2026-06-01T00:00:00Z\",\"label\":\"May 2026\",\"start\":\"2026-05-01T00:00:00Z\"}}` | 1592 | 1 | `db` | `1fd210b3` |\n| p1_t1_03 | P1-T1 | `{\"group_by\":\"day\",\"window\":{\"end\":\"2026-05-24T00:00:00Z\",\"label\":\"the week of May 17, 2026\",\"start\":\"2026-05-17T00:00:00Z\"}}` | 1592 | 1 | `db` | `1fd210b3` |\n| p3_t2_01 | P3-T2 | `{\"project\":\"2026-03-27-community-traces-hf-24eb286b\"}` | 1592 | 1 | `db` | `b577b96a` |\n| p3_t2_02 | P3-T2 | `{\"project\":\"project-24eb286b\"}` | 1592 | 1 | `db` | `b577b96a` |\n| p3_t2_03 | P3-T2 | `{\"project\":\"project-76420f2c\"}` | 1592 | 1 | `db` | `b577b96a` |\n| p4_t1_01 | P4-T1 | `{\"commit\":\"05ecab6e9564a2a9d07b0ef8b190f12188284401\"}` | 4141 | 2 | `FANOUT(db)` | `8ffc245b` |\n| p4_t1_02 | P4-T1 | `{\"commit\":\"067599b03f0bfcd8ac9650b18aa7511c7299641a\"}` | 4141 | 2 | `FANOUT(db)` | `8ffc245b` |\n| p4_t1_03 | P4-T1 | `{\"commit\":\"1126d01f2de6067feec1128e76be283cbeae40be\"}` | 4141 | 2 | `FANOUT(db)` | `8ffc245b` |"
+}

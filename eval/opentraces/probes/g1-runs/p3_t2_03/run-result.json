@@ -1,0 +1,27 @@
+{
+  "session": "p3_t2_03",
+  "family": "P3-T2",
+  "row_id": "otc-0115",
+  "params": {
+    "project": "project-76420f2c"
+  },
+  "record_count": 1592,
+  "execution_path": "DiskSnippetRuntime + EvalRecordsMount",
+  "fallback_used": false,
+  "exitCode": 0,
+  "trajectoryId": "traj_g1_p3_t2_03",
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 2.681124999999156
+    },
+    "llmCalls": 0
+  },
+  "stdout": "",
+  "stderr": ""
+}

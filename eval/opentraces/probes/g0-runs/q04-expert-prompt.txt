@@ -1,0 +1,11 @@
+You are answering a measurement question over a frozen local data snapshot.
+
+Question: For the skill named in the snapshot's skill invocations that was invoked most often during May 2026: how many sessions invoked it, what fraction of those sessions ended committed, and what was their mean duration in seconds?
+
+The reference interface already exists. From this repository root:
+/Users/jayfarei/src/tries/2026-05-01-hackathon
+
+Run exactly this one-line command, then state the answer from its JSON output:
+python3 eval/opentraces/solvers/q04.py
+
+Do not inspect other files. End with a concise final answer.

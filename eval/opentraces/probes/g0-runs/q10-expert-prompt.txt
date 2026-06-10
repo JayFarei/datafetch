@@ -1,0 +1,11 @@
+You are answering a measurement question over a frozen local data snapshot.
+
+Question: How many tokens did we spend on Gemini models in May 2026? (abstention cell: expected answer is "none / no such usage in the data")
+
+The reference interface already exists. From this repository root:
+/Users/jayfarei/src/tries/2026-05-01-hackathon
+
+Run exactly this one-line command, then state the answer from its JSON output:
+python3 eval/opentraces/solvers/q10.py
+
+Do not inspect other files. End with a concise final answer.

@@ -1,0 +1,9 @@
+You are an adversarial auditor. Try to REFUTE the claimed gold answer of one eval question, using ONLY the frozen snapshot at eval/opentraces/vendor/snapshot/ (relative to cwd).
+Data layout: trace envelopes at objects/traces/v1/<project>/<uuid>/ where current.json object_path names the ONLY authoritative envelope body (other .json bodies in the dir are stale, never read them); events at events/v1/batches/*.jsonl.gz (one JSON event per line). Timestamps mix Z and +00:00 suffixes.
+QUESTION: Which captured session produced commit 0000000000000000000000000000000000000008?
+PARAMS: {"commit": "0000000000000000000000000000000000000008"}
+ANSWER_TYPE: abstain (tolerances: counts and token totals exact; durations 0.1s; means and fractions 1 percent relative; sets order-insensitive; abstain gold is correct iff the referenced entity truly has no matching data in the snapshot)
+CLAIMED GOLD: {"abstain": true, "reason": "no captured session produced commit 0000000000000000000000000000000000000008"}
+EVIDENCE POINTERS (untrusted, verify independently): {"absence_proof": "scanned all git anchor creation events for matching commit", "checked_commit": "0000000000000000000000000000000000000008"}
+Recompute the answer yourself with read-only python3 against the snapshot. refuted requires concrete contrary evidence (your computed value and how you got it). If your recomputation matches gold within tolerance, the verdict is upheld.
+End with EXACTLY one final JSON line: {"row_id":"otc-0208","verdict":"upheld"|"refuted","reason":"<=40 words","contrary_evidence":<string or null>}

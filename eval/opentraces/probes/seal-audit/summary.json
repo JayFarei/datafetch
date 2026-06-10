@@ -1,0 +1,13 @@
+{
+ "audited_rows": 24,
+ "auditor": "Codex via mcp__codex__codex, read-only sandbox, one stateless call per row, prompts under prompts/",
+ "final_upheld": 24,
+ "gold_defects_found": 0,
+ "initial_refutations": 1,
+ "orchestrator": "supervisor session (build agent session lacked the MCP tool; deviation logged in RUN-LOG)",
+ "pack_jsonl_sha256": "5f1e512a6dbc2a0b0aecec08a21f5acd021b0576b17b93e7bfed570ba97bce2c",
+ "phrasing_defects_found": 1,
+ "resolution": "otc-0027: definitional (question phrasing did not carry session=captured-run convention); phrasing fixed in pack_spec.py P1-T4, gold unchanged, re-audited upheld",
+ "rule_of_three": "0/24 standing gold refutations implies gold defect rate <= ~12.5% at 95% confidence",
+ "standing_refutations": 0
+}

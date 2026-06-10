@@ -1,0 +1,59 @@
+{
+  "q04": {
+    "agreement": true,
+    "source": "upstream trace get --json via Click over sealed snapshot",
+    "gold": {
+      "skill": "goal-forge",
+      "invocations": 52,
+      "sessions_invoked": 24,
+      "committed_fraction": {
+        "numerator": 24,
+        "denominator": 24,
+        "value": 1.0
+      },
+      "mean_duration_seconds": 17175.56
+    }
+  },
+  "q05": {
+    "agreement": true,
+    "source": "upstream trace get --json via Click plus upstream envelope security over sealed snapshot",
+    "gold": {
+      "project": "2026-03-27-community-traces-hf-24eb286b",
+      "session_count": 315,
+      "first_session_date": "2026-05-05",
+      "last_session_date": "2026-05-31",
+      "total_input_output_tokens": 27480143,
+      "shareable_fraction": {
+        "numerator": 0,
+        "denominator": 315,
+        "value": 0.0
+      }
+    }
+  },
+  "q06": {
+    "agreement": true,
+    "source": "upstream bucket envelope read over sealed snapshot; trace get does not expose syncable/privacy_tier",
+    "gold": {
+      "shareable": {
+        "session_count": 190,
+        "privacy_tiers": [
+          {
+            "tier": "medium",
+            "sessions": 190
+          }
+        ]
+      },
+      "not_shareable": {
+        "session_count": 1402,
+        "privacy_tiers": [
+          {
+            "tier": "off",
+            "sessions": 1402
+          }
+        ]
+      }
+    }
+  },
+  "upstream_cli_may_records": 399,
+  "upstream_bucket_records": 1592
+}

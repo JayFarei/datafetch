@@ -1,0 +1,27 @@
+{
+  "session": "p4_t1_02",
+  "family": "P4-T1",
+  "row_id": "otc-0154",
+  "params": {
+    "commit": "067599b03f0bfcd8ac9650b18aa7511c7299641a"
+  },
+  "record_count": 4141,
+  "execution_path": "DiskSnippetRuntime + EvalRecordsMount",
+  "fallback_used": false,
+  "exitCode": 0,
+  "trajectoryId": "traj_g1_p4_t1_02",
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 1.2479589999984455
+    },
+    "llmCalls": 0
+  },
+  "stdout": "",
+  "stderr": ""
+}

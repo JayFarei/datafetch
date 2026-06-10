@@ -1,0 +1,481 @@
+{
+  "home_for_check": "/nonexistent-opentraces-r7-home",
+  "ok": true,
+  "p4_all_event_join_rows_agree": true,
+  "p4_failed_rows": [],
+  "p4_rows_checked": 56,
+  "sample_checks": [
+    {
+      "agreement": true,
+      "row_id": "otc-0001",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T1"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0002",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T1"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0003",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T1"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0009",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T2"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0010",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T2"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0011",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T2"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0017",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T3"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0018",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T3"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0019",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T3"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0025",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T4"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0026",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T4"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0027",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T4"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0033",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T5"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0034",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T5"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0035",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T5"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0041",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T6"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0042",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T6"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0043",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T6"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0049",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T7"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0050",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T7"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0051",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P1-T7"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0057",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T1"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0058",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T1"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0059",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T1"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0065",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T2"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0066",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T2"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0067",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T2"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0073",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T3"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0074",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T3"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0075",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T3"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0081",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T4"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0082",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T4"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0083",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T4"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0089",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T5"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0090",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T5"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0091",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T5"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0097",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T6"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0098",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T6"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0099",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P2-T6"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0105",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T1"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0106",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T1"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0107",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T1"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0113",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T2"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0114",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T2"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0115",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T2"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0121",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T3"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0122",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T3"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0123",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T3"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0129",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T4"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0130",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T4"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0131",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T4"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0137",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T5"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0138",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T5"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0139",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T5"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0145",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T6"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0146",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T6"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0147",
+      "source": "upstream bucket reader over sealed snapshot",
+      "template_id": "P3-T6"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0153",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T1"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0154",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T1"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0155",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T1"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0161",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T2"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0162",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T2"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0163",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T2"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0169",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T3"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0170",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T3"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0171",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T3"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0177",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T4"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0178",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T4"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0179",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T4"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0185",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T5"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0186",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T5"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0187",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T5"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0193",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T6"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0194",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T6"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0195",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T6"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0201",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T7"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0202",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T7"
+    },
+    {
+      "agreement": true,
+      "row_id": "otc-0203",
+      "source": "upstream bucket event mirror over sealed snapshot; P4 anchors use git_anchor_created commit matching",
+      "template_id": "P4-T7"
+    }
+  ],
+  "sample_checks_count": 78,
+  "snapshot_root": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/vendor/snapshot",
+  "upstream_events": 861028,
+  "upstream_records": 1592
+}

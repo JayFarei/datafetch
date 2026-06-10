@@ -1,0 +1,9 @@
+You are an adversarial auditor. Try to REFUTE the claimed gold answer of one eval question, using ONLY the frozen snapshot at eval/opentraces/vendor/snapshot/ (relative to cwd).
+Data layout: trace envelopes at objects/traces/v1/<project>/<uuid>/ where current.json object_path names the ONLY authoritative envelope body (other .json bodies in the dir are stale, never read them); events at events/v1/batches/*.jsonl.gz (one JSON event per line). Timestamps mix Z and +00:00 suffixes.
+QUESTION: Which sessions started in May 17 through June 10, 2026 (UTC), used claude-opus-4-6, were marked committed in the capture record, and had at most 75 steps?
+PARAMS: {"max_steps": 75, "model": "claude-opus-4-6", "window": {"end": "2026-06-11T00:00:00Z", "label": "May 17 through June 10, 2026", "start": "2026-05-17T00:00:00Z"}}
+ANSWER_TYPE: set (tolerances: counts and token totals exact; durations 0.1s; means and fractions 1 percent relative; sets order-insensitive; abstain gold is correct iff the referenced entity truly has no matching data in the snapshot)
+CLAIMED GOLD: []
+EVIDENCE POINTERS (untrusted, verify independently): {"max_steps": 75, "model": "claude-opus-4-6", "population": "sessions in requested window"}
+Recompute the answer yourself with read-only python3 against the snapshot. refuted requires concrete contrary evidence (your computed value and how you got it). If your recomputation matches gold within tolerance, the verdict is upheld.
+End with EXACTLY one final JSON line: {"row_id":"otc-0039","verdict":"upheld"|"refuted","reason":"<=40 words","contrary_evidence":<string or null>}

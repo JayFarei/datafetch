@@ -1,0 +1,11 @@
+You are answering a measurement question over a frozen local data snapshot.
+
+Question: In the week of 2026-05-17, how many patches were created and how many of them ended up anchored to a git commit?
+
+The reference interface already exists. From this repository root:
+/Users/jayfarei/src/tries/2026-05-01-hackathon
+
+Run exactly this one-line command, then state the answer from its JSON output:
+python3 eval/opentraces/solvers/q09.py
+
+Do not inspect other files. End with a concise final answer.
