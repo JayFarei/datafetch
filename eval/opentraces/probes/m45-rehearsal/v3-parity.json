@@ -1,0 +1,31 @@
+{
+  "recipeChars": 302,
+  "promptHashes": {
+    "armN": "88ef7780c809960998365439ae2de116a5c657f54f1fa58685617b65a7006c31",
+    "armR": "3f2a5e121a478d4f3f8effb3ed4ff5055b8893d482591464a5bcc47a67c29118",
+    "armL": "eb18371343293d664b3dfbbf4ee7e322c5e11fd0956b10888e89362e97f4bc25"
+  },
+  "normalizedPromptHashes": {
+    "armN": "99cf4d839a202c853e185593468110181befc9938c6f3d0a261a5e9af6927790",
+    "armR": "99cf4d839a202c853e185593468110181befc9938c6f3d0a261a5e9af6927790",
+    "armL": "99cf4d839a202c853e185593468110181befc9938c6f3d0a261a5e9af6927790"
+  },
+  "dfDtsHashes": {
+    "armN": "e2016ad0ef14ffaf44a9c124b2f930583dd9bdeb54693123fd9942141a732a14",
+    "armR": "e2016ad0ef14ffaf44a9c124b2f930583dd9bdeb54693123fd9942141a732a14",
+    "armL": "776488fabd2374794d8f776a4117d9f46a0d4dd3eeeb1fb826dc0800699efd56"
+  },
+  "normalizedDfDtsHashes": {
+    "armN": "83e3dc13838fc5fb840cf6a5fbd0c65cc8fa9b6ab33cbf207b27297f4d017f52",
+    "armR": "83e3dc13838fc5fb840cf6a5fbd0c65cc8fa9b6ab33cbf207b27297f4d017f52",
+    "armL": "83e3dc13838fc5fb840cf6a5fbd0c65cc8fa9b6ab33cbf207b27297f4d017f52"
+  },
+  "rowIds": [
+    "otc-0001",
+    "otc-0153"
+  ],
+  "parity": {
+    "promptsMatchAfterBindingRemoved": true,
+    "dfDtsMatchAfterLibSectionRemoved": true
+  }
+}

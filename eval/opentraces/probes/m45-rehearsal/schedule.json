@@ -1,0 +1,19 @@
+{
+  "suite": "m45",
+  "episodes": 12,
+  "rows": [
+    "otc-0001",
+    "otc-0153"
+  ],
+  "seeds": [
+    1,
+    2
+  ],
+  "arms": [
+    "armN",
+    "armR",
+    "armL"
+  ],
+  "parallelDefault": 4,
+  "cap": 3000000
+}

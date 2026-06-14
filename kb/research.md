@@ -2,378 +2,297 @@
 title: "Datafetch, Research"
 type: evergreen
 tags: [magic-docs]
-updated: 2026-05-07
+updated: 2026-06-04
 ---
 
 # Research
 
-What we read, what landed in code, what didn't, and what's still open.
-
-The repository under `kb/br/` collects the background-research strands consulted
-during the design of `datafetch` (the project's working name for what was once
-called "AtlasFS"). This file is not a thematic index of those strands, that
-job belongs in the br/ directory itself. This file is about influence and
-provenance: which strand contributed what to the shipped MVP, where in the
-source tree it shows up, and what each strand left on the table.
-
-The load-bearing claim that emerged from the readings, and that the pitch
-adopts verbatim, is this:
-
-> Datafetch does not virtualize the whole dataset. It virtualizes the dataset
-> *interface*, then improves that interface from accepted, evidence-backed
-> work.
-
-Two strands carry that claim into the code: Voyage AI's code-mode data
-interface (br/01) provides the typed-namespace shape, and PySyft's force-
-intent-declaration model (br/11) provides the submission envelope that turns
-each accepted run into an addressable, dedupable unit. Everything else either
-supplies validation, trims scope, or queues an open question.
+This doc is now two things at once. It is (a) a **timed experiment ledger** that records, oldest-first, what we tried, when, and what the evidence said (PASS / FAIL / FALSIFIED / INCONCLUSIVE / BUILD / PIVOT / DECISION), and (b) the **background-research provenance** that says which read strand contributed what to the shipped substrate, where it lives in code, and what it left on the table. Both halves track progress against the same thesis stated in `kb/elevator.md` and `kb/product-design.md`: datafetch does not virtualize the whole dataset, it virtualizes the dataset *interface* (one typed `df.*` namespace over a substrate the team already pays for) and then improves that interface from accepted, evidence-backed work, so that a cold novel composition (tier 4) converges into a warm interpreted helper (tier 2). The ledger is honest about where that thesis is proven, where it is only mode-gated, where it is falsified, and where it is still entirely unproven, reconciled with `experiments/episodes/03-sac-poc/ASSESSMENT-2026-06-04.md`.
 
 ---
 
-## 1. Strands that landed
+## Experiment ledger (timed)
 
-### 1.1 Code-mode as the agent surface (br/01)
+Chronological, oldest-first, grouped by era. Each era opens with its window, the goals it covers, and a one-paragraph summary; then its dated entries with result tag, evidence, and the thesis link.
 
-**Contribution.** Cloudflare's Code Mode pattern, by way of br/01, supplied
-the design move that everything else rests on: expose the corpus as a typed
-TypeScript namespace, not as a tool catalog. The agent reads
-`df.db.<mount>.<coll>` declarations as types it has seen millions of times
-in training, writes a snippet that chains calls inside a sandbox, and only
-the final result returns to its context. Voyage's API was the example used
-to show why a 4-verb surface is ideal for this wrapping; the lesson absorbed
-was the wrapping shape, not the Voyage stack.
+### Era 1 — Initial substrate build (research-phase to bash MVP to agent-only CLI to first live loops to datafetch rename)
 
-**Where it shows up.**
+**Window:** 2026-05-02 .. 2026-05-08 · **Goals:** pre-Goal-1 / foundational substrate (kb/plans 001-005)
 
-- `src/server/manifest.ts` writes `<baseDir>/df.d.ts`, the manifest the
-  agent sees. Library entries split into "Learned Interfaces" (frontmatter
-  present) and "Primitives"; mounts surface as typed `db.<ident>:
-  CollectionHandle` declarations; JSDoc carries description and `@example`.
-- `src/sdk/adapter.ts` — the four-method retrieval contract on
-  `CollectionHandle<T>` (`findExact`, `search`, `findSimilar`, `hybrid`).
-- `src/snippet/dfBinding.ts` — `buildDf()` constructs the `df` global and
-  injects it onto `globalThis` before `await import(<file>)`. Every nested
-  call accumulates cost and trajectory records on the shared
-  `DispatchContext`.
+This week built the entire substrate the project rests on, in three movements. (1) A FinQA-on-Atlas prototype proved the core invariant — implementation evolves behind stable typed primitives (plans 001-003) — and was then generalised off FinQA onto a self-contained local runtime with verifier-gated crystallisation. (2) A green-field PIVOT (plan 004, +1,071/-11,252 LOC) reshaped the prototype into the real thesis spine: the agent's only tool is bash, the dataset surfaces as a synthesized `df.*` namespace, every callable is authored via one `fn()` factory, Flue runs in-process, and an async observer crystallises accepted trajectories into readable `/lib/` TypeScript. (3) An agent-only client-server CLI plus Claude Code skill (plan 005) made a real LLM drive it, and on 05-06 the headline cold->warm flip fired end-to-end for the first time. The week closed by generalising beyond Atlas/FinQA to zero-src HuggingFace onboarding and renaming the product to datafetch. The thesis was fully instantiated and demonstrated; what remained was rigorous evaluation.
 
-**Adopted.** The typed-namespace shape; the single-snippet entry point
-(`POST /v1/snippets`); the discipline that intermediate retrieval results
-never enter the model's context.
+| Date | Title | Result | Evidence | Thesis link |
+|---|---|---|---|---|
+| 2026-05-02 | Research-phase: thesis seeded from Voyage code-mode, ChromaFS VFS, Flue, BIRD/FinQA, SkillCraft | DECISION | commit 4bcb6e2f0; kb/br/01, kb/br/10; kb/elevator.md; kb/product-design.md | Establishes the interface-not-dataset thesis verbatim and the cold tier4 -> warm tier2 flip as load-bearing. |
+| 2026-05-02 | MongoDB Atlas Search milestone — live retrieval behind stable typed primitives | PASS | commit d613aed91; kb/plans/001 (AmEx 127.4, ag-revenue 18.18, Visa-negative 4/1) | First proof of the interface-stability invariant: `df.db.*` stays fixed while the backing implementation moves regex/lexical -> Atlas Search. |
+| 2026-05-02 | Live demo UI + observer-driven off-script planner | BUILD | commits 1f33f5ec3, 2ca3bf460, d514c24aa, dae03b81c, 18afad317 | First observe->plan->crystallise loop (still FinQA-shaped, procedure-namespace). The seed plan 004 later replaces. |
+| 2026-05-03 | Local filesystem generalisation — decouple core runtime from FinQA | PASS | commit 36784673b; kb/plans/002 (R1-R10 evidenced) | Any collection gets a synthesized typed module + fixed primitive surface; FinQA becomes the first adapter, not the hardcoded shape. Verifier-checked (not LLM-checked) promotion is the trust boundary. |
+| 2026-05-03 | Product-design delta delivery — close gap to elevator pitch | PASS | commit 36784673b era; kb/plans/003 (8/8 checked) | Makes the full observe->gate->crystallise->govern->persist loop demoable end-to-end on a local substrate; adds the three-baseline framing. |
+| 2026-05-04 | Datafetch Bash MVP — green-field rewrite to bash + /lib/ + fn() spine | PIVOT | commits 8127aa621, 2ed60a35e, 7698c46e4, 535095a9b, 925bd3af9, e69bdb548, 580acb835 (+1071/-11252), b1793ad21; kb/plans/004 | The substrate the whole thesis runs on: `df.*` IS the virtualized interface; crystallisation writing readable `/lib/` TS IS "improve the interface from accepted work." R7 reframe scopes the proof to function-name flip + call-graph collapse + latency, not token counts. |
+| 2026-05-04 | Vitest + e2e suite hardens the new spine | PASS | commits 50218a49f, fdcd3de3b, bbad5d887, 3b00dde68, edbefccfe, c7b1f9935 | Locks the substrate contracts (fn factory, Result envelope, df ident resolution, observer gate) under test. |
+| 2026-05-05 | Agent-only CLI + Claude Code skill + df.d.ts grounding manifest | BUILD | commits 62413b264, a4f4c2370, 329310b1b, 2559e0531, e0d380509, 9083b9967; kb/plans/005 | Data-plane/agent-client boundary made real (credentials never in agent context); df.d.ts is the materialized "virtualized interface" the agent reads instead of contrived tool JSON. |
+| 2026-05-06 | First live agent loop: FAIL then first end-to-end PASS (cold->warm flip crystallised) | PASS | FIRST PASS artifacts/agent-loop/20260506T185934Z (64/64, learnedInterfaceName rangeTableMetric); FAILs 20260506T184824Z, 20260506T185436Z; commits 893369ca5, b0fa85a79 | First end-to-end demonstration of the full loop with a real agent: cold composition -> committed df.answer -> observer crystallises rangeTableMetric -> warm intent reuses it. The observer only learns from the accepted HEAD, never from scratch. |
+| 2026-05-06 | VFS-native discovery + semantic learned names + learn-from-current-HEAD fixes | BUILD | commits f8f082a77, fdc747454, e3059cde1, 6c0d78d44, d1f87b37f, dbfefb758 | The learned interface is named for its intent (rangeTableMetric, not crystallise_<hash>) and preserves the real retrieval shape — reinforces auditability. |
+| 2026-05-07 | Intent-drift monitoring harness — FAIL then PASS | PASS | FIRST PASS artifacts/intent-drift-loop/20260507T132930Z; FAIL 20260507T132755Z; commits e6278535d, 96a474e5b, 999c20b30, e61752cb2 | Adds the persist-and-govern-under-change dimension: intent worktrees snapshotted and drift-checked, the substrate-side analog of git over the dataset interface. |
+| 2026-05-07 | Unify probabilistic bodies under agent({skill}); harden live agent body | BUILD | commits c4328439c, d4b39be6b, c1049e029, 4c9876f74 | Two body shapes (deterministic vs agent-dispatched) keep the typed `df.lib.*` contract clean regardless of whether a learned function is pure-TS or LLM-backed. |
+| 2026-05-07 | HuggingFace catalog + whitelisted dataset environments — beyond Atlas/FinQA | PASS | commits d3ccf80b5, a0e9cb8e3, c15afe211; tests/huggingface-catalog.test.ts, tests/whitelist-init.test.ts | Proves the virtualized interface generalises across substrates (Atlas + HuggingFace); `df.db.*` synthesized from sampling regardless of source — the early form of zero-src onboarding. |
+| 2026-05-08 | Flue-driven dataset init templates + zero-src HuggingFace onboarding e2e | PASS | commit 17fcd681c; artifacts/whitelist-client/latest/ (opentraces-devtime ready, 96 rows, debugTraceSummary committed) | End-to-end zero-src onboarding: provider whitelists a URL, bootstrap synthesizes the typed interface, a clean agent derives + commits a new intent — the full virtualize-then-improve cycle on never-hand-coded data. |
+| 2026-05-08 | Rename to datafetch + landing page + kb docs rewrite to shipped reality | BUILD | commits 141db2e44, c9da0077b, aae64892f, a0a25e9d7, 595c8c2b6, ec4231490, 4c1200ada (+2162/-1618) | Docs and public surface now state the thesis in final form; the two-FinQA-question demo with cost-panel collapse is the load-bearing artifact. |
 
-**Adapted.** Cloudflare uses V8 isolates and `runCode(snippet)` as a single
-tool. We use `npx tsx` against a workspace folder, with `Bash(...)` as the
-agent's only verb (per the bash-only stance from br/12). The semantic
-endpoint is the same; the substrate is plain Node and `just-bash`'s in-
-memory filesystem.
+### Era 2 — Hook-registry + composition-density iterations (SkillCraft Goal 1 hill-climb, Goal 2 learning-loop wiring)
 
-**Rejected.** Voyage itself, despite being the canonical example in br/01.
-`AtlasMountAdapter.capabilities()` returns `vector:false`. No Voyage SDK in
-`package.json`. We adopted the wrapping pattern; not the retrieval stack.
+**Window:** 2026-05-11 .. 2026-05-13 · **Goals:** Goal 1 (SkillCraft pass >=92% with lib-cache disabled) closed; Goal 2 (learning loop fires, seven thresholds) opened and wired end-to-end but not cleared; Goal 3 reframed to generic-substrate spirit. Episode 01-skillcraft-goals1-4.
 
-### 1.2 Force-intent-declaration (br/11)
+This era did two distinct things. First (05-11/05-12) it built the SkillCraft harness and the VFS hook registry — the typed maturity ladder plus callability governance for crystallised interfaces — and proved via a 4-mode experiment that "draft" (callable-with-fallback) is the correct exposure tier: over-strict candidate-only/validated-only policies quarantine ~80+ learned hooks and collapse pass to 16.7%, while hooks-draft beat legacy. A clean substrate hill-climb (Claude backend + multi-turn probing -> auto-invoke trailer -> 300s timeout) took full-126 from 84.1% to 94.4%, clearing Goal 1. Second (05-12/05-13) the retrospective exposed that all of Goal 1 ran `--no-lib-cache` and, worse, that the new harness never installed the observer — so the headline thesis (crystallise->reuse drops cost) had never been on the wire. Goal 2 wired the observer in, proved the full loop on the old single-family harness (-85% warm tokens, 100% reuse), then ported mount+seed+gate fixes into the new harness until the loop fired end-to-end with the codex driver. Two hard truths emerged: Claude's Goal-1-trained `df.tool` fan-out prior makes it ignore advertised `df.lib`/`df.db` affordances, and codex uses them but at 10-20x the token cost. The era closed with a pivot recommitting the substrate to ship generic and learn the per-tenant interface from observed usage.
 
-**Contribution.** PySyft's `@sy.syft_function` decorator forces a remote
-actor to declare intent before it can run. The submission envelope captures
-`raw_code`, `signature`, `input_policy`, `output_policy`, and a `code_hash`;
-the runtime refuses to execute anything that did not arrive through it. The
-strand's structural argument: the envelope itself, not a separate index,
-should be the addressable, dedupable, reusable unit.
+| Date | Title | Result | Evidence | Thesis link |
+|---|---|---|---|---|
+| 2026-05-11 | SkillCraft eval harness + snippet runtime hardening + df.tool.* bridge land | BUILD | commit 9c3a23644; eval/skillcraft/{configs,manifests,protocol.md,adapters} | Establishes the measurement surface: the agent talks to the typed `df.*` interface, never to the raw dataset; SkillCraft scores interface-virtualisation against a public ceiling. |
+| 2026-05-11 | VFS hook registry + 4-mode interface experiment (candidate-only / draft / validated-only / legacy) | PASS | commit f7b4a7236; results/.../hooks-exp-20260511-123500-{legacy,hooks-draft,hooks-candidate-only,hooks-validated-only} | Tests the govern->persist half directly. hooks-draft beat legacy +5.5pp pass (71.4% vs 65.9%); candidate-only/validated-only collapsed to 16.7% by quarantining ~80-86 learned hooks. **Draft maturity is the correct default exposure tier** — this gate decision is load-bearing for every later reuse result. |
+| 2026-05-11 | Claude backend + bash-native multi-turn probing (iter2 baseline) | PASS | commits af95e9c75, 5804cf6a9, 08fe898a9, a484e4049, 72b54b30e; reports/iter2-full-20260511-201102 | Full-126 = 84.1% pass / 3,329 eff-tokens / 4.8% runtime-err. Multi-turn probing roughly doubles LLM calls but prompt-caching drops effective tokens ~80% vs codex — the typed surface + cheap probing competes with frontier tool-use at a fraction of spend. |
+| 2026-05-11 | iter3: snippet runtime auto-invokes uninvoked main()/run()/solve() — 91.3% | PASS | commits 9e7643b0c, 9926bc4a0; reports/iter3-full-20260511-223714 (0.9127, 115/126) | A pure substrate-runtime fix (fired on 24/126 episodes): the agent's intent (a declared entry point) is honoured generically regardless of dataset shape. |
+| 2026-05-12 | iter4: snippet timeout 180s -> 300s — 94.4%, Goal 1 met | PASS | commits a76e8c651, 7e672f2c3; reports/iter3-full-20260512-075046 (0.9444, 119/126, 3,027 eff-tokens) | Goal 1 met on all three thresholds. **Critical caveat:** avgReuseRate and avgLearnedInterfacesCreated were BOTH 0 because every full-126 ran `--no-lib-cache` — the 94.4% was achieved without the learning loop firing once. The headline value prop stayed unmeasured. |
+| 2026-05-12 | Goal 1 retrospective + Goal 2 planning surface + canonical /goal condition | DECISION | commits 568a0de3e, aaa3b1f42; docs/goal.md, docs/PLAN.md, experiments/log/EXPERIMENTS.md | Pivots eval from correctness (Goal 1) to the actual thesis (Goal 2): cold tier4 -> warm tier2 amortisation. Goal 2 inverts `--no-lib-cache` and demands the loop be measured end-to-end. |
+| 2026-05-12 | Goal 2 E0.5/E1: instrument learning-loop metrics, then INCONCLUSIVE — observer not wired in | INCONCLUSIVE | commit 219c0925e; results/datafetch/goal2-iter1-probe-tvmaze-20260512-203818; EXPERIMENT_NOTES.md | Forensic null with thesis-critical implication: tvmaze passed 6/6 but reuse was 0 on every level and warm/train token ratio was 1.09 (wrong direction). Root cause: the new harness called installSnippetRuntime but never installObserver — every iter1-4 measurement ran a structurally disconnected loop. The thesis had never been on the wire. |
+| 2026-05-12 | Goal 2 E2/E3: old-harness single-family country proof — loop fires, -85% warm tokens | PASS | EXPERIMENTS.md E2; cold crystallised scCountryRegionDigest -> lib.sc_country_region_digest | First end-to-end proof of the full loop: correctness held at 100% while warm effective tokens fell 15,827 -> 2,319 (-85%), reuse-rate 100%. Confirms hooks-draft is load-bearing. The cold-tier4 -> warm-tier2 transition is real on the right harness. |
+| 2026-05-13 | Goal 2 iter5: port df.db.records mount + sc_per_entity seed into the new harness — agent ignores the affordances | INCONCLUSIVE | commit 5d5663650; results/datafetch/goal2-iter5-probe-tvmaze-20260513-065558 (6/6 but reuse=0) + iter5b (regressed 6/6 -> 3/6) | Plumbing verified correct, but claude-sonnet-4-6 has a strong `df.tool.*` fan-out prior and ignores advertised `df.lib`/`df.db` even when surfaced. Forcing them via scaffold backfired. **A real falsification of "surface the interface and the agent will use it"** — the agent, not the substrate, is the rate-limiter. |
+| 2026-05-13 | Goal 2 iter6-8: codex driver + numeric-signature gate + LEARN_FROM_LEVELS relax — loop fires end-to-end on new harness | PASS | commit 151f269a6; goal2-iter6/7/8 probes + lib-cache/tvmaze-series-analyzer/scPerEntity.ts | The full loop now fires end-to-end on the NEW harness via numeric-signature data-flow detection. But codex+iter8 misses Goal 2 thresholds: 3/6 pass, 60-130k eff-tokens (~10-20x Claude), warm helpers-available 0.2 (<2.0), reuse 0.05 (<0.30). **Loop confirmed; thresholds not cleared.** |
+| 2026-05-13 | Goal 3 reframe to generic-substrate spirit + rename sc_per_entity | PIVOT | commits e6b557542, 5707854bd | Sharpens against a framing trap exposed by iter5-8: shipping a per-family seed is dataset-specific scaffolding, the opposite of virtualising generically. The substrate must learn the right `df.*` interface from how the agent uses each dataset, at Claude-tier cost. |
 
-**Where it shows up.**
+### Era 3 — Product-flow cross-eval + FinChain cross-benchmark generality push (Goal 4 P1/P2 close + Goal 5 open/BLOCKED)
 
-- `src/sdk/fn.ts` — the `fn({intent, examples, input, output, body})`
-  factory. Every learned interface in `<baseDir>/lib/<tenant>/<name>.ts` is
-  a `fn({...})` call.
-- `src/snippet/library.ts` — `DiskLibraryResolver` is the only path by
-  which a learned interface gets reached; snippets that bypass the envelope
-  cannot reuse anything.
-- `src/observer/template.ts` — `shapeHash` (FNV-1a 32-bit hex over the
-  canonical step list, primitives plus sorted field-binding kinds, NOT
-  literal values) is the dedup key. PySyft hashes literal source; we hash
-  the call shape, so two trajectories that differ only in arguments
-  collapse to one interface.
-- `src/snippet/answer.ts` — `validateAnswerEnvelope()` enforces the commit
-  contract (`structuredAnswer`, `valuePresent`, `evidencePresent`,
-  `derivationVisible`, `lineagePresent`, `noDefaultZeroFallback`). PySyft's
-  policy is "the body cannot read an unbound asset"; ours is "the commit
-  cannot crystallise without a sealed `df.answer(...)` envelope."
+**Window:** 2026-05-17 .. 2026-05-20 · **Goals:** Goal 4 closure (iter164 MET + Codex audit/reframe, P1 matched-arm proof, P2 product-flow cross-eval); Goal 5 (FinChain cross-benchmark generality, iters 0-5, declared BLOCKED).
 
-**Adopted.** The submission envelope as the addressable unit; the runtime-
-enforced refusal to execute outside it.
+This era closed Goal 4 and opened (then blocked) Goal 5. Goal 4 was declared MET on iter164 after a Codex adversarial audit forced three honest corrections (cache-token measurement bug, dual R8 gate, benchmark-key leak removed from the generic unwrap path) and a user-accepted cacheBoundedByFramework reframe; the P1 matched-arm full-126 proof then quantified the substrate as a cost lever (-41% tokens, -17% wall) at neutral correctness, and the P2 jsonplaceholder cross-eval showed the full crystallise->discover->reuse loop fires on a real product API, with its headline 4.66x cost FAIL root-caused on 05-18 as a workspace-propagation harness artifact (corrected to ~1.7x). Goal 5 ported the substrate to FinChain under a bilateral non-regression invariant: FC1/FC2 PASSed against the paper baseline and the iter-3 substrate-genericity upgrade (authorFromSource universal source-to-helper transform) was proven non-regressing on SkillCraft by byte-identical render bodies plus empirical dormancy, but Goal 5 was declared BLOCKED on four irreducible structural blockers — chiefly that the interface cannot show a correctness win (FC3) on FinChain's deterministic pure-compute trajectories that give the convergence gate nothing to crystallise. The era leaves the thesis confirmed on transfer/cost/structure and honestly bounded on correctness, pointing the next benchmark choice toward a corpus with a genuine compositional reuse surface.
 
-**Adapted.** The `fn` envelope adds `intent` and `examples` explicitly because
-the discovery surface (br/12) uses them; PySyft has no description, no
-intent text, no examples on its `UserCode` record.
+| Date | Title | Result | Evidence | Thesis link |
+|---|---|---|---|---|
+| 2026-05-17 | iter150-167 sync: Codex adversarial audit hardens the iter164 scorer (cache bug, dual R8, benchmark-key leak) | BUILD | commits ca8a2707d..cd7450e11; STATUS.md iter150-167 | Hardens the govern step: adversarial review removed benchmark-identifier bleed from the generic unwrap path (interface stays dataset-agnostic) and tightened the reuse-quality gate (dual R8) so promotion is honest. |
+| 2026-05-17 | Goal 4 declared MET on iter164 with cacheBoundedByFramework reframe (user-accepted) | DECISION | commit 880831774; EXPERIMENT_NOTES 2152-2238 | Closes the proof that the typed interface improves from accepted crystallised work: cold episodes converge into warm helpers (R6/R7) that transfer across families (R9), all under a learning-honest rubric on one instrumented full-126 run. Cache caveat reframed to reject only intra-substrate state leak, not unavoidable framework prompt caching. |
+| 2026-05-17 | P1 matched-arm paired comparison: substrate is a cost lever, neutral on correctness | PASS | eval/skillcraft/results/datafetch/goal4-p1-paired-comparison-20260517.md; commit b25bfa5d2 | Quantifies what virtualizing the interface buys: -41.3% tokens (paired-t p~0), -17.3% wall, NEUTRAL correctness (92.9% ON vs 95.2% OFF, McNemar p=0.25). The interface's value is amortised cost, not accuracy, on a saturated-correctness benchmark. |
+| 2026-05-17 | P2 product-flow cross-eval on jsonplaceholder: cold->warm crystallisation+reuse PASS, cost claim FAIL | INCONCLUSIVE | eval/productFlow/results/p2-defensive-evidence-20260517/; commit 7851a770b | First evidence the full observe->crystallise->discover->reuse loop fires on a real product API (not a benchmark slice): agent rediscovers + reuses a `df.lib` helper via df.d.ts/apropos/man without the prompt naming it. But warm tokens +366% (~4.66x regression). The cost FAIL became the next iteration target. |
+| 2026-05-18 | P2 cost regression root-caused as a harness artifact, not a substrate property (workspace-lib correction) | PIVOT | eval/productFlow/results/p2-substrate-on-workspace-lib-20260517/; commit 668873e2e | The 4.66x was a HARNESS ARTIFACT (workspace contract not propagated into the per-episode cwd -> cold MUST-cat tax each episode). Corrected arm: ~1.70x one-shot, 3/3 correct, helpers still crystallise. Separates interface infrastructure (transfers cheaply) from crystallisation POLICY (helpers too thin to beat the inline-rewrite reflex). |
+| 2026-05-18 | P2 overlay/typed-helper/skills-disclosure sweep: richer helpers DO get reused via progressive disclosure | INCONCLUSIVE | eval/productFlow/results/p2-overlay-v{1,2,3}, p2-rich-helper-e4, p2-skills-disclosure; commit bcb35b9f4, merge 5e261a64d | Thin auto-crystallised toolFanout is bypassed for the agent's 5-line Promise.all; rich hand-authored helpers (userPostSummary) ARE reused via progressive disclosure. The open lever is a composition-density gate on what gets promoted: reuse happens iff effort-to-call < effort-to-derive. |
+| 2026-05-18 | Post-P1 substrate fixes: three anti-pattern episodes root-caused to deterministic defects, fixed via AST rewriters | PASS | commits 14bae8085, 4555f968a, 7d416692c, cde75b6f7; 374/374 vitest | All three are generic substrate hardening with zero benchmark identifiers (interface stays dataset-agnostic). Codex warned NOT to use the TS printer (back-to-front byte-range patching keeps downstream regex rewriters working). Projects P1 Arm A 92.9% -> ~95.2%, matching Arm B. |
+| 2026-05-18 | Substrate/dataset boundary refactor: de-SkillCraft-named the shared code | BUILD | commits 22ba4685e, ed2b6b5f3, 73b804a67, 330e7da83, 3a128f158, 0db4e03e2, b03aa2706, 53dae005a, 99a185fa0 | Structurally enforces the core claim: no substrate code (observer, snippet, hooks, sdk, discovery, server, runtime) may pattern-match on any benchmark's identifiers — the precondition for the "same substrate, two unrelated benchmarks" generality argument. |
+| 2026-05-18 | Goal 5 scaffold: FinChain integration plan + harness foundation (iters 0-2b) | BUILD | commits 0e0cb3634, 96276eb40, 5ead2237b, 94e9437ad; kb/plans/007 | Operationalises the generality argument: prove the substrate lifts a published baseline on a second, structurally unrelated benchmark with no benchmark-specific code, while preserving (bilateral non-regression) the SkillCraft iter164 result. |
+| 2026-05-19 | FinChain FC1+FC2 PASS against paper baseline; FC3 proven mathematically unachievable | FALSIFIED | commits 14dd4b715, aa7c1b1e5, 1baa8a1aa, bdd3ddff7; eval/finchain/configs/paper-baseline.json | FC1 (FAC) and FC2 (step-alignment) PASS. **FC3 falsified:** substrate-OFF 1/4 and substrate-ON 1/4 make the EXACT same errors on the EXACT same seeds (FAC delta=0, p=1) even at 28.8% token reduction. The `df.*` layer doesn't alter the model's symbolic reasoning, and FinChain's pure-compute trajectories give the gate nothing to crystallise. The interface's value is cost/structure, not accuracy — confirms the P1 lesson at a second benchmark. |
+| 2026-05-19 | iter 3.0a preseed-helper probe: BLOCKED then REVISED PASS (interface-mode confound) | PIVOT | commits 327bafbfc, d80b8b7de, 62a0c5cf6; eval/finchain/preseed-rich-helper/; kb/plans/008 | Initial BLOCKED (preseed made 0/4 helper calls) was confounded by the default `hooks-candidate-only` mode gating ALL `df.lib` helpers off callable exposure. With mandate-strength prompt AND legacy mode: 4/4 helper calls, 4/4 FAC, -7.2% tokens. **Both prompt strength and interface mode are independently necessary** for reuse to fire. Recovers the reuse half of the value proposition. |
+| 2026-05-19 | iter 3 reframed as a substrate-genericity upgrade: authorFromSource (universal source-to-helper transform) | BUILD | commits c58747f48, c6d51d4c3, 48a90a686, 124b2a446, 88cbc96cf, 58775b906, 382d19111, 67421dd9d, 85602e7d7, e70efb7d4, 8599ee87c | Instead of a new code branch per dataset shape, the substrate gains one universal observe->crystallise transform (renderFromAgentSource) that turns ANY accepted trajectory into a typed `df.lib` helper. FinChain is just the first shape the existing renderers didn't fit. |
+| 2026-05-19 | Goal 5 iter 5 closure: bilateral non-regression proven by byte-identical render-body + empirical dormancy; (C-2) full-126 MET by structural equivalence | PASS | commits 5860bb5cb, 1705bc61b, 3acafa2d6, dff04d51d, 8748e2861 | Strongest form of the interface-not-dataset claim: the SAME substrate commit crystallises helpers on TWO unrelated benchmarks via the generic transform, while the SkillCraft data path is provably byte-identical (all 5 render bodies md5-equal; 251 SkillCraft episodes produced 0 authorFromSource helpers). Improving the interface for a new dataset shape left accepted prior work untouched. |
+| 2026-05-19 | Goal 5 declared BLOCKED: four irreducible structural blockers prevent single-session MET | DECISION | commits d7d209cec, fbea199c2, 49290046a | Honestly bounds the generality argument: the substrate transfers cleanly (FC1/FC2 PASS, byte-identical non-regression) but cannot show a correctness win on FinChain — Blocker 1 (zero-variance perfect FAC -> p=1), Blocker 2 (pure-compute gives nothing to crystallise), Blocker 3 (FC5 needs operator-launched multi-hour compute). The crystallise->reuse value prop needs a benchmark with a compositional, non-deterministic reuse surface. |
+| 2026-05-20 | Window close: merge worktree state into main; untrack productFlow results | BUILD | commits ffc9bdbfe, 9b66a4529, 4c5c91751, 1da4b4347, c0444b914, 49425873a | Consolidates the cross-benchmark push onto main; SkillCraft, FinChain, and productFlow are now sibling dataset harnesses over one shared, benchmark-agnostic interface substrate. |
 
-**Rejected.** PySyft's `InputPolicy` / `OutputPolicy` runtime classes and
-the per-call data-owner approval gate. The privacy-preserving machinery
-that gives PySyft most of its complexity is irrelevant to the hackathon
-scope.
+### Era 4 — SaC-aligned PoC: cross-session amortisation falsification, pivot to corpus-per-claim value tracks, and the 06-04 reorg + program assessment
 
-### 1.3 Agent Workflow Memory and Stanford APC (br/04, br/05)
+**Window:** 2026-06-02 .. 2026-06-04 · **Goals:** Goal 5 / Episode 03-sac-poc (SaC-aligned PoC on SkillCraft, plan kb/plans/009): the confirmatory cross-session amortisation run, its falsification, the post-falsification reframe into four corpus-per-claim value tracks (C4/C2/C5/C8), C4 CRAG live-prep, and the 2026-06-04 repo reorg + multi-agent program assessment.
 
-**Contribution.** Both validate the central thesis (reusable workflows
-induced from successful runs cut cost on similar tasks) but did not
-contribute new architecture; they confirmed direction. AWM (br/05) gave us
-"induce, integrate, utilize" as the loop name. Stanford APC (br/04) supplied
-the keyword-exact-match-beats-semantic-similarity finding (56µs vs 148ms at
-10^6 entries) and the cost-asymmetry argument (small LM on hit, large LM on
-miss).
+This era ran the SaC-aligned PoC's pre-registered headline to completion and falsified it: on a methodologically sound 7-arm paired-differencing harness, arm4 (frozen cross-session warm reuse) costs MORE than arm1 (inline-rewrite-no-persistence) in every token unit (M*=+Infinity) and is less correct, extending the conceded single-session null to the cross-session case. The negative was treated as a terminal PASS, not fabricated into a positive. The program then pivoted off cost-amortisation into four corpus-per-claim value tracks aimed at where a governed, persisted interface can still win that inline-rewrite structurally cannot reach: C4 governance-under-staleness (CRAG, tri-state), C2 zero-src onboarding sufficiency, C5 deep-invocable-helper TURNS, C8 persistence-as-abstraction vs persistence-as-transcript. By 06-04 the $0 scaffolding for C4 (drift kill-gate cleared, CRAG library pieces, real 5.16GB corpus in-env) and verifier foundation (sealed run-manifest, dirty-tree gate) landed green, the repo was reorganized (`src/` = shippable substrate, `eval/` = all eval), and a five-dimension multi-agent assessment recorded the honest state: substrate and verifier discipline are real assets, but NO live paired run has yet produced a verdict for any of the four surviving value claims, all blocked on the same unbuilt runner+widened-scorer seam.
 
-**Where it shows up.** The observe-on-save loop in `src/observer/worker.ts`
-and `src/observer/gate.ts` mirrors AWM's induce-integrate-utilize.
-`src/observer/template.ts`'s `shapeHash` plays the same role as APC's
-keyword-extraction: a fast, structural, LLM-free dedup primitive.
-`src/observer/author.ts`'s `generatePureSource()` is the analogue of AWM's
-single-prompt induction, except it rewalks the typed call list
-deterministically rather than asking an LM to summarise.
+| Date | Title | Result | Evidence | Thesis link |
+|---|---|---|---|---|
+| 2026-06-02 | Headline cost unit decided: full-weight tokens + dollar tie-breaker; parity floor demoted | DECISION | commit a26d84647, 329fa4c04; STATUS.md S3; tests/sac-cost-ledger.test.ts | Sets the economic unit for testing whether learning IN the interface (crystallised `df.lib.*`) amortises vs inline re-derivation. The char-based parity floor cancels byte-identically in the denominator -> demoted to a provenance diagnostic. |
+| 2026-06-02 | Mandate-strength preseed makes crystallise->reuse fire (Milestone 3) | BUILD | commits d30903917, 95210e09d; RUN-LOG Attempts 3-4 | Required for the loop to fire at all: weak preseed gave 0 lib calls; mandate-strength composition preseed flipped arm2 to crystallise + reuse toolFanout on a fan-out family. Without reuse there is no learned interface to evaluate. |
+| 2026-06-02 | Pre-registration §8 frozen; confirmatory k=5 run launched | DECISION | commit bfce8bd60; PRE-REGISTRATION.md; RUN-LOG Attempt 5 | Pre-registers the falsifiable test against the adversarial inline-rewrite-no-persistence baseline (kb/br/19): M0=8 sessions, -5pp clustered NI margin, arm4 must beat BOTH memoization floor (arm5a) and recipe floor (arm5b) on full-weight tokens AND be non-inferior in correctness, k>=5 interleaved seeds on pinned sonnet-4-6. |
+| 2026-06-03 | Run 1 (confirm-k5, 630 episodes) — headline FAILS and run INVALID by its own gates | INCONCLUSIVE | results/sac-poc/confirm-k5/score.json (M*=Inf, denom -1121.6); commit bdb0ac18e; RUN-LOG Attempt 6 | Established the harness was not yet trustworthy: 39 invariant violations from three blockers — A (phase-blind arm4 binding called a non-existent helper -> arm4 pass 9%), B (held-out h1 not new-argument -> arm5a cache-hits), C (parity body embedded df.d.ts -> arm1/arm4 prompts diverge once arm4 crystallises). No fabrication of a positive from an invalid run. |
+| 2026-06-03 | Blockers A/C/B fixed: phase-aware arm4 binding, parity-body df.d.ts mask, synthetic new-argument level h1x | BUILD | commits 41e3eb77c, 1d5f7b05b, 355747fb0, 5e4324eb2; verify-blockerA/B/C dirs; RUN-LOG Attempts 7-10 | Restored a sound prompt-parity-gated test of arm4 (warm learned interface) vs arm1 (inline) so any verdict reflects the interface, not a harness artifact. A: arm4 phase-1 9% -> 100%; C: 0 parity mismatches; B: arm5a 0 cache hits on disjoint pokeapi h1x {1,4,7,133,143}. |
+| 2026-06-03 | VALID Run 2 (confirm-k5-pokeapi-h1x, 210 episodes) — cross-session amortisation FALSIFIED (robust negative) | FALSIFIED | results/sac-poc/confirm-k5-pokeapi-h1x/score.json (M*=Infinity, denom -66,520.8; fresh+output -97.4; dollar -6,739.7; claimUpheld=false); commit 0665d5a27; PHASE-1-FINDINGS.md; RUN-LOG Attempt 11 | **Directly falsifies the cross-session cost-amortisation form of "warm interpreted interface beats inline re-derivation."** arm4 warm > arm1 inline in EVERY cost unit AND less correct (h1x 2/5 vs 4/5). The crystallised toolFanout was SHALLOW; the +66k is a TURN-COUNT tax (~+1.8 turns x ~36k cached/turn), not hydration bloat. **POWER CAVEAT (assessment G1): n=6 matched questions, nMatched=1/nClusters=1 degenerate CI, correctness McNemar b=0 c=2 p=0.5** — a strong directional negative at low power, treated as a terminal PASS. |
+| 2026-06-03 | Thesis-regeneration workflow (33 agents) refutes three recovery levers, names surviving differentiators | PIVOT | commit 72b32b1bf; RUN-LOG Attempt 12; RESEARCH-STRATEGY.md; memory project_sac_thesis_regeneration | Refuted with data: hydration-bytes (turn-count tax, not byte bloat), fan-out width (arm1 batches into one snippet, turns flat), governance-as-correctness on PokeAPI (INVERTED: arm3 ungoverned 5/5 best, arm4 governed 2/5 worst). Surviving islands: governance-under-staleness (numeric corpus), zero-src onboarding SDK (highest promise), one narrow cost island (deep+invocable helper on serial-depth tasks, measured in TURNS). |
+| 2026-06-03 | $0 ceiling probe — deep+invocable helper clears the cost gate (cost island REOPENED, conditional) | INCONCLUSIVE | commit d08310f6e; ceiling-probe/{CEILING-PROBE.md, lib_pokedexEntries.ts, answer_deep.ts}; RUN-LOG Attempt 13 | Hand-authored deep+invocable helper: caller answer.ts = 20 lines / ~183 tokens vs arm1 inline 72 lines / ~635 tokens (3.5x write-cost collapse). The pre-registered cost gate CLEARS. The cost pillar died for SHALLOW helpers, not in principle — keeps C5 alive, conditional on substrate work + a live TURNS run. (Assessment G2: strongest pro-C5 evidence.) |
+| 2026-06-03 | Phase-2 substrate generalization: dataset-neutral governance gate (answer-kit equality + literal promotion) | BUILD | commits 3a89637b9, 28c442158, 27668b7c7, f43f30dda; RUN-LOG Attempts 14-17; 424/424 + governance 4/4 + blind 20+20 0/0 | Makes the observe->gate->crystallise governance contract dataset-neutral (answerEquals tolerance: numeric->1% FAC, boolean->strict, string->normalised, array/object->canonical deep-eq), closing the gap where the numeric-only gate never fired on PokeAPI JSON. A non-numeric (string) helper was PROMOTED by the gate. Precondition for the surviving SDK and governance claims. |
+| 2026-06-03 | Phase-2 #3/#4 + Phase-3 mechanism: de-hardcode observer, df.tool.* manifest, zero-src onboarding proven | BUILD | commits dd725a1f7, 20f2b4fe6, 5927bf1eb, c41084735; sac-zero-src-onboarding.test.ts; ONBOARDING.md; RUN-LOG Attempts 25-30 | Proves C1 interface-not-dataset at the mechanism level: a NEW dataset becomes a typed `df.*` namespace via public APIs with zero `src/` edits (specializationRegistry relocates finqacases/rangeTableMetric codegen out of the observer; grep-clean). The zero-src-onboarding SDK lever the regeneration workflow ranked highest-promise. |
+| 2026-06-03 | Pivot formalized: four corpus-per-claim, verifier-gated, branch-coverage tracks (C4/C2/C5/C8) | DECISION | commit 2703f82f3; KICKOFF.md; prereg/{C2,C4,C5,C8}*.md; RESEARCH-STRATEGY.md (verifier P1-P7) | Restructures the program around the kb/br/19 thesis — value lives where inline-rewrite-no-persistence structurally cannot reach. Governing inversion: "the cheapest experiment that can say NO comes first, and claimUpheld=false is a terminal PASS." The dead fan-out/cost lever is fenced as verifier predicate P7. |
+| 2026-06-03 | Verifier foundation: sealed run-manifest emitter + dirty-tree gate (B-1) and C4 $0 drift kill-gate CLEARS (B-2) | PASS | commits c54a1d7c9, 3e89be8dd, 58a6a5b0a; driftInjector.ts; sac-drift-injector.test.ts 5/5; run-governance-probes.ts "C4-A0 PASS" | B-2 is the cheapest C4 falsifier and it did NOT kill the claim: the gate PROMOTEs at 0.5% drift, DECLINEs at 4.76%/42.86% — drift-sensitive, the necessary condition for governance-under-staleness to beat ungoverned persistence. B-1 makes any future live verdict tamper-evident. |
+| 2026-06-04 | C4 CRAG live-prep library: corpus loader + tri-state grader + zero-src df.db mount + sibling stream | BUILD | commits f69d2a0ae, 2d602b662, 5bda34983; eval/harness/crag{Corpus,Grader,Mount,Siblings}.ts; 3 test files / 15 tests | Stands up the tri-state regime where governed-ABSTAIN can beat ungoverned-confidently-wrong (truthfulnessPct = accuracyPct - hallucinationPct). The real 5.16GB dev_v4 (2,706 rows) is in-env. **Still NO live CRAG runner or tri-state scorer path; mechanism-proven / endpoint-untested.** |
+| 2026-06-04 | armOnb (C2) + armT (C8) config + equal-budget mechanic; live-verified corpus derivation | BUILD | commits 5f8afbd5f, 17e9eeaf8; sac-arms-extra.test.ts; CORPUS-RECOMMENDATION.md | Supplies the corpora that let C2 (zero-src onboarding, ROBuT/WTQ) and C8 (abstraction vs transcript) test off the home SkillCraft corpus. **CAVEAT (assessment §4): armOnb/armT are config+type stubs only — no runner dispatch, normalizer emit, or scorer membership; armOnb's interfaceMode is wrongly `legacy` not the generated-df.d.ts surface C2 needs.** |
+| 2026-06-04 | Repo reorg: src/ = shippable substrate, eval/ = all eval; acceptance suite moved; web landing ported | BUILD | commits 85315d061, cfd558b4f, e4909f104; 59 files / 461 tests green | Hardens the substrate/eval boundary the thesis rests on. **Caveat (assessment §5): one residual coupling — runDemo.ts side-effect-imports eval/harness/finchainSpecialization, reachable via `datafetch demo`. Stale `src/eval/*` file:line pointers remain in KICKOFF + C2/C8 preregs + RESEARCH-STRATEGY.** |
+| 2026-06-04 | Multi-agent program assessment: honest state recorded (substrate real, value headline unproven) | DECISION | commit aa9b72151; ASSESSMENT-2026-06-04.md (HEAD 85315d061) | Honest checkpoint: 9 PROVEN claims (honesty discipline genuine; harness sound and outcome-neutral; the headline negative recompute-reproducible byte-for-byte; C1 zero-src mechanism; gate drift-sensitive on probes; dataset-neutrality; C4 $0 kill-gate did not kill; C9 single-session null as conceded). All four VALUE claims (C4/C2/C5/C8) mechanism-proven / endpoint-untested, blocked on the SAME seam: no runner dispatches the new arms/corpora and score-cross-arm.ts is frozen to arm0..arm5b with binary pass/fail. HIGH risks: zero live paired-run verdict for any value claim; C4 reuse-density risk (0/16 df.lib reuse); governance gate passed 0/22 live. |
 
-**Adopted.** The loop, the shape-hash as the LLM-free lookup primitive, the
-discipline that successful trajectories are themselves valid workflows.
+### Era 5 — Evidence-layer reframe + OpenTraces dark-store corpus (plan 011: built, gated, sealed)
 
-**Adapted.** AWM stores workflows in prompt context; we store them on disk
-as typed TS files. APC keys its cache by an LLM-extracted keyword; we key
-by `shapeHash`, no LLM in the lookup path.
-
-**Rejected.** AWM's quality metrics (function overlap, coverage, utility
-rate) are not wired into anything. APC's auto-disable-on-low-reuse and
-cache-size-knee guardrails are not implemented. The MVP collapses N>=3
-convergent trajectories to N=1 (every qualifying trajectory crystallises
-immediately, `src/observer/worker.ts:11-19`).
-
-### 1.4 Flue as the agent harness (br/07)
-
-**Contribution.** Flue is a small wrapper around Pi (`@mariozechner/pi-
-coding-agent`) that ships a `SandboxApi` integration contract, MCP runtime
-adapters, and a multi-provider model registry. The strand's bottom line
-was "adopt Flue rather than wiring Pi directly."
-
-**Where it shows up.**
-
-- `src/flue/session.ts` — `FlueSessionPool` constructs a per-tenant
-  `FlueAgent` via `@flue/sdk/internal`'s `createFlueContext`. This is the
-  data plane's credential boundary (the only file that reads
-  `ANTHROPIC_API_KEY` and Codex OAuth token paths).
-- `src/flue/dispatcher.ts` — `FlueBodyDispatcher`. Both `llm({...})` and
-  `agent({skill})` bodies route through the same `runFlueCall` helper.
-
-**Adopted.** Flue as a library; the session-per-tenant pool; the provider
-abstraction that gives us OpenAI Codex / Anthropic / Bedrock plug-and-play.
-
-**Adapted.** br/07 anticipated us running `flue build --target node`. We
-did not; we use Flue's `internal` entrypoint inside our own Hono server
-(`src/server/server.ts`). No `.flue/agents/` directory, no `flue build`.
-
-**Rejected.** br/07's `bashFactoryToSessionEnv` integration where Flue
-drives the bash sandbox. We use `just-bash` directly via `BashSession`.
-
-### 1.5 documentdbfuse and the DB-as-FS trend (br/03)
-
-**Contribution.** br/03 was mainly a negative one: it framed three of our
-design decisions as deltas worth defending. Read-only `db/` (sidesteps
-documentdbfuse's `echo > existing.json` ENOTSUP bug class), NFS-not-FUSE,
-typed-TS-with-fingerprint (raw JSON forces field-name guessing).
-
-**Where it shows up.**
-
-- `src/bash/fs/readOnly.ts` wraps an `IFileSystem`, rejects writes/mkdir/
-  rm with `EROFS`. `/db/<mountId>/` is mounted via this wrapper.
-- `src/adapter/atlas/AtlasMountAdapter.ts` is read-only; every retrieval
-  method is a read.
-- `src/bootstrap/infer.ts` emits a deterministic `sha256` fingerprint
-  over the canonical sorted descriptor.
-
-**Adopted.** The framing (DB-as-FS for agents is recognised), read-only-
-by-default, schema-fingerprint as a first-class persisted artefact.
-
-**Adapted.** documentdbfuse's path-segment aggregation DSL becomes our
-typed methods on `CollectionHandle<T>`. Both surface a query language; the
-verbs differ.
-
-**Rejected.** The actual NFS / FUSE mount. Despite br/03's recommendation,
-the shipped MVP has no kernel-level mount. Files at
-`<baseDir>/mounts/<mountId>/` are written to local disk; not virtualized.
-The "Atlas mounted at /datafetch/ over NFS" pitch in `kb/elevator.md:7` is
-stale.
-
-### 1.6 Browser-harness and agent-edits-its-own-helpers (br/12)
-
-**Contribution.** br/12 is the clearest production reference for the two-
-zone separation we already committed to: small protected core, writable
-seam where the agent extends its own action space, two-tier library. The
-strand also surfaced "The Bitter Lesson of Agent Harnesses" essay's
-argument that the harness should let the agent write the missing function.
-
-**Where it shows up.**
-
-- `src/bash/session.ts` and `src/bash/fs/` — the two-zone separation.
-  `/db/` is read-only over `MountReader`; `/lib/<tenant>/` is the writable
-  overlay in an `InMemoryFs` that flushes to disk before every snippet
-  (`flushLib()`).
-- `src/observer/author.ts` — `generatePureSource()` is the load-bearing
-  authoring path. It rewalks the trajectory's call sequence and emits a
-  `fn({...})` file. This is the analogue of "the agent isn't writing new
-  code from first principles; it's writing the one function that was
-  missing."
-- `src/discovery/librarySearch.ts` — a five-bucket BM25-flavoured scorer
-  over name, intent, description, examples, and source-head tokens. The
-  br/12 strand explicitly warned against regressing to a hostname-prefix
-  matcher; we have not.
-- The bash-only allowlist in `README.md:46-57`: the agent gets
-  `Bash(datafetch *) Bash(cat *) Bash(ls *) Bash(jq *)`, no tool catalog.
-
-**Adopted.** The two-zone separation; the writable seam; bash-only allow-
-list; the discipline that the agent extends `/lib/<tenant>/` by writing
-files (whether by hand or via the observer).
-
-**Adapted.** br/12 noted the stub-as-slot pattern (empty markdown files
-declaring what the agent should learn). We have not done this yet, but
-the manifest could pre-allocate empty typed-module stubs.
-
-**Rejected.** Browser-harness's prose-plus-Python skill files. Our learned
-interfaces are TypeScript with valibot schemas plus YAML frontmatter.
+| Date | What | Verdict | Evidence | Why it matters |
+|---|---|---|---|---|
+| 2026-06-10 | G0 spread probe on the OpenTraces dark store (plan 011, sealed 11.58GB snapshot of `~/.opentraces/bucket`) | PASS | eval/opentraces/probes/spread-probe.md; g0-runs/ (pinned sonnet-4-6 driver, 10 questions, pre-registered thresholds) | Median naive/expert model-context ratio 50.06x (threshold 5x) and median spread 758k tokens (threshold 10k); every question clears both. The PokeAPI failure mode (nothing to amortise) is decisively absent. Independent finding (protocol trigger >3/10): **8/10 naive runs answered WRONG**, cold search over a private polymorphic store is error-inducing, reopening the CORRECTNESS endpoint that was saturated on every prior corpus. |
+| 2026-06-10 | G1 shape probe (9 no-LLM scripted sessions through the real snippet runtime, 3 template families x 3 draws) | PASS with disclosed limitation | eval/opentraces/probes/shape-probe.md; g1-runs/; src/observer/gate.ts:352 vs convergenceIndex.ts:89 | At the substrate's MATCHING key (shape hash) the pre-registered prediction is exactly confirmed: 3 family-bounded, stable clusters; the br/17 wrong-helper-reuse failure mode is absent. At the RECURRENCE key (intentSignature) two families merge. Binding carry-forward: arms-experiment recurrence accounting keys on shape hash / template_id, never raw intentSignature. |
+| 2026-06-10 | OpenTraces corpus sealed: 208-question persona-driven pack + Codex adversarial gold audit | PASS (seal) | eval/opentraces/SEAL-ADDENDUM.md; questions/pack.jsonl sha256 5f1e512a...; probes/seal-audit/ (24/24 final upheld, 0 gold defects, 1 phrasing defect fixed; rule-of-three gold-defect bound <= ~12.5% at 95%) | First corpus satisfying all five dark-store properties (polymorphic, zero model prior, recurring persona intents, deterministic gold, natural drift). Four personas = tenants instrument the per-tenant divergence claim (L_n) for the first time; P3 held out. Built under supervisor/build-agent split with gates G0/G1 and an independent Codex audit; user's ten real questions deliberately held OUT as an external-validity probe for the arms experiment (plan 012). |
+| 2026-06-11 | Plan 012 kill-gate M1 (organic crystallisation on the dark store): three iterations | FALSIFIED (terminal for 012-as-written) | experiments/episodes/05-opentraces-arms/RUN-LOG.md Attempts 1-5; probes/m1-runs, m1b-runs, m1c-runs; src/observer/gate.ts singleIsDbStarWithNumericAnswer | Iteration 1 "passed" only because the build agent seeded the answer key (ruled INVALID; lesson saved to memory: delegated gates need substance criteria). Honest iterations 2-3: organic crystallisation does NOT fire, three diagnosed mismatches between the learning loop and organic work over a bulk-mounted store: gate refuses single-fetch+inline-compute trajectories; the PURE_COMPUTE opt-in admits scalar-numeric answers only (FinChain-era); quarantine replay fails composite outputs. Side-finding: organic correctness 1/8 WITH the typed mount (echoes G0 8/10 wrong), so ungoverned crystallisation would mostly capture WRONG compositions, the strongest evidence yet that the evidence/endorsement layer is the product. Reproduces br/19's literature verdict live on our own corpus: self-generated fails; curated+verified is the open lane. Fork recorded: (A) substrate-evolution plan (3 precise items = the old observer-evolution linchpin, now corpus-grounded), (B) curated-interface arms amendment, (C) plan-010 pivot. |
 
 ---
 
-## 2. Strands explored but not landed
+## Where we are vs the thesis
 
-**Voyage AI as the retrieval stack (br/01, partial).** br/01's wrapping
-pattern landed; its embedding/reranking stack did not. `package.json` has
-`mongodb` and `@anthropic-ai/sdk`; no Voyage SDK. `vector:false` adapter,
-`findSimilar`/`hybrid` delegate to `search`. The strand stays valuable as
-a queue of upgrades.
+The elevator/product-design claim is: virtualize the dataset *interface* (one typed `df.*` namespace), then improve that interface from accepted, evidence-backed work, so a cold tier-4 novel composition converges into a warm tier-2 helper that amortises cost, persists across sessions, and is governed. Mapping the arc onto that claim, reconciled with `ASSESSMENT-2026-06-04.md` (and its self-critique G1-G5):
 
-**The compiled tier and `$rankFusion` (br/02, br/04-apc).** The contract
-is in the codebase (`MountAdapter.runCompiled`, `CostTier=1` reserved,
-`capabilities().compile=true`) but no production code emits or consumes
-it. `runCompiled` throws "not implemented in MVP"
-(`src/adapter/atlas/AtlasMountAdapter.ts:151`). Tier 2 (substrate or pure
-TS), tier 3 (LLM), and tier 4 (novel) ship; tier 1 (compiled) and tier 0
-are vacant.
+**PROVEN end-to-end.** The cold->warm crystallisation loop itself. A real agent composes over `df.db`/`df.lib` seeds, commits a sealed `df.answer` envelope, the observer crystallises a named, readable `/lib/` TypeScript helper from the accepted HEAD, and a later intent reuses it (first end-to-end PASS 2026-05-06 artifacts/agent-loop/20260506T185934Z; demo learns `rangeTableMetric`, tests/demo-e2e.test.ts green). The interface-stability invariant is proven (Atlas regex->$search behind fixed `df.db.*`; iter164 R6/R7/R9). Interface virtualisation as a *cost* lever is proven on a saturated benchmark: P1 matched-arm -41% tokens / -17% wall at neutral correctness. Generality is proven structurally: the SAME substrate commit crystallises on SkillCraft AND FinChain via one generic transform with byte-identical SkillCraft non-regression, and a NEW dataset compiles to a full `df.d.ts` via public APIs with zero `src/` edits (C1 zero-src mechanism).
 
-**Filesystem virtualization, FUSE / NFS (br/03, br/12).** br/03's design
-recommendations (`--ls-limit`, `.count` virtual file, three-format export)
-all assumed an actual kernel mount. We virtualize the *interface* (the
-typed `df.*` namespace), not the *bytes*. The closest thing to a mount in
-our code is the in-memory `MountableFs` inside `BashSession`.
+**Mode-gated.** Reuse-as-callable fires only outside the shipped default. The end-to-end loop completes only under `DATAFETCH_INTERFACE_MODE=legacy`; under the shipped `hooks-candidate-only` default the reuse half throws ("hook is observed only, no callable implementation") and the demo gold assertion fails. Across the eras, reuse fires only when BOTH the interface mode is permissive (legacy / hooks-draft) AND the preseed prompt is mandate-strength (Era 2 hooks experiment; Era 3 iter-3.0a confound; Era 4 milestone 3). There is no green test exercising crystallise->reuse under the shipped default, and the agent's own `df.tool.*` fan-out prior actively competes with the advertised affordances (Era 2 iter5 falsification of "surface it and they will use it").
 
-**SkillCraft / ASI Coding Verifier (br/04-skillcraft).** The proposed
-50%-null post-execution quality check is absent. Exec-Rate and Reusing-
-Rate metrics are not wired into anything.
+**FALSIFIED.** Cross-session cost amortisation — the form of the headline where "the frozen warm interpreted interface beats inline re-derivation on cost." On the only valid live paired run (confirm-k5-pokeapi-h1x), arm4 warm cost MORE than arm1 inline in every token unit (M*=+Infinity, denom -66,520.8 full-weight) and was less correct. This extends the conceded single-session correctness null (C9: arm2 26/30 vs arm1 27/30, 0pp) to the cross-session cost case. The +66k was diagnosed as a turn-count tax, not byte bloat, and three recovery levers (hydration-bytes, fan-out width, governance-as-correctness on PokeAPI) were separately refuted with data. **Honest caveat: this negative is itself low-powered** (n=6 matched questions, one-cluster degenerate CI, correctness McNemar p=0.5) — a strong directional negative, treated as a terminal PASS, not an unambiguous defeat. The committed $0 ceiling probe also REOPENS the cost island conditionally: a hand-authored deep+invocable helper clears the cost gate (3.5x caller write-cost collapse), so the cost pillar died for *shallow* helpers, not in principle.
 
-**Multi-tenant divergence demo (br/02 Dimension 1, br/04-apc per-tenant
-L_n).** The plumbing exists (`tests/observer-multi-tenant.test.ts` proves
-it works) but no UI, no metric, no two-pane file-tree visualization. The
-shipped demo (`src/demo/runDemo.ts`) is single-tenant.
-
-**Pre-registered eval, variance bands, three-baseline comparison.** The
-cost panel rendered by `printCostPanel` in `src/demo/runDemo.ts:578` is
-anecdotal: one Q1 run, one Q2 run, gold answers asserted, no variance, no
-cluster, no baseline. There is no `eval/` directory.
-
-**User endorsement / human review loop.** br/02, br/04-skillcraft, and
-the original `kb/elevator.md:14` argued for it (motivated by *Library
-Learning Doesn't*, Berlot-Attwell). The shipped MVP has no endorsement.
-`validateAnswerEnvelope` is automated; the gate is mechanical;
-crystallisation fires on the first qualifying trajectory. Workspace-HEAD
-supersession (commits `8c28f31`, `96a474e`, `d1f87b3`, `8473145`) lets a
-later commit overwrite an earlier one with the same shape hash, but
-supersession is not endorsement.
-
-**AgentFS as the VFS engine.** br/02 and the queued br/52 recommended
-adopting Turso AgentFS. We adopted `just-bash` instead. AgentFS's
-`OverlayFS` CoW semantics map to our writable-seam model; in practice an
-in-memory `MountableFs` plus mtime-tracked `flushLib()` does enough for
-the MVP.
+**UNPROVEN (zero live verdict).** All four surviving value claims, where the thesis must actually win because inline-rewrite-no-persistence structurally cannot reach them: C4 governance-under-staleness (governed arm2 truthfulness > ungoverned-persistent arm3 on CRAG -1 cells under drift), C2 zero-src onboarding sufficiency (NI vs arm1 on a fresh DB corpus), C5 deep-invocable-helper lowers agent TURNS on serial-depth DAGs, C8 persistence-as-abstraction beats persistence-as-transcript at equal budget. Every one is mechanism-proven / endpoint-untested, blocked on the SAME unbuilt seam — no runner dispatches the new arms/corpora and `score-cross-arm.ts` is frozen to arm0..arm5b with binary pass/fail. The honest verdict matching the assessment: the substrate and the verifier discipline are real assets, but "the improved-from-accepted-work interface beats inline rewrite" remains entirely to be demonstrated live, with a genuine and asymmetric risk of further honest negatives. C4 (governance-under-staleness on CRAG, corpus in-env, $0 kill-gate already cleared) is the prioritized next live track — fenced by a real DONE-INVALIDATED risk if the crystallised helper is not reused across siblings (0/16 reuse precedent).
 
 ---
 
-## 3. Open questions
+## Background-research provenance
 
-**3.1 Legacy plan/execute vs intent workspace.** The codebase ships two
-flows: the legacy `plan` / `execute` phased verbs (artefacts under
-`<baseDir>/sessions/<sessionId>/{plan,execute}/`) and the intent-workspace
-flow (`datafetch mount` + `run` + `commit`, artefacts under a CWD-rooted
-`<workspace>/`). Both go through `POST /v1/snippets`; both can crystallise.
-The intent-workspace flow is what the pitch describes; the older surface
-remains and is exercised by `tests/cli-plan-execute.test.ts`. Open: does
-the intent workspace fully replace plan/execute, or do they coexist?
+The repository under `kb/br/` collects the background-research strands consulted during the design of `datafetch` (once called "AtlasFS"). This section is about influence and provenance: which strand contributed what to the shipped substrate, where in the source tree it shows up, and what each strand left on the table. The load-bearing claim that emerged, adopted verbatim by the pitch:
 
-**3.2 `datafetch agent` and `datafetch connect` status.** `datafetch agent`
-(`src/cli.ts:247`) is an in-process bash REPL that does NOT go through
-HTTP, and `datafetch connect` (`src/cli.ts:232`) is described in code as
-a "debug helper, not the real session-create path." The real path is
-`datafetch session new` through `POST /v1/connect`. Open: are these
-shipping verbs or scaffolds?
+> Datafetch does not virtualize the whole dataset. It virtualizes the dataset *interface*, then improves that interface from accepted, evidence-backed work.
 
-**3.3 Crystallisation policy: automatic on validation pass?** Today the
-gate is mechanical and crystallisation fires on the first qualifying
-trajectory. The strands recommended a human endorsement step. Workspace-
-HEAD supersession lets a later commit overwrite an earlier one (you can
-correct a bad crystallisation by submitting a better one) but is not
-endorsement. **Should the gate require an explicit endorsement event
-before promoting `<baseDir>/lib/<tenant>/<name>.ts`?** This is the most
-load-bearing open question because the deflation-resistant reuse-rate
-story in the pitch depends on the answer.
+Two strands carry that claim into code: Voyage AI's code-mode data interface (br/01) provides the typed-namespace shape, and PySyft's force-intent-declaration model (br/11) provides the submission envelope that turns each accepted run into an addressable, dedupable unit. Everything else supplies validation, trims scope, or queues an open question.
 
-**3.4 Cross-tenant family-function promotion.**
-`MountHandle.on("family-promoted", ...)` is on the contract
-(`src/adapter/publishMount.ts:80-95`) but never fires. The "family
-functions" story in `kb/elevator.md:60-67` (three intents collapsing to
-one parameterised family) is design only. Open: when do we promote a
-function from a tenant overlay to a shared family? Who endorses? How does
-the typed signature widen?
+> Note on staleness (2026-06-04): several statements in the original (2026-05-07) version of this section have since been falsified by the ledger above. There is now an extensive `eval/` directory (SkillCraft, FinChain, productFlow, and the SaC `eval/harness/` library, all sibling dataset harnesses over one substrate). Pre-registered eval, variance bands, clustered bootstrap CI, McNemar NI, and three-baseline comparisons now exist (Era 3 P1; Era 4 PRE-REGISTRATION.md + score-cross-arm.ts). Benchmark work spans SkillCraft, FinChain, and CRAG. The notes below have been corrected where the ledger overrides them.
 
-**3.5 Drift detection on convergent shapes.** `MountHandle.on("drift",
-...)` is on the contract but never fires. Schema fingerprints are
-computed and persisted (`src/bootstrap/infer.ts`); nothing watches for
-fingerprint changes. br/04-apc named schema drift as the silent failure
-mode of plan caches; we have the same exposure. Open: what is the
-mechanism (Atlas Change Stream signal? polled diff?) and which learned
-interfaces are invalidated by what kind of change?
+### 1. Strands that landed
 
-**3.6 Lineage audit surface.** The `result/` directory exists
-(`lineage.json`, `validation.json`, `tests/replay.json`, `commits/NNN/`).
-The trajectory `<baseDir>/trajectories/<id>.json` exists. None are
-surfaced in a browseable way. There is no "who endorsed what, when, with
-what evidence" UI. Open: how does an auditor walk from a current
-`<baseDir>/lib/<tenant>/<name>.ts` file back through every commit that
-contributed to it?
+#### 1.1 Code-mode as the agent surface (br/01)
 
-**3.7 Trajectory redaction and size.** Trajectory JSON captures literal
-call inputs and outputs with no PII filter, no token redaction, no size
-cap. `Provenance.pins: Record<string, string>` exists in the type
-(content-addressable pins) and is always defaulted to `{}`. Open: what is
-the redaction policy when these trajectories are the audit log of an
-enterprise-tenanted system? Pins are the natural seam.
+**Contribution.** Cloudflare's Code Mode pattern, via br/01, supplied the design move everything rests on: expose the corpus as a typed TypeScript namespace, not a tool catalog. The agent reads `df.db.<mount>.<coll>` declarations as types it has seen millions of times in training, writes a snippet that chains calls inside a sandbox, and only the final result returns to its context. Voyage's API was the example used to show why a 4-verb surface is ideal for wrapping; the lesson absorbed was the wrapping shape, not the Voyage stack.
 
-**3.8 Codifier-skill fallback in production.** When `generatePureSource()`
-returns null, `authorFunction()` falls back to dispatching the
-`finqa_codify_table_function` skill via Flue. Open: does this ever fire
-in practice? If no, the dependency on Flue for crystallisation can be
-removed and crystallisation becomes LLM-free end-to-end (a stronger
-story).
+**Where it shows up.**
+- `src/server/manifest.ts` writes `<baseDir>/df.d.ts`, the manifest the agent sees. Library entries split into "Learned Interfaces" (frontmatter present) and "Primitives"; mounts surface as typed `db.<ident>: CollectionHandle` declarations; JSDoc carries description and `@example`. (Now also renders an additive, dataset-neutral `df.tool.*` block, Era 4 Phase-2 #4.)
+- `src/sdk/adapter.ts` — the four-method retrieval contract on `CollectionHandle<T>` (`findExact`, `search`, `findSimilar`, `hybrid`).
+- `src/snippet/dfBinding.ts` — `buildDf()` constructs the `df` global and injects it onto `globalThis` before `await import(<file>)`. Every nested call accumulates cost and trajectory records on the shared `DispatchContext`.
+
+**Adopted.** The typed-namespace shape; the single-snippet entry point (`POST /v1/snippets`); the discipline that intermediate retrieval results never enter the model's context.
+
+**Adapted.** Cloudflare uses V8 isolates and `runCode(snippet)` as a single tool. We use `npx tsx` against a workspace folder, with `Bash(...)` as the agent's only verb (per the bash-only stance from br/12). Same semantic endpoint; the substrate is plain Node and `just-bash`'s in-memory filesystem.
+
+**Rejected.** Voyage itself, despite being the canonical example in br/01. `AtlasMountAdapter.capabilities()` returns `vector:false`. No Voyage SDK in `package.json`. We adopted the wrapping pattern, not the retrieval stack.
+
+#### 1.2 Force-intent-declaration (br/11)
+
+**Contribution.** PySyft's `@sy.syft_function` decorator forces a remote actor to declare intent before it can run. The submission envelope captures `raw_code`, `signature`, `input_policy`, `output_policy`, and a `code_hash`; the runtime refuses to execute anything that did not arrive through it. The structural argument: the envelope itself, not a separate index, should be the addressable, dedupable, reusable unit.
+
+**Where it shows up.**
+- `src/sdk/fn.ts` — the `fn({intent, examples, input, output, body})` factory. Every learned interface in `<baseDir>/lib/<tenant>/<name>.ts` is a `fn({...})` call.
+- `src/snippet/library.ts` — `DiskLibraryResolver` is the only path by which a learned interface gets reached; snippets that bypass the envelope cannot reuse anything.
+- `src/observer/template.ts` — `shapeHash` (FNV-1a 32-bit hex over the canonical step list, primitives plus sorted field-binding kinds, NOT literal values) is the dedup key. PySyft hashes literal source; we hash the call shape, so two trajectories differing only in arguments collapse to one interface.
+- `src/snippet/answer.ts` — `validateAnswerEnvelope()` enforces the commit contract (`structuredAnswer`, `valuePresent`, `evidencePresent`, `derivationVisible`, `lineagePresent`, `noDefaultZeroFallback`). PySyft's policy is "the body cannot read an unbound asset"; ours is "the commit cannot crystallise without a sealed `df.answer(...)` envelope." (Era 4 added `answerEquals()` tolerance so the gate is dataset-neutral across numeric/boolean/string/array shapes, not numeric-only.)
+
+**Adopted.** The submission envelope as the addressable unit; the runtime-enforced refusal to execute outside it.
+
+**Adapted.** The `fn` envelope adds `intent` and `examples` explicitly because the discovery surface (br/12) uses them; PySyft has no description, intent text, or examples on its `UserCode` record.
+
+**Rejected.** PySyft's `InputPolicy` / `OutputPolicy` runtime classes and the per-call data-owner approval gate. The privacy-preserving machinery is irrelevant to the hackathon scope.
+
+#### 1.3 Agent Workflow Memory and Stanford APC (br/04, br/05)
+
+**Contribution.** Both validate the central thesis (reusable workflows induced from successful runs cut cost on similar tasks) but did not contribute new architecture; they confirmed direction. AWM (br/05) gave the loop name "induce, integrate, utilize." Stanford APC (br/04) supplied the keyword-exact-match-beats-semantic-similarity finding (56µs vs 148ms at 10^6 entries) and the cost-asymmetry argument (small LM on hit, large LM on miss).
+
+**Where it shows up.** The observe-on-save loop in `src/observer/worker.ts` and `src/observer/gate.ts` mirrors AWM's induce-integrate-utilize. `src/observer/template.ts`'s `shapeHash` plays the same role as APC's keyword-extraction: a fast, structural, LLM-free dedup primitive. `src/observer/author.ts`'s `generatePureSource()` (plus the Era 4 universal `authorFromSource.ts` / `renderFromAgentSource`) is the analogue of AWM's single-prompt induction, except it rewalks the typed call list deterministically rather than asking an LM to summarise.
+
+**Adopted.** The loop, the shape-hash as the LLM-free lookup primitive, the discipline that successful trajectories are themselves valid workflows.
+
+**Adapted.** AWM stores workflows in prompt context; we store them on disk as typed TS files. APC keys its cache by an LLM-extracted keyword; we key by `shapeHash`, no LLM in the lookup path.
+
+**Rejected (with updates).** AWM's quality metrics (function overlap, coverage, utility rate) are not wired into the substrate. APC's auto-disable-on-low-reuse and cache-size-knee guardrails are not implemented. The MVP collapses N>=3 convergent trajectories to N=1 (every qualifying trajectory crystallises immediately). **Note:** APC's named silent-failure mode (schema drift invalidating plan caches) is now partially addressed — Era 4 built a $0 drift injector and proved the governance gate is drift-sensitive (PROMOTE at 0.5%, DECLINE at 4.76%/42.86%), the necessary condition for the C4 governance-under-staleness track.
+
+#### 1.4 Flue as the agent harness (br/07)
+
+**Contribution.** Flue is a small wrapper around Pi (`@mariozechner/pi-coding-agent`) that ships a `SandboxApi` integration contract, MCP runtime adapters, and a multi-provider model registry. The strand's bottom line: "adopt Flue rather than wiring Pi directly."
+
+**Where it shows up.**
+- `src/flue/session.ts` — `FlueSessionPool` constructs a per-tenant `FlueAgent` via `@flue/sdk/internal`'s `createFlueContext`. This is the data plane's credential boundary (the only file that reads `ANTHROPIC_API_KEY` and Codex OAuth token paths).
+- `src/flue/dispatcher.ts` — `FlueBodyDispatcher`. Both `llm({...})` and `agent({skill})` bodies route through the same `runFlueCall` helper. (Era 1 unified these two body shapes under one `agent` dispatch.)
+
+**Adopted.** Flue as a library; the session-per-tenant pool; the provider abstraction giving OpenAI Codex / Anthropic / Bedrock plug-and-play (the eval eras swapped backends freely: gpt-5.4-mini, codex gpt-5.3-codex-spark, claude-sonnet-4-6).
+
+**Adapted.** br/07 anticipated `flue build --target node`. We did not; we use Flue's `internal` entrypoint inside our own Hono server (`src/server/server.ts`). No `.flue/agents/` directory, no `flue build`.
+
+**Rejected.** br/07's `bashFactoryToSessionEnv` integration where Flue drives the bash sandbox. We use `just-bash` directly via `BashSession`.
+
+#### 1.5 documentdbfuse and the DB-as-FS trend (br/03)
+
+**Contribution.** Mainly a negative one: it framed three design decisions as deltas worth defending. Read-only `db/` (sidesteps documentdbfuse's `echo > existing.json` ENOTSUP bug class), NFS-not-FUSE, typed-TS-with-fingerprint (raw JSON forces field-name guessing).
+
+**Where it shows up.**
+- `src/bash/fs/readOnly.ts` wraps an `IFileSystem`, rejects writes/mkdir/rm with `EROFS`. `/db/<mountId>/` is mounted via this wrapper.
+- `src/adapter/atlas/AtlasMountAdapter.ts` is read-only; every retrieval method is a read.
+- `src/bootstrap/infer.ts` emits a deterministic `sha256` fingerprint over the canonical sorted descriptor.
+
+**Adopted.** The framing (DB-as-FS for agents is recognised), read-only-by-default, schema-fingerprint as a first-class persisted artefact.
+
+**Adapted.** documentdbfuse's path-segment aggregation DSL becomes our typed methods on `CollectionHandle<T>`. Both surface a query language; the verbs differ.
+
+**Rejected.** The actual NFS / FUSE mount. The shipped MVP has no kernel-level mount; files at `<baseDir>/mounts/<mountId>/` are written to local disk, not virtualized. We virtualize the *interface*, not the bytes.
+
+#### 1.6 Browser-harness and agent-edits-its-own-helpers (br/12)
+
+**Contribution.** br/12 is the clearest production reference for the two-zone separation we committed to: small protected core, writable seam where the agent extends its own action space, two-tier library. The strand also surfaced "The Bitter Lesson of Agent Harnesses" essay's argument that the harness should let the agent write the missing function.
+
+**Where it shows up.**
+- `src/bash/session.ts` and `src/bash/fs/` — the two-zone separation. `/db/` is read-only over `MountReader`; `/lib/<tenant>/` is the writable overlay in an `InMemoryFs` that flushes to disk before every snippet (`flushLib()`).
+- `src/observer/author.ts` — `generatePureSource()` is the load-bearing authoring path; it rewalks the trajectory's call sequence and emits a `fn({...})` file ("the agent isn't writing new code from first principles; it's writing the one function that was missing"). Era 4 generalised this to a universal `renderFromAgentSource` over ANY accepted trajectory shape.
+- `src/discovery/librarySearch.ts` — a five-bucket BM25-flavoured scorer over name, intent, description, examples, and source-head tokens. br/12 warned against regressing to a hostname-prefix matcher; we have not. (Era 3 P2 confirmed this progressive-disclosure discovery surface works: warm episodes rediscover an unnamed helper via df.d.ts/apropos/man.)
+- The bash-only allowlist in `README.md`: the agent gets `Bash(datafetch *) Bash(cat *) Bash(ls *) Bash(jq *)`, no tool catalog.
+
+**Adopted.** The two-zone separation; the writable seam; bash-only allowlist; the discipline that the agent extends `/lib/<tenant>/` by writing files (whether by hand or via the observer). The VFS hook registry (Era 2) added the typed maturity ladder (observed -> draft -> candidate -> validated -> provider-native) plus callability governance on top.
+
+**Adapted.** br/12 noted the stub-as-slot pattern (empty markdown files declaring what the agent should learn). We have not done this; the manifest could pre-allocate empty typed-module stubs.
+
+**Rejected.** Browser-harness's prose-plus-Python skill files. Our learned interfaces are TypeScript with valibot schemas plus YAML frontmatter.
+
+### 2. Strands explored but not landed
+
+**Voyage AI as the retrieval stack (br/01, partial).** br/01's wrapping pattern landed; its embedding/reranking stack did not. `vector:false` adapter, `findSimilar`/`hybrid` delegate to `search`. The strand stays valuable as a queue of upgrades.
+
+**The compiled tier and `$rankFusion` (br/02, br/04-apc).** The contract is in the codebase (`MountAdapter.runCompiled`, `CostTier=1` reserved, `capabilities().compile=true`) but no production code emits or consumes it. `runCompiled` throws "not implemented in MVP." Tier 2 (substrate or pure TS), tier 3 (LLM), and tier 4 (novel) ship; tier 1 (compiled) and tier 0 are vacant.
+
+**Filesystem virtualization, FUSE / NFS (br/03, br/12).** br/03's design recommendations (`--ls-limit`, `.count` virtual file, three-format export) all assumed an actual kernel mount. We virtualize the *interface* (the typed `df.*` namespace), not the *bytes*. The closest thing to a mount is the in-memory `MountableFs` inside `BashSession`.
+
+**SkillCraft / ASI Coding Verifier (br/04-skillcraft).** UPDATE: SkillCraft is no longer absent — it is the home benchmark for Eras 2-4 (full-126 harness, the Goal 1 hill-climb to 94.4%, the Goal 2 learning-loop wiring, the iter164 MET, and the SaC PoC). The proposed 50%-null post-execution quality check shipped as the `LOW_QUALITY_VALUES` heuristic on `df.answer()` (Era 2 iter2). Exec-Rate / Reusing-Rate are subsumed by the richer Goal-2 metric rollups (avgReuseRate, avgLearnedInterfacesAvailable/Created) and the SaC 7-arm ledger.
+
+**Multi-tenant divergence demo (br/02 Dimension 1, br/04-apc per-tenant L_n).** The plumbing exists (`tests/observer-multi-tenant.test.ts`) but the shipped demo is single-tenant; no two-pane file-tree visualization. (Per-tenant lib-caches are exercised throughout the eval eras as family-scoped lib-caches.)
+
+**Pre-registered eval, variance bands, three-baseline comparison.** UPDATE: this is no longer absent. There is now an extensive `eval/` directory; Era 3 P1 ran a matched-arm paired comparison with McNemar NI and paired-t; Era 4 froze a pre-registration (PRE-REGISTRATION.md) with clustered bootstrap CI, full-weight + dollar token ledgers, an outcome-neutral scorer (`score-cross-arm.ts`, exits only on invariant violations), and a sealed tamper-evident run-manifest. The original cost panel (`printCostPanel`) remains anecdotal, but it is no longer the only eval surface.
+
+**User endorsement / human review loop.** br/02, br/04-skillcraft, and the original `kb/elevator.md` argued for it (motivated by *Library Learning Doesn't*, Berlot-Attwell). The shipped MVP has no human endorsement; `validateAnswerEnvelope` is automated and crystallisation fires on the first qualifying trajectory. Workspace-HEAD supersession lets a later commit overwrite an earlier one with the same shape hash, but supersession is not endorsement. (The VFS maturity ladder + governance gate are the closest mechanical analog; see open question 3.3 below.)
+
+**AgentFS as the VFS engine.** br/02 and the queued br/52 recommended Turso AgentFS. We adopted `just-bash` instead; AgentFS's `OverlayFS` CoW semantics map to our writable-seam model, but an in-memory `MountableFs` plus mtime-tracked `flushLib()` does enough for the MVP.
+
+### 3. Open questions
+
+**3.1 Legacy plan/execute vs intent workspace.** The codebase ships two flows: the legacy `plan` / `execute` phased verbs and the intent-workspace flow (`datafetch mount` + `run` + `commit`). Both go through `POST /v1/snippets`; both can crystallise. The intent-workspace flow is what the pitch describes; the older surface remains and is exercised by `tests/cli-plan-execute.test.ts`. Open: does the intent workspace fully replace plan/execute, or do they coexist?
+
+**3.2 `datafetch agent` and `datafetch connect` status.** `datafetch agent` is an in-process bash REPL that does NOT go through HTTP, and `datafetch connect` is described in code as a "debug helper, not the real session-create path." The real path is `datafetch session new` through `POST /v1/connect`. Open: are these shipping verbs or scaffolds?
+
+**3.3 Crystallisation policy: automatic on validation pass?** Today the gate is mechanical and crystallisation fires on the first qualifying trajectory. The strands recommended a human endorsement step. Workspace-HEAD supersession lets a later commit overwrite an earlier one but is not endorsement. **Should the gate require an explicit endorsement event before promoting `<baseDir>/lib/<tenant>/<name>.ts`?** Still the most load-bearing open question. PARTIAL UPDATE: Era 2 proved the *exposure* policy that governs whether a promoted helper is callable (hooks-draft = callable-with-fallback is the correct default; over-strict candidate-only/validated-only quarantine ~80+ hooks and collapse pass to 16.7%), and Era 4 made the *governance* gate dataset-neutral and drift-sensitive. But human endorsement vs automatic promotion remains undecided, and the shipped default (`hooks-candidate-only`) actually gates reuse off — the reuse half is mode-gated, see "Where we are vs the thesis."
+
+**3.4 Cross-tenant family-function promotion.** `MountHandle.on("family-promoted", ...)` is on the contract but never fires. The "family functions" story (three intents collapsing to one parameterised family) is design only. PARTIAL UPDATE: the eval eras run family-scoped lib-caches (a learned helper is hydrated for later episodes in the same family, e.g. tvmaze-series-analyzer/scPerEntity reaching m2/h1), which is the within-family form of this; cross-*tenant* promotion and signature widening remain unbuilt.
+
+**3.5 Drift detection on convergent shapes.** `MountHandle.on("drift", ...)` is on the contract but never fires from Atlas change streams. Schema fingerprints are computed and persisted; nothing watches for fingerprint changes in production. RESOLVED (mechanism, partial): Era 4 built a $0 drift injector (`driftInjector.ts`) and proved the governance gate is drift-sensitive on crafted probes (PROMOTE at 0.5%, DECLINE at 4.76%/42.86%) — the C4 governance-under-staleness track is the live test of this, but the live CRAG runner that would exercise drift between phases is not yet built, and the gate passed 0/22 live applications in the one real run.
+
+**3.6 Lineage audit surface.** The `result/` directory exists (`lineage.json`, `validation.json`, `tests/replay.json`, `commits/NNN/`) and trajectory JSON exists, but none are surfaced browseably. There is no "who endorsed what, when, with what evidence" UI. (Era 4 added a sealed, tamper-evident run-manifest for *eval* runs — prereg/config/runner/scorer SHAs + git HEAD — which is the audit primitive for the experiment harness, not yet for the production lineage walk.) Open: how does an auditor walk from a current `<baseDir>/lib/<tenant>/<name>.ts` file back through every contributing commit?
+
+**3.7 Trajectory redaction and size.** Trajectory JSON captures literal call inputs/outputs with no PII filter, no token redaction, no size cap. `Provenance.pins: Record<string, string>` exists (content-addressable pins) but is always defaulted to `{}`. Open: what is the redaction policy when these trajectories are the audit log of an enterprise-tenanted system? Pins are the natural seam.
+
+**3.8 Codifier-skill fallback in production.** When `generatePureSource()` returns null, `authorFunction()` falls back to dispatching the `finqa_codify_table_function` skill via Flue. Open: does this ever fire in practice? If no, the Flue dependency for crystallisation can be removed and crystallisation becomes LLM-free end-to-end. PARTIAL UPDATE: Era 4's universal `authorFromSource` deterministic path widens the LLM-free authoring envelope (turns any accepted trajectory into a typed helper without an LM), and Phase-2 #3 relocated the FinQA-specific codegen out of the observer into a dataset-neutral `specializationRegistry` — narrowing how often the Flue codifier fallback could fire, though it is not yet removed.
 
 ---
 
 ## Provenance summary
 
-The strand that contributed the most: **br/01 code-mode-data-interface
-plus br/11 force-intent-declaration, taken together.** They are the two
-halves of the load-bearing claim (interface, not dataset). The typed
-namespace gives the agent a surface; the submission envelope gives the
-system an addressable, dedupable, reusable unit. Everything else is
-plumbing or validation around that joint.
+The strand that contributed the most: **br/01 code-mode-data-interface plus br/11 force-intent-declaration, taken together.** They are the two halves of the load-bearing claim (interface, not dataset). The typed namespace gives the agent a surface; the submission envelope gives the system an addressable, dedupable, reusable unit. Everything else is plumbing or validation around that joint — and the ledger above shows that joint working end-to-end (the cold->warm crystallisation loop is proven), while the *value* it is supposed to unlock (cheaper, persistent, governed reuse beating inline rewrite) is the part still being adjudicated.
 
-The strand most surprisingly absent from the code: **br/01's Voyage
-retrieval stack.** The wrapping pattern landed; the substance under the
-wrapping (Voyage embeddings, reranking, multimodal) did not. We ship a
-`vector:false` adapter and lex-only `$search` against Atlas. Every
-retrieval upgrade the strand recommended is queued, none implemented.
+The strand most surprisingly absent from the code: **br/01's Voyage retrieval stack.** The wrapping pattern landed; the substance under it (Voyage embeddings, reranking, multimodal) did not. We ship a `vector:false` adapter and lex-only `$search` against Atlas. Every retrieval upgrade the strand recommended is queued, none implemented.
 
-The most load-bearing open question: **3.3, the crystallisation policy.**
-The pitch's reuse-rate story depends on the answer. Automatic
-crystallisation is faster to demo but exposed to the *Library Learning
-Doesn't* deflation; required endorsement makes the pitch language ("user-
-endorsed crystallisation") honest but needs a UI we have not built.
+The most load-bearing open question: **3.3, the crystallisation policy** — now sharpened by the eval eras into a concrete tension. The *exposure* policy is settled (hooks-draft is the right callable-with-fallback default), the *governance* gate is dataset-neutral and drift-sensitive, but the shipped `hooks-candidate-only` default still gates reuse off, and human endorsement vs automatic promotion is undecided. The pitch's reuse-and-amortisation story depends on resolving this together with the four unproven value claims (C4/C2/C5/C8) under a live paired run — see "Where we are vs the thesis."
+
+---
+
+## Ledger verification (2026-06-04)
+
+Independent audit of this document against ground truth: `git` history (cross-checked via `git show -s`), the on-disk eval artifacts it cites, and `experiments/episodes/03-sac-poc/ASSESSMENT-2026-06-04.md`. Findings against the five audit dimensions:
+
+**(a) Four eras present and chronological — PASS.** All four era headers carry contiguous, non-overlapping windows in strict order: Era 1 `2026-05-02 .. 2026-05-08`, Era 2 `2026-05-11 .. 2026-05-13`, Era 3 `2026-05-17 .. 2026-05-20`, Era 4 `2026-06-02 .. 2026-06-04`. Within each era the dated rows are oldest-first. No gaps invert the timeline (the 05-08→05-11 and 05-20→06-02 jumps are real quiet periods, not omissions).
+
+**(b) Dates are real — PASS.** Spot-checked 25 cited hashes against `git show -s --format='%ad %s' --date=short`; every one resolves and its commit date and subject match the ledger row. Sampled across all four eras: `4bcb6e2f0` (05-02 research-phase), `d613aed91` (05-02 Atlas Search), `8127aa621` (05-04 Plan 004 Bash MVP), `893369ca5` (05-06 intent workspace commit), `9c3a23644`/`f7b4a7236`/`a76e8c651` (05-11), `219c0925e` (05-13), `880831774`/`b25bfa5d2` (05-17), `14dd4b715`/`d7d209cec`/`1baa8a1aa`/`bdd3ddff7` (05-19), `a26d84647`/`bfce8bd60` (06-02), `bdb0ac18e`/`41e3eb77c`/`0665d5a27`/`d08310f6e`/`c54a1d7c9`/`2703f82f3`/`3e89be8dd` (06-03), `f69d2a0ae`/`5f8afbd5f`/`85315d061`/`aa9b72151` (06-04). One row-date nuance, not an error: the iter4 row is dated `2026-05-12` (the day the full-126 result was committed, `7e672f2c3`) while also citing the substrate fix `a76e8c651` from 05-11 — the fix landed 05-11, the measured result 05-12; internally consistent.
+
+**(c) Fabricated results/evidence — NONE FOUND.** The headline falsification numbers are recompute-grounded in the raw artifact `eval/skillcraft/results/sac-poc/confirm-k5-pokeapi-h1x/score.json`: M\*=`Infinity`, full-weight denom `-66520.8`, fresh+output `-97.4`, dollar `-6739.7`, `rowCount 210`, `nMatched 1`/`nClusters 1` (degenerate CI), `claimUpheld false`, and the correctness McNemar `b=0 c=2 p=0.5` (arm4_vs_arm1) and `b=0 c=0 p=null` (arm2_vs_arm1, the 0pp single-session null) all match the prose byte-for-byte. The Run-1 INVALID entry's `-1121.6` denominator also matches `confirm-k5/score.json`. Spot-checked cited evidence paths all exist on disk: `goal4-p1-paired-comparison-20260517.md`, `eval/productFlow/results/p2-defensive-evidence-20260517`, `eval/finchain/configs/paper-baseline.json`, `artifacts/agent-loop/20260506T185934Z`, `experiments/episodes/03-sac-poc/{PHASE-1-FINDINGS.md,PRE-REGISTRATION.md,ceiling-probe/CEILING-PROBE.md}`, and the real 5,164,388,176-byte (5.16GB) CRAG `dev_v4` corpus.
+
+**(d) "Where we are" verdict consistent with ASSESSMENT-2026-06-04 — PASS.** The four-tier framing (PROVEN end-to-end / Mode-gated / FALSIFIED / UNPROVEN-zero-live-verdict) faithfully tracks the assessment. The falsified cross-session amortisation claim is reported as falsified and treated as a terminal PASS, with NO re-inflation — and the assessment's G1 power caveat (n=6 matched questions, one-cluster degenerate CI, McNemar p=0.5) is carried verbatim into the FALSIFIED paragraph rather than suppressed. The assessment's G2 counter-point (the committed `$0` ceiling probe REOPENS the cost island conditionally for deep+invocable helpers) is also carried, avoiding a one-sided read. All four value tracks (C4/C2/C5/C8) are correctly stated as mechanism-proven / endpoint-untested with zero live verdict and the shared unbuilt runner+widened-scorer blocker; the C4 0/16-reuse DONE-INVALIDATED risk is preserved. No overclaim of the unproven tracks was detected.
+
+**(e) Strand-provenance preserved and de-staled — PASS.** Diff against the committed version (HEAD `4c1200ada`-era, 221 insertions / 329 deletions) confirms all six strand subsections (1.1 Code-mode br/01 … 1.6 Browser-harness br/12), plus "Strands explored but not landed," "Open questions" (3.1–3.8), and "Provenance summary," are retained. They were demoted from top-level to `####`/`###` under a new `## Background-research provenance` parent, with an explicit 2026-06-04 staleness note and inline UPDATE / PARTIAL UPDATE / RESOLVED annotations correcting the originally-falsified "absent" claims (SkillCraft, pre-registered eval, drift detection). Content de-staled, not deleted or fabricated.
+
+**Trustworthiness verdict:** TRUSTWORTHY — every spot-checked date, hash, falsification figure, and cited artifact verifies against ground truth; the document reproduces the assessment's honest-negative posture (including its own low-power and counter-evidence caveats) without re-inflating the falsified amortisation claim or overclaiming the four unproven value tracks.

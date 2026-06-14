@@ -1,0 +1,198 @@
+{
+  "cap": 20000000,
+  "spent": 2084595,
+  "sessions": [
+    {
+      "session": "m1-otc-0001-p1-t1",
+      "phase": "m1",
+      "tokens": 65051,
+      "turns": 4
+    },
+    {
+      "session": "m1-otc-0009-p1-t2",
+      "phase": "m1",
+      "tokens": 65007,
+      "turns": 4
+    },
+    {
+      "session": "m1-otc-0065-p2-t2",
+      "phase": "m1",
+      "tokens": 65053,
+      "turns": 4
+    },
+    {
+      "session": "m1-otc-0081-p2-t4",
+      "phase": "m1",
+      "tokens": 65042,
+      "turns": 4
+    },
+    {
+      "session": "m1-otc-0105-p3-t1",
+      "phase": "m1",
+      "tokens": 64703,
+      "turns": 4
+    },
+    {
+      "session": "m1-otc-0113-p3-t2",
+      "phase": "m1",
+      "tokens": 64749,
+      "turns": 4
+    },
+    {
+      "session": "m1-otc-0153-p4-t1",
+      "phase": "m1",
+      "tokens": 64788,
+      "turns": 4
+    },
+    {
+      "session": "m1-otc-0169-p4-t3",
+      "phase": "m1",
+      "tokens": 65123,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0006-p1-t1",
+      "phase": "m2",
+      "tokens": 65347,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0007-p1-t1",
+      "phase": "m2",
+      "tokens": 65346,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0008-p1-t1",
+      "phase": "m2",
+      "tokens": 65337,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0014-p1-t2",
+      "phase": "m2",
+      "tokens": 65325,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0015-p1-t2",
+      "phase": "m2",
+      "tokens": 65323,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0016-p1-t2",
+      "phase": "m2",
+      "tokens": 65246,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0070-p2-t2",
+      "phase": "m2",
+      "tokens": 65336,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0071-p2-t2",
+      "phase": "m2",
+      "tokens": 65312,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0072-p2-t2",
+      "phase": "m2",
+      "tokens": 65242,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0086-p2-t4",
+      "phase": "m2",
+      "tokens": 65335,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0087-p2-t4",
+      "phase": "m2",
+      "tokens": 65324,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0088-p2-t4",
+      "phase": "m2",
+      "tokens": 65239,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0110-p3-t1",
+      "phase": "m2",
+      "tokens": 65057,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0111-p3-t1",
+      "phase": "m2",
+      "tokens": 64980,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0112-p3-t1",
+      "phase": "m2",
+      "tokens": 65008,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0118-p3-t2",
+      "phase": "m2",
+      "tokens": 65012,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0119-p3-t2",
+      "phase": "m2",
+      "tokens": 65017,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0120-p3-t2",
+      "phase": "m2",
+      "tokens": 65011,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0158-p4-t1",
+      "phase": "m2",
+      "tokens": 65113,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0159-p4-t1",
+      "phase": "m2",
+      "tokens": 65051,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0160-p4-t1",
+      "phase": "m2",
+      "tokens": 65082,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0174-p4-t3",
+      "phase": "m2",
+      "tokens": 65377,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0175-p4-t3",
+      "phase": "m2",
+      "tokens": 65315,
+      "turns": 4
+    },
+    {
+      "session": "m2-otc-0176-p4-t3",
+      "phase": "m2",
+      "tokens": 65344,
+      "turns": 4
+    }
+  ]
+}

@@ -25,6 +25,10 @@ const BATCHES_ROOT = path.join(SNAPSHOT, "events", "v1", "batches");
 const MODEL = "claude-sonnet-4-6";
 const DRIVER_TIMEOUT_MS = 300_000;
 const SNIPPET_TIMEOUT_MS = 300_000;
+const SNIPPET_ARTIFACT_ARRAY_LIMIT = 20;
+const SNIPPET_ARTIFACT_OBJECT_LIMIT = 50;
+const SNIPPET_ARTIFACT_STRING_LIMIT = 4_000;
+const SNIPPET_ARTIFACT_DEPTH_LIMIT = 5;
 const FULL_CAP = 161_000_000;
 const REHEARSAL_CAP = 3_000_000;
 const PINNED_DRIVER_COMMAND =
@@ -537,17 +541,113 @@ function prepareAnswerSource(source: string): string {
   let body = stripCodeFence(source)
     .replace(/^\s*export\s*\{\s*\}\s*;?\s*$/gm, "")
     .replace(/^\s*export\s+default\s+/gm, "");
+  let appendedCall = "";
+  let returnedInlineIife = false;
   for (const name of ["main", "run", "solve"]) {
     const topLevelCall = new RegExp(String.raw`^\s*(?:void\s+)?${name}\s*\(\s*\)\s*;?\s*$`, "m");
     if (topLevelCall.test(body)) {
       body = body.replace(topLevelCall, "");
-      return `${body}\nreturn await ${name}();\n`;
+      appendedCall = `\nreturn await ${name}();\n`;
+      break;
     }
+  }
+  if (
+    !appendedCall &&
+    /^\s*;?\s*(?:void\s+)?\(\s*async\s*\(\s*\)\s*=>\s*\{/m.test(body) &&
+    /\}\s*\)\s*\(\s*\)\.catch\s*\([\s\S]*?\)\s*;?\s*$/.test(body)
+  ) {
+    body = body.replace(
+      /^\s*;?\s*(?:void\s+)?\(\s*async\s*\(\s*\)\s*=>\s*\{/m,
+      "return await (async () => {",
+    );
+    body = body.replace(/\}\s*\)\s*\(\s*\)\.catch\s*\([\s\S]*?\)\s*;?\s*$/, "})();\n");
+    returnedInlineIife = true;
+  }
+  if (
+    !appendedCall &&
+    /^\s*;?\s*(?:void\s+)?\(\s*async\s+function\s*\(/m.test(body) &&
+    /\}\s*\)\s*\(\s*\)\.catch\s*\([\s\S]*?\)\s*;?\s*$/.test(body)
+  ) {
+    body = body.replace(
+      /^\s*;?\s*(?:void\s+)?\(\s*async\s+function\s*\(/m,
+      "return await (async function(",
+    );
+    body = body.replace(/\}\s*\)\s*\(\s*\)\.catch\s*\([\s\S]*?\)\s*;?\s*$/, "})();\n");
+    returnedInlineIife = true;
+  }
+  if (
+    !appendedCall &&
+    /^\s*;?\s*(?:void\s+)?\(\s*async\s*\(\s*\)\s*=>\s*\{/m.test(body) &&
+    /\}\s*\)\s*\(\s*\)\s*;?\s*$/.test(body)
+  ) {
+    body = body.replace(
+      /^\s*;?\s*(?:void\s+)?\(\s*async\s*\(\s*\)\s*=>\s*\{/m,
+      "return await (async () => {",
+    );
+    returnedInlineIife = true;
+  }
+  if (
+    !appendedCall &&
+    !returnedInlineIife &&
+    /^\s*;?\s*(?:void\s+)?\(\s*async\s+function\s*\(/m.test(body) &&
+    /\}\s*\)\s*\(\s*\)\s*;?\s*$/.test(body)
+  ) {
+    body = body.replace(
+      /^\s*;?\s*(?:void\s+)?\(\s*async\s+function\s*\(/m,
+      "return await (async function(",
+    );
+    returnedInlineIife = true;
+  }
+  const namedAsyncIife = /^\s*;?\s*(?:void\s+)?\(\s*async\s+function\s+([A-Za-z_$][\w$]*)\s*\(/m.exec(body);
+  if (
+    !appendedCall &&
+    !returnedInlineIife &&
+    namedAsyncIife?.[1] &&
+    /\}\s*\)\s*\(\s*\)\s*;?\s*$/.test(body)
+  ) {
+    body = body.replace(
+      /^\s*;?\s*(?:void\s+)?\(\s*async\s+function\s+([A-Za-z_$][\w$]*)\s*\(/m,
+      "async function $1(",
+    );
+    body = body.replace(/\}\s*\)\s*\(\s*\)\s*;?\s*$/, "}\n");
+    appendedCall = `\nreturn await ${namedAsyncIife[1]}();\n`;
   }
   if (!/\breturn\s+df\.answer\s*\(/.test(body)) {
     body = body.replace(/\n\s*df\.answer\s*\(([\s\S]*?)\)\s*;?\s*$/, "\nreturn df.answer($1);\n");
   }
-  return body;
+  return `${answerEnvelopeSanitizerSource()}\n${body}${appendedCall}`;
+}
+
+function answerEnvelopeSanitizerSource(): string {
+  return `
+const __opentracesBoundAnswerField = (value: unknown, depth = 0, seen = new WeakSet<object>()): unknown => {
+  if (value === null || value === undefined) return value;
+  if (typeof value === "string") {
+    return value.length <= 4000 ? value : value.slice(0, 4000) + "... [truncated " + (value.length - 4000) + " chars]";
+  }
+  if (typeof value !== "object") return value;
+  if (seen.has(value)) return "[circular]";
+  if (depth >= 5) return "[truncated at depth 5]";
+  seen.add(value);
+  if (Array.isArray(value)) {
+    const sample = value.slice(0, 20).map((item) => __opentracesBoundAnswerField(item, depth + 1, seen));
+    return value.length <= 20 ? sample : { sample, truncatedItems: value.length - 20, totalItems: value.length };
+  }
+  const entries = Object.entries(value as Record<string, unknown>);
+  const out: Record<string, unknown> = {};
+  for (const [key, item] of entries.slice(0, 50)) out[key] = __opentracesBoundAnswerField(item, depth + 1, seen);
+  if (entries.length > 50) out.__truncatedKeys = entries.length - 50;
+  return out;
+};
+const __opentracesOriginalAnswer = df.answer.bind(df);
+df.answer = ((input: unknown) => {
+  if (!input || typeof input !== "object") return __opentracesOriginalAnswer(input);
+  const envelope = { ...(input as Record<string, unknown>) };
+  if ("evidence" in envelope) envelope.evidence = __opentracesBoundAnswerField(envelope.evidence);
+  if ("derivation" in envelope) envelope.derivation = __opentracesBoundAnswerField(envelope.derivation);
+  return __opentracesOriginalAnswer(envelope);
+}) as typeof df.answer;
+`.trim();
 }
 
 function transportError(driver: { stdout: string; stderr: string; exitCode: number }): string | null {
@@ -665,9 +765,49 @@ async function ensureAnswer(workspace: string, driver: DriverRun): Promise<strin
 
 function preview(value: unknown): string {
   if (value === undefined) return "(missing)";
-  const text = JSON.stringify(value);
-  if (!text) return String(value);
-  return text.length > 260 ? `${text.slice(0, 257)}...` : text;
+  try {
+    const text = JSON.stringify(value);
+    if (!text) return String(value);
+    return text.length > 260 ? `${text.slice(0, 257)}...` : text;
+  } catch (err) {
+    return `[unpreviewable: ${String(err)}]`;
+  }
+}
+
+function boundedSnippetArtifact(value: unknown, depth = 0, seen = new WeakSet<object>()): unknown {
+  if (value === null || value === undefined) return value;
+  if (typeof value === "string") {
+    if (value.length <= SNIPPET_ARTIFACT_STRING_LIMIT) return value;
+    return `${value.slice(0, SNIPPET_ARTIFACT_STRING_LIMIT)}... [truncated ${value.length - SNIPPET_ARTIFACT_STRING_LIMIT} chars]`;
+  }
+  if (typeof value !== "object") return value;
+  if (seen.has(value)) return "[circular]";
+  if (depth >= SNIPPET_ARTIFACT_DEPTH_LIMIT) return `[truncated at depth ${SNIPPET_ARTIFACT_DEPTH_LIMIT}]`;
+  seen.add(value);
+  if (Array.isArray(value)) {
+    const sample = value
+      .slice(0, SNIPPET_ARTIFACT_ARRAY_LIMIT)
+      .map((item) => boundedSnippetArtifact(item, depth + 1, seen));
+    if (value.length <= SNIPPET_ARTIFACT_ARRAY_LIMIT) return sample;
+    return { sample, truncatedItems: value.length - SNIPPET_ARTIFACT_ARRAY_LIMIT, totalItems: value.length };
+  }
+  const entries = Object.entries(value as Record<string, unknown>);
+  const limited = entries.slice(0, SNIPPET_ARTIFACT_OBJECT_LIMIT);
+  const out: Record<string, unknown> = {};
+  for (const [key, item] of limited) out[key] = boundedSnippetArtifact(item, depth + 1, seen);
+  if (entries.length > SNIPPET_ARTIFACT_OBJECT_LIMIT) {
+    out.__truncatedKeys = entries.length - SNIPPET_ARTIFACT_OBJECT_LIMIT;
+  }
+  return out;
+}
+
+async function writeSnippetResultArtifact(file: string, snippet: unknown): Promise<void> {
+  const artifact = {
+    status: "bounded",
+    note: "Bounded diagnostic artifact; grading and normalized rows use the in-memory snippet result.",
+    value: boundedSnippetArtifact(snippet),
+  };
+  await fsp.writeFile(file, `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
 }
 
 function markdownCell(value: string): string {
@@ -823,7 +963,7 @@ async function runEpisode(
     correct = snippet.grade?.correct ?? null;
     gradeReason = snippet.grade?.reason ?? null;
     error = snippet.error;
-    await fsp.writeFile(path.join(sessionDir, "snippet-result.json"), JSON.stringify(snippet.snippet, null, 2) + "\n", "utf8");
+    await writeSnippetResultArtifact(path.join(sessionDir, "snippet-result.json"), snippet.snippet);
     await fsp.writeFile(path.join(sessionDir, "correct-vs-gold.json"), JSON.stringify({
       correct,
       grade: snippet.grade,

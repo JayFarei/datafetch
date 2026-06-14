@@ -1,0 +1,2 @@
+command: pnpm exec tsc -p eval/opentraces/curated/tsconfig.json --noEmit --pretty false
+result: pass

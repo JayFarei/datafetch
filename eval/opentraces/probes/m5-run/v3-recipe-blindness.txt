@@ -1,0 +1,6 @@
+# V3 recipe blindness
+
+Command: grep -R -n -E 'templateId|template_id|row_id|otc-0|P1-T|P2-T|P3-T|P4-T|solvers/|pack_spec|pack\.jsonl' eval/opentraces/probes/m5-run/armR-recipe.txt
+Recipe chars: 302
+Result: zero hits
+

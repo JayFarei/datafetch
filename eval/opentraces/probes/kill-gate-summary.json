@@ -1,0 +1,473 @@
+{
+  "phase": "m2",
+  "generated_at": "2026-06-10T22:04:39.843Z",
+  "m1": {
+    "table": [
+      {
+        "session": "m1-otc-0001-p1-t1",
+        "persona": "P1",
+        "template": "P1-T1",
+        "crystallised": true,
+        "callable_after_replay": true,
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0001-p1-t1/datafetch-home/trajectories/traj_20260610215511_mtcs9e.json",
+        "observer_outcome": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0001-p1-t1/observer-outcome.json",
+        "lib": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0001-p1-t1/datafetch-home/lib/opentraces-arms",
+        "hooks": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0001-p1-t1/datafetch-home/hooks/opentraces-arms"
+      },
+      {
+        "session": "m1-otc-0009-p1-t2",
+        "persona": "P1",
+        "template": "P1-T2",
+        "crystallised": true,
+        "callable_after_replay": true,
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0009-p1-t2/datafetch-home/trajectories/traj_20260610215521_l179w9.json",
+        "observer_outcome": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0009-p1-t2/observer-outcome.json",
+        "lib": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0009-p1-t2/datafetch-home/lib/opentraces-arms",
+        "hooks": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0009-p1-t2/datafetch-home/hooks/opentraces-arms"
+      },
+      {
+        "session": "m1-otc-0065-p2-t2",
+        "persona": "P2",
+        "template": "P2-T2",
+        "crystallised": true,
+        "callable_after_replay": true,
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0065-p2-t2/datafetch-home/trajectories/traj_20260610215533_jn1lz5.json",
+        "observer_outcome": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0065-p2-t2/observer-outcome.json",
+        "lib": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0065-p2-t2/datafetch-home/lib/opentraces-arms",
+        "hooks": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0065-p2-t2/datafetch-home/hooks/opentraces-arms"
+      },
+      {
+        "session": "m1-otc-0081-p2-t4",
+        "persona": "P2",
+        "template": "P2-T4",
+        "crystallised": true,
+        "callable_after_replay": true,
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0081-p2-t4/datafetch-home/trajectories/traj_20260610215544_ryu4rc.json",
+        "observer_outcome": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0081-p2-t4/observer-outcome.json",
+        "lib": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0081-p2-t4/datafetch-home/lib/opentraces-arms",
+        "hooks": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0081-p2-t4/datafetch-home/hooks/opentraces-arms"
+      },
+      {
+        "session": "m1-otc-0105-p3-t1",
+        "persona": "P3",
+        "template": "P3-T1",
+        "crystallised": true,
+        "callable_after_replay": true,
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0105-p3-t1/datafetch-home/trajectories/traj_20260610215600_6gviik.json",
+        "observer_outcome": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0105-p3-t1/observer-outcome.json",
+        "lib": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0105-p3-t1/datafetch-home/lib/opentraces-arms",
+        "hooks": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0105-p3-t1/datafetch-home/hooks/opentraces-arms"
+      },
+      {
+        "session": "m1-otc-0113-p3-t2",
+        "persona": "P3",
+        "template": "P3-T2",
+        "crystallised": true,
+        "callable_after_replay": true,
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0113-p3-t2/datafetch-home/trajectories/traj_20260610215611_gnzxqw.json",
+        "observer_outcome": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0113-p3-t2/observer-outcome.json",
+        "lib": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0113-p3-t2/datafetch-home/lib/opentraces-arms",
+        "hooks": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0113-p3-t2/datafetch-home/hooks/opentraces-arms"
+      },
+      {
+        "session": "m1-otc-0153-p4-t1",
+        "persona": "P4",
+        "template": "P4-T1",
+        "crystallised": true,
+        "callable_after_replay": true,
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0153-p4-t1/datafetch-home/trajectories/traj_20260610215622_n3ssl0.json",
+        "observer_outcome": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0153-p4-t1/observer-outcome.json",
+        "lib": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0153-p4-t1/datafetch-home/lib/opentraces-arms",
+        "hooks": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0153-p4-t1/datafetch-home/hooks/opentraces-arms"
+      },
+      {
+        "session": "m1-otc-0169-p4-t3",
+        "persona": "P4",
+        "template": "P4-T3",
+        "crystallised": true,
+        "callable_after_replay": true,
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0169-p4-t3/datafetch-home/trajectories/traj_20260610215632_6wrzg4.json",
+        "observer_outcome": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0169-p4-t3/observer-outcome.json",
+        "lib": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0169-p4-t3/datafetch-home/lib/opentraces-arms",
+        "hooks": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m1-runs/m1-otc-0169-p4-t3/datafetch-home/hooks/opentraces-arms"
+      }
+    ],
+    "helper_crystallised_count": 8,
+    "callable_after_replay_count": 8,
+    "criteria_satisfied": true
+  },
+  "m2": {
+    "table": [
+      {
+        "task": "m2-otc-0006-p1-t1",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0006-p1-t1/datafetch-home/trajectories/traj_20260610215958_1tkue1.json"
+      },
+      {
+        "task": "m2-otc-0007-p1-t1",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0007-p1-t1/datafetch-home/trajectories/traj_20260610220010_ecu0gs.json"
+      },
+      {
+        "task": "m2-otc-0008-p1-t1",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0008-p1-t1/datafetch-home/trajectories/traj_20260610220023_y4imvo.json"
+      },
+      {
+        "task": "m2-otc-0014-p1-t2",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0014-p1-t2/datafetch-home/trajectories/traj_20260610220034_r06hbl.json"
+      },
+      {
+        "task": "m2-otc-0015-p1-t2",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0015-p1-t2/datafetch-home/trajectories/traj_20260610220046_gstoyf.json"
+      },
+      {
+        "task": "m2-otc-0016-p1-t2",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0016-p1-t2/datafetch-home/trajectories/traj_20260610220058_651l0k.json"
+      },
+      {
+        "task": "m2-otc-0070-p2-t2",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0070-p2-t2/datafetch-home/trajectories/traj_20260610220109_q60fh1.json"
+      },
+      {
+        "task": "m2-otc-0071-p2-t2",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0071-p2-t2/datafetch-home/trajectories/traj_20260610220121_nz7cca.json"
+      },
+      {
+        "task": "m2-otc-0072-p2-t2",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0072-p2-t2/datafetch-home/trajectories/traj_20260610220133_iwf2gc.json"
+      },
+      {
+        "task": "m2-otc-0086-p2-t4",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0086-p2-t4/datafetch-home/trajectories/traj_20260610220144_ajkr4h.json"
+      },
+      {
+        "task": "m2-otc-0087-p2-t4",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0087-p2-t4/datafetch-home/trajectories/traj_20260610220157_oft6mz.json"
+      },
+      {
+        "task": "m2-otc-0088-p2-t4",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0088-p2-t4/datafetch-home/trajectories/traj_20260610220212_3whnwz.json"
+      },
+      {
+        "task": "m2-otc-0110-p3-t1",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0110-p3-t1/datafetch-home/trajectories/traj_20260610220224_gebdab.json"
+      },
+      {
+        "task": "m2-otc-0111-p3-t1",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0111-p3-t1/datafetch-home/trajectories/traj_20260610220237_6rcvhy.json"
+      },
+      {
+        "task": "m2-otc-0112-p3-t1",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0112-p3-t1/datafetch-home/trajectories/traj_20260610220248_qtqs1w.json"
+      },
+      {
+        "task": "m2-otc-0118-p3-t2",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0118-p3-t2/datafetch-home/trajectories/traj_20260610220300_4zg7sr.json"
+      },
+      {
+        "task": "m2-otc-0119-p3-t2",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0119-p3-t2/datafetch-home/trajectories/traj_20260610220313_i6psch.json"
+      },
+      {
+        "task": "m2-otc-0120-p3-t2",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0120-p3-t2/datafetch-home/trajectories/traj_20260610220328_8uou2a.json"
+      },
+      {
+        "task": "m2-otc-0158-p4-t1",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0158-p4-t1/datafetch-home/trajectories/traj_20260610220340_fdhriw.json"
+      },
+      {
+        "task": "m2-otc-0159-p4-t1",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0159-p4-t1/datafetch-home/trajectories/traj_20260610220351_f91kej.json"
+      },
+      {
+        "task": "m2-otc-0160-p4-t1",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0160-p4-t1/datafetch-home/trajectories/traj_20260610220402_zja8k9.json"
+      },
+      {
+        "task": "m2-otc-0174-p4-t3",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0174-p4-t3/datafetch-home/trajectories/traj_20260610220414_e8irlu.json"
+      },
+      {
+        "task": "m2-otc-0175-p4-t3",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0175-p4-t3/datafetch-home/trajectories/traj_20260610220425_oe298e.json"
+      },
+      {
+        "task": "m2-otc-0176-p4-t3",
+        "eligible": true,
+        "df_lib_called": true,
+        "helper": "opentracesaggregate",
+        "trajectory": "/Users/jayfarei/src/tries/2026-05-01-hackathon/eval/opentraces/probes/m2-runs/m2-otc-0176-p4-t3/datafetch-home/trajectories/traj_20260610220439_p4wftc.json"
+      }
+    ],
+    "eligible_tasks": 24,
+    "eligible_reuse_count": 24,
+    "eligible_reuse_rate": 1,
+    "threshold": 0.4
+  },
+  "token_ledger": {
+    "cap": 20000000,
+    "spent": 2084595,
+    "sessions": [
+      {
+        "session": "m1-otc-0001-p1-t1",
+        "phase": "m1",
+        "tokens": 65051,
+        "turns": 4
+      },
+      {
+        "session": "m1-otc-0009-p1-t2",
+        "phase": "m1",
+        "tokens": 65007,
+        "turns": 4
+      },
+      {
+        "session": "m1-otc-0065-p2-t2",
+        "phase": "m1",
+        "tokens": 65053,
+        "turns": 4
+      },
+      {
+        "session": "m1-otc-0081-p2-t4",
+        "phase": "m1",
+        "tokens": 65042,
+        "turns": 4
+      },
+      {
+        "session": "m1-otc-0105-p3-t1",
+        "phase": "m1",
+        "tokens": 64703,
+        "turns": 4
+      },
+      {
+        "session": "m1-otc-0113-p3-t2",
+        "phase": "m1",
+        "tokens": 64749,
+        "turns": 4
+      },
+      {
+        "session": "m1-otc-0153-p4-t1",
+        "phase": "m1",
+        "tokens": 64788,
+        "turns": 4
+      },
+      {
+        "session": "m1-otc-0169-p4-t3",
+        "phase": "m1",
+        "tokens": 65123,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0006-p1-t1",
+        "phase": "m2",
+        "tokens": 65347,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0007-p1-t1",
+        "phase": "m2",
+        "tokens": 65346,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0008-p1-t1",
+        "phase": "m2",
+        "tokens": 65337,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0014-p1-t2",
+        "phase": "m2",
+        "tokens": 65325,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0015-p1-t2",
+        "phase": "m2",
+        "tokens": 65323,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0016-p1-t2",
+        "phase": "m2",
+        "tokens": 65246,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0070-p2-t2",
+        "phase": "m2",
+        "tokens": 65336,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0071-p2-t2",
+        "phase": "m2",
+        "tokens": 65312,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0072-p2-t2",
+        "phase": "m2",
+        "tokens": 65242,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0086-p2-t4",
+        "phase": "m2",
+        "tokens": 65335,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0087-p2-t4",
+        "phase": "m2",
+        "tokens": 65324,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0088-p2-t4",
+        "phase": "m2",
+        "tokens": 65239,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0110-p3-t1",
+        "phase": "m2",
+        "tokens": 65057,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0111-p3-t1",
+        "phase": "m2",
+        "tokens": 64980,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0112-p3-t1",
+        "phase": "m2",
+        "tokens": 65008,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0118-p3-t2",
+        "phase": "m2",
+        "tokens": 65012,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0119-p3-t2",
+        "phase": "m2",
+        "tokens": 65017,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0120-p3-t2",
+        "phase": "m2",
+        "tokens": 65011,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0158-p4-t1",
+        "phase": "m2",
+        "tokens": 65113,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0159-p4-t1",
+        "phase": "m2",
+        "tokens": 65051,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0160-p4-t1",
+        "phase": "m2",
+        "tokens": 65082,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0174-p4-t3",
+        "phase": "m2",
+        "tokens": 65377,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0175-p4-t3",
+        "phase": "m2",
+        "tokens": 65315,
+        "turns": 4
+      },
+      {
+        "session": "m2-otc-0176-p4-t3",
+        "phase": "m2",
+        "tokens": 65344,
+        "turns": 4
+      }
+    ]
+  }
+}

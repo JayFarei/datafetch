@@ -1,0 +1,173 @@
+{
+  "spendBy": {
+    "rowCount": 3,
+    "fields": [
+      "cacheReadTokens",
+      "cacheWriteTokens",
+      "inputTokens",
+      "model",
+      "outputTokens",
+      "sessions",
+      "totalTokens"
+    ],
+    "rows": [
+      {
+        "model": "anthropic/claude-opus-4-7",
+        "sessions": 73,
+        "totalTokens": 9912125,
+        "inputTokens": 306965,
+        "outputTokens": 9605160,
+        "cacheReadTokens": 2492755953,
+        "cacheWriteTokens": 67579684
+      },
+      {
+        "model": "<synthetic>",
+        "sessions": 9,
+        "totalTokens": 7548,
+        "inputTokens": 120,
+        "outputTokens": 7428,
+        "cacheReadTokens": 698367,
+        "cacheWriteTokens": 464349
+      },
+      {
+        "model": "openai/gpt-5.5",
+        "sessions": 253,
+        "totalTokens": 0,
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    ]
+  },
+  "sessionsWhere": {
+    "rows": 0,
+    "allCapturedRunNonNull": true,
+    "allSessionIdNonNull": true,
+    "sample": []
+  },
+  "blame": {
+    "commitSha": "05ecab6e9564a2a9d07b0ef8b190f12188284401",
+    "anchors": 24,
+    "capturedRun": "66733cf8-9003-4f09-bca8-e4cda7030188",
+    "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+    "sessionId": null,
+    "sessions": [
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "capturedRun": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "sessionId": null
+      }
+    ],
+    "traces": [
+      "66733cf8-9003-4f09-bca8-e4cda7030188"
+    ],
+    "paths": [
+      "src/opentraces/cli/trace.py",
+      "src/opentraces/core/trace_index.py",
+      "src/opentraces/core/trace_map.py"
+    ],
+    "evidence": [
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1085,
+        "path": "src/opentraces/cli/trace.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1085,
+        "path": "src/opentraces/core/trace_index.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1085,
+        "path": "src/opentraces/core/trace_index.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1085,
+        "path": "src/opentraces/core/trace_index.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1085,
+        "path": "src/opentraces/core/trace_index.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1085,
+        "path": "src/opentraces/core/trace_index.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1085,
+        "path": "src/opentraces/core/trace_index.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1085,
+        "path": "src/opentraces/core/trace_index.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1085,
+        "path": "src/opentraces/core/trace_index.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1085,
+        "path": "src/opentraces/core/trace_index.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1085,
+        "path": "src/opentraces/core/trace_index.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1085,
+        "path": "src/opentraces/core/trace_map.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1131,
+        "path": "src/opentraces/cli/trace.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1131,
+        "path": "src/opentraces/core/trace_index.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1131,
+        "path": "src/opentraces/core/trace_index.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1131,
+        "path": "src/opentraces/core/trace_index.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1131,
+        "path": "src/opentraces/core/trace_index.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1131,
+        "path": "src/opentraces/core/trace_index.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1131,
+        "path": "src/opentraces/core/trace_index.py"
+      },
+      {
+        "traceId": "66733cf8-9003-4f09-bca8-e4cda7030188",
+        "stepIndex": 1131,
+        "path": "src/opentraces/core/trace_index.py"
+      }
+    ]
+  }
+}

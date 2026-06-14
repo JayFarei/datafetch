@@ -1,0 +1,1 @@
+Recipe: use exact filters over session and commit rows, then aggregate in deterministic TypeScript. Session rows expose start time, model, project, token/cache counts, steps, commit status, sharing state, and skills. Commit rows link commit shas to captured sessions. Return compact JSON plus evidence.

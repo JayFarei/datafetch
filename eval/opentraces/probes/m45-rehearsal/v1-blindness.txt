@@ -1,0 +1,5 @@
+# V1 curated-library blindness re-grep
+
+Command: grep -R -n -E 'templateId|template_id|row_id|otc-0|P1-T|P2-T|P3-T|P4-T|solvers/|pack_spec|pack\.jsonl' eval/opentraces/curated/census.ts eval/opentraces/curated/index.ts eval/opentraces/curated/mount.ts eval/opentraces/curated/smoke.ts eval/opentraces/curated/types.ts
+Result: zero hits
+
