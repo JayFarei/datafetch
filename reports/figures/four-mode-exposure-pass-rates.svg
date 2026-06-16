@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="320" viewBox="0 0 760 320" font-family="ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace">
+<rect x="0" y="0" width="760" height="320" rx="10" fill="#f7f5ef"/>
+<text x="26" y="34" font-size="16" font-weight="700" fill="#2b2a27">SkillCraft pass rate by interface-exposure mode</text>
+<text x="26" y="56" font-size="12" fill="#6b675e">Callable-with-fallback (draft) and legacy pass; over-strict modes quarantine learned hooks and collapse.</text>
+<text x="26" y="91" font-size="12.5" fill="#2b2a27">legacy</text>
+<rect x="26" y="98" width="356" height="24" rx="3" fill="#b9b2a4"/>
+<text x="392" y="115" font-size="12.5" font-weight="600" fill="#2b2a27">65.9%</text>
+<text x="26" y="143" font-size="12.5" fill="#2b2a27">candidate-only</text>
+<rect x="26" y="150" width="90" height="24" rx="3" fill="#b9b2a4"/>
+<text x="126" y="167" font-size="12.5" font-weight="600" fill="#2b2a27">16.7%</text>
+<text x="26" y="195" font-size="12.5" fill="#2b2a27">draft (callable-with-fallback)</text>
+<rect x="26" y="202" width="386" height="24" rx="3" fill="#1f5673"/>
+<text x="422" y="219" font-size="12.5" font-weight="600" fill="#2b2a27">71.4%</text>
+<text x="26" y="247" font-size="12.5" fill="#2b2a27">validated-only</text>
+<rect x="26" y="254" width="90" height="24" rx="3" fill="#b9b2a4"/>
+<text x="126" y="271" font-size="12.5" font-weight="600" fill="#2b2a27">16.7%</text>
+<text x="26" y="308" font-size="10.5" fill="#6b675e">Linear axis 0 to 100%. Source: report section 3, commit f7b4a7236.</text>
+</svg>
