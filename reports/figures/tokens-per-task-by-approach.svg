@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="216" viewBox="0 0 760 216" font-family="ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace">
+<rect x="0" y="0" width="760" height="216" rx="10" fill="#f7f5ef"/>
+<text x="26" y="34" font-size="16" font-weight="700" fill="#2b2a27">Tokens per task (log scale)</text>
+<text x="26" y="56" font-size="12" fill="#6b675e">SkillCraft, 126 tasks. datafetch is 172x cheaper than a vanilla agent.</text>
+<text x="26" y="91" font-size="12.5" fill="#2b2a27">Vanilla agent</text>
+<rect x="26" y="98" width="489" height="24" rx="3" fill="#b9b2a4"/>
+<text x="525" y="115" font-size="12.5" font-weight="600" fill="#2b2a27">520,450</text>
+<text x="26" y="143" font-size="12.5" fill="#2b2a27">datafetch</text>
+<rect x="26" y="150" width="87" height="24" rx="3" fill="#1f5673"/>
+<text x="123" y="167" font-size="12.5" font-weight="600" fill="#2b2a27">3,027</text>
+<text x="26" y="204" font-size="10.5" fill="#6b675e">Log axis 10^3 to 10^6 tokens. Source: EVAL.md / report section 2.</text>
+</svg>

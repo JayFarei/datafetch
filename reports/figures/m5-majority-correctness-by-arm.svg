@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="268" viewBox="0 0 760 268" font-family="ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace">
+<rect x="0" y="0" width="760" height="268" rx="10" fill="#f7f5ef"/>
+<text x="26" y="34" font-size="16" font-weight="700" fill="#2b2a27">M5 majority-correctness on non-empty-gold questions (n=93)</text>
+<text x="26" y="56" font-size="12" fill="#6b675e">The cold baseline answers zero non-trivial questions; the curated interface answers eight.</text>
+<text x="26" y="91" font-size="12.5" fill="#2b2a27">armN  (cold mount)</text>
+<rect x="26" y="98" width="2" height="24" rx="3" fill="#b9b2a4"/>
+<text x="38" y="115" font-size="12.5" font-weight="600" fill="#2b2a27">0/93  (0.0%)</text>
+<text x="26" y="143" font-size="12.5" fill="#2b2a27">armR  (recipe floor)</text>
+<rect x="26" y="150" width="119" height="24" rx="3" fill="#b9b2a4"/>
+<text x="155" y="167" font-size="12.5" font-weight="600" fill="#2b2a27">2/93  (2.2%)</text>
+<text x="26" y="195" font-size="12.5" fill="#2b2a27">armL  (curated interface)</text>
+<rect x="26" y="202" width="464" height="24" rx="3" fill="#1f5673"/>
+<text x="500" y="219" font-size="12.5" font-weight="600" fill="#2b2a27">8/93  (8.6%)</text>
+<text x="26" y="256" font-size="10.5" fill="#6b675e">Linear axis 0 to 10%. Source: report section 6 / OpenTraces M5, commit d246753eb.</text>
+</svg>
