@@ -1,0 +1,249 @@
+/* ============================================================
+   Datafetch — Colors & Type
+   ------------------------------------------------------------
+   Two themes: dark (default) and light (parchment).
+   One typeface only: JetBrains Mono, 400 / 500 / 700.
+   ============================================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap");
+
+/* ─── DARK (default) ────────────────────────────────────────── */
+:root,
+[data-theme="dark"] {
+  /* surfaces */
+  --bg:            #0a0a0a;       /* page */
+  --bg-rgb:        10, 10, 10;
+  --bg-2:          #050505;       /* deep panel / stage */
+  --bg-2-rgb:      5, 5, 5;
+
+  /* ink scale (warm bone-white → faint mute) */
+  --ink:           #d8d6cc;       /* primary text + strokes */
+  --ink-rgb:       216, 214, 204;
+  --ink-dim:       #8a877c;       /* secondary text */
+  --ink-faint:     #4a4842;       /* tertiary / hairline */
+  --ink-mute:      #2a2925;       /* lowest-contrast lines */
+
+  /* accents */
+  --accent:        #d8d6cc;       /* same as ink — the brand is monochrome */
+  --hot:           #e8e2c8;       /* sparingly: identifiers, emphasis */
+  --hot-rgb:       232, 226, 200;
+
+  /* structural */
+  --rule:          #2a2925;       /* default 1px hairline */
+  --overlay-rgb:   0, 0, 0;
+  --panel-recess-1: rgba(0,0,0,0.25);
+  --panel-recess-2: rgba(0,0,0,0.35);
+  --panel-recess-3: rgba(0,0,0,0.45);
+  --scan-stripe:   rgba(0,0,0,0.18);
+  --grain-opacity: 0.5;
+
+  /* CTA pill */
+  --cta-bg:        #0a0a0a;
+  --cta-ink:       #d8d6cc;
+
+  /* syntax highlight (terminal/code surfaces) */
+  --hl-flag:       #d8a07a;       /* --flags, amber */
+  --hl-str:        #aac999;       /* "strings", olive */
+  --hl-fn:         #c8b97f;       /* file/fn names, wheat */
+  --hl-ok:         #82b074;       /* status: ok / mounted / sealed */
+  --err:           #d8a07a;
+
+  color-scheme: dark;
+}
+
+/* ─── LIGHT — warm parchment ────────────────────────────────── */
+[data-theme="light"] {
+  --bg:            #ece8dc;
+  --bg-rgb:        236, 232, 220;
+  --bg-2:          #e0dbcb;
+  --bg-2-rgb:      224, 219, 203;
+
+  --ink:           #1a1815;       /* warm near-black */
+  --ink-rgb:       26, 24, 21;
+  --ink-dim:       #5a574c;
+  --ink-faint:     #8c897c;
+  --ink-mute:      #cac6b6;
+
+  --accent:        #1a1815;
+  --hot:           #8b4f1a;       /* amber/bronze accent */
+  --hot-rgb:       139, 79, 26;
+
+  --rule:          #c6c2b1;
+  --overlay-rgb:   26, 24, 21;
+  --panel-recess-1: rgba(26,24,21,0.035);
+  --panel-recess-2: rgba(26,24,21,0.050);
+  --panel-recess-3: rgba(26,24,21,0.070);
+  --scan-stripe:   rgba(26,24,21,0.05);
+  --grain-opacity: 0.18;
+
+  --cta-bg:        #0d0b09;
+  --cta-ink:       #f3efe2;
+
+  --hl-flag:       #a8581c;
+  --hl-str:        #4a6a35;
+  --hl-fn:         #7a5c1d;
+  --hl-ok:         #3d6a30;
+  --err:           #a8581c;
+
+  color-scheme: light;
+}
+
+/* ============================================================
+   TYPE TOKENS
+   ------------------------------------------------------------
+   Single family, single rhythm. The whole brand is monospace.
+   ============================================================ */
+:root {
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Sizes */
+  --t-xs:    10px;   /* eyebrow / label / pill */
+  --t-sm:    11px;   /* chrome / meta */
+  --t-base:  12px;   /* body small / code */
+  --t-body:  13px;   /* default body */
+  --t-md:    14px;   /* lede */
+  --t-lg:    15px;   /* default html body */
+  --t-h4:    18px;
+  --t-h3:    22px;
+  --t-h2:    32px;
+  --t-h1:    clamp(40px, 5.4vw, 78px);
+  --t-display: clamp(48px, 6vw, 86px);
+
+  /* Tracking — wide for caps, neutral for sentence case */
+  --tr-eyebrow:  0.18em;    /* /01, EYEBROWS */
+  --tr-label:    0.14em;    /* SECTION LABELS */
+  --tr-tight:    -0.02em;   /* big display heads */
+
+  /* Body line-height */
+  --lh-tight: 1.05;
+  --lh-snug:  1.4;
+  --lh-norm:  1.55;
+  --lh-loose: 1.7;
+}
+
+/* ============================================================
+   SEMANTIC TYPE RULES
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+html { font-family: var(--font-mono); }
+body {
+  font-family: var(--font-mono);
+  font-size: var(--t-lg);
+  line-height: var(--lh-loose);
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Display / H1 — UPPERCASE, balanced wrap, slash dividers in dim */
+h1, .h1 {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: var(--t-h1);
+  line-height: 0.95;
+  letter-spacing: var(--tr-tight);
+  margin: 0 0 28px;
+  text-wrap: balance;
+}
+h1 .slash, .h1 .slash { color: var(--ink-dim); font-weight: 400; }
+
+/* H2 — section title */
+h2, .h2 {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: var(--t-h2);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+
+/* H3 — sub-section / panel title */
+h3, .h3 {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: var(--t-h3);
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  margin: 0 0 10px;
+}
+
+/* H4 — small headline / agent name */
+h4, .h4 {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: var(--t-h4);
+  letter-spacing: 0.02em;
+  margin: 0 0 8px;
+}
+
+/* Eyebrow / numbered section / meta strip */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--t-base);
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* Label / pill / tag — small caps with heavy tracking */
+.label, .tag {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: var(--tr-label);
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+/* Body — sentence case, slightly dim */
+p, .body {
+  font-size: var(--t-md);
+  line-height: var(--lh-loose);
+  color: var(--ink-dim);
+  margin: 0 0 1em;
+}
+p em, .body em { color: var(--ink); font-style: normal; }
+
+/* Lede — first paragraph in a section */
+.lede {
+  font-size: var(--t-md);
+  line-height: var(--lh-loose);
+  color: var(--ink-dim);
+  max-width: 52ch;
+}
+.lede em { color: var(--ink); font-style: normal; }
+
+/* Inline code / df.* identifiers — accent in body, monochrome elsewhere */
+code, .code {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+  color: var(--ink);
+}
+.lede code, p code {
+  color: var(--hot);
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-weight: 700;
+}
+
+/* Numeric / stat — tabular */
+.numeric, .stat-value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+}
+
+/* Syntax highlight classes (used inside terminal/code blocks) */
+.hl-p  { color: var(--ink-faint); }
+.hl-fl { color: var(--hl-flag); }    /* --flags */
+.hl-st { color: var(--hl-str); }     /* "strings" */
+.hl-fn { color: var(--hl-fn); }      /* file paths / extensions */
+.hl-id { color: var(--hot); font-weight: 700; } /* df.* identifiers */
+.hl-tr { color: var(--ink-faint); }  /* tree chars (├ │ └) */
+.hl-ok { color: var(--hl-ok); }      /* status keywords */

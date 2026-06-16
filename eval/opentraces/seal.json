@@ -1,0 +1,37 @@
+{
+ "counts": {
+  "blob_files": 432,
+  "context_files": 771,
+  "event_batches": 7023,
+  "events_full_scan": 861028,
+  "trace_envelopes_pointer_resolved": 1592
+ },
+ "manifest_bucket_digest_field": "sha256:535bb2e1d9dcb181dd43b104fe5600f2f68bd233b48eb452739e44f1d80d8558",
+ "manifest_digest_frozen": "sha256:e7487530ae60b218c8469886abf67038b4462b8646abd33e147770db0c29eda0",
+ "manifest_generated_at": "2026-06-10T09:00:05.263845Z",
+ "plan": "kb/plans/011-opentraces-dark-store-corpus.md",
+ "sealed_at": "2026-06-10",
+ "source": "~/.opentraces/bucket (live bucket, copied 2026-06-10; projections/ and index/ excluded as derived state; blobs/ included for context-tree self-sufficiency)",
+ "stores": {
+  "blobs": {
+   "bytes": 9817906,
+   "files": 432
+  },
+  "contexts": {
+   "bytes": 93280457,
+   "files": 771
+  },
+  "events": {
+   "bytes": 287451830,
+   "files": 7024
+  },
+  "objects": {
+   "bytes": 11190985419,
+   "files": 10263
+  }
+ },
+ "total": {
+  "bytes": 11581535612,
+  "files": 18490
+ }
+}

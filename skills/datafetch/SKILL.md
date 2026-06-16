@@ -6,150 +6,158 @@ description: Use the datafetch CLI to explore mounted dataset workspaces, write 
 # datafetch
 
 Datafetch is a dataset harness for coding agents. A dataset is mounted as a
-small bash-shaped TypeScript workspace. You may inspect freely, but the system
-only learns from data-molding logic that is written into the workspace and run
-through `datafetch`.
+small bash-shaped TypeScript workspace. Inspect freely, but the system only
+learns from data-molding logic written into the workspace and run through
+`datafetch`.
 
-The normal loop is:
-
-1. List or add a dataset.
-2. Mount an intent workspace.
-3. Inspect `AGENTS.md`, `df.d.ts`, `db/`, and `lib/`.
-4. Run bounded probes through `scripts/scratch.ts`.
-5. Put the repeatable answer logic in `scripts/answer.ts`.
-6. Commit the answer with `datafetch commit`.
-7. Answer the user from `result/answer.json` and `result/answer.md`.
+The normal loop: mount an intent workspace, inspect `AGENTS.md` / `df.d.ts` /
+`db/` / `lib/`, run bounded probes through `scripts/scratch.ts`, put the
+repeatable answer logic in `scripts/answer.ts`, `datafetch commit`, then answer
+the user from `result/answer.json` and `result/answer.md`.
 
 ## Workspace Shape
 
 Read these files first from the mounted workspace root:
 
-- `AGENTS.md` - dataset/workspace guidance generated for this mount.
-- `CLAUDE.md` - compatibility alias for agents that look for Claude project instructions.
-- `df.d.ts` - exact executable `df.db.*` and `df.lib.*` surface.
+- `AGENTS.md` (and its `CLAUDE.md` alias) - workspace guidance for this mount.
+- `df.d.ts` - exact executable `df.db.*`, `df.lib.*`, and `df.tool.*` surface.
 - `db/` - immutable dataset descriptors, samples, stats, and collection handles.
 - `lib/` - tenant-local learned interfaces and helpers.
 - `scripts/scratch.ts` - exploratory code for `datafetch run`.
 - `scripts/answer.ts` - final visible intent program for `datafetch commit`.
-- `tmp/runs/N/` - run artifacts: source, result, lineage.
-- `result/` - committed answer, validation, lineage, replay test, and commit history.
+- `result/` - committed answer, validation, lineage, replay test (`tmp/runs/N/`
+  holds the same artifacts for uncommitted `run` probes).
 
-Treat `db/` as read-only substrate context. Treat `lib/` and `scripts/` as the
-user-space seam where visible logic can be written and later learned from.
+Treat `db/` as read-only substrate context; `lib/` and `scripts/` are the
+user-space seam where visible logic is written and later learned from.
+
+## The df.* Surface
+
+Inside a committed script you compose four namespaces (exact identifiers from
+`df.d.ts`):
+
+- `df.db.<ident>.findExact|search|findSimilar|hybrid(...)` - substrate
+  retrieval over a mounted collection (the only source of real rows).
+- `df.lib.<name>(input)` - a learned or seed interface; returns
+  `Result<...>`, so read `.value` after awaiting.
+- `df.tool.<bundle>.<tool>(input)` - dataset-provided tools resolved by the
+  runtime bridge (fan-out, external fetch, classifiers, calculators). Compose
+  them alongside `df.db.*`; pure `df.tool.*` fan-out with no substrate entry
+  point is rejected.
+- `df.answer(envelope)` - the committed answer.
+
+## Composition Patterns
+
+Prefer assembling the pipeline in one visible body over many tool round-trips.
+
+### Pattern: substrate -> learned interface -> answer
+
+```ts
+const cands  = await df.db.cases.findSimilar(`${company} ${year} revenue`, 5);
+const filing = (await df.lib.pickFiling({ question: `${company} ${year}`, candidates: cands })).value;
+const figure = (await df.lib.locateFigure({ question: "total revenue", filing })).value;
+
+return df.answer({
+  status: "answered",
+  value: figure.value,
+  unit: figure.unit,
+  evidence: [filing, figure],
+  derivation: "findSimilar -> pickFiling -> locateFigure -> figure.value",
+});
+```
+
+### Pattern: fan-out over a tool, then narrow deterministically
+
+```ts
+const hits   = await df.db.records.search(query, { limit: 50 });
+const scored = await Promise.all(
+  hits.map((h) => df.tool.ranker.score({ query, doc: h })),
+);
+const top    = hits
+  .map((h, i) => ({ h, s: (scored[i] as { score: number }).score }))
+  .sort((a, b) => b.s - a.s)[0]?.h;
+return df.answer({ status: "answered", value: top, evidence: [top], derivation: "search -> df.tool.ranker.score -> argmax" });
+```
+
+### Pattern: crystallise the repeated trajectory as one callable `df.lib.*`
+
+When the same fan-out recurs, externalise it through `fn({...})` so it can be
+learned and called as `df.lib.<name>(input)` next time. An LLM-bearing step is
+just a `body: agent({...})`:
+
+```ts
+export const classifyFiling = fn({
+  intent: "classify a filing row into a reporting segment",
+  examples: [{ input: { row: { /* ... */ } }, output: { segment: "operations" } }],
+  input:  v.object({ row: v.unknown() }),
+  output: v.object({ segment: v.string() }),
+  body: agent({
+    model: "anthropic/claude-haiku-4-5",
+    prompt: `Given a filing row, return {segment} as one of: operations | financing | investing.`,
+  }),
+});
+```
+
+A later `scripts/answer.ts` then calls it like any interface:
+`const { segment } = (await df.lib.classifyFiling({ row })).value;`. Use a plain
+function body for deterministic work; use `agent({...})` only for judgment.
 
 ## CLI
 
-Use the local data plane unless instructed otherwise:
+Use the local data plane unless instructed otherwise. To get a workspace:
+`datafetch list|inspect|add <dataset-url>` then
+`datafetch mount <source-id> --tenant <tenant> --intent '<intent>'` (all accept
+`--json`). Inside a mounted workspace:
 
 ```bash
-datafetch server --port 8080
-datafetch attach http://localhost:8080 --tenant <tenant>
-datafetch add <dataset-url> --json
-datafetch list --json
-datafetch inspect <source-id> --json
-datafetch mount <source-id> --tenant <tenant> --intent '<intent>'
+datafetch apropos '<intent words>'   # find an existing df.lib.* interface
+datafetch man df.lib.<name>          # inspect its contract
+datafetch run scripts/scratch.ts     # bounded probe (artifacts, not the answer)
+datafetch commit scripts/answer.ts   # final answer path; must return df.answer
 ```
-
-Inside a mounted workspace:
-
-```bash
-datafetch apropos '<intent words>'
-datafetch man df.lib.<name>
-datafetch run scripts/scratch.ts
-datafetch commit scripts/answer.ts
-```
-
-Legacy session/snippet verbs may exist (`session`, `plan`, `execute`, `tsx`),
-but prefer the intent workspace flow for new work.
 
 ## Discovery Order
 
-Use this order before composing from primitives:
-
-1. Read `AGENTS.md` and `df.d.ts`.
-2. Inspect `db/README.md`, descriptors, stats, and samples.
-3. Run `datafetch apropos '<intent>'`.
-4. If a matching `df.lib.*` interface exists, inspect it with `datafetch man`.
-5. Try the interface in `scripts/answer.ts`; let it answer, return partial, or abstain.
-6. If no interface fits, write the missing trajectory visibly in TypeScript.
+Before composing from primitives: read `AGENTS.md` and `df.d.ts`, inspect
+`db/` descriptors/stats/samples, run `datafetch apropos '<intent>'`, and if a
+matching `df.lib.*` interface exists inspect it with `datafetch man` and try it
+in `scripts/answer.ts` (let it answer, return partial, or abstain). Only if no
+interface fits, write the missing trajectory visibly in TypeScript.
 
 Do not assume collection names. Use exactly the identifiers printed in
-`df.d.ts`, such as `df.db.train`, `df.db.events`, or whatever the mounted
-dataset exposes.
+`df.d.ts` (e.g. `df.db.train`, `df.db.events`, or whatever the mount exposes).
 
 ## Run Versus Commit
 
-`datafetch run` is for exploration. It writes numbered artifacts under
-`tmp/runs/` and is useful context, but it is not the accepted answer.
-
-`datafetch commit` is the final answer path. The committed script must return
-`df.answer(...)`. Datafetch writes:
-
-- `result/answer.json`
-- `result/answer.md`
-- `result/lineage.json`
-- `result/validation.json`
-- `result/tests/replay.json`
-- `result/HEAD.json`
-
-Only committed visible code that passes validation is eligible for learning.
+`datafetch run` is exploration: it writes numbered artifacts under `tmp/runs/`
+but is not the accepted answer. `datafetch commit` is the final answer path; the
+committed script must return `df.answer(...)`, and datafetch writes the answer,
+validation, lineage, and replay test under `result/`. Only committed visible
+code that passes validation is eligible for learning.
 
 ## Final Answer Contract
 
-`scripts/answer.ts` should return one of these shapes:
+`scripts/answer.ts` must return `df.answer(...)` in one of three shapes:
 
 ```ts
-return df.answer({
-  status: "answered",
-  value,
-  unit,
-  evidence,
-  coverage,
-  derivation,
-});
+return df.answer({ status: "answered", value, unit, evidence, coverage, derivation });
+return df.answer({ status: "partial",  value, evidence, missing, coverage, derivation });
+return df.answer({ status: "unsupported", evidence, missing, reason });
 ```
 
-```ts
-return df.answer({
-  status: "partial",
-  value,
-  evidence,
-  missing,
-  coverage,
-  derivation,
-});
-```
-
-```ts
-return df.answer({
-  status: "unsupported",
-  evidence,
-  missing,
-  reason,
-});
-```
-
-Evidence should point back to dataset rows, documents, or handles returned by
-`df.db.*`. Derivation should describe the visible transformation, aggregation,
+`evidence` points back to dataset rows, documents, or handles returned by
+`df.db.*`. `derivation` describes the visible transformation, aggregation,
 classification, or selection that produced the answer.
 
 ## Visible Logic Rule
 
-Raw inspection is allowed. Private reasoning is allowed. Private reasoning is
-not learnable.
-
-If you dump rows, solve privately, and answer in chat, the user may get an
-answer but datafetch cannot improve. When the answer matters, externalise the
-retrieval, selection, normalization, validation, derivation, and formatting in
-`scripts/answer.ts`.
-
-Good committed trajectories:
-
-- call `df.db.*` for real substrate data;
-- call `df.lib.*` when a learned or seed interface fits;
-- use helper functions from `scripts/helpers.ts` when useful;
-- return `df.answer(...)` with evidence and derivation;
-- abstain with `unsupported` when evidence is insufficient.
+Raw inspection and private reasoning are allowed, but private reasoning is not
+learnable: if you dump rows, solve in your head, and answer in chat, the user
+gets an answer but datafetch cannot improve. When the answer matters,
+externalise retrieval, selection, normalization, validation, and derivation in
+`scripts/answer.ts`. A good trajectory composes the surface above (`df.db.*`,
+`df.lib.*`, `df.tool.*`, optional `scripts/helpers.ts`) and returns
+`df.answer(...)` with evidence and derivation, or abstains with `unsupported`.
 
 Avoid:
 
@@ -161,47 +169,22 @@ Avoid:
 ## Intent Drift
 
 The mounted intent is the worktree purpose. If exploration produces a narrower
-useful sub-intent, declare it in the committed answer:
-
-```ts
-return df.answer({
-  intent: {
-    name: "shortStableName",
-    parent: "the mounted worktree intent",
-    relation: "same", // same | derived | sibling | drifted | unrelated
-    description: "what this committed trajectory actually answers",
-  },
-  status: "answered",
-  value,
-  evidence,
-  coverage,
-  derivation,
-});
-```
-
-Use `same` when the answer satisfies the mount intent directly. Use `derived`
-or `sibling` for useful sub-trajectories discovered inside a broader mount.
-Use `drifted` or `unrelated` when the worktree purpose changed.
+useful sub-intent, declare it on the committed answer via an `intent` field
+(`{ name, parent, relation, description }`) where `relation` is one of `same`
+(satisfies the mount directly), `derived`/`sibling` (useful sub-trajectory in a
+broader mount), or `drifted`/`unrelated` (worktree purpose changed).
 
 ## Agentic Steps
 
-Some `df.lib.*` functions may call Flue-backed `agent({ skill })` or
-`agent({ prompt })` bodies. That is fine when the probabilistic step is part of
-the visible committed TypeScript.
-
-Do not call an external LLM privately for the important transformation and then
-only commit the final number. If judgment is needed, wrap it in visible code so
-lineage can show where the agentic step entered the trajectory.
+Probabilistic judgment belongs in a visible `agent({ prompt })` / `agent({ skill })`
+body (see Composition Patterns), never in a private out-of-band LLM call whose
+final number you then commit. Wrap judgment in committed code so lineage shows
+where the agentic step entered the trajectory.
 
 ## What To Tell The User
 
-After a successful commit, answer from the committed result artifacts. Include:
-
-- the answer status;
-- the value or reason it is unsupported;
-- the evidence basis;
-- any important coverage limitation;
-- where the committed artifacts are in `result/`.
-
-If validation failed, say what blocked the commit and keep iterating in the
-workspace until the final answer path is accepted or safely unsupported.
+After a successful commit, answer from the committed `result/` artifacts:
+status, the value (or the reason it is unsupported), the evidence basis, any
+coverage limitation, and where the artifacts live. If validation failed, say
+what blocked the commit and keep iterating in the workspace until the final
+answer path is accepted or safely unsupported.

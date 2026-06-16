@@ -31,6 +31,7 @@ import type {
   MountAdapter,
 } from "../sdk/index.js";
 import type { CollectionIdent } from "../bootstrap/idents.js";
+import type { ToolCatalogEntry } from "../runtime/toolCatalog.js";
 
 // --- Public types ----------------------------------------------------------
 
@@ -42,6 +43,12 @@ export type MountRuntime = {
   // shape as the on-disk inventory record so a serialised inventory and a
   // live runtime are interchangeable.
   readonly identMap: readonly CollectionIdent[];
+  // Optional tool catalog the mount exposes as `df.tool.<bundle>.<name>`.
+  // Phase-2 #4: a tool-shaped dataset registers its bundles here so
+  // regenerateManifest can render the `df.tool.*` surface generically (the
+  // substrate names no dataset). Omitted/empty for db-only mounts (no
+  // `df.tool` block is rendered, so existing mounts are unaffected).
+  readonly tools?: readonly ToolCatalogEntry[];
   // Returns a CollectionHandle bound to the live adapter. Calling this
   // does NOT close the underlying client between calls — the runtime is
   // long-lived for as long as the mount is registered.
@@ -139,12 +146,14 @@ export function makeMountRuntime(args: {
   mountId: string;
   adapter: MountAdapter & { close?: () => Promise<void> };
   identMap: readonly CollectionIdent[];
+  tools?: readonly ToolCatalogEntry[];
 }): MountRuntime {
-  const { mountId, adapter, identMap } = args;
+  const { mountId, adapter, identMap, tools } = args;
   return {
     mountId,
     adapter,
     identMap,
+    ...(tools ? { tools } : {}),
     collection<T>(name: string): CollectionHandle<T> {
       return adapter.collection<T>(name);
     },

@@ -1,0 +1,3326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>datafetch.ai — your queries, your interface</title>
+<meta name="description" content="Search as code, shaped by how you actually search. Agents write code over your data, not tool calls — and each accepted trajectory crystallises into a replay-gated, typed call in your tenant's lib/. The interface emerges through usage, per tenant.">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="canonical" href="https://datafetch.ai/">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="datafetch.ai">
+<meta property="og:title" content="datafetch.ai — your queries, your interface">
+<meta property="og:description" content="Search as code, shaped by how you actually search. Agents write code over your data, not tool calls — and each accepted trajectory crystallises into a replay-gated, typed call in your tenant's lib/. The interface emerges through usage, per tenant.">
+<meta property="og:url" content="https://datafetch.ai/">
+<meta property="og:image" content="https://datafetch.ai/assets/og-image.png">
+<meta property="og:image:secure_url" content="https://datafetch.ai/assets/og-image.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="datafetch.ai — your queries, your interface. A dataset harness for agents.">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="datafetch.ai — your queries, your interface">
+<meta name="twitter:description" content="Search as code, shaped by how you actually search. The interface emerges through usage, per tenant.">
+<meta name="twitter:image" content="https://datafetch.ai/assets/og-image.png">
+<meta name="twitter:image:alt" content="datafetch.ai — your queries, your interface.">
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23111'/><g fill='%23e8e6dc'><rect x='14' y='12' width='38' height='3.6'/><rect x='14' y='18' width='28' height='3.6'/><rect x='14' y='24' width='38' height='3.6'/><rect x='14' y='30' width='22' height='3.6'/><rect x='14' y='36' width='38' height='3.6'/><rect x='14' y='42' width='32' height='3.6'/><rect x='14' y='48' width='38' height='3.6'/><rect x='14' y='54' width='18' height='3.6'/></g></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root,
+  [data-theme="dark"]{
+    --bg: #0a0a0a;
+    --bg-rgb: 10,10,10;
+    --bg-2: #050505;           /* deep panel / stage */
+    --bg-2-rgb: 5,5,5;
+    --ink: #d8d6cc;
+    --ink-rgb: 216,214,204;
+    --ink-dim: #8a877c;
+    --ink-faint: #4a4842;
+    --ink-mute: #2a2925;
+    --accent: #d8d6cc;
+    --hot: #e8e2c8;
+    --hot-rgb: 232,226,200;
+    --rule: #2a2925;
+    --overlay-rgb: 0,0,0;
+    --panel-recess-1: rgba(0,0,0,0.25);
+    --panel-recess-2: rgba(0,0,0,0.35);
+    --panel-recess-3: rgba(0,0,0,0.45);
+    --scan-stripe: rgba(0,0,0,0.18);
+    --grain-opacity: 0.5;
+    --cta-bg: #0a0a0a;
+    --cta-ink: #d8d6cc;
+    --hl-flag: #d8a07a;
+    --hl-str:  #aac999;
+    --hl-fn:   #c8b97f;
+    --hl-ok:   #82b074;
+    --err:     #d8a07a;
+    color-scheme: dark;
+  }
+
+  /* OFF-WHITE LIGHT MODE — warm parchment, dark warm ink */
+  [data-theme="light"]{
+    --bg: #ece8dc;             /* off-white, warm */
+    --bg-rgb: 236,232,220;
+    --bg-2: #e0dbcb;           /* deep panel (a notch darker than page) */
+    --bg-2-rgb: 224,219,203;
+    --ink: #1a1815;            /* warm near-black */
+    --ink-rgb: 26,24,21;
+    --ink-dim: #5a574c;
+    --ink-faint: #8c897c;
+    --ink-mute: #cac6b6;
+    --accent: #1a1815;
+    --hot: #8b4f1a;            /* amber/bronze accent */
+    --hot-rgb: 139,79,26;
+    --rule: #c6c2b1;
+    --overlay-rgb: 26,24,21;
+    --panel-recess-1: rgba(26,24,21,0.035);
+    --panel-recess-2: rgba(26,24,21,0.05);
+    --panel-recess-3: rgba(26,24,21,0.07);
+    --scan-stripe: rgba(26,24,21,0.05);
+    --grain-opacity: 0.18;
+    --cta-bg: #0d0b09;         /* deepened for stronger contrast on parchment */
+    --cta-ink: #f3efe2;        /* slightly brighter so the label pops */
+    --hl-flag: #a8581c;
+    --hl-str:  #4a6a35;
+    --hl-fn:   #7a5c1d;
+    --hl-ok:   #3d6a30;
+    --err:     #a8581c;
+    color-scheme: light;
+  }
+  *{ box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  body{
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 15px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(rgba(var(--ink-rgb),0.06) 1px, transparent 1px),
+      radial-gradient(rgba(var(--ink-rgb),0.04) 1px, transparent 1px);
+    background-size: 3px 3px, 7px 7px;
+    background-position: 0 0, 1px 2px;
+  }
+  /* film grain overlay */
+  body::before{
+    content:"";
+    position: fixed; inset:0; pointer-events:none; z-index: 100;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.85 0 0 0 0 0.84 0 0 0 0 0.8 0 0 0 0.18 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.45'/></svg>");
+    mix-blend-mode: overlay; opacity: var(--grain-opacity);
+  }
+  /* scanline */
+  body::after{
+    content:"";
+    position: fixed; inset:0; pointer-events:none; z-index: 99;
+    background: repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, var(--scan-stripe) 3px);
+    opacity: 0.35;
+  }
+  .wrap{ max-width: 1280px; margin: 0 auto; padding: 0 40px; }
+
+  /* CHROME (top + bottom strips) */
+  .chrome{
+    border-bottom: 1px solid var(--rule);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-dim);
+    padding: 10px 40px;
+    display: flex; gap: 32px; align-items: center;
+    backdrop-filter: blur(2px);
+  }
+  .chrome .dot{ width:6px; height:6px; background: var(--ink); display:inline-block; vertical-align: middle; }
+  .chrome .blink{ animation: blink 1.1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .chrome .grow{ flex:1; }
+  .chrome .pill{ border:1px solid var(--ink-faint); padding: 2px 8px; }
+  .chrome .brand{ display:inline-flex; align-items:center; gap: 10px; color: var(--ink); }
+  .chrome .brand svg{ display:block; width: 16px; height: 16px; }
+
+  /* HERO */
+  .hero{
+    position: relative;
+    border-bottom: 1px solid var(--rule);
+    overflow: hidden;
+  }
+  .hero-grid{
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 0;
+    align-items: stretch;
+    min-height: 760px;
+  }
+  .hero-left{
+    padding: 80px 56px 60px 56px;
+    max-width: 760px;
+    justify-self: end;
+    width: 100%;
+  }
+  .hero-right{
+    position: relative;
+    background: var(--bg-2);
+    border-left: 1px solid var(--rule);
+    overflow: hidden;
+  }
+  .hero-right .stage-legend{
+    position: absolute; left: 20px; top: 18px; z-index: 3;
+    color: var(--ink-faint); font-size: 10px; letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .hero-right .stage-legend b{ color: var(--ink); font-weight: 400; }
+  .hero-right .stage-cap{
+    position: absolute; right: 20px; top: 18px; z-index: 3;
+    color: var(--ink-dim); font-size: 10px; letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .hero-right .stage-foot{
+    position: absolute; left: 20px; right: 20px; bottom: 18px; z-index: 3;
+    display:flex; justify-content: space-between; align-items: center;
+    color: var(--ink-faint); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    border-top: 1px dashed var(--rule); padding-top: 10px;
+  }
+  .hero-right .stage-tag{
+    position: absolute; right: 20px; bottom: 56px; z-index: 3;
+    color: var(--ink); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+    text-align: right; max-width: 320px;
+  }
+  .hero-right .stage-tag b{ font-weight: 700; }
+  .hero-right .stage-tag .tag-sub{ color: var(--ink-dim); font-size: 10px; margin-top: 6px; display:block; }
+  .hero-right pre#ascii{
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.0;
+    color: var(--ink);
+    letter-spacing: 0;
+    white-space: pre;
+    overflow: hidden;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  .badge{
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--ink-dim);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  h1{
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: clamp(40px, 5.4vw, 78px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin: 0 0 28px;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+  h1 .slash{ color: var(--ink-dim); font-weight: 400; }
+  .lede{
+    color: var(--ink-dim);
+    max-width: 52ch;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .lede em{ color: var(--ink); font-style: normal; }
+
+  .hero-meta{
+    border-left: 1px solid var(--rule);
+    padding-left: 32px;
+    display: grid;
+    gap: 18px;
+  }
+  .meta-row{
+    display: grid; grid-template-columns: 110px 1fr; gap: 12px;
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .meta-row .k{ color: var(--ink-faint); }
+  .meta-row .v{ color: var(--ink); }
+  .meta-row .v small{ color: var(--ink-faint); font-size: 10px; letter-spacing: 0.14em; }
+  .stage-track-foot{
+    color: var(--ink-faint); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .stage-track-foot b{ color: var(--ink-dim); font-weight: 400; }
+
+  /* BROADSIDE BLOCK (insignia) */
+  .broadside{
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 28px;
+    padding: 44px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .insignia{
+    width: 96px; height: 96px;
+    display: grid;
+    grid-template-rows: repeat(8, 1fr);
+    gap: 4px;
+  }
+  .insignia .bar{ background: var(--ink); }
+  .insignia .bar.short{ width: 70%; }
+  .insignia .bar.shorter{ width: 45%; }
+
+  .broadside-title{
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 28px; line-height: 1.05;
+  }
+  .broadside-sub{
+    color: var(--ink-dim); font-size: 12px; letter-spacing: 0.18em;
+    text-transform: uppercase; margin-top: 8px;
+  }
+  .broadside-stamp{
+    display: flex; gap: 12px; align-items: center;
+    color: var(--ink-dim); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+  }
+  .stamp-box{
+    border:1px solid var(--ink-dim);
+    padding: 4px 10px;
+  }
+
+  /* SECTION HEADERS */
+  .section{
+    padding: 64px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .section-head{
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 32px;
+    margin-bottom: 36px;
+    align-items: baseline;
+  }
+  .section-num{
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border-top: 1px solid var(--rule);
+    padding-top: 8px;
+  }
+  .section-head h2{
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; text-transform: uppercase;
+    font-size: 32px; line-height: 1.05;
+    margin: 0 0 12px;
+    letter-spacing: -0.01em;
+  }
+  .section-head p{
+    color: var(--ink-dim);
+    margin: 0;
+    max-width: 64ch;
+  }
+
+  /* TERMINAL */
+  .terminal-grid{
+    display: grid;
+    grid-template-columns: 280px 1fr 280px;
+    gap: 0;
+    border: 1px solid var(--rule);
+    background: var(--bg-2);
+    min-height: 540px;
+  }
+  .term-pane{ padding: 18px 18px 24px; border-right: 1px solid var(--rule); }
+  .term-pane:last-child{ border-right: none; }
+  .pane-title{
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink-faint); margin-bottom: 14px;
+    border-bottom: 1px dashed var(--rule); padding-bottom: 8px;
+    display: flex; justify-content: space-between;
+  }
+  .pane-title .pulse{ color: var(--ink); }
+
+  /* file tree */
+  .tree{ font-size: 12px; line-height: 1.85; }
+  .tree .node{ color: var(--ink-dim); cursor: default; }
+  .tree .node .name{ color: var(--ink); }
+  .tree .node.dir > .name::before{ content: "▸ "; color: var(--ink-faint); }
+  .tree .node.dir.open > .name::before{ content: "▾ "; }
+  .tree .node.file > .name::before{ content: "  "; }
+  .tree .children{ padding-left: 14px; border-left: 1px dashed var(--ink-mute); margin-left: 4px; }
+  .tree .badge-tag{
+    font-size: 9px; letter-spacing: 0.14em; color: var(--bg);
+    background: var(--ink); padding: 1px 5px; margin-left: 6px;
+    text-transform: uppercase;
+  }
+  .tree .badge-tag.cold{ background: transparent; color: var(--ink-faint); border: 1px solid var(--ink-mute); }
+  .tree .meta{ color: var(--ink-faint); font-size: 10px; margin-left: 6px; }
+
+  /* console */
+  .console{
+    font-size: 13px; line-height: 1.7;
+    white-space: pre-wrap; word-break: break-word;
+    color: var(--ink);
+    min-height: 460px;
+  }
+  .console .prompt{ color: var(--ink-dim); }
+  .console .agent{ color: var(--hot); }
+  .console .ok{ color: var(--ink); }
+  .console .dim{ color: var(--ink-dim); }
+  .console .err{ color: var(--err); }
+  .console .box{
+    border: 1px dashed var(--rule);
+    padding: 8px 10px; margin: 6px 0;
+    color: var(--ink-dim);
+    font-size: 12px;
+  }
+  .cursor{ display:inline-block; width: 8px; height: 14px; background: var(--ink); vertical-align: -2px; animation: blink 1s steps(2) infinite; }
+
+  /* memory side */
+  .memory{ font-size: 11px; line-height: 1.85; }
+  .mem-block{ margin-bottom: 18px; }
+  .mem-label{ color: var(--ink-faint); letter-spacing: 0.16em; font-size: 9px; text-transform: uppercase; margin-bottom: 6px; }
+  .mem-row{
+    display: grid; grid-template-columns: 1fr auto;
+    border-bottom: 1px dashed var(--ink-mute);
+    padding: 4px 0; color: var(--ink);
+  }
+  .mem-row .ct{ color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+  .gauge{
+    height: 4px; background: var(--ink-mute); position: relative; margin: 4px 0 10px;
+  }
+  .gauge > i{ position: absolute; left: 0; top: 0; bottom:0; background: var(--ink); display: block; transition: width 0.6s ease; }
+
+  /* CONTROLS */
+  .term-controls{
+    margin-top: 16px;
+    display: flex; gap: 10px; flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    background: transparent; color: var(--ink);
+    border: 1px solid var(--ink-faint);
+    padding: 8px 14px; cursor: pointer;
+    transition: all 0.12s;
+  }
+  .btn:hover{ background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .btn[data-active="true"]{ background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .btn.ghost{ border-color: var(--ink-mute); color: var(--ink-dim); }
+  .btn.ghost:hover{ color: var(--ink); border-color: var(--ink); background: transparent; }
+  .step-indicator{
+    color: var(--ink-faint); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    margin-left: auto;
+  }
+
+  /* ASCII ANIMATION (legacy box, replaced by hero-right; kept empty for safety) */
+
+  /* DUAL DEMO */
+  .dual-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--rule);
+    background: var(--bg-2);
+  }
+  .dual-grid > section{
+    border-right: 1px solid var(--rule);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-height: 620px;
+  }
+  .dual-grid > section:last-child{ border-right: none; }
+  .agent-head{
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px; align-items: end;
+  }
+  .agent-tag{
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px; letter-spacing: 0.18em; color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .agent-name{
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; text-transform: uppercase;
+    font-size: 16px; letter-spacing: 0.02em; line-height: 1.2;
+    margin-top: 2px;
+  }
+  .agent-intent{
+    color: var(--ink-dim); font-size: 11px; margin-top: 4px;
+    letter-spacing: 0.04em;
+  }
+  .agent-pill{
+    padding: 4px 8px; border: 1px solid var(--ink-faint);
+    color: var(--ink); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    align-self: start;
+  }
+  .agent-body{
+    padding: 16px 18px;
+    font-size: 12px; line-height: 1.6;
+    overflow: hidden;
+  }
+  .agent-foot{
+    padding: 12px 18px;
+    border-top: 1px solid var(--rule);
+    display: grid; grid-template-columns: 1fr auto; gap: 10px;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-faint);
+    background: var(--panel-recess-2);
+  }
+  .agent-foot b{ color: var(--ink); font-weight: 700; }
+
+  /* trajectory list with skill-step tags */
+  .traj{ list-style: none; margin: 0; padding: 0; font-size: 12px; line-height: 1.55; }
+  .traj li{
+    display: grid;
+    grid-template-columns: 16px 1fr auto;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px dashed var(--ink-mute);
+    align-items: start;
+  }
+  .traj li:last-child{ border-bottom: none; }
+  .traj .glyph{
+    color: var(--ink-faint); font-size: 11px; padding-top: 2px;
+  }
+  .traj .body .cmd{ color: var(--ink); }
+  .traj .body .out{ color: var(--ink-dim); font-size: 11px; display:block; margin-top: 2px; }
+  .traj li[data-kind="search"] .glyph{ color: var(--ink); }
+  .traj li[data-kind="skill"] .glyph{ color: var(--hot); }
+  .traj li[data-kind="commit"] .glyph{ color: var(--ink); }
+  .traj .tag{
+    font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+    padding: 2px 6px; border: 1px solid var(--ink-mute); color: var(--ink-dim);
+    align-self: start; white-space: nowrap;
+  }
+  .traj .tag.search{ color: var(--ink); border-color: var(--ink-faint); }
+  .traj .tag.skill{ color: var(--hot); border-color: var(--hot); }
+  .traj .tag.opt{ color: var(--bg); background: var(--hot); border-color: var(--hot); }
+  .traj .tag.det{ background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+  .interface-card{
+    margin-top: 14px;
+    border: 1px dashed var(--ink-faint);
+    padding: 12px 14px;
+    background: rgba(var(--ink-rgb),0.03);
+    font-size: 11px;
+    color: var(--ink);
+    line-height: 1.65;
+    white-space: pre;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .interface-card .k{ color: var(--ink-dim); }
+  .interface-card .t{ color: var(--hot); }
+  .interface-card .c{ color: var(--ink-faint); font-style: italic; }
+
+  /* CONVERGENCE BAR (between dual + provider) */
+  .converge{
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 24px;
+    padding: 22px 28px;
+    margin-top: 0;
+    border: 1px solid var(--rule);
+    border-top: none;
+    background: rgba(var(--ink-rgb),0.02);
+    color: var(--ink-dim);
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .converge .arrows{
+    color: var(--ink); font-size: 14px; letter-spacing: 0.4em;
+  }
+  .converge b{ color: var(--ink); font-weight: 700; }
+
+  /* OPTIMISATION FEED (was crystal) */
+  .crystal{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--rule);
+  }
+  .crystal-col{
+    border-right: 1px solid var(--rule);
+    padding: 22px 20px;
+    min-height: 320px;
+    position: relative;
+  }
+  .crystal-col:last-child{ border-right: none; background: rgba(var(--ink-rgb),0.025); }
+  .crystal-num{
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    color: var(--ink-faint); font-size: 11px; letter-spacing: 0.18em;
+    margin-bottom: 6px;
+  }
+  .crystal-col h3{
+    font-size: 14px; text-transform: uppercase; letter-spacing: 0.04em;
+    margin: 0 0 14px;
+  }
+  .crystal-col p{ font-size: 12px; color: var(--ink-dim); margin: 0 0 14px; line-height: 1.65; }
+  .crystal-trace{ font-size: 10.5px; line-height: 1.7; color: var(--ink-dim); }
+  .crystal-trace .l{ color: var(--ink); }
+  .crystal-trace .strike{ text-decoration: line-through; opacity: 0.45; }
+  .crystal-trace .grow-bar{
+    display:block; height: 2px; background: var(--ink-mute); margin: 6px 0;
+  }
+  .crystal-trace .grow-bar > span{ display:block; height:100%; background: var(--ink); width: 0; transition: width 1.2s ease; }
+  .crystal-cost{
+    position: absolute; right: 18px; bottom: 16px;
+    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint);
+  }
+  .crystal-cost b{ color: var(--ink); font-weight: 700; }
+
+  /* WIN-WIN */
+  .winwin{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--rule);
+  }
+  .winwin > div{
+    padding: 32px 28px;
+    border-right: 1px solid var(--rule);
+  }
+  .winwin > div:last-child{ border-right: none; }
+  .ww-head{
+    display: flex; gap: 14px; align-items: center; margin-bottom: 22px;
+    border-bottom: 1px dashed var(--rule); padding-bottom: 14px;
+  }
+  .ww-icon{
+    width: 56px; height: 56px;
+    display: grid; place-items: center;
+    border: 1px solid var(--ink-faint);
+    color: var(--ink);
+    font-size: 22px;
+  }
+  .ww-head .who{ font-family: 'JetBrains Mono', ui-monospace, monospace; color: var(--ink-faint); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
+  .ww-head .what{ font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; line-height: 1.1; margin-top: 2px; }
+  .ww-list{ list-style: none; padding: 0; margin: 0; }
+  .ww-list li{
+    padding: 14px 0; border-bottom: 1px dashed var(--rule);
+    display: grid; grid-template-columns: 28px 1fr; gap: 12px;
+    font-size: 13px; line-height: 1.55;
+  }
+  .ww-list li:last-child{ border-bottom: none; }
+  .ww-list .num{ color: var(--ink-faint); font-size: 11px; letter-spacing: 0.16em; padding-top: 2px; }
+  .ww-list strong{ color: var(--ink); display:block; font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .ww-list span{ color: var(--ink-dim); font-size: 12px; }
+
+  /* CTA / footer */
+  .footer-broadside{
+    padding: 72px 0 60px;
+    text-align: left;
+  }
+  .ftr-grid{
+    display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 40px;
+  }
+  .ftr-mark{
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; text-transform: uppercase;
+    font-size: clamp(40px, 6vw, 86px);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+  }
+  .ftr-mark .slash{ color: var(--ink-dim); font-weight: 400; }
+  .ftr-cta{
+    display: inline-flex; align-items: center; gap: 10px;
+    border: 1px solid var(--ink); padding: 14px 22px;
+    color: var(--ink); text-decoration: none;
+    font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+    background: var(--ink); color: var(--bg);
+    transition: all 0.12s;
+  }
+  .ftr-cta:hover{ background: transparent; color: var(--ink); }
+  .ftr-cta .arr{ font-family: 'JetBrains Mono', monospace; }
+  .ftr-stamps{
+    display: flex; gap: 20px; align-items: center; margin-top: 36px;
+    color: var(--ink-faint); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    border-top: 1px solid var(--rule); padding-top: 18px;
+  }
+  .checker{
+    width: 64px; height: 16px;
+    background-image:
+      linear-gradient(45deg, var(--ink) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--ink) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--ink) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--ink) 75%);
+    background-size: 8px 8px;
+    background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+  }
+  .ring-stamp{
+    width: 56px; height: 22px;
+    border: 1px solid var(--ink); border-radius: 999px;
+    display: inline-grid; place-items: center;
+    color: var(--ink); font-size: 10px; letter-spacing: 0.18em;
+  }
+
+  /* utility */
+  .row{ display: flex; gap: 18px; align-items: center; }
+  .hr-tick{
+    height: 12px;
+    background-image: repeating-linear-gradient(to right, var(--ink-mute) 0 1px, transparent 1px 8px);
+    margin: 24px 0;
+  }
+  /* ═══ SIDE-TAB WORKFLOW ═══ */
+  .loop-section{ padding: 64px 0; }
+  .loop-grid{
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 0;
+    border: 1px solid var(--rule);
+    background: var(--bg-2);
+    min-height: 460px;
+  }
+  .loop-tabs{
+    border-right: 1px solid var(--rule);
+    display: flex; flex-direction: column;
+    background: var(--panel-recess-2);
+  }
+  .loop-tab{
+    appearance: none;
+    background: transparent;
+    border: 0;
+    border-left: 2px solid transparent;
+    border-bottom: 1px dashed var(--rule);
+    padding: 18px 22px 18px 20px;
+    text-align: left;
+    cursor: pointer;
+    color: var(--ink-dim);
+    font-family: 'JetBrains Mono', monospace;
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 14px;
+    align-items: start;
+    transition: color 0.12s, background 0.12s, border-left-color 0.12s;
+  }
+  .loop-tab:last-child{ border-bottom: 0; }
+  .loop-tab-num{
+    color: var(--ink-faint);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    padding-top: 2px;
+  }
+  .loop-tab-body{ display: block; }
+  .loop-tab-name{
+    display: block;
+    color: var(--ink);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+  }
+  .loop-tab-by{
+    display: block;
+    color: var(--ink-faint);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .loop-tab:hover{
+    color: var(--ink);
+    background: rgba(var(--ink-rgb),0.04);
+  }
+  .loop-tab:hover .loop-tab-num{ color: var(--ink); }
+  .loop-tab.is-on{
+    background: rgba(var(--ink-rgb),0.06);
+    border-left-color: var(--ink);
+  }
+  .loop-tab.is-on .loop-tab-num{ color: var(--ink); }
+
+  .loop-panel{
+    padding: 36px 40px 32px;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto;
+    gap: 18px;
+  }
+  .loop-panel-l{
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .loop-panel-title{
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 28px;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+    margin: 0;
+  }
+  .loop-panel-lede{
+    color: var(--ink-dim);
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 0;
+    max-width: 64ch;
+  }
+  .loop-snippet{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--ink);
+    background: var(--panel-recess-3);
+    border: 1px dashed var(--rule);
+    padding: 14px 18px;
+    margin: 0;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .loop-principle{
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    border-top: 1px dashed var(--rule);
+    padding-top: 14px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .loop-principle-arr{ color: var(--ink); }
+
+  /* ═══ FOOTER ═══ */
+  .ftr{ padding: 22px 0 28px; }
+  .ftr-row{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .ftr-copy a{
+    color: var(--ink-dim);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    margin-left: 8px;
+    transition: color 0.14s;
+  }
+  .ftr-copy a:hover{ color: var(--ink); }
+  .openmake-mark{
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: currentColor;
+    margin-right: 6px;
+    vertical-align: baseline;
+    transition: background 0.15s ease;
+  }
+  .ftr-copy a:hover .openmake-mark{ background: #E63329; }
+  .ftr-mark-r .brand-open{ font-weight: 400; color: var(--ink-faint); }
+  .ftr-mark-r .brand-slash{ color: var(--ink-faint); }
+  .ftr-mark-r .brand-traces{ font-weight: 700; color: var(--ink); }
+
+  @media (max-width: 980px){
+    .hero-grid{ grid-template-columns: 1fr; min-height: 0; }
+    .hero-left{ padding: 56px 24px 32px; max-width: none; justify-self: stretch; }
+    /* On single-column / mobile: drop the ASCII animation and its
+       INIT/MOUNT/WRITE/COMMIT/OPTIMISE key. The hero-left already carries
+       the full message; the animation is decorative and cramped at this
+       width. Hero sizes to content (no forced 100dvh) so the next section
+       flows in immediately instead of leaving a giant void. */
+    .hero-right{ display: none; }
+    .hero{ height: auto; min-height: 0; }
+    .hero-left{
+      overflow: visible;
+      padding-top: 88px;
+      padding-bottom: 56px;
+    }
+  }
+  @media (max-width: 900px){
+    .section-head{ grid-template-columns: 1fr; }
+    .loop-grid,
+    .loop-section .loop-grid{
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto;
+    }
+    .loop-tabs{
+      flex-direction: row;
+      overflow: visible;
+      border-right: 0;
+      border-bottom: 1px solid var(--rule);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+    }
+    .loop-tab{
+      border-bottom: 0;
+      border-right: 1px dashed var(--rule);
+      border-left: 0;
+      border-top: 2px solid transparent;
+      min-width: 0;
+      grid-template-columns: 1fr;
+      gap: 4px;
+      padding: 12px 10px;
+      align-items: start;
+    }
+    .loop-tab:last-child{ border-right: 0; }
+    .loop-tab.is-on{ border-left: 0; border-top-color: var(--ink); }
+    .loop-tab-num{ padding-top: 0; }
+    .loop-panel{ padding: 28px 22px; }
+    .ftr-row{ flex-direction: row; gap: 12px; align-items: center; }
+  }
+  @media (max-width: 600px){
+    .loop-tab-by{ display: none; }
+    .loop-section .loop-tab{ padding: 10px 8px; }
+    .loop-section .loop-tab-name{ font-size: 10.5px; }
+    .loop-tab-num{ font-size: 9.5px; }
+  }
+
+  /* ═══ SYNTAX HIGHLIGHTING ═══ */
+  .hl-p   { color: var(--ink-faint); }
+  .hl-fl  { color: var(--hl-flag); }             /* flags --xxx */
+  .hl-st  { color: var(--hl-str); }              /* "strings" */
+  .hl-fn  { color: var(--hl-fn); }               /* file paths/ext */
+  .hl-id  { color: var(--hot); font-weight: 700; } /* df.* identifiers */
+  .hl-tr  { color: var(--ink-faint); }           /* tree chars */
+  .hl-ok  { color: var(--hl-ok); }               /* status keywords */
+
+  /* inline code throughout the page picks up identifier accent */
+  .lede code,
+  .hero-strip-gloss code{
+    color: var(--hot);
+    background: transparent;
+    border: 0;
+    padding: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+  }
+
+  /* ═══ HERO CTA (two-button row) ═══ */
+  .hero-cta{
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 26px;
+    max-width: 540px; /* matches .vfs-tree below so the secondary CTA can right-align to the same edge */
+  }
+  /* On wide-enough rows, primary stretches to fill space; on narrow rows,
+     it falls back to its natural width so the secondary CTA can wrap
+     left-aligned underneath it. */
+  /* Primary CTA keeps its natural width at every breakpoint — stretching
+     to fill the row makes the success state ("Copied to clipboard") look
+     stranded on wide screens and pushes the secondary CTA too far. */
+
+  .hero-cta .cta-secondary{ margin-left: 0; flex: 0 0 auto; }
+  @media (max-width: 600px){
+    .hero-cta .cta-secondary{ margin-left: 0; }
+  }
+  .cta-primary{
+    position: relative;
+    isolation: isolate;
+    appearance: none;
+    cursor: pointer;
+    border: 0;
+    padding: 12px 28px;
+    flex: 0 0 auto;
+    min-width: 0;
+    justify-content: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--cta-bg);
+    color: var(--cta-ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    /* 1px rim — drawn outside the box so it never covers the dark bg */
+    box-shadow: 0 0 0 1px var(--ink-mute);
+    transition: transform 0.14s ease;
+  }
+  /* (legacy rim pseudo retained but emptied — rim is now a box-shadow) */
+  .cta-primary::before{ content: none; }
+  .cta-glow{ display: none; }
+  /* button itself stays put on hover — only the icons animate */
+  .cta-primary:hover,
+  .cta-primary:active{ transform: none; }
+  .cta-agents{
+    position: relative;
+    /* width matches the fanned-out hover state so the button never shifts:
+       4 icons × 16px + 3 gaps × 6px = 82px */
+    width: 82px;
+    height: 18px;
+    flex: 0 0 auto;
+    display: block;
+  }
+  .cta-agent{
+    position: absolute;
+    top: 1px;
+    width: 16px;
+    height: 16px;
+    display: block;
+    filter: brightness(0) invert(1);
+    transform-origin: 50% 50%;
+    transition: left 0.34s cubic-bezier(.2,.75,.2,1), transform 0.34s cubic-bezier(.2,.75,.2,1);
+  }
+  /* DEFAULT: stacked + tilted (a deck of badges) */
+  .cta-agent:nth-child(1){ left: 0;    transform: rotate(-14deg); z-index: 4; }
+  .cta-agent:nth-child(2){ left: 14px; transform: rotate(6deg);   z-index: 3; }
+  .cta-agent:nth-child(3){ left: 28px; transform: rotate(-6deg);  z-index: 2; }
+  .cta-agent:nth-child(4){ left: 42px; transform: rotate(12deg);  z-index: 1; }
+  /* HOVER / FOCUS: lay out evenly (16px icons, 6px gaps → 0, 22, 44, 66) */
+  .cta-primary:hover .cta-agent,
+  .cta-primary:focus-visible .cta-agent{ transform: rotate(0deg); }
+  .cta-primary:hover .cta-agent:nth-child(1),
+  .cta-primary:focus-visible .cta-agent:nth-child(1){ left: 0; }
+  .cta-primary:hover .cta-agent:nth-child(2),
+  .cta-primary:focus-visible .cta-agent:nth-child(2){ left: 22px; }
+  .cta-primary:hover .cta-agent:nth-child(3),
+  .cta-primary:focus-visible .cta-agent:nth-child(3){ left: 44px; }
+  .cta-primary:hover .cta-agent:nth-child(4),
+  .cta-primary:focus-visible .cta-agent:nth-child(4){ left: 66px; }
+
+  .cta-label{ display: inline-block; padding-right: 4px; }
+
+  /* DEFAULT / SUCCESS states — cross-fade in place, no sliding */
+  .cta-primary{ overflow: hidden; }
+  .cta-state{
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    transition: opacity 0.22s ease;
+  }
+  .cta-state.cta-state-success{
+    position: absolute;
+    inset: 0;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .cta-state-success .cta-check{
+    width: 14px; height: 14px;
+    display: inline-block;
+    color: var(--cta-ink);
+  }
+  .cta-primary.is-done .cta-state-default{ opacity: 0; }
+  .cta-primary.is-done .cta-state-success{ opacity: 1; }
+  /* hover lift should NOT apply once we've flipped to success */
+  .cta-primary.is-done:hover{ transform: none; }
+
+  .cta-secondary{
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 22px 11px 18px;
+    background: transparent;
+    color: var(--ink);
+    text-decoration: none;
+    border: 1px solid var(--ink-mute);
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: border-color 0.14s, color 0.14s, background 0.14s;
+  }
+  .cta-secondary:hover{
+    border-color: var(--ink-faint);
+    color: var(--ink);
+    background: rgba(var(--ink-rgb),0.04);
+  }
+  .cta-secondary svg{ color: var(--ink-dim); }
+
+  @media (max-width: 600px){
+    .hero-cta{ gap: 10px; margin-top: 20px; }
+    .cta-primary, .cta-secondary{ font-size: 12px; padding: 10px 18px 10px 14px; }
+    .cta-agent{ width: 14px; height: 14px; }
+  }
+
+  /* ═══ HERO VFS TREE ═══ */
+  .vfs-tree{
+    margin-top: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(9px, 1.05vw, 12px);
+    line-height: 1.75;
+    border: 1px solid var(--rule);
+    border-left: 2px solid var(--ink-mute);
+    padding: 12px 14px;
+    background: var(--panel-recess-1);
+    max-width: 540px;
+    container-type: inline-size;
+  }
+  .vfs-cmd{
+    font-size: clamp(8.5px, 1.35cqi + 1px, 14px);
+    line-height: 1.55;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+    border-bottom: 1px dashed var(--rule);
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+  }
+  .vfs-lineage{
+    font-size: clamp(8px, 1.2cqi + 1px, 12.5px);
+    line-height: 1.55;
+    color: var(--ink-faint);
+    letter-spacing: 0.03em;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--rule);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+  }
+  .vfs-glyph{ color: var(--ink); margin-right: 6px; }
+  .vfs-sep{ color: var(--ink-mute); margin: 0 8px; }
+  .vfs-tag-mini{
+    flex: 0 0 auto;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-style: italic;
+    white-space: nowrap;
+  }
+  .vfs-line{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--ink-faint);
+  }
+  .vfs-root{
+    color: var(--ink);
+    font-weight: 700;
+    margin-bottom: 4px;
+    letter-spacing: 0.02em;
+  }
+  .vfs-line.bright{ color: var(--ink); }
+  .vfs-line.dim{ color: var(--ink-faint); }
+  .vfs-path{
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: pre;
+  }
+  .vfs-tag{
+    flex: 0 0 auto;
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border: 1px solid var(--ink-mute);
+    padding: 1px 6px;
+    white-space: nowrap;
+    line-height: 1.4;
+  }
+  .vfs-tag.yours{
+    color: var(--bg);
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+
+  /* ═══ HERO STAMP STRIP ═══ */
+  .hero-strip{
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    z-index: 4;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    height: 22%;
+    min-height: 130px;
+    border-top: 1px solid var(--rule);
+    background: linear-gradient(to bottom, rgba(var(--bg-2-rgb),0.65), rgba(var(--bg-2-rgb),0.96));
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+  }
+  .hero-strip-cell{
+    padding: 12px 14px 14px;
+    border-right: 1px dashed var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    min-width: 0;
+  }
+  .hero-strip-cell:last-child{ border-right: 0; }
+  .hero-strip-num{
+    color: var(--ink-faint);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+  }
+  .hero-strip-name{
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .hero-strip-gloss{
+    color: var(--ink);
+    font-size: 11.5px;
+    letter-spacing: 0;
+    line-height: 1.55;
+    margin-top: 8px;
+    word-break: break-word;
+  }
+  .hero-strip-gloss code{
+    background: transparent;
+    border: 0;
+    padding: 0;
+    color: var(--hot);
+    font-size: 11.5px;
+  }
+
+  @media (max-width: 980px){
+    .hero-strip{ grid-template-columns: repeat(2, 1fr); height: auto; min-height: 0; position: relative; }
+    .hero-strip-cell{ border-right: 1px dashed var(--rule); border-bottom: 1px dashed var(--rule); }
+    .hero-strip-cell:nth-child(2n){ border-right: 0; }
+    .hero-strip-cell:last-child{ border-bottom: 0; }
+  }
+
+  /* ═══ V2: full-screen pages + auto-cycle timer + fixed chrome/footer ═══ */
+  html{ scroll-behavior: smooth; }
+
+  .chrome{
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 60;
+    background: rgba(var(--bg-rgb),0.78);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .hero{
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+  }
+  .hero-grid{
+    height: 100%;
+    min-height: 0;
+  }
+  .hero-left{
+    overflow: hidden;
+    padding-top: 88px;
+    padding-bottom: 24px;
+  }
+
+  .loop-section{
+    min-height: 0;
+    height: 100%;
+    padding: 0;
+    border-bottom: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .duo-section{
+    min-height: calc(100vh - var(--ftr-h, 57px));
+    min-height: calc(100dvh - var(--ftr-h, 57px));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    border-bottom: 0;
+  }
+  .duo-half{
+    display: flex;
+    flex-direction: column;
+    padding: clamp(48px, 6vh, 80px) 0 clamp(40px, 4vh, 64px);
+    border-right: 1px solid var(--rule);
+    min-width: 0;
+    min-height: 0;
+  }
+  .duo-half:last-child{ border-right: 0; }
+  .duo-section + .duo-section,
+  .duo-section + section,
+  .duo-section{ border-top: 1px solid var(--rule); }
+  .duo-wrap{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(16px, 2.4vh, 28px);
+    padding: 0 clamp(20px, 2.4vw, 36px);
+    min-height: 0;
+  }
+  .duo-head{
+    display: grid;
+    gap: 6px;
+    flex: 0 0 auto;
+    border-bottom: 1px dashed var(--rule);
+    padding-bottom: 14px;
+  }
+  .duo-num{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .duo-h2{
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: clamp(22px, 2.2vw, 30px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  .duo-h2 .slash{ color: var(--ink-dim); font-weight: 400; }
+  .duo-sub{
+    color: var(--ink-dim);
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin: 4px 0 0;
+    max-width: 60ch;
+  }
+  .duo-sub b{ color: var(--ink); font-weight: 400; }
+  .duo-half.loop-section .loop-how{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border: 1px solid var(--rule);
+    background: var(--bg-2);
+    overflow: hidden;
+  }
+  .duo-half.loop-section .loop-tabs{
+    flex: 0 0 auto;
+    flex-direction: row;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    background: var(--panel-recess-2);
+  }
+  .duo-half.loop-section .loop-tab{
+    border-bottom: 0;
+    border-right: 1px dashed var(--rule);
+    border-left: 0;
+    border-top: 2px solid transparent;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+    padding: 11px 12px 12px;
+    min-width: 0;
+  }
+  .duo-half.loop-section .loop-tab:last-child{ border-right: 0; }
+  .duo-half.loop-section .loop-tab.is-on{
+    border-left: 0;
+    border-top-color: var(--ink);
+  }
+  .duo-half.loop-section .loop-tab-num{ padding-top: 0; }
+  .duo-half.loop-section .loop-panel{
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 22px 24px;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto;
+    gap: 12px;
+  }
+  .duo-half.loop-section .loop-panel-title{
+    font-size: clamp(20px, 2vw, 24px);
+    line-height: 1.05;
+  }
+  .duo-half.loop-section .loop-panel-lede{
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+  .duo-half.loop-section .loop-snippet{
+    font-size: 11.5px;
+    line-height: 1.6;
+    padding: 10px 14px;
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto;
+  }
+  .duo-half.loop-section .loop-timer{
+    flex: 0 0 auto;
+    margin-top: 0;
+    border: 1px solid var(--rule);
+    border-top: 0;
+  }
+
+  .duo-half.eval-section{
+    background: var(--bg);
+    padding-top: clamp(48px, 6vh, 80px);
+    border-top: 0;
+  }
+  .duo-half.eval-section .loop-eval-stats-v{
+    flex: 1;
+    border: 1px solid var(--rule);
+    border-bottom: 0;
+    background: rgba(var(--ink-rgb),0.018);
+    min-height: 0;
+  }
+  .duo-half.eval-section .loop-eval-facts{
+    border: 1px solid var(--rule);
+    border-top: 0;
+    background: var(--panel-recess-1);
+  }
+
+  @media (max-width: 980px){
+    .duo-section{
+      grid-template-columns: 1fr;
+      min-height: 0;
+    }
+    .duo-half{
+      border-right: 0;
+      border-bottom: 1px solid var(--rule);
+      padding: clamp(40px, 5vh, 56px) 0;
+    }
+    .duo-half:last-child{ border-bottom: 0; }
+    .duo-wrap{ padding: 0 20px; }
+    .duo-half.loop-section .loop-how{ min-height: 360px; }
+  }
+  @media (max-width: 600px){
+    .duo-wrap{ padding: 0 16px; }
+    .duo-half{ padding: 36px 0; }
+    .duo-half.loop-section .loop-tab-by{ display: none; }
+    .duo-half.loop-section .loop-panel{ padding: 16px; }
+  }
+
+  /* EVAL HIGHLIGHTS (right column of loop-grid) */
+  .loop-eval{
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 0;
+    padding: 0;
+    border-left: 1px solid var(--rule);
+    min-height: 0;
+    background: rgba(var(--ink-rgb),0.018);
+  }
+  .loop-eval-head{
+    padding: 18px 24px 16px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .loop-eval-l{
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+  .loop-eval-title{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(20px, 1.9vw, 24px);
+    font-weight: 700;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    line-height: 1.05;
+  }
+  .loop-eval-sub{
+    margin: 0;
+    color: var(--ink-dim);
+    font-size: 11.5px;
+    line-height: 1.55;
+    max-width: 56ch;
+  }
+  .loop-eval-sub b{ color: var(--ink); font-weight: 400; }
+
+  .loop-eval-stats-v{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-rows: repeat(3, 1fr);
+    min-height: 0;
+  }
+  .loop-eval-stats-v li{
+    padding: 14px 24px 14px;
+    border-bottom: 1px dashed var(--rule);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    column-gap: 18px;
+    align-items: baseline;
+    min-width: 0;
+  }
+  .loop-eval-stats-v li:last-child{ border-bottom: 0; }
+  .loop-eval-stats-v .lev-k{
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    align-self: end;
+  }
+  .loop-eval-stats-v .lev-v{
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: clamp(36px, 4.4vw, 60px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .loop-eval-stats-v .lev-u{
+    font-size: 0.36em;
+    color: var(--ink-dim);
+    font-weight: 400;
+    margin-left: 2px;
+    letter-spacing: 0;
+  }
+  .loop-eval-stats-v .lev-foot{
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 10.5px;
+    color: var(--ink-dim);
+    line-height: 1.55;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 4px;
+  }
+  .loop-eval-stats-v .lev-arrow{
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+  }
+  .loop-eval-stats-v .lev-arrow b{ color: var(--ink); font-weight: 700; }
+
+  .loop-eval-facts{
+    list-style: none;
+    margin: 0;
+    padding: 14px 24px 16px;
+    border-top: 1px solid var(--rule);
+    display: grid;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    line-height: 1.55;
+  }
+  .loop-eval-facts li{
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 12px;
+  }
+  .loop-eval-facts .fk{
+    color: var(--ink-faint);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .loop-eval-facts .fv{ color: var(--ink-dim); }
+  .loop-eval-facts .fv b{ color: var(--ink); font-weight: 700; }
+
+  @media (max-width: 1099px){
+    .loop-eval-stats-v li{ padding: 12px 20px; }
+    .loop-eval-stats-v .lev-v{ font-size: clamp(34px, 6vw, 48px); }
+    .loop-eval-facts li{ grid-template-columns: 130px 1fr; }
+  }
+  @media (max-width: 600px){
+    .loop-eval-head{ padding: 14px 16px; }
+    .loop-eval-stats-v li{ padding: 12px 16px; }
+    .loop-eval-stats-v .lev-v{ font-size: 36px; }
+    .loop-eval-facts{ padding: 12px 16px; }
+    .loop-eval-facts li{ grid-template-columns: 1fr; gap: 0; }
+  }
+  .loop-section .loop-tab{
+    padding: 11px 16px 12px;
+  }
+  .loop-section .loop-tab-name{
+    font-size: clamp(9.5px, 1cqi + 2px, 12.5px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+    min-width: 0;
+  }
+  .loop-section .loop-tab-by{
+    font-size: clamp(8px, 0.7cqi + 2px, 9.5px);
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+    min-width: 0;
+  }
+  .loop-section .loop-tabs{ container-type: inline-size; }
+  .loop-section .loop-tab{ min-width: 0; }
+  .loop-section .loop-tab-body{ min-width: 0; overflow: hidden; }
+  .loop-section .loop-panel{
+    padding: 22px 28px 22px;
+    gap: 12px;
+  }
+  .loop-section .loop-panel-title{
+    font-size: 22px;
+    line-height: 1.05;
+  }
+  .loop-section .loop-panel-lede{
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+  .loop-section .loop-snippet{
+    padding: 10px 14px;
+    font-size: 11.5px;
+    line-height: 1.6;
+  }
+  .loop-section .loop-principle{
+    padding-top: 10px;
+    font-size: 10.5px;
+  }
+
+  /* GITHUB LINK IN CHROME */
+  .chrome-link{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--ink-faint);
+    text-decoration: none;
+    padding: 4px 8px;
+    border: 1px solid var(--ink-faint);
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    transition: color 0.14s, border-color 0.14s, background 0.14s;
+  }
+  .chrome-link .chrome-link-out{
+    color: var(--ink-faint);
+    transition: color 0.14s;
+    margin-left: 1px;
+  }
+  .chrome-link:hover .chrome-link-out{ color: var(--bg); }
+  .chrome-link:hover{
+    color: var(--bg);
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .chrome-link svg{ display: block; }
+  .chrome-link-arr{ font-size: 12px; }
+
+  /* THEME TOGGLE */
+  .theme-toggle{
+    appearance: none;
+    cursor: pointer;
+    background: transparent;
+    color: var(--ink-faint);
+    border: 1px solid var(--ink-faint);
+    padding: 4px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.14s, border-color 0.14s, background 0.14s;
+  }
+  .theme-toggle:hover{
+    color: var(--bg);
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .theme-toggle svg{ display: block; }
+  [data-theme="light"] .theme-toggle .icon-sun{ display: none; }
+  [data-theme="light"] .theme-toggle .icon-moon{ display: block; }
+  [data-theme="light"] .theme-toggle .label-dark{ display: inline; }
+  [data-theme="light"] .theme-toggle .label-light{ display: none; }
+  .theme-toggle .icon-moon{ display: none; }
+  .theme-toggle .label-dark{ display: none; }
+  @media (max-width: 760px){
+    .chrome-tag{ display: none; }
+  }
+  .loop-section .loop-panel{
+    overflow-y: auto;
+  }
+
+  /* timer bar — sits flush under the loop-grid */
+  .loop-timer{
+    height: 2px;
+    background: rgba(var(--ink-rgb),0.08);
+    border-left: 1px solid var(--rule);
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+    overflow: hidden;
+  }
+  .loop-timer-bar{
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 0;
+    background: var(--ink);
+    transition: width var(--cycle-ms, 6000ms) linear;
+  }
+  .loop-timer-bar.run{ width: 100%; }
+
+  /* footer at very bottom — normal flow, not sticky */
+  .ftr{
+    position: relative;
+    z-index: 1;
+    padding: 14px 0 18px;
+    background: var(--bg);
+    border-top: 1px solid var(--rule);
+    min-height: var(--ftr-h, 57px);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+  }
+  .ftr > .ftr-row{ width: 100%; }
+  .ftr-icons{
+    display: inline-flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .logo-link{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px; height: 22px;
+    color: var(--ink-faint);
+    text-decoration: none;
+    transition: color 0.14s, transform 0.14s;
+  }
+  .logo-link:hover{ color: var(--ink); transform: translateY(-1px); }
+  .logo-link svg{ display: block; }
+
+  @media (max-width: 760px){
+    .loop-section{ padding: 56px 0 24px; }
+  }
+
+  /* ═══ MOBILE TUNING ═══ */
+  @media (max-width: 980px){
+    .wrap{ padding: 0 20px; }
+    .chrome{ padding: 8px 20px; gap: 16px; font-size: 10px; }
+    .chrome .brand{ gap: 8px; }
+    .chrome-link{ padding: 3px 8px; font-size: 10px; gap: 6px; }
+
+    /* Hero-right (animation + key) is hidden on single-column, so let the
+       hero size to its content instead of being locked to 100dvh — keeps
+       the next section from being pushed off-screen. */
+    .hero{ height: auto; min-height: 0; }
+    .hero-grid{ height: auto; }
+    .hero-left{ padding: 72px 20px 40px; overflow: visible; }
+    h1{ font-size: clamp(34px, 9vw, 56px); margin-bottom: 20px; }
+    .badge{ font-size: 11px; margin-bottom: 18px; }
+    .lede{ font-size: 13px; max-width: none; }
+    .vfs-tree{ max-width: none; margin-top: 20px; }
+
+    /* Hero animation pane: cap height so the strip doesn't dominate */
+    .hero-right{ min-height: 380px; max-height: 70vh; }
+    .hero-right pre#ascii{ font-size: 10px; }
+    .hero-right .stage-legend,
+    .hero-right .stage-cap{ font-size: 9px; letter-spacing: 0.14em; }
+
+    /* Loop section: let it breathe on a phone, no forced height math */
+    .loop-section{
+      min-height: 0;
+      padding: 48px 0 24px;
+    }
+    .loop-section .wrap{ padding: 0 20px; gap: 18px; }
+    .loop-section .section-head{ grid-template-columns: 1fr; gap: 6px; }
+    .loop-section .section-head h2{ font-size: clamp(18px, 4.6vw, 22px); }
+    .loop-section .loop-grid{ min-height: 0; }
+
+    /* Loop panel content scales down */
+    .loop-section .loop-panel{ padding: 18px 20px; }
+    .loop-section .loop-panel-title{ font-size: clamp(18px, 4.6vw, 22px); }
+    .loop-section .loop-panel-lede{ font-size: 12px; }
+    .loop-section .loop-snippet{ font-size: 11px; padding: 10px 12px; }
+
+    /* Footer wraps cleanly */
+    .ftr{ min-height: 0; padding: 12px 0 14px; }
+    .ftr-row{ flex-wrap: wrap; gap: 10px 16px; row-gap: 6px; }
+  }
+
+  @media (max-width: 600px){
+    .wrap{ padding: 0 16px; }
+    .chrome{ padding: 8px 16px; gap: 12px; }
+    .chrome .brand{ font-size: 10px; letter-spacing: 0.1em; }
+    .chrome-tag{ display: none; }
+
+    .hero-left{ padding: 68px 16px 24px; }
+    h1{ font-size: clamp(30px, 10vw, 44px); line-height: 0.98; }
+    .badge{ font-size: 10px; margin-bottom: 14px; }
+    .lede{ font-size: 12.5px; line-height: 1.65; }
+    .vfs-tree{ padding: 10px 12px; }
+
+    .hero-right{ min-height: 320px; max-height: 60vh; }
+
+    /* Hero strip: single column with shorter cells */
+    .hero-strip{ grid-template-columns: 1fr; }
+    .hero-strip-cell{ padding: 10px 14px 12px; border-right: 0 !important; border-bottom: 1px dashed var(--rule); }
+    .hero-strip-cell:last-child{ border-bottom: 0; }
+    .hero-strip-name{ font-size: 13px; }
+    .hero-strip-gloss{ font-size: 11px; }
+
+    /* Loop tabs keep 5-column grid layout (set by 900px rule) */
+    .loop-section .loop-tab{
+      padding: 10px 8px 11px;
+      min-width: 0;
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+    .loop-section .loop-tab-name{ font-size: 10.5px; }
+    .loop-section .loop-tab-by{ display: none; }
+    .loop-section .loop-panel{ padding: 16px; gap: 10px; }
+    .loop-section .loop-snippet{ font-size: 10.5px; padding: 8px 10px; }
+
+    .ftr-row{ font-size: 10px; }
+  }
+
+  /* ═══ EVAL SECTION ═══ */
+  .eval-section{
+    padding: clamp(64px, 8vh, 96px) 0 clamp(48px, 6vh, 80px);
+    border-top: 1px solid var(--rule);
+    background: var(--bg);
+  }
+  .eval-section .wrap{ max-width: 1280px; padding: 0 40px; }
+  .eval-section + .eval-section{ border-top: 0; padding-top: 0; }
+
+  /* === REDESIGNED EVAL (centered, story-led, framed to match loop-how) === */
+  .eval-wrap{
+    align-items: stretch;
+    text-align: left;
+    justify-content: flex-start;
+    gap: clamp(16px, 2.4vh, 28px) !important;
+  }
+  .eval-box{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border: 1px solid var(--rule);
+    background: var(--bg-2);
+    overflow: hidden;
+  }
+  .eval-box-head{
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px 12px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--panel-recess-2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .eval-box-head .eval-box-l{ color: var(--ink-dim); }
+  .eval-box-body{
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: clamp(20px, 3vh, 32px) clamp(20px, 2.4vw, 32px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(16px, 2.4vh, 24px);
+    text-align: center;
+  }
+  .eval-head{
+    text-align: left;
+    align-items: start;
+    display: grid;
+    justify-items: start;
+    margin: 0;
+  }
+  .eval-head .duo-sub{ margin: 4px 0 0; }
+
+  .eval-story{
+    margin: 0 auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(15px, 1.5vw, 20px);
+    line-height: 1.45;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+    text-align: center;
+    max-width: 42ch;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .eval-story-line{ display: block; }
+  .eval-story-line + .eval-story-line{ color: var(--ink-dim); }
+  .eval-story-line:last-child{ color: var(--ink-dim); }
+  .eval-story b{ color: var(--hot); font-weight: 700; }
+
+  .eval-stats{
+    list-style: none;
+    margin: 0 auto;
+    padding: 18px 8px;
+    border-top: 1px dashed var(--rule);
+    border-bottom: 1px dashed var(--rule);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    width: 100%;
+    max-width: 720px;
+  }
+  .eval-stats li{
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    padding: 6px 14px;
+    border-right: 1px dashed var(--ink-mute);
+    gap: 6px;
+    min-width: 0;
+  }
+  .eval-stats li:last-child{ border-right: 0; }
+  .eval-stats .es-v{
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: clamp(28px, 3.2vw, 40px);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .eval-stats .es-u{
+    font-size: 0.4em;
+    color: var(--ink-dim);
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+  .eval-stats .es-k{
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .eval-stats .es-foot{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: var(--ink-dim);
+  }
+  .eval-stats .es-vs{ color: var(--ink-faint); }
+  .eval-stats .es-vs b{ color: var(--ink); font-weight: 700; }
+
+  .eval-kicker{
+    margin: 0 auto;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .eval-kicker b{ color: var(--hot); font-weight: 700; }
+
+  .eval-cta-row{
+    display: flex;
+    justify-content: center;
+    margin-top: 4px;
+  }
+
+  @media (max-width: 980px){
+    .eval-stats{ max-width: 560px; padding: 14px 4px; }
+    .eval-stats li{ padding: 6px 8px; }
+  }
+  @media (max-width: 600px){
+    .eval-stats{
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .eval-stats li{
+      border-right: 0;
+      border-bottom: 1px dashed var(--ink-mute);
+      padding-bottom: 14px;
+    }
+    .eval-stats li:last-child{ border-bottom: 0; padding-bottom: 0; }
+    .eval-story{ font-size: 14px; }
+  }
+
+  /* banner */
+  .eval-banner{
+    display: grid;
+    grid-template-columns: 180px 1fr auto;
+    gap: 32px;
+    align-items: baseline;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 22px 0 24px;
+    margin-bottom: clamp(28px, 4vh, 44px);
+  }
+  .eval-banner .section-num{
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 0.18em; color: var(--ink-faint);
+    text-transform: uppercase; border-top: 0; padding-top: 0;
+  }
+  .eval-banner h2{
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; text-transform: uppercase;
+    font-size: clamp(28px, 3.4vw, 44px); line-height: 1; margin: 0 0 10px;
+    letter-spacing: -0.02em;
+  }
+  .eval-banner h2 .slash{ color: var(--ink-dim); font-weight: 400; }
+  .eval-banner-sub{
+    color: var(--ink-dim); font-size: 13px; line-height: 1.6;
+    max-width: 70ch; margin: 0;
+  }
+  .eval-banner-sub code{
+    color: var(--hot); background: transparent; border: 0; padding: 0;
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+    word-break: break-all;
+  }
+  .eval-prov{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.16em; color: var(--ink-faint);
+    text-transform: uppercase; text-align: right; line-height: 1.9;
+  }
+  .eval-prov b{ color: var(--ink); font-weight: 700; }
+  .eval-prov .dot{
+    display: inline-block; width: 6px; height: 6px;
+    background: var(--hl-ok); vertical-align: middle; margin-right: 6px;
+    animation: blink 1.6s steps(2) infinite;
+  }
+
+  /* headline three stats */
+  .eval-headline{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--rule);
+    background: var(--panel-recess-2);
+    margin-bottom: clamp(40px, 5vh, 64px);
+  }
+  .eval-stat{
+    padding: 26px 28px 24px;
+    border-right: 1px solid var(--rule);
+    position: relative;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto;
+    gap: 6px;
+  }
+  .eval-stat:last-child{ border-right: 0; }
+  .eval-stat-k{
+    font-size: 10px; letter-spacing: 0.18em; color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .eval-stat-v{
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: clamp(48px, 6.2vw, 84px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin: 10px 0 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .eval-stat-v .unit{
+    font-size: 0.38em; color: var(--ink-dim); font-weight: 400;
+    margin-left: 4px; letter-spacing: 0;
+  }
+  .eval-stat-sub{
+    font-size: 11px; color: var(--ink-dim); letter-spacing: 0.02em;
+    line-height: 1.55;
+  }
+  .eval-stat-key{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px; color: var(--ink-faint); letter-spacing: 0;
+    margin-top: 4px;
+  }
+  .eval-stat-key b{ color: var(--ink); font-weight: 400; }
+  .eval-stat-meta{
+    border-top: 1px dashed var(--rule);
+    margin-top: 14px;
+    padding-top: 10px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .eval-stat-meta b{ color: var(--ink); }
+  .eval-stat-check{ color: var(--hl-ok); font-weight: 700; }
+
+  /* generic block */
+  .eval-block{
+    border: 1px solid var(--rule);
+    margin-bottom: clamp(40px, 5vh, 64px);
+    background: var(--bg-2);
+  }
+  .eval-block:last-child{ margin-bottom: 0; }
+  .eval-block-head{
+    padding: 18px 24px 16px;
+    border-bottom: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 180px 1fr auto;
+    gap: 24px;
+    align-items: baseline;
+  }
+  .eval-block-l{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.18em; color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .eval-block-h{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(18px, 2vw, 22px); font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.01em;
+    margin: 0; color: var(--ink); line-height: 1.1;
+  }
+  .eval-block-meta{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.16em; color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+
+  /* comparison block */
+  .eval-compare-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .eval-approach{
+    padding: 24px 24px 22px;
+    border-right: 1px solid var(--rule);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 18px;
+  }
+  .eval-approach:last-child{ border-right: 0; background: rgba(var(--ink-rgb),0.03); }
+  .eval-approach-head{
+    display: grid; gap: 4px;
+    border-bottom: 1px dashed var(--rule);
+    padding-bottom: 14px;
+  }
+  .eval-approach-name{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.02em;
+    color: var(--ink);
+  }
+  .eval-approach.us .eval-approach-name{ color: var(--hot); }
+  .eval-approach-by{
+    font-size: 10px; letter-spacing: 0.16em; color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .eval-approach-bars{ display: grid; gap: 16px; }
+  .eval-bar-row{ display: grid; gap: 6px; }
+  .eval-bar-l{
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 10px; letter-spacing: 0.16em; color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .eval-bar-l b{
+    color: var(--ink); font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; font-size: 13px; letter-spacing: -0.01em;
+    text-transform: none;
+    font-variant-numeric: tabular-nums;
+  }
+  .eval-approach.us .eval-bar-l b{ color: var(--hot); }
+  .eval-bar-track{
+    height: 5px;
+    background: rgba(var(--ink-rgb),0.06);
+    position: relative; overflow: hidden;
+  }
+  .eval-bar-track > i{
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: var(--ink); display: block;
+  }
+  .eval-approach.us .eval-bar-track > i{ background: var(--hot); }
+  .eval-bar-track > i.err{ background: var(--err); }
+  .eval-bar-foot{
+    font-size: 10px; letter-spacing: 0.04em; color: var(--ink-dim);
+  }
+  .eval-bar-foot.miss{ color: var(--err); }
+  .eval-approach-foot{
+    border-top: 1px dashed var(--rule); padding-top: 12px;
+    font-size: 10px; letter-spacing: 0.14em; color: var(--ink-faint);
+    text-transform: uppercase; line-height: 1.7;
+  }
+  .eval-approach-foot b{ color: var(--ink); font-weight: 700; }
+  .eval-approach.us .eval-approach-foot b{ color: var(--hot); }
+
+  /* tier breakdown */
+  .eval-tiers-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .eval-tier{
+    padding: 22px 24px 24px;
+    border-right: 1px solid var(--rule);
+  }
+  .eval-tier:last-child{ border-right: 0; }
+  .eval-tier-h{
+    display: flex; justify-content: space-between;
+    font-size: 10px; letter-spacing: 0.16em; color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .eval-tier-h .n{ color: var(--ink); }
+  .eval-tier-name{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px; font-weight: 700;
+    text-transform: uppercase; margin-top: 6px;
+    letter-spacing: 0.01em;
+  }
+  .eval-tier-bars{ margin-top: 18px; display: grid; gap: 10px; }
+  .eval-tier-bar{
+    display: grid;
+    grid-template-columns: 86px 1fr 60px;
+    gap: 10px; align-items: center;
+    font-size: 10px; letter-spacing: 0.14em;
+    color: var(--ink-faint); text-transform: uppercase;
+  }
+  .eval-tier-bar .name{ color: var(--ink-faint); }
+  .eval-tier-bar.us .name{ color: var(--hot); }
+  .eval-tier-bar .track{
+    height: 4px; background: rgba(var(--ink-rgb),0.06); position: relative;
+  }
+  .eval-tier-bar .track > i{
+    position: absolute; left: 0; top: 0; bottom: 0; background: var(--ink-dim);
+    display: block;
+  }
+  .eval-tier-bar.us .track > i{ background: var(--hot); }
+  .eval-tier-bar .v{
+    text-align: right; color: var(--ink);
+    font-family: 'JetBrains Mono', monospace; font-weight: 700;
+    letter-spacing: -0.01em; text-transform: none;
+    font-variant-numeric: tabular-nums;
+  }
+  .eval-tier-bar.us .v{ color: var(--hot); }
+  .eval-tier-delta{
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--rule);
+    font-size: 10.5px; letter-spacing: 0.04em;
+    color: var(--ink-dim); line-height: 1.55;
+  }
+  .eval-tier-delta b{ color: var(--ink); font-weight: 700; }
+  .eval-tier-delta.win b{ color: var(--hot); }
+  .eval-tier-delta .arr{ color: var(--ink-faint); }
+
+  /* errors table */
+  .eval-errors-wrap{ padding: 0; }
+  .eval-errors-table{
+    width: 100%; border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+  .eval-errors-table th,
+  .eval-errors-table td{
+    padding: 13px 24px;
+    border-bottom: 1px dashed var(--rule);
+    text-align: left;
+    vertical-align: middle;
+  }
+  .eval-errors-table thead th{
+    font-size: 10px; letter-spacing: 0.16em; color: var(--ink-faint);
+    text-transform: uppercase; font-weight: 400;
+    border-bottom: 1px solid var(--rule);
+    padding-top: 14px; padding-bottom: 14px;
+  }
+  .eval-errors-table th.num,
+  .eval-errors-table td.num{
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .eval-errors-table td.class{
+    color: var(--ink); font-size: 12.5px;
+    letter-spacing: 0.01em;
+  }
+  .eval-errors-table td.baseline{
+    color: var(--ink-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .eval-errors-table td.us{
+    color: var(--hot); font-weight: 700;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .eval-errors-table tr.total td{
+    border-top: 1px solid var(--rule);
+    border-bottom: 0;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+  .eval-errors-table tr.total td.us{
+    color: var(--hot);
+    font-size: 16px;
+  }
+  .eval-errors-table tr.total td.baseline{ color: var(--ink-dim); font-weight: 700; }
+
+  /* repro / terminal */
+  .eval-repro{
+    padding: 22px 24px 26px;
+  }
+  .eval-repro pre{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px; line-height: 1.75;
+    background: var(--panel-recess-3);
+    border: 1px dashed var(--rule);
+    padding: 16px 20px; margin: 0;
+    white-space: pre; overflow-x: auto;
+    color: var(--ink);
+  }
+  .eval-repro pre .hl-p{ color: var(--ink-faint); }
+  .eval-repro pre .hl-c{ color: var(--ink-faint); font-style: italic; }
+  .eval-repro-foot{
+    margin-top: 12px;
+    font-size: 10.5px; letter-spacing: 0.14em;
+    color: var(--ink-faint); text-transform: uppercase;
+    line-height: 1.7;
+  }
+  .eval-repro-foot b{ color: var(--ink); font-weight: 700; }
+
+  @media (max-width: 980px){
+    .eval-section .wrap{ padding: 0 20px; }
+    .eval-banner{ grid-template-columns: 1fr; gap: 14px; }
+    .eval-prov{ text-align: left; }
+    .eval-headline{ grid-template-columns: 1fr; }
+    .eval-stat{ border-right: 0; border-bottom: 1px solid var(--rule); }
+    .eval-stat:last-child{ border-bottom: 0; }
+    .eval-block-head{ grid-template-columns: 1fr; gap: 8px; }
+    .eval-compare-grid,
+    .eval-tiers-grid{ grid-template-columns: 1fr; }
+    .eval-approach,
+    .eval-tier{ border-right: 0; border-bottom: 1px solid var(--rule); }
+    .eval-approach:last-child,
+    .eval-tier:last-child{ border-bottom: 0; }
+    .eval-errors-table th,
+    .eval-errors-table td{ padding: 10px 14px; font-size: 11.5px; }
+    .eval-errors-table td.class{ font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<template id="__bundler_thumbnail">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <rect width="64" height="64" fill="#0a0a0a"/>
+    <g fill="#d8d6cc">
+      <rect x="19" y="20" width="26" height="3.4"/>
+      <rect x="19" y="27" width="18" height="3.4"/>
+      <rect x="19" y="34" width="26" height="3.4"/>
+      <rect x="19" y="41" width="14" height="3.4"/>
+    </g>
+  </svg>
+</template>
+
+<!-- TOP CHROME -->
+<div class="chrome">
+  <span class="brand">
+    <svg width="16" height="16" viewBox="0 0 64 64" aria-hidden="true">
+      <g fill="currentColor">
+        <rect x="14" y="16" width="38" height="5"/>
+        <rect x="14" y="24" width="26" height="5"/>
+        <rect x="14" y="32" width="38" height="5"/>
+        <rect x="14" y="40" width="30" height="5"/>
+        <rect x="14" y="48" width="20" height="5"/>
+      </g>
+    </svg>
+    DATAFETCH/AI
+  </span>
+  <span class="grow"></span>
+  <span class="chrome-tag">OWN YOUR INTERFACE</span>
+  <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle color theme" title="Toggle light / dark">
+    <svg class="icon-sun" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+      <circle cx="8" cy="8" r="3" fill="currentColor"/>
+      <g stroke="currentColor" stroke-width="1.2" stroke-linecap="round">
+        <line x1="8" y1="1.5" x2="8" y2="3"/>
+        <line x1="8" y1="13" x2="8" y2="14.5"/>
+        <line x1="1.5" y1="8" x2="3" y2="8"/>
+        <line x1="13" y1="8" x2="14.5" y2="8"/>
+        <line x1="3.3" y1="3.3" x2="4.4" y2="4.4"/>
+        <line x1="11.6" y1="11.6" x2="12.7" y2="12.7"/>
+        <line x1="3.3" y1="12.7" x2="4.4" y2="11.6"/>
+        <line x1="11.6" y1="4.4" x2="12.7" y2="3.3"/>
+      </g>
+    </svg>
+    <svg class="icon-moon" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+      <path fill="currentColor" d="M6.5 1.7a6.3 6.3 0 1 0 7.8 7.8A5.2 5.2 0 0 1 6.5 1.7Z"/>
+    </svg>
+    <span class="label-light">LIGHT</span>
+    <span class="label-dark">DARK</span>
+  </button>
+  <a class="chrome-link" href="/demo/" aria-label="Live demo — vendor-risk carousel">
+    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+      <path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" d="M5 3.4 12.4 8 5 12.6 Z"/>
+    </svg>
+    <span>DEMO</span>
+  </a>
+  <a class="chrome-link" href="https://github.com/JayFarei/agentfs" target="_blank" rel="noopener" aria-label="GitHub — agentfs">
+    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+      <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+    </svg>
+    <span>GITHUB</span>
+    <svg class="chrome-link-out" viewBox="0 0 10 10" width="9" height="9" aria-hidden="true">
+      <g fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="square">
+        <path d="M3 7 7 3"/>
+        <path d="M3.6 3H7v3.4"/>
+      </g>
+    </svg>
+  </a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid">
+    <div class="hero-left">
+      <div class="badge">/ SEARCH AS CODE · SHAPED BY USE</div>
+      <h1>Your queries <span class="slash">/</span><br>your interface.</h1>
+      <p class="lede">
+        <em>Search as code, shaped by how you actually search.</em> Agents write code over your data, not tool calls &mdash; but where others re-derive that code every run, here each accepted trajectory crystallises into a replay-gated, typed call in your tenant's <code>lib/</code>. The interface isn't designed up front; it emerges through usage, per tenant.
+      </p>
+      <div class="hero-cta" role="group" aria-label="Primary actions">
+        <button type="button" class="cta-primary" id="cta-copy-prompt">
+          <span class="cta-glow" aria-hidden="true"></span>
+          <span class="cta-state cta-state-default">
+            <span class="cta-agents" aria-hidden="true">
+              <img class="cta-agent" src="assets/agents/claude-code.svg" alt="" width="16" height="16">
+              <img class="cta-agent" src="assets/agents/codex.svg" alt="" width="16" height="16">
+              <img class="cta-agent" src="assets/agents/pi.svg" alt="" width="16" height="16">
+              <img class="cta-agent" src="assets/agents/opencode.svg" alt="" width="16" height="16">
+            </span>
+            <span class="cta-label">Copy Prompt</span>
+          </span>
+          <span class="cta-state cta-state-success" aria-hidden="true">
+            <svg class="cta-check" viewBox="0 0 16 16" aria-hidden="true">
+              <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" stroke-linejoin="miter" d="M3 8.4 6.4 11.8 13 5.2"/>
+            </svg>
+            <span class="cta-label">Copied to clipboard</span>
+          </span>
+        </button>
+        <a class="cta-secondary" href="/demo/">
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+            <g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round">
+              <path d="M5 3 12.5 8 5 13 Z"/>
+            </g>
+          </svg>
+          <span>See it live &rarr;</span>
+        </a>
+        <a class="cta-secondary" href="https://github.com/JayFarei/agentfs#readme" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+            <g fill="none" stroke="currentColor" stroke-width="1.4">
+              <path d="M3.5 1.5 H10 L12.5 4 V14.5 H3.5 Z"/>
+              <path d="M10 1.5 V4 H12.5"/>
+              <line x1="5.5" y1="7" x2="10.5" y2="7"/>
+              <line x1="5.5" y1="9.5" x2="10.5" y2="9.5"/>
+              <line x1="5.5" y1="12" x2="9" y2="12"/>
+            </g>
+          </svg>
+          <span>View README.md</span>
+        </a>
+      </div>
+      <div class="vfs-tree" aria-label="Mounted dataset worktree">
+        <div class="vfs-cmd"><span class="hl-p">$</span> datafetch mount <span class="hl-id">finqa-2024</span> <span class="hl-fl">--intent</span> <span class="hl-st">"range chemicals revenue 14-16"</span></div>
+        <div class="vfs-lineage"><span class="vfs-glyph">◆</span> worktree <span class="hl-id">q42f8a</span><span class="vfs-sep">·</span>parent <span class="hl-id">finqa-2024@v3</span><span class="vfs-sep">·</span><span class="hl-ok">mounted</span></div>
+        <div class="vfs-line vfs-root">/mnt/finqa-2024/</div>
+        <div class="vfs-line dim"><span class="vfs-path">├ AGENTS.md</span><span class="vfs-tag">core</span></div>
+        <div class="vfs-line dim"><span class="vfs-path">├ df.d.ts</span><span class="vfs-tag">core</span></div>
+        <div class="vfs-line dim"><span class="vfs-path">├ db/</span><span class="vfs-tag">immutable</span></div>
+        <div class="vfs-line dim"><span class="vfs-path">│  ├ filings.ts</span></div>
+        <div class="vfs-line dim"><span class="vfs-path">│  └ chunks.ts</span></div>
+        <div class="vfs-line bright"><span class="vfs-path">├ lib/</span><span class="vfs-tag yours">tenant</span></div>
+        <div class="vfs-line bright"><span class="vfs-path">│  ├ rangeTableMetric.ts</span><span class="vfs-tag-mini">inherited</span></div>
+        <div class="vfs-line bright"><span class="vfs-path">│  └ skills/range.md</span><span class="vfs-tag-mini">inherited</span></div>
+        <div class="vfs-line bright"><span class="vfs-path">├ scripts/answer.ts</span><span class="vfs-tag yours">this intent</span></div>
+        <div class="vfs-line dim"><span class="vfs-path">├ tmp/runs/001/</span></div>
+        <div class="vfs-line dim"><span class="vfs-path">└ result/answer.md</span><span class="vfs-tag">sealed</span></div>
+      </div>
+    </div>
+
+    <!-- FULL-BLEED ANIMATION CANVAS + STAMP STRIP -->
+    <div class="hero-right">
+      <pre id="ascii" aria-hidden="true"></pre>
+      <ol class="hero-strip" aria-label="Workflow">
+        <li class="hero-strip-cell">
+          <span class="hero-strip-num">/01</span>
+          <span class="hero-strip-name">INIT</span>
+          <span class="hero-strip-gloss">Provider seeds a dataset env. Init agent stamps the base VFS template.</span>
+        </li>
+        <li class="hero-strip-cell">
+          <span class="hero-strip-num">/02</span>
+          <span class="hero-strip-name">MOUNT</span>
+          <span class="hero-strip-gloss"><code>/mnt/&lt;dataset&gt;</code> appears as a typed VFS, scoped per tenant + intent.</span>
+        </li>
+        <li class="hero-strip-cell">
+          <span class="hero-strip-num">/03</span>
+          <span class="hero-strip-name">WRITE</span>
+          <span class="hero-strip-gloss">Edit <code>scripts/answer.ts</code> in visible TypeScript over <code>df.db.*</code>.</span>
+        </li>
+        <li class="hero-strip-cell">
+          <span class="hero-strip-num">/04</span>
+          <span class="hero-strip-name">COMMIT</span>
+          <span class="hero-strip-gloss">Seal one <code>df.answer({…})</code> with evidence and lineage.</span>
+        </li>
+        <li class="hero-strip-cell">
+          <span class="hero-strip-num">/05</span>
+          <span class="hero-strip-name">OPTIMISE</span>
+          <span class="hero-strip-gloss"><code>df.lib.*</code> grows per tenant; provider reshapes serving from real intents.</span>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- LOOP — side-tab workflow -->
+<!-- LOOP + EVAL — side-by-side sections -->
+<div class="duo-section">
+
+  <section class="section duo-half loop-section" data-screen-label="02 The Loop">
+    <div class="duo-wrap">
+      <div class="duo-head">
+        <div class="duo-num">/ 02 — THE LOOP</div>
+        <h2 class="duo-h2">How it works.</h2>
+        <p class="duo-sub">An interface that emerges through agentic search. Five stages, one tenanted environment per dataset.</p>
+      </div>
+
+      <div class="loop-how">
+        <nav class="loop-tabs" aria-label="Workflow stages">
+          <button type="button" class="loop-tab is-on" data-stage="0">
+            <span class="loop-tab-num">/01</span>
+            <span class="loop-tab-body">
+              <span class="loop-tab-name">INIT</span>
+              <span class="loop-tab-by">provider</span>
+            </span>
+          </button>
+          <button type="button" class="loop-tab" data-stage="1">
+            <span class="loop-tab-num">/02</span>
+            <span class="loop-tab-body">
+              <span class="loop-tab-name">MOUNT</span>
+              <span class="loop-tab-by">agent</span>
+            </span>
+          </button>
+          <button type="button" class="loop-tab" data-stage="2">
+            <span class="loop-tab-num">/03</span>
+            <span class="loop-tab-body">
+              <span class="loop-tab-name">WRITE</span>
+              <span class="loop-tab-by">script</span>
+            </span>
+          </button>
+          <button type="button" class="loop-tab" data-stage="3">
+            <span class="loop-tab-num">/04</span>
+            <span class="loop-tab-body">
+              <span class="loop-tab-name">COMMIT</span>
+              <span class="loop-tab-by">seal</span>
+            </span>
+          </button>
+          <button type="button" class="loop-tab" data-stage="4">
+            <span class="loop-tab-num">/05</span>
+            <span class="loop-tab-body">
+              <span class="loop-tab-name">OPTIMISE</span>
+              <span class="loop-tab-by">loop</span>
+            </span>
+          </button>
+        </nav>
+
+        <article class="loop-panel" id="loop-panel" aria-live="polite"><!-- rendered by JS --></article>
+      </div>
+
+      <div class="loop-timer" aria-hidden="true"><span class="loop-timer-bar" id="loop-timer-bar"></span></div>
+    </div>
+  </section>
+
+  <section class="section duo-half eval-section" data-screen-label="03 Eval">
+    <div class="duo-wrap eval-wrap">
+      <div class="duo-head eval-head">
+        <div class="duo-num">/ 03 — EVAL · SKILLCRAFT 126</div>
+        <h2 class="duo-h2">What it gets us.</h2>
+        <p class="duo-sub">Scored by the benchmark's own evaluator on 126 long-horizon agentic-search tasks. <b>n=126</b> · 21 families &times; 6 tiers · iter3-full · 20260512.</p>
+      </div>
+
+      <div class="eval-box">
+        <header class="eval-box-head">
+          <span class="eval-box-l">/ skillcraft 126 · official grader</span>
+          <span class="eval-box-r">iter3-full · 20260512</span>
+        </header>
+
+        <div class="eval-box-body">
+          <p class="eval-story">
+            <span class="eval-story-line">Quality of a vanilla agent.</span>
+            <span class="eval-story-line">At <b>1 / 172</b> the cost.</span>
+            <span class="eval-story-line">With crashes gone.</span>
+          </p>
+
+          <ol class="eval-stats">
+            <li>
+              <div class="es-v">94.4<span class="es-u">%</span></div>
+              <div class="es-k">pass rate</div>
+              <div class="es-foot">
+                <span>119 / 126 tasks</span>
+                <span class="es-vs">vs <b>60–70%</b> cache-as-skill</span>
+              </div>
+            </li>
+            <li>
+              <div class="es-v">3,027<span class="es-u"> tok</span></div>
+              <div class="es-k">per task</div>
+              <div class="es-foot">
+                <span>Sonnet 4.6 · prompt-cached</span>
+                <span class="es-vs"><b>172&times;</b> under vanilla (520k)</span>
+              </div>
+            </li>
+            <li>
+              <div class="es-v">0.8<span class="es-u">%</span></div>
+              <div class="es-k">runtime errors</div>
+              <div class="es-foot">
+                <span>every class &rarr; 0</span>
+                <span class="es-vs">vs <b>24–30%</b> cache-as-skill</span>
+              </div>
+            </li>
+          </ol>
+
+          <p class="eval-kicker">Hard tier (n=21): <b>+7.9 pp</b> over the vanilla ceiling.</p>
+
+          <div class="eval-cta-row">
+            <a class="cta-secondary" href="https://github.com/JayFarei/agentfs/blob/main/EVAL.md" target="_blank" rel="noopener">
+              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="1.4">
+                  <path d="M3.5 1.5 H10 L12.5 4 V14.5 H3.5 Z"/>
+                  <path d="M10 1.5 V4 H12.5"/>
+                  <line x1="5.5" y1="7" x2="10.5" y2="7"/>
+                  <line x1="5.5" y1="9.5" x2="10.5" y2="9.5"/>
+                  <line x1="5.5" y1="12" x2="9" y2="12"/>
+                </g>
+              </svg>
+              <span>View full eval results</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="ftr">
+  <div class="wrap ftr-row">
+    <span class="ftr-copy">©2026 <a href="https://openmake.ai" target="_blank" rel="noopener"><span class="openmake-mark" aria-hidden="true"></span>OpenMake</a></span>
+    <span class="ftr-icons">
+      <a class="logo-link" href="https://github.com/JayFarei/datafetch" target="_blank" rel="noopener" aria-label="GitHub - datafetch">
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+          <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+      </a>
+      <a class="logo-link" href="https://x.com/jayfarei" target="_blank" rel="noopener" aria-label="X — @jayfarei">
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+          <path fill="currentColor" d="M9.32 6.84 14.95 0h-1.36L8.7 6.04 4.85 0H0l5.93 9.27L0 16h1.36l5.16-6.4L11.05 16H16zM7.31 8.9l-.6-.92L1.84 1.04h2.08L7.85 6.4l.6.92L13.5 14.96h-2.08L7.31 8.9z"/>
+        </svg>
+      </a>
+    </span>
+  </div>
+</footer>
+
+<script>
+/* ---------- THEME ---------- */
+(function(){
+  var STORAGE_KEY = 'datafetch.theme';
+  var root = document.documentElement;
+  var metaTheme = document.querySelector('meta[name="theme-color"]');
+  var stored = null;
+  try { stored = localStorage.getItem(STORAGE_KEY); } catch(_){}
+  var initial = stored || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  applyTheme(initial);
+
+  function applyTheme(t){
+    root.setAttribute('data-theme', t);
+    if(metaTheme){
+      // Pull the resolved --bg so the browser chrome matches the page background.
+      var bg = getComputedStyle(root).getPropertyValue('--bg').trim() || (t === 'light' ? '#ece8dc' : '#0a0a0a');
+      metaTheme.setAttribute('content', bg);
+    }
+  }
+
+  var btn = document.getElementById('theme-toggle');
+  if(btn){
+    btn.addEventListener('click', function(){
+      var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      applyTheme(next);
+      try { localStorage.setItem(STORAGE_KEY, next); } catch(_){}
+    });
+  }
+
+  // Track system preference only when the user hasn't picked one.
+  if(window.matchMedia){
+    var mql = window.matchMedia('(prefers-color-scheme: light)');
+    var listener = function(e){
+      var picked = null;
+      try { picked = localStorage.getItem(STORAGE_KEY); } catch(_){}
+      if(!picked) applyTheme(e.matches ? 'light' : 'dark');
+    };
+    if(mql.addEventListener) mql.addEventListener('change', listener);
+    else if(mql.addListener) mql.addListener(listener);
+  }
+})();
+</script>
+
+<script>
+/* ---------- ASCII ANIMATION ----------
+   Git-worktree accretion: scattered query-dots arrive over the field
+   and pile up into a horizontal commit graph. Branches split (novel →
+   interpreted → compiled), node circles fill in, connectors draw, and
+   typed-call labels resolve onto branches.
+   Loops every ~12s. */
+// Grid dimensions are recomputed from the canvas size on each frame so
+// the field always fills the entire right pane (no empty band at the
+// bottom on tall viewports).
+let COLS = 140, ROWS = 56;
+const asciiEl = document.getElementById('ascii');
+const TOTAL = 240;
+// Lane positions are designed against a baseline 56-row × baseline-cols
+// grid; we shift them by GRAPH_DX/GRAPH_DY each frame so the whole graph
+// is centered both horizontally and vertically. The graph's baseline
+// width (cols 6→92 = 86) and the main spine row (18) are used as the
+// centering anchors so the spine sits in the geometric middle of the canvas.
+const BASELINE_GRAPH_W = 92;     // rightmost column used by the graph
+const BASELINE_GRAPH_X0 = 6;     // leftmost column
+const BASELINE_SPINE_ROW = 18;   // main lane row in baseline coords
+let GRAPH_DY = 0;
+let GRAPH_DX = 0;
+
+function recomputeGridSize(){
+  // measure rendered character cell
+  const probe = document.createElement('span');
+  probe.style.cssText = 'position:absolute;visibility:hidden;font:'+getComputedStyle(asciiEl).font+';white-space:pre;';
+  probe.textContent = 'M'.repeat(80);
+  asciiEl.appendChild(probe);
+  const cw = probe.getBoundingClientRect().width / 80;
+  const lh = parseFloat(getComputedStyle(asciiEl).lineHeight) || (parseFloat(getComputedStyle(asciiEl).fontSize) * 1.0);
+  asciiEl.removeChild(probe);
+  const rect = asciiEl.getBoundingClientRect();
+  const newCols = Math.max(80, Math.floor(rect.width / cw));
+  const newRows = Math.max(40, Math.floor(rect.height / lh));
+  COLS = newCols;
+  ROWS = newRows;
+  // Center the main spine on the actual grid's vertical midline
+  GRAPH_DY = Math.floor(ROWS / 2) - BASELINE_SPINE_ROW;
+  // Center the graph bbox on the actual grid's horizontal midline
+  const graphW = BASELINE_GRAPH_W - BASELINE_GRAPH_X0;
+  GRAPH_DX = Math.floor((COLS - graphW) / 2) - BASELINE_GRAPH_X0;
+}
+
+const QUERY_GLYPHS = ['$','>','/','#','?','_','.'];
+
+// ----- BUILD THE GIT GRAPH -----
+// Lanes (y rows) are branches. Nodes are committed work; connectors are
+// the lines between them. We design a branching graph that reads
+//
+//      novel ─●──●──●──╮            (range intents)
+//                       ╰─●─●──╮
+//   main  ──●──●──●──●─────────●─●─●─●        (mainline mount)
+//                ╰─●──╯       ╭─╯
+//      quant ───────●──●──●──●─●               (compare intents)
+//
+// We define lanes by row and a list of nodes (col, lane, label?, kind?).
+
+const LANE = {
+  novel: 8,
+  main: 18,
+  quant: 26,
+};
+
+// Chronology = column position. The renderer reveals cells by ascending
+// startCol, so worktrees are laid out sequentially in the column space:
+// the range worktree occupies cols 16-52, the compare worktree occupies
+// cols 58-92. The mainline is intentionally quiet between fork and merge
+// (no commits while a worktree is in flight) — only the dataset mount,
+// a brief gap between worktrees, and the final lib tag.
+//
+// On every branch: the FIRST node is the MOUNT (carries the query/intent),
+// the LAST node is the COMMIT (carries the trajectory committed back).
+// Middle nodes are trajectory attempts along the way.
+const NODES = [
+  // mainline — only the dataset mount and the final lib tag.
+  // mainline — outer-edge labels: dataset namespace on the left, evolving
+  // interface on the right. Both sit on the main spine row, aligned outward
+  // so they don't write over the spine cells.
+  { col: 6,  lane: LANE.main,  kind: 'mount',  label: 'df.db.finqa',  sub: 'dataset',  align: 'right', labelDy: 0, subDy: -2 },
+  { col: 92, lane: LANE.main,  kind: 'tag' },
+  // range worktree — name `q{intent}` sits above the lane; "mount" is a
+  // free-floating text label adjacent to the fork-up vertical. Each ●
+  // commit is a file edit or a tmp/ result; the last ● is answer.ts,
+  // with its label + sub stacked vertically and left-aligned with the
+  // commit. A leader line links the commit ● to the answer.ts label.
+  { col: 22, lane: LANE.novel, kind: 'mount',  label: 'q{range chemicals revenue}',  labelDy: -7 },
+  { col: 16, lane: 13,         kind: 'text',   label: 'mount',                       labelDy: 0 },
+  { col: 28, lane: LANE.novel, kind: 'commit', label: 'scratch.ts',                  labelDy: -4 },
+  { col: 34, lane: LANE.novel, kind: 'commit', label: 'tmp/run1',                    labelDy: -2 },
+  { col: 40, lane: LANE.novel, kind: 'commit', label: 'tmp/run2',                    labelDy: -4 },
+  { col: 46, lane: LANE.novel, kind: 'commit', label: 'answer.ts',                   sub: 'bundle → main', labelDy: -4, subDy: -3, align: 'left' },
+  // compare worktree — same shape, fork-down, sequential to range.
+  { col: 64, lane: LANE.quant, kind: 'mount',  label: 'q{compare segment revenue}',  labelDy: +7 },
+  { col: 70, lane: LANE.quant, kind: 'commit', label: 'scratch.ts',                  labelDy: +4 },
+  { col: 76, lane: LANE.quant, kind: 'commit', label: 'tmp/run1',                    labelDy: +2 },
+  { col: 82, lane: LANE.quant, kind: 'commit', label: 'tmp/run2',                    labelDy: +4 },
+  { col: 88, lane: LANE.quant, kind: 'commit', label: 'answer.ts',                   sub: 'bundle → main', labelDy: +4, subDy: +3, align: 'left' },
+
+  // Action annotations on each fork/merge vertical: "mount" beside the
+  // fork (on the side away from the worktree's growth) and "commit"
+  // beside the merge. Range's labels sit at the mid-row of the upper
+  // gap (row 13); compare's at the mid-row of the lower gap (row 22).
+  { col: 53, lane: 13, kind: 'text', label: 'commit', labelDy: 0, order: 46 },
+  { col: 64, lane: 22, kind: 'text', label: 'mount',  labelDy: 0, order: 58 },
+  { col: 87, lane: 22, kind: 'text', label: 'commit', labelDy: 0, order: 88 },
+
+  // df.lib version stamps — oblique line + label at the events that grow
+  // the library (range fork begins it, each merge crystallises a new
+  // interface). The lib doesn't change at the compare fork, so no stamp
+  // there — the v2 from the range merge still holds.
+  // df.lib v1 — at range fork.
+  { col: 18, lane: 19, kind: 'text', label: '/',          labelDy: 0, order: 16 },
+  { col: 17, lane: 20, kind: 'text', label: '/',          labelDy: 0, order: 16 },
+  { col: 16, lane: 21, kind: 'text', label: '/',          labelDy: 0, order: 16 },
+  { col: 13, lane: 22, kind: 'text', label: 'df.lib v1',  labelDy: 0, order: 16 },
+  // df.lib v2 — at range merge.
+  { col: 50, lane: 19, kind: 'text', label: '\\',         labelDy: 0, order: 46 },
+  { col: 51, lane: 20, kind: 'text', label: '\\',         labelDy: 0, order: 46 },
+  { col: 52, lane: 21, kind: 'text', label: '\\',         labelDy: 0, order: 46 },
+  { col: 50, lane: 22, kind: 'text', label: 'df.lib v2',  labelDy: 0, order: 46 },
+  // df.lib v3 — at compare merge.
+  { col: 91, lane: 19, kind: 'text', label: '\\',         labelDy: 0, order: 88 },
+  { col: 92, lane: 20, kind: 'text', label: '\\',         labelDy: 0, order: 88 },
+  { col: 93, lane: 21, kind: 'text', label: '\\',         labelDy: 0, order: 88 },
+  { col: 95, lane: 22, kind: 'text', label: 'df.lib v3',  labelDy: 0, order: 88 },
+
+];
+
+// Connectors: list of {a:[col,lane], b:[col,lane], kind, order?}.
+// Reveal order defaults to the connector's leftmost column. Mainline
+// segments that span UNDER a worktree get an explicit `order` so they
+// paint AFTER the worktree merges back — the spine "catches up" with
+// each merge instead of progressing while the worktree is in flight.
+const CONNECTORS = [
+  // mainline — before range fork (cells 7-15)
+  { a:[6,  LANE.main],  b:[16, LANE.main] },
+  // mainline UNDER range worktree (cells 20-48). Paints after merge-down
+  // (which has order 46 — the merge ends at col 52 main). order:50 puts
+  // this fill right after the merge completes.
+  { a:[19, LANE.main],  b:[49, LANE.main], order: 50 },
+  // mainline between worktrees (cells 52-58)
+  { a:[51, LANE.main],  b:[59, LANE.main] },
+  // mainline UNDER compare worktree (cells 62-89). Paints after merge-up
+  // (order 88). order:91 puts this fill right after merge-up but before
+  // the lib tag at col 92.
+  { a:[61, LANE.main],  b:[90, LANE.main], order: 91 },
+  // range worktree: fork (mount) → file commits → merge back
+  { a:[16, LANE.main],  b:[22, LANE.novel], kind:'fork-up' },
+  { a:[22, LANE.novel], b:[28, LANE.novel] },
+  { a:[28, LANE.novel], b:[34, LANE.novel] },
+  { a:[34, LANE.novel], b:[40, LANE.novel] },
+  { a:[40, LANE.novel], b:[46, LANE.novel] },
+  { a:[46, LANE.novel], b:[52, LANE.main],  kind:'merge-down' },
+  // compare worktree: fork (mount) → file commits → merge back
+  { a:[58, LANE.main],  b:[64, LANE.quant], kind:'fork-down' },
+  { a:[64, LANE.quant], b:[70, LANE.quant] },
+  { a:[70, LANE.quant], b:[76, LANE.quant] },
+  { a:[76, LANE.quant], b:[82, LANE.quant] },
+  { a:[82, LANE.quant], b:[88, LANE.quant] },
+  { a:[88, LANE.quant], b:[92, LANE.main],  kind:'merge-up' },
+];
+
+// ----- compute drawn cells per connector, in order, so we can reveal them -----
+function drawSegment(a, b, kind){
+  const cells = [];
+  const [x1,y1] = a, [x2,y2] = b;
+  const dx = Math.sign(x2 - x1);
+  const dy = Math.sign(y2 - y1);
+  if(!kind || kind === 'h'){
+    // horizontal segment
+    let x = x1 + dx;
+    while(x !== x2){
+      cells.push({x, y: y1, ch: '─'});
+      x += dx;
+    }
+  } else {
+    // fork or merge — go horizontal then turn vertical at the midpoint.
+    // The MAIN-lane corners are T-junctions (┴/┬) so the main spine reads
+    // as a continuous line with the worktree branching off it. The
+    // branch-lane corners are normal elbows.
+    // The vertical run carries a label: 'mount' on forks, 'merge' on merges.
+    const turn = Math.floor((x1 + x2) / 2);
+    let x = x1 + dx;
+    while(x !== turn){
+      cells.push({x, y: y1, ch: '─'});
+      x += dx;
+    }
+    // top corner (at y1 = a's lane)
+    if(kind === 'fork-up'){
+      cells.push({x: turn, y: y1, ch: '┴'});       // T-junction on main, branch goes UP
+    } else if(kind === 'fork-down'){
+      cells.push({x: turn, y: y1, ch: '┬'});       // T-junction on main, branch goes DOWN
+    } else if(kind === 'merge-down'){
+      cells.push({x: turn, y: y1, ch: '┐'});       // branch (novel) elbow: ─ from left turning │ down
+    } else if(kind === 'merge-up'){
+      cells.push({x: turn, y: y1, ch: '┘'});       // branch (quant) elbow: ─ from left turning │ up
+    }
+    // vertical run — plain │
+    let y = y1 + dy;
+    while(y !== y2){
+      cells.push({x: turn, y, ch: '│'});
+      y += dy;
+    }
+    // bottom corner (at y2 = b's lane)
+    if(kind === 'fork-up'){
+      cells.push({x: turn, y: y2, ch: '└'});       // branch (novel) elbow
+    } else if(kind === 'fork-down'){
+      cells.push({x: turn, y: y2, ch: '┌'});       // branch (quant) elbow
+    } else if(kind === 'merge-down'){
+      cells.push({x: turn, y: y2, ch: '┴'});       // T-junction on main, branch came from ABOVE
+    } else if(kind === 'merge-up'){
+      cells.push({x: turn, y: y2, ch: '┬'});       // T-junction on main, branch came from BELOW
+    }
+    // tail horizontal
+    x = turn + dx;
+    while(x !== x2){
+      cells.push({x, y: y2, ch: '─'});
+      x += dx;
+    }
+  }
+  return cells;
+}
+
+// Build a global ordered list of "graph cells" to reveal monotonically with phase.
+// Order: nodes mainline first, then forks (novel/quant), then merges back.
+// We assign each cell a 0..1 settle time.
+function buildSettleList(){
+  const out = [];
+  // ordered nodes by col ascending
+  const orderedNodes = [...NODES].sort((a,b)=>a.col-b.col);
+  // ordered connectors by start col ascending
+  const orderedConns = [...CONNECTORS].sort((a,b) => a.a[0] - b.a[0]);
+
+  // Each item gets an `order` value used for the global left-to-right reveal.
+  // Default order = the item's column position. Connectors/nodes can set an
+  // explicit `order` field to override — used for the main-spine segments
+  // that should paint AFTER their worktree merges back, not at their own col.
+  const items = [];
+  for(const c of orderedConns){
+    const cells = drawSegment(c.a, c.b, c.kind);
+    const order = c.order !== undefined ? c.order : c.a[0];
+    items.push({ kind:'conn', startCol: order, endCol: c.b[0], cells });
+  }
+  for(const n of orderedNodes){
+    const order = n.order !== undefined ? n.order : n.col;
+    items.push({ kind:'node', startCol: order, endCol: order, node: n });
+  }
+  items.sort((a,b)=> a.startCol - b.startCol || (a.kind==='node'?1:0) - (b.kind==='node'?1:0));
+
+  const settleStart = 0.10;
+  const settleEnd   = 0.82;
+  let revealed = 0;
+  // total cell count for normalising progress
+  let totalCells = 0;
+  for(const it of items){
+    totalCells += (it.kind === 'conn') ? it.cells.length : 1;
+  }
+  // total cells from all node labels (so labels also reveal in sequence)
+  const labelCells = [];
+  for(const it of items){
+    if(it.kind === 'conn'){
+      for(const cell of it.cells){
+        const at = settleStart + (revealed / totalCells) * (settleEnd - settleStart);
+        out.push({ x: cell.x, y: cell.y, ch: cell.ch, kind:'conn', at });
+        revealed++;
+      }
+    } else {
+      const at = settleStart + (revealed / totalCells) * (settleEnd - settleStart);
+      const nodeAt = at; // labels paint right after the node, in column order
+      // mount nodes use ◆, commit nodes use ●, tag uses ▣.
+      // 'text' nodes are label-only (used for free-floating annotations
+      // like "mount" next to a fork connector) — no glyph drawn.
+      if(it.node.kind !== 'text'){
+        const nodeCh = it.node.kind === 'mount' ? '◆'
+                     : it.node.kind === 'tag'   ? '▣'
+                     : '●';
+        out.push({ x: it.node.col, y: it.node.lane, ch: nodeCh, kind:'node', node: it.node, at });
+      }
+      revealed++;
+      // queue label cells AFTER node, just slightly later.
+      // mount/query labels go ABOVE the node row, commit labels go BELOW
+      // so the two phases are visually separated on each branch.
+      if(it.node.label){
+        const isMount  = it.node.kind === 'mount';
+        const isCommit = it.node.kind === 'commit' || it.node.kind === 'tag';
+        const isText   = it.node.kind === 'text';
+        const useMountPhase = isMount || isText;
+        // labelDy/subDy: per-node overrides. Default mount labels go up (-1),
+        // commit/tag labels go down (+1). For "callout" labels (|labelDy| > 1)
+        // a leader line is drawn from just-off-the-lane to just-off-the-label.
+        const labelDy = ('labelDy' in it.node) ? it.node.labelDy
+                      : (isCommit ? +1 : -1);
+        const subDy = ('subDy' in it.node) ? it.node.subDy
+                    : (labelDy + Math.sign(labelDy));
+        const labY = it.node.lane + labelDy;
+        // leader line for offset labels
+        if(Math.abs(labelDy) > 1){
+          const step = Math.sign(labelDy);
+          for(let i = 1; i < Math.abs(labelDy); i++){
+            labelCells.push({
+              x: it.node.col,
+              y: it.node.lane + step * i,
+              ch: '│',
+              kind: 'leader',
+              atOffset: 0.005 * i,
+              phase: nodeAt + 0.01
+            });
+          }
+        }
+        const align = it.node.align || 'center';
+        // 'left'  → leftmost char at node.col + 2 (1 empty col then label)
+        // 'right' → rightmost char at node.col - 2 (label then 1 empty col)
+        // 'center' → label centered on node.col
+        const labelStart = align === 'left'
+          ? it.node.col + 2
+          : align === 'right'
+            ? it.node.col - it.node.label.length - 1
+            : it.node.col - Math.floor(it.node.label.length/2);
+        for(let k=0;k<it.node.label.length;k++){
+          labelCells.push({
+            x: labelStart + k,
+            y: labY,
+            ch: it.node.label[k],
+            kind: useMountPhase ? 'label-mount' : 'label-commit',
+            atOffset: 0.02 + k * 0.001,
+            phase: nodeAt + 0.02
+          });
+        }
+        if(it.node.sub){
+          const subY = it.node.lane + subDy;
+          const subStart = align === 'left'
+            ? it.node.col + 2
+            : align === 'right'
+              ? it.node.col - it.node.sub.length - 1
+              : it.node.col - Math.floor(it.node.sub.length/2);
+          for(let k=0;k<it.node.sub.length;k++){
+            labelCells.push({
+              x: subStart + k,
+              y: subY,
+              ch: it.node.sub[k],
+              kind: 'label-sub',
+              atOffset: 0.04 + k * 0.001,
+              phase: nodeAt + 0.04
+            });
+          }
+        }
+      }
+    }
+  }
+  // attach label cells at slightly later times
+  for(const lc of labelCells){
+    out.push({
+      x: lc.x, y: lc.y, ch: lc.ch, kind: lc.kind || 'label',
+      at: clamp((lc.phase || 0.50) + lc.atOffset + Math.random()*0.04, 0.20, 0.95)
+    });
+  }
+  return out;
+}
+
+function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
+function easeOut(t){ return 1 - Math.pow(1-t, 2.2); }
+
+const SETTLE = buildSettleList();
+
+// Pre-build a big swarm of "raining" query glyphs that drift onto the
+// graph from above and below. They give the sense that more dots keep
+// piling up — usage data accumulating.
+function buildQueries(){
+  const out = [];
+  const N = 220;
+  for(let i=0;i<N;i++){
+    const fireAt = Math.random() * 0.95;
+    // pick a target settle cell — bias to ones that settle around the same time
+    const target = SETTLE[Math.floor(Math.random()*SETTLE.length)];
+    const fromTop = Math.random() < 0.5;
+    out.push({
+      x0: target.x + (Math.random()*16 - 8),
+      y0: fromTop ? -2 : ROWS + 2,
+      tx: target.x,
+      ty: target.y,
+      glyph: QUERY_GLYPHS[Math.floor(Math.random()*QUERY_GLYPHS.length)],
+      fireAt,
+      duration: 0.05 + Math.random()*0.05,
+    });
+  }
+  return out;
+}
+const QUERIES = buildQueries();
+
+function makeAsciiFrame(t){
+  const phase = t / TOTAL; // 0..1
+  const grid = Array.from({length:ROWS}, () => Array(COLS).fill(' '));
+
+  // Sparse ambient dust (very faint dots, more at the start, fading as the graph forms)
+  const dust = 0.04 * clamp(1 - phase * 0.7, 0.05, 1);
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      if(Math.random() < dust) grid[r][c] = '·';
+    }
+  }
+
+  // Settle cells (graph) — reveal monotonically by their .at threshold.
+  // Apply GRAPH_DX/DY so the graph stays centered.
+  for(const cell of SETTLE){
+    const cx = cell.x + GRAPH_DX;
+    const cy = cell.y + GRAPH_DY;
+    if(phase >= cell.at){
+      const age = phase - cell.at;
+      let ch = cell.ch;
+      if(cell.kind === 'node'){
+        // pulse on first arrival, then settle to the kind's permanent glyph
+        if(age < 0.025) ch = '◉';
+      }
+      if(cx >= 0 && cx < COLS && cy >= 0 && cy < ROWS){
+        grid[cy][cx] = ch;
+      }
+    } else {
+      const dist = cell.at - phase;
+      if(dist < 0.04 && cx >= 0 && cx < COLS && cy >= 0 && cy < ROWS){
+        if(grid[cy][cx] === ' ' || grid[cy][cx] === '·') grid[cy][cx] = '˙';
+      }
+    }
+  }
+
+  // Raining queries — targets shift with GRAPH_DX/DY too
+  for(const q of QUERIES){
+    let local = phase - q.fireAt;
+    if(local < 0) continue;
+    if(local > q.duration) continue;
+    const t01 = local / q.duration;
+    const e = easeOut(t01);
+    const tx = q.tx + GRAPH_DX;
+    const ty = q.ty + GRAPH_DY;
+    const x0 = q.x0 + GRAPH_DX;
+    const y0 = q.y0 < 0 ? -2 : ROWS + 2;
+    const x = Math.round(x0 + (tx - x0) * e);
+    const y = Math.round(y0 + (ty - y0) * e);
+    if(x>=0 && x<COLS && y>=0 && y<ROWS){
+      // trail
+      for(let k=1;k<=3;k++){
+        const e2 = easeOut(Math.max(0, t01 - k*0.05));
+        const px = Math.round(x0 + (tx - x0) * e2);
+        const py = Math.round(y0 + (ty - y0) * e2);
+        if(px>=0 && px<COLS && py>=0 && py<ROWS){
+          if(grid[py][px] === ' ' || grid[py][px] === '·') grid[py][px] = '˙';
+        }
+      }
+      // head — only on empty/dust cells, never overwrite graph
+      if(grid[y][x] === ' ' || grid[y][x] === '·' || grid[y][x] === '˙'){
+        grid[y][x] = q.glyph;
+      }
+    }
+  }
+
+
+  return grid.map(r => r.join('')).join('\n');
+}
+
+function tickAscii(t){
+  // Skip work when the canvas isn't visible (e.g. single-column / mobile
+  // layout where .hero-right is display:none). offsetParent === null is a
+  // cheap proxy for "this element is not being rendered".
+  if (asciiEl.offsetParent === null) return;
+  asciiEl.textContent = makeAsciiFrame(t);
+}
+let asciiT = 0;
+const startedAt = performance.now();
+function tickLoop(){
+  const elapsed = (performance.now() - startedAt) / 1000;
+  // Play once over 12s, then hold the final fully-revealed frame.
+  // Phase is allowed to drift past 1.0 so any in-flight query glyphs have
+  // time to expire (their local > duration check makes them skip), and the
+  // final state stops changing.
+  asciiT = Math.floor(elapsed / 12 * TOTAL);
+  tickAscii(asciiT);
+}
+recomputeGridSize();
+window.addEventListener('resize', () => { recomputeGridSize(); });
+tickAscii(0);
+setInterval(tickLoop, 80);
+
+/* ---------- WORKFLOW SIDE-TABS ---------- */
+const STAGES = [
+  {
+    label: '/ dataset provider · boot',
+    title: 'Init the environment.',
+    lede: 'A whitelisted dataset boots a tenanted server. The init agent shapes the base VFS template so any client knows what they\'re stepping into.',
+    snippet: '$ datafetch server --datasets datasets.json\n\n  opentraces-devtime\n  ├ adapter   huggingface\n  ├ template  agent-accepted\n  └ status    ready',
+    principle: 'Published environments are the unit of distribution.'
+  },
+  {
+    label: '/ agent · attach',
+    title: 'Mount with intent.',
+    lede: 'The agent mounts an authenticated, isolated worktree shaped by the intent. db/ is immutable; lib/ and scripts/ are tenant-shaped.',
+    snippet: '$ datafetch attach :8090 --tenant demo\n$ datafetch mount opentraces-devtime \\\n    --intent "summarise debug failure modes"\n\n  AGENTS.md   df.d.ts\n  db/         immutable dataset primitives\n  lib/        tenant-owned learned helpers\n  scripts/    tmp/   result/',
+    principle: 'Tenanted, isolated, reproducible per intent.'
+  },
+  {
+    label: '/ agentic search · script',
+    title: 'Write visible code.',
+    lede: 'The agent edits scripts/ in TypeScript over df.db.*, runs probes, captures every attempt with lineage. Hidden reasoning is not learned; only externalised work is.',
+    snippet: '$ datafetch run scripts/scratch.ts\n   tmp/runs/001/source.ts\n   tmp/runs/001/result.json\n   tmp/runs/001/lineage.json',
+    principle: 'Visible work is the only work that compounds.'
+  },
+  {
+    label: '/ agentic search · seal',
+    title: 'Commit one answer.',
+    lede: 'When an attempt holds, the agent commits scripts/answer.ts with a single df.answer({…}) — typed envelope, evidence, replay graph, sealed.',
+    snippet: '$ datafetch commit scripts/answer.ts\n   result/answer.md      replayable\n   result/answer.json    df.answer envelope\n   result/lineage.json   replay graph',
+    principle: 'An accepted commit is the unit of learning.'
+  },
+  {
+    label: '/ dataset provider · loop',
+    title: 'Optimise from the wild.',
+    lede: 'Tenants accumulate lib/ helpers and accepted traces. The provider sees how the dataset is actually used and can reshape serving, indexes, or the data shape itself.',
+    snippet: 'next intent\n  ├ better AGENTS.md / scratch\n  ├ known df.db handles\n  ├ tenant lib/ helpers\n  └ prior accepted traces\n\nprovider re-publishes\n  reshape serving · reindex · reshape data',
+    principle: 'Datasets become applications by being used.'
+  }
+];
+
+function escHtml(s){ return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function highlightSnippet(s){
+  let h = String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  h = h.replace(/(df\.[a-zA-Z_][\w.]*\*?)/g, '<span class="hl-id">$1</span>');
+  h = h.replace(/(&quot;[^&]*?&quot;)/g, '<span class="hl-st">$1</span>');
+  h = h.replace(/(\s|^)(--[a-zA-Z][\w-]*)/g, '$1<span class="hl-fl">$2</span>');
+  h = h.replace(/\b([A-Za-z][\w./-]*\.(ts|js|json|md|d\.ts))\b/g, '<span class="hl-fn">$1</span>');
+  h = h.replace(/^(\s*)\$/gm, '$1<span class="hl-p">$</span>');
+  h = h.replace(/([├│└─]+)/g, '<span class="hl-tr">$1</span>');
+  h = h.replace(/\b(replayable|ready|agent-accepted)\b/g, '<span class="hl-ok">$1</span>');
+  return h;
+}
+
+const STAGE_MS = 6000;
+let active = 0;
+let cycleTimer = null;
+let barAnim = null;
+let userTookOver = false;
+
+function stopTimerBar(){
+  const bar = document.getElementById('loop-timer-bar');
+  if(!bar) return;
+  if(barAnim){
+    try{
+      // freeze at the current visual position
+      const cs = getComputedStyle(bar);
+      const w = cs.width;
+      barAnim.cancel();
+      bar.style.transition = 'none';
+      bar.style.width = w;
+    }catch(_){}
+    barAnim = null;
+  } else {
+    const cs = getComputedStyle(bar);
+    const w = cs.width;
+    bar.style.transition = 'none';
+    bar.style.width = w;
+  }
+}
+
+function restartTimerBar(){
+  const bar = document.getElementById('loop-timer-bar');
+  if(!bar) return;
+  if(barAnim){ try{ barAnim.cancel(); }catch(_){} barAnim = null; }
+  if(userTookOver){
+    // user has taken over — leave the bar empty and frozen
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    return;
+  }
+  if(typeof bar.animate === 'function'){
+    barAnim = bar.animate(
+      [{ width: '0%' }, { width: '100%' }],
+      { duration: STAGE_MS, easing: 'linear', fill: 'forwards' }
+    );
+  } else {
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    bar.getBoundingClientRect();
+    bar.style.transition = 'width ' + STAGE_MS + 'ms linear';
+    bar.style.width = '100%';
+  }
+}
+
+function renderStage(i){
+  const s = STAGES[i];
+  document.getElementById('loop-panel').innerHTML =
+    '<div class="loop-panel-l">' + escHtml(s.label) + '</div>' +
+    '<h3 class="loop-panel-title">' + escHtml(s.title) + '</h3>' +
+    '<p class="loop-panel-lede">' + escHtml(s.lede) + '</p>' +
+    '<pre class="loop-snippet">' + highlightSnippet(s.snippet) + '</pre>' +
+    '<div class="loop-principle"><span class="loop-principle-arr">↳</span><span>' + escHtml(s.principle) + '</span></div>';
+  document.querySelectorAll('.loop-tab').forEach(function(b, j){
+    b.classList.toggle('is-on', j === i);
+  });
+  restartTimerBar();
+}
+
+function setActive(i){
+  active = i;
+  renderStage(i);
+  if(!userTookOver) scheduleNext();
+}
+
+function scheduleNext(){
+  clearTimeout(cycleTimer);
+  if(userTookOver) return;
+  cycleTimer = setTimeout(function(){
+    setActive((active + 1) % STAGES.length);
+  }, STAGE_MS);
+}
+
+document.querySelectorAll('.loop-tab').forEach(function(b, i){
+  b.addEventListener('click', function(){
+    // user has taken over — stop auto-cycle + freeze the timer bar
+    userTookOver = true;
+    clearTimeout(cycleTimer);
+    setActive(i);
+    stopTimerBar();
+  });
+});
+
+setActive(0);
+
+// ── COPY PROMPT button ──────────────────────────────────────────
+(function(){
+  var btn = document.getElementById('cta-copy-prompt');
+  if(!btn) return;
+  // Placeholder prompt — swap in the real one later.
+  var PROMPT = ' test';
+  var resetTimer = null;
+  btn.addEventListener('click', function(){
+    var flip = function(){
+      btn.classList.add('is-done');
+      if(resetTimer){ clearTimeout(resetTimer); }
+      resetTimer = setTimeout(function(){
+        btn.classList.remove('is-done');
+      }, 2000);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(PROMPT).then(flip, flip);
+    } else {
+      try{
+        var ta = document.createElement('textarea');
+        ta.value = PROMPT;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }catch(_){}
+      flip();
+    }
+  });
+})();
+
+</script>
+</body>
+</html>

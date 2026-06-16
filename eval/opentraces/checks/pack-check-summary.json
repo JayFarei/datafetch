@@ -1,0 +1,58 @@
+{
+  "cli_usage": {
+    "failures": [],
+    "ok": true,
+    "solvers_checked": 27
+  },
+  "determinism": {
+    "combined_output_sha256": "05c10a2607a271dbfc1dc5f21ea8098cbe64f36eab83dac6d6f3e397d05b0bfb",
+    "mismatches": [],
+    "ok": true,
+    "rows_checked": 208
+  },
+  "leak_check": {
+    "deny_list_size": 131,
+    "hit_count": 0,
+    "hits": [],
+    "ok": true
+  },
+  "ok": true,
+  "shape": {
+    "abstention_fraction": 0.153846,
+    "abstention_rows": 32,
+    "malformed_rows": [],
+    "missing_templates": [],
+    "ok": true,
+    "row_count": 208,
+    "rows_per_template": {
+      "P1-T1": 8,
+      "P1-T2": 8,
+      "P1-T3": 8,
+      "P1-T4": 8,
+      "P1-T5": 8,
+      "P1-T6": 8,
+      "P1-T7": 8,
+      "P2-T1": 8,
+      "P2-T2": 8,
+      "P2-T3": 8,
+      "P2-T4": 8,
+      "P2-T5": 8,
+      "P2-T6": 8,
+      "P3-T1": 8,
+      "P3-T2": 8,
+      "P3-T3": 8,
+      "P3-T4": 8,
+      "P3-T5": 8,
+      "P3-T6": 8,
+      "P4-T1": 8,
+      "P4-T2": 8,
+      "P4-T3": 8,
+      "P4-T4": 8,
+      "P4-T5": 8,
+      "P4-T6": 8,
+      "P4-T7": 8
+    },
+    "template_count": 26,
+    "templates_with_fewer_than_5_rows": {}
+  }
+}

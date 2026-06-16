@@ -24,7 +24,7 @@ import {
   defaultIntrospectorPaths,
   familyForTopic,
   introspectTemplate,
-} from "../../eval/finchainRecords.js";
+} from "../../../eval/harness/finchainRecords.js";
 
 const checks: Array<{ name: string; pass: boolean; note?: string }> = [];
 function record(name: string, pass: boolean, note?: string): void {

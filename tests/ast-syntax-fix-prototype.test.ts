@@ -1,5 +1,5 @@
 // Regression suite for `rewriteMixedNullishLogicalExpressions` in
-// `src/eval/skillcraftFullDatafetch.ts`. Validates the AST-based
+// `eval/harness/skillcraftFullDatafetch.ts`. Validates the AST-based
 // rewriter against the two observed P1 failures plus a battery of
 // nested placements (call args, object literals, ternaries, callback
 // returns, array elements). Each case is verified by piping the

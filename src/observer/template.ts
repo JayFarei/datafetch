@@ -17,7 +17,7 @@
 // Naming convention:
 //   <semanticTopicName>
 // where <semanticTopicName> is a lower-camel intent shape such as
-// `rangeTableMetric`. The shape hash stays in file metadata as the stable
+// `<someMetricShape>`. The shape hash stays in file metadata as the stable
 // dedupe/provenance key instead of leaking into the user-facing name.
 
 import { promises as fsp } from "node:fs";

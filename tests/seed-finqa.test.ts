@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { pickFiling } from "../seeds/domains/finqa/lib/pickFiling.js";
+import { pickFiling } from "../eval/seeds/domains/finqa/lib/pickFiling.js";
 
 function row(label: string, values: Record<string, number>) {
   return {

@@ -1,6 +1,49 @@
-# datafetch
+<!-- datafetch -->
 
-Repository: <https://github.com/JayFarei/datafetch>
+```text
+     _       _        __      _       _
+  __| | __ _| |_ __ _ / _| ___| |_ ___| |__
+ / _` |/ _` | __/ _` | |_ / _ \ __/ __| '_ \
+| (_| | (_| | || (_| |  _|  __/ || (__| | | |
+ \__,_|\__,_|\__\__,_|_|  \___|\__\___|_| |_|
+
+  your queries / your interface
+  a dataset harness for coding agents
+```
+
+Repository: <https://github.com/JayFarei/datafetch> · Site: <https://datafetch.ai>
+
+## Get it going
+
+Paste this prompt into your coding agent (Claude Code, Codex, Pi, or OpenCode) and let it bootstrap datafetch and reproduce the SkillCraft result end to end:
+
+```text
+Set up datafetch, a dataset harness for coding agents
+(https://github.com/JayFarei/datafetch), and reproduce its SkillCraft result.
+Do this, reading as you go:
+
+1. Clone the repo and read README.md top to bottom.
+2. Install it: `pnpm install`.
+3. Read eval/skillcraft/README.md to understand the three arms
+   (skillcraft-base, skillcraft-skill, datafetch-learned) and the auth/driver
+   the harness expects.
+4. Run a fast smoke of the datafetch code-mode arm:
+     pnpm eval:skillcraft:synthetic:live:smoke
+   This drives a coding agent over a few SkillCraft tasks and crystallises
+   df.lib.* helpers from accepted trajectories.
+5. Inspect what was learned: open the mounted workspace's lib/ and the run
+   artifacts, and explain which accepted trajectory became a typed,
+   replay-gated df.lib.* call that later tasks reuse instead of re-deriving.
+6. For the full 126-task suite behind the 94.4% headline, follow the
+   reproducible flow in eval/skillcraft/README.md and run `pnpm eval:skillcraft`.
+
+Then tell me what crystallised into lib/, and how warm-path reuse moved
+correctness, token cost, and tool work versus the cold run.
+```
+
+Want a different shape than SkillCraft? Swap step 4/6 for any of the harnesses in [Dataset shapes we've tried](#dataset-shapes-weve-tried), or use the generic product path below (`server -> attach -> add -> mount -> run -> commit`) over your own Hugging Face dataset.
+
+---
 
 datafetch is a dataset harness for coding agents. It exposes a mounted dataset
 as a bash-shaped workspace with typed TypeScript handles, writable intent
@@ -15,6 +58,21 @@ workspace and executed by datafetch.
 
 Agents can inspect freely. Reusable learning comes from committed visible code
 that returns `df.answer(...)` with evidence, coverage, derivation, and lineage.
+
+## Dataset shapes we've tried
+
+The thesis only bites when the same dataset is queried repeatedly with reusable intent structure. To find where that holds and where it doesn't, we built harnesses across deliberately different data shapes. Honest results, including the negatives:
+
+| Dataset | Data shape | What it probed | Outcome |
+|---|---|---|---|
+| **SkillCraft** | Synthetic tool-composition families (21 families × 6 difficulty levels, 126 tasks) fanning out over real tool APIs | Reuse rate, token amortisation, and a 7-arm governance / persistence ablation | **94.4% pass (119/126)** at ~172× lower token cost vs the vanilla ceiling; +7.9pp on the hard tier. Cross-session *cost* amortisation falsified on the hardest fan-out arm — reuse fires, but a one-shot inline rewrite was cheaper there. |
+| **FinChain** | Parameterised symbolic financial reasoning chains (58 topics × 5 levels) with step-aligned grading | Correctness vs the published paper baseline; substrate-ON vs substrate-OFF | Matches/exceeds the paper baseline. Pure-compute trajectories give the crystallisation gate nothing to learn → substrate delta structurally ≈ 0. |
+| **CRAG** | Open-domain web QA across 5 domains (2,706 rows, 8 question types, tri-state grading) | Governance-under-staleness; zero-source SDK onboarding | Corpus + grader built. Shape probe found tool-only trajectories collapse to a single fan-out signature, and within-session reuse = 0 — a correctness landmine, not a win. |
+| **FinQA** | Tabular S&P 500 10-K filing QA (8,281 pairs) with compilable arithmetic gold programs | The cold `db/` → warm `lib/` arc; gold programs as the template for crystallised helpers | Seed library + original demo spine. The first proof that an accepted trajectory can become a typed, reusable `df.lib.*` call. |
+| **ProductFlow** | 3-episode micro-eval over a live REST API (jsonplaceholder) | The full crystallise → discover → reuse loop on a real product API outside SkillCraft | ~1.7× token delta. Auto-crystallised helpers came out *thinner* than the model's inline rewrite — this set our adversarial baseline (inline-rewrite, no persistence). |
+| **OpenTraces** | Private polymorphic event-log store (~11.6GB: 1,592 traces, 861k events, 13+ discriminated event types, 4 developer personas) | Correctness on a genuinely model-prior-free store; per-tenant library divergence | Corpus sealed, 200+ question pack built; spread probe passed (median ~55× amortisation surface). Current primary instrument for the correctness claim. |
+
+Also scouted but not yet harnessed: **τ³-bench** (multi-turn policy/transactional agent tasks), **BIRD-SQL** (cross-database text-to-SQL), and **FinReflectKG-MultiHop / FinAgentBench** (document-grounded financial KG retrieval).
 
 ## Quickstart
 
@@ -178,18 +236,18 @@ pnpm test
 Acceptance harnesses:
 
 ```sh
-bash scripts/acceptance/run-all.sh
+bash tests/acceptance/run-all.sh
 ```
 
 The default acceptance run covers no-LLM/no-Atlas flows plus the public
 Hugging Face catalog path. Live client-agent and Atlas/FinQA loops are opt-in:
 
 ```sh
-RUN_AGENT_E2E=1 ATLAS_URI='mongodb+srv://...' bash scripts/acceptance/run-all.sh
+RUN_AGENT_E2E=1 ATLAS_URI='mongodb+srv://...' bash tests/acceptance/run-all.sh
 ```
 
 The harness matrix is documented in
-[`scripts/acceptance/README.md`](./scripts/acceptance/README.md).
+[`tests/acceptance/README.md`](./tests/acceptance/README.md).
 
 ## Telemetry For Evals
 
@@ -240,16 +298,20 @@ bin/                  CLI binary shim
 kb/docs/              product, runtime, learning-loop, architecture, eval docs
 kb/                   knowledge base (plans, prd, background research, archive)
 skills/datafetch/     installable client-agent skill
-seeds/generic/        provider-neutral seed functions and Flue skills
-seeds/domains/        optional domain/demo seed packs
-scripts/              acceptance harnesses + iteration launch scripts
-tests/                vitest unit/integration tests
-experiments/          experiment log, status, and plans
+tests/                vitest unit/integration tests (substrate)
+tests/acceptance/     substrate CLI/server e2e acceptance harnesses
+experiments/          experiment log by episode (episodes/ + log/)
 
+eval/                 ALL eval work (depends on src/, never the reverse)
+eval/harness/         eval drivers (skillcraft/finchain/sac/crag runners)
+eval/seeds/           substrate seed library: generic + domain packs
+                      (runtime-loaded via locateRepoSubdir("eval/seeds/..."))
+eval/tests/           eval-specific vitest suites (sac-*, crag, planner)
+eval/scripts/         cross-suite eval orchestration scripts
 eval/skillcraft/      SkillCraft benchmark harness (21 families x 6 levels)
 eval/productFlow/     non-benchmark product-flow cross-eval
 eval/finchain/        FinChain benchmark harness
-                      (each: scripts/invoke-tool.py runner, prepare script,
+                      (each: configs, prepare/runner scripts,
                        results/ — gitignored)
 
 src/runtime/          cross-cutting substrate utilities: answer-kit emitter
@@ -263,7 +325,6 @@ src/bash/             just-bash session integration
 src/cli/              CLI command implementations
 src/demo/             FinQA two-question demo
 src/discovery/        library search / apropos
-src/eval/             eval entrypoints (per-dataset harness drivers)
 src/flue/             Flue dispatcher and skill loading
 src/sdk/              public TypeScript SDK primitives
 src/server/           Hono data plane and catalog routes
@@ -276,6 +337,7 @@ Local generated state stays ignored: `.datafetch/`, `.atlasfs/`,
 
 ## Docs
 
+- [**Milestone 1 report** — how interface emergence works, and the conditions under which it succeeds](./reports/milestone-1-program-retrospective.md)
 - [Architecture + the substrate / dataset boundary](./kb/docs/architecture.md)
 - [How datafetch works](./kb/docs/how-it-works.md)
 - [How datafetch improves over time](./kb/docs/improvement-loop.md)

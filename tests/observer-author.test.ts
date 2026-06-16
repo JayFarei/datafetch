@@ -7,6 +7,9 @@ import type { TrajectoryRecord } from "../src/sdk/index.js";
 import { authorFunction } from "../src/observer/author.js";
 import { extractTemplate, extractTemplateFromCalls } from "../src/observer/template.js";
 import type { LibraryResolver } from "../src/sdk/index.js";
+// Phase-2 #3: the rangeTableMetric specialization moved to src/eval; register it
+// so these authoring fixtures produce the specialized helper as before.
+import "../eval/harness/finchainSpecialization.js";
 
 const ISO = new Date().toISOString();
 

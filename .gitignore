@@ -60,4 +60,23 @@ eval/productFlow/results/
 /*_activity.json
 /*_report.json
 /*_test.json
-/scripts/answer.ts
+
+# ephemeral run / report outputs (not source)
+/runs/
+/experiments/reports/
+
+# OpenTraces dark-store corpus (plan 011): frozen snapshot, never committed
+eval/opentraces/vendor/
+web/landing/.vercel/
+
+# OpenTraces probe run data: heavy raw trajectories + client-PII gold. Local-only,
+# never committed and never pushed (public repo; SEAL-ADDENDUM limitation 6).
+eval/opentraces/probes/
+eval/opentraces/questions/pack.jsonl
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# internal working session logs (not published)
+/sessions/

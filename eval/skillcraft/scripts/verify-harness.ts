@@ -68,7 +68,7 @@ async function main(): Promise<void> {
     checks.push({ name: "metrics schema JSON", ok: false, detail: String(error), severity: "fail" });
   }
 
-  const datafetchAdapterPath = path.resolve("src/eval/skillcraftFullDatafetch.ts");
+  const datafetchAdapterPath = path.resolve("eval/harness/skillcraftFullDatafetch.ts");
   const hasDatafetchAdapter = await exists(datafetchAdapterPath);
   const datafetchAdapterSource = hasDatafetchAdapter ? await fsp.readFile(datafetchAdapterPath, "utf8") : "";
   const adapterMarkedReady = datafetchAdapterSource.includes("FULL_SKILLCRAFT_DATAFETCH_ADAPTER_READY = true");
