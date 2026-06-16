@@ -68,3 +68,8 @@ eval/productFlow/results/
 # OpenTraces dark-store corpus (plan 011): frozen snapshot, never committed
 eval/opentraces/vendor/
 web/landing/.vercel/
+
+# OpenTraces probe run data: heavy raw trajectories + client-PII gold. Local-only,
+# never committed and never pushed (public repo; SEAL-ADDENDUM limitation 6).
+eval/opentraces/probes/
+eval/opentraces/questions/pack.jsonl

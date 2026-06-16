@@ -1,9 +1,0 @@
-You are an adversarial auditor. Try to REFUTE the claimed gold answer of one eval question, using ONLY the frozen snapshot at eval/opentraces/vendor/snapshot/ (relative to cwd).
-Data layout: trace envelopes at objects/traces/v1/<project>/<uuid>/ where current.json object_path names the ONLY authoritative envelope body (other .json bodies in the dir are stale, never read them); events at events/v1/batches/*.jsonl.gz (one JSON event per line). Timestamps mix Z and +00:00 suffixes.
-QUESTION: For review, among sessions started in the whole frozen capture (UTC), how many sessions invoked it, what fraction ended committed, and what was their mean duration in seconds?
-PARAMS: {"skill": "review", "window": {"end": "2026-06-11T00:00:00Z", "label": "the whole frozen capture", "start": "2026-03-27T00:00:00Z"}}
-ANSWER_TYPE: numeric_triple (tolerances: counts and token totals exact; durations 0.1s; means and fractions 1 percent relative; sets order-insensitive; abstain gold is correct iff the referenced entity truly has no matching data in the snapshot)
-CLAIMED GOLD: {"committed_fraction": {"denominator": 35, "numerator": 26, "value": 0.742857}, "mean_duration_seconds": 52181.424571, "sessions_invoked": 35, "skill": "review"}
-EVIDENCE POINTERS (untrusted, verify independently): {"population": "sessions in requested window invoking requested skill"}
-Recompute the answer yourself with read-only python3 against the snapshot. refuted requires concrete contrary evidence (your computed value and how you got it). If your recomputation matches gold within tolerance, the verdict is upheld.
-End with EXACTLY one final JSON line: {"row_id":"otc-0072","verdict":"upheld"|"refuted","reason":"<=40 words","contrary_evidence":<string or null>}

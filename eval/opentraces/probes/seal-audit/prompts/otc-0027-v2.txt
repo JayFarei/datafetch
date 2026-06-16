@@ -1,9 +1,0 @@
-You are an adversarial auditor. Try to REFUTE the claimed gold answer of one eval question, using ONLY the frozen snapshot at eval/opentraces/vendor/snapshot/ (relative to cwd).
-Data layout: trace envelopes at objects/traces/v1/<project>/<uuid>/ where current.json object_path names the ONLY authoritative envelope body (other .json bodies in the dir are stale, never read them); events at events/v1/batches/*.jsonl.gz (one JSON event per line). Timestamps mix Z and +00:00 suffixes.
-QUESTION: Within sessions started in the week of May 17, 2026 (UTC), find the highest-token day; which sessions, counting each captured run separately rather than grouping runs that share a session id, accounted for at least 15% of that day's input+output tokens?
-PARAMS: {"percent": 0.15, "window": {"end": "2026-05-24T00:00:00Z", "label": "the week of May 17, 2026", "start": "2026-05-17T00:00:00Z"}}
-ANSWER_TYPE: set (tolerances: counts and token totals exact; durations 0.1s; means and fractions 1 percent relative; sets order-insensitive; abstain gold is correct iff the referenced entity truly has no matching data in the snapshot)
-CLAIMED GOLD: {"day": "2026-05-18", "day_input_output_tokens": 6667733, "sessions": [], "threshold_tokens": 1000159.95}
-EVIDENCE POINTERS (untrusted, verify independently): {"population": "sessions in requested window grouped by UTC start date"}
-Recompute the answer yourself with read-only python3 against the snapshot. refuted requires concrete contrary evidence (your computed value and how you got it). If your recomputation matches gold within tolerance, the verdict is upheld.
-End with EXACTLY one final JSON line: {"row_id":"otc-0027","verdict":"upheld"|"refuted","reason":"<=40 words","contrary_evidence":<string or null>}

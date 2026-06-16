@@ -85,6 +85,10 @@ The committed analysis JSON, error-taxonomy JSON, and per-shard runs are checked
 - Token costs assume a frontier model with prompt caching (Claude Sonnet 4.6 in our runs). Providers without prompt caching see a smaller cost advantage, though the substrate-level wins on accuracy and reuse still hold.
 - The 1.6-percentage-point gap to the vanilla ceiling is real; the remaining failures are content-quality, not substrate-quality, and are tractable to a quality-gated answer envelope (on the roadmap).
 
+## The full picture
+
+These SkillCraft numbers are one result inside a larger program. The **[Milestone 1 report](reports/milestone-1-program-retrospective.md)** is the honest, condition-mapped retrospective across all five experimental episodes: where interface emergence fires and pays, where it does not, the five conditions that define the operating envelope, and the dark-store result where the interface buys correctness rather than just cost. It foregrounds the negatives (including the falsified cross-session cost claim above) as the control experiments that located those conditions.
+
 ---
 
 *An earlier pilot run (`eval/skillcraft/reports/full-126-claw-paired-report.md`, dated 2026-05-11) reports a lower 71% pass rate — that is a pre-iteration baseline, superseded by the iter3 run documented above. Both are kept on disk for a full audit trail.*

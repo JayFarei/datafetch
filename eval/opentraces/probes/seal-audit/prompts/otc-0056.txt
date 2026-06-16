@@ -1,9 +1,0 @@
-You are an adversarial auditor. Try to REFUTE the claimed gold answer of one eval question, using ONLY the frozen snapshot at eval/opentraces/vendor/snapshot/ (relative to cwd).
-Data layout: trace envelopes at objects/traces/v1/<project>/<uuid>/ where current.json object_path names the ONLY authoritative envelope body (other .json bodies in the dir are stale, never read them); events at events/v1/batches/*.jsonl.gz (one JSON event per line). Timestamps mix Z and +00:00 suffixes.
-QUESTION: For sessions started in the whole frozen capture (UTC), how many input+output tokens were spent on amazon/nova-premier?
-PARAMS: {"model": "amazon/nova-premier", "window": {"end": "2026-06-11T00:00:00Z", "label": "the whole frozen capture", "start": "2026-03-27T00:00:00Z"}}
-ANSWER_TYPE: abstain (tolerances: counts and token totals exact; durations 0.1s; means and fractions 1 percent relative; sets order-insensitive; abstain gold is correct iff the referenced entity truly has no matching data in the snapshot)
-CLAIMED GOLD: {"abstain": true, "reason": "no sessions used amazon/nova-premier in the requested window"}
-EVIDENCE POINTERS (untrusted, verify independently): {"absence_proof": "scanned all pointer-resolved trace envelopes in requested window", "checked_model": "amazon/nova-premier"}
-Recompute the answer yourself with read-only python3 against the snapshot. refuted requires concrete contrary evidence (your computed value and how you got it). If your recomputation matches gold within tolerance, the verdict is upheld.
-End with EXACTLY one final JSON line: {"row_id":"otc-0056","verdict":"upheld"|"refuted","reason":"<=40 words","contrary_evidence":<string or null>}

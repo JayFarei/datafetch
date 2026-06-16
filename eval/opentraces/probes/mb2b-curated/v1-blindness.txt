@@ -1,3 +1,0 @@
-command: rg -n -e templateId -e template_id -e row_id -e otc-0 -e P1-T -e P2-T -e P3-T -e P4-T -e solvers/ -e pack_spec -e pack\.jsonl eval/opentraces/curated
-exit_code: 1
-result: zero hits

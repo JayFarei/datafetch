@@ -1,6 +1,8 @@
-# datafetch: How Interface Emergence Works, and the Conditions Under Which It Succeeds
+# Milestone 1 Report — datafetch: How Interface Emergence Works, and the Conditions Under Which It Succeeds
 
-*Internal research report, 2026-06-16. Status: program assessment after five experimental episodes (SkillCraft, FinChain, PokeAPI/SaC, CRAG, OpenTraces dark store). This is the honest, condition-mapped version of the retrospective: what worked, where, and exactly when.*
+*Research report, 2026-06-16. Status: program assessment after five experimental episodes (SkillCraft, FinChain, PokeAPI/SaC, CRAG, OpenTraces dark store). This is the honest, condition-mapped retrospective: what worked, where, and exactly when. The headline SkillCraft numbers are detailed in [EVAL.md](../EVAL.md); the public site is [datafetch.ai](https://datafetch.ai).*
+
+> Note on data: the OpenTraces dark-store corpus (sections 5 and 6) contains real client identifiers, so its raw probe trajectories and gold are local-only and are not committed to this public repository. All figures quoted here are PII-free aggregates.
 
 ## 1. Executive summary
 

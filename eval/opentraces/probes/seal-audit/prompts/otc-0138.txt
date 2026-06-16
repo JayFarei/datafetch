@@ -1,9 +1,0 @@
-You are an adversarial auditor. Try to REFUTE the claimed gold answer of one eval question, using ONLY the frozen snapshot at eval/opentraces/vendor/snapshot/ (relative to cwd).
-Data layout: trace envelopes at objects/traces/v1/<project>/<uuid>/ where current.json object_path names the ONLY authoritative envelope body (other .json bodies in the dir are stale, never read them); events at events/v1/batches/*.jsonl.gz (one JSON event per line). Timestamps mix Z and +00:00 suffixes.
-QUESTION: Build the third-party usage report for project project-24eb286b, sessions started in May 2026 (UTC): session count, date range, input+output tokens, and shareable fraction.
-PARAMS: {"project": "project-24eb286b", "window": {"end": "2026-06-01T00:00:00Z", "label": "May 2026", "start": "2026-05-01T00:00:00Z"}}
-ANSWER_TYPE: composite_numeric_set (tolerances: counts and token totals exact; durations 0.1s; means and fractions 1 percent relative; sets order-insensitive; abstain gold is correct iff the referenced entity truly has no matching data in the snapshot)
-CLAIMED GOLD: {"first_session_date": "2026-05-05", "input_output_tokens": 12627855, "last_session_date": "2026-05-31", "project": "project-24eb286b", "session_count": 53, "shareable_fraction": {"denominator": 53, "numerator": 0, "value": 0.0}}
-EVIDENCE POINTERS (untrusted, verify independently): {"population": "project sessions in requested window"}
-Recompute the answer yourself with read-only python3 against the snapshot. refuted requires concrete contrary evidence (your computed value and how you got it). If your recomputation matches gold within tolerance, the verdict is upheld.
-End with EXACTLY one final JSON line: {"row_id":"otc-0138","verdict":"upheld"|"refuted","reason":"<=40 words","contrary_evidence":<string or null>}

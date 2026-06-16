@@ -337,6 +337,7 @@ Local generated state stays ignored: `.datafetch/`, `.atlasfs/`,
 
 ## Docs
 
+- [**Milestone 1 report** — how interface emergence works, and the conditions under which it succeeds](./reports/milestone-1-program-retrospective.md)
 - [Architecture + the substrate / dataset boundary](./kb/docs/architecture.md)
 - [How datafetch works](./kb/docs/how-it-works.md)
 - [How datafetch improves over time](./kb/docs/improvement-loop.md)
