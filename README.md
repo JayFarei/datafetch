@@ -11,8 +11,6 @@
   a dataset harness for coding agents
 ```
 
-Repository: <https://github.com/JayFarei/datafetch> · Site: <https://datafetch.ai>
-
 ## Get it going
 
 Paste this prompt into your coding agent (Claude Code, Codex, Pi, or OpenCode) and let it bootstrap datafetch and reproduce the SkillCraft result end to end:
