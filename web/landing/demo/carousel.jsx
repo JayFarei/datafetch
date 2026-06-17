@@ -22,7 +22,7 @@ function TreeLn({ display, path, tag, dim, bright, active, fresh, isNew, isOpen,
       onClick={handle}
       role={clickable ? 'button' : undefined}
       tabIndex={clickable ? 0 : undefined}
-      onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handle(); } } : undefined}
+      onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); handle(); } } : undefined}
     >
       <span className="path">{display}</span>
       {isOpen && <span className="open-dot">●</span>}
@@ -689,25 +689,62 @@ function Carousel() {
 
   return (
     <div className="app">
-      {/* CHROME */}
+      {/* CHROME — mirrors the datafetch.ai landing header */}
       <header className="chrome">
         <span className="brand">
-          <svg viewBox="0 0 16 16" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 64 64" aria-hidden="true">
             <g fill="currentColor">
-              <rect x="0"  y="0"  width="2" height="16"/>
-              <rect x="3"  y="2"  width="2" height="12"/>
-              <rect x="6"  y="4"  width="2" height="8"/>
-              <rect x="9"  y="2"  width="2" height="12"/>
-              <rect x="12" y="0"  width="2" height="16"/>
+              <rect x="14" y="16" width="38" height="5"/>
+              <rect x="14" y="24" width="26" height="5"/>
+              <rect x="14" y="32" width="38" height="5"/>
+              <rect x="14" y="40" width="30" height="5"/>
+              <rect x="14" y="48" width="20" height="5"/>
             </g>
           </svg>
-          datafetch/ai
+          DATAFETCH/AI
         </span>
-        <span className="ch-meta"><b>tenant</b> · acme-procurement</span>
-        <span className="ch-meta"><b>dataset</b> · vendors</span>
-        <span className="ch-meta"><b>family</b> · vendor-risk</span>
         <span className="grow"></span>
-        <button id="theme-btn" className="theme-btn" type="button" aria-label="toggle theme">◐ theme</button>
+        <span className="chrome-tag">VENDOR-RISK · DEMO</span>
+        <button type="button" className="theme-toggle" id="theme-toggle" aria-label="Toggle color theme" title="Toggle light / dark">
+          <svg className="icon-sun" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+            <circle cx="8" cy="8" r="3" fill="currentColor"/>
+            <g stroke="currentColor" strokeWidth="1.2" strokeLinecap="round">
+              <line x1="8" y1="1.5" x2="8" y2="3"/>
+              <line x1="8" y1="13" x2="8" y2="14.5"/>
+              <line x1="1.5" y1="8" x2="3" y2="8"/>
+              <line x1="13" y1="8" x2="14.5" y2="8"/>
+              <line x1="3.3" y1="3.3" x2="4.4" y2="4.4"/>
+              <line x1="11.6" y1="11.6" x2="12.7" y2="12.7"/>
+              <line x1="3.3" y1="12.7" x2="4.4" y2="11.6"/>
+              <line x1="11.6" y1="4.4" x2="12.7" y2="3.3"/>
+            </g>
+          </svg>
+          <svg className="icon-moon" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+            <path fill="currentColor" d="M6.5 1.7a6.3 6.3 0 1 0 7.8 7.8A5.2 5.2 0 0 1 6.5 1.7Z"/>
+          </svg>
+          <span className="label-light">LIGHT</span>
+          <span className="label-dark">DARK</span>
+        </button>
+        <a className="chrome-link" href="/" aria-label="Back to datafetch.ai — return to the landing">
+          <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+            <g fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9.5 3.5 5 8l4.5 4.5"/>
+            </g>
+          </svg>
+          <span>Back</span>
+        </a>
+        <a className="chrome-link" href="https://github.com/JayFarei/datafetch" target="_blank" rel="noopener" aria-label="GitHub — datafetch">
+          <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+            <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+          <span>GitHub</span>
+          <svg className="chrome-link-out" viewBox="0 0 10 10" width="9" height="9" aria-hidden="true">
+            <g fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="square">
+              <path d="M3 7 7 3"/>
+              <path d="M3.6 3H7v3.4"/>
+            </g>
+          </svg>
+        </a>
       </header>
 
       {/* SLIDE HEAD */}
@@ -799,6 +836,8 @@ function Carousel() {
               key={sl.stage}
               type="button"
               className={'nav-step' + (i === idx ? ' is-on' : '') + (sl.isCryst ? ' cryst' : '')}
+              aria-current={i === idx ? 'step' : undefined}
+              aria-label={'step ' + sl.stage + ' · ' + sl.short}
               onClick={() => goSlide(i)}
             >
               <span className="ns-num">{sl.stage}</span>

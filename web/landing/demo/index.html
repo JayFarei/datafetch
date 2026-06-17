@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>datafetch — vendor-risk · carousel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="icon" type="image/svg+xml" href="assets/favicon-mark.svg">
+<link rel="stylesheet" href="colors_and_type.css">
+<link rel="stylesheet" href="carousel.css">
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body data-theme="dark">
+  <div id="app"></div>
+
+  <script type="text/babel" src="file-contents.jsx"></script>
+  <script type="text/babel" src="carousel.jsx"></script>
+
+  <script>
+    /* ---------- THEME ----------
+       Shares the landing's storage key + prefers-color-scheme fallback, so the
+       light/dark choice carries seamlessly across the landing <-> demo hand-off. */
+    (function () {
+      var STORAGE_KEY = 'datafetch.theme';
+      var metaTheme = document.querySelector('meta[name="theme-color"]');
+
+      function resolveInitial() {
+        var stored = null;
+        try { stored = localStorage.getItem(STORAGE_KEY); } catch (_) {}
+        if (stored === 'light' || stored === 'dark') return stored;
+        return (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+      }
+
+      function applyTheme(t) {
+        document.body.setAttribute('data-theme', t);
+        if (metaTheme) {
+          var bg = getComputedStyle(document.body).getPropertyValue('--bg').trim() || (t === 'light' ? '#ece8dc' : '#0a0a0a');
+          metaTheme.setAttribute('content', bg);
+        }
+      }
+
+      // Apply before React mounts to avoid a flash of the wrong theme.
+      applyTheme(resolveInitial());
+
+      // The toggle lives inside the React tree — delegate the click (sun/moon swap is CSS-driven).
+      document.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest && e.target.closest('#theme-toggle');
+        if (!btn) return;
+        var cur = document.body.getAttribute('data-theme') || 'dark';
+        var next = cur === 'dark' ? 'light' : 'dark';
+        applyTheme(next);
+        try { localStorage.setItem(STORAGE_KEY, next); } catch (_) {}
+      });
+
+      // Track the OS preference while the user hasn't explicitly picked — mirrors the landing.
+      if (window.matchMedia) {
+        var mql = window.matchMedia('(prefers-color-scheme: light)');
+        var onPref = function (e) {
+          var picked = null;
+          try { picked = localStorage.getItem(STORAGE_KEY); } catch (_) {}
+          if (picked !== 'light' && picked !== 'dark') applyTheme(e.matches ? 'light' : 'dark');
+        };
+        if (mql.addEventListener) mql.addEventListener('change', onPref);
+        else if (mql.addListener) mql.addListener(onPref);
+      }
+    })();
+  </script>
+
+  <script type="text/babel">
+    function App() {
+      return <window.Carousel />;
+    }
+
+    let __mountTries = 0;
+    function tryMount() {
+      const ready = typeof window.Carousel === 'function' && typeof window.renderFile === 'function';
+      if (!ready) {
+        if (++__mountTries > 120) {   // ~6s elapsed — the unpkg React/Babel scripts likely failed to load
+          document.getElementById('app').innerHTML =
+            '<div style="padding:48px;font-family:var(--font-mono);color:var(--ink-dim)">Demo failed to load — check your connection and reload.</div>';
+          return;
+        }
+        return setTimeout(tryMount, 50);
+      }
+      ReactDOM.createRoot(document.getElementById('app')).render(<App />);
+    }
+    tryMount();
+  </script>
+</body>
+</html>
