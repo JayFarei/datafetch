@@ -73,3 +73,10 @@ web/landing/.vercel/
 # never committed and never pushed (public repo; SEAL-ADDENDUM limitation 6).
 eval/opentraces/probes/
 eval/opentraces/questions/pack.jsonl
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# internal working session logs (not published)
+/sessions/
