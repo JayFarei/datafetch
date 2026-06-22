@@ -80,3 +80,6 @@ __pycache__/
 
 # internal working session logs (not published)
 /sessions/
+
+# local tmux session snapshot (developer-local, not published)
+/.tmux-session
