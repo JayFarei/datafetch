@@ -1,0 +1,15 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602085328_m6si3q",
+  "answer": {
+    "status": "answered",
+    "value": 6.416667,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:CLCO",
+        "reason": "P/E ratio from cragFinance"
+      }
+    ],
+    "createdAt": "2026-06-02T08:53:28.664Z"
+  }
+}

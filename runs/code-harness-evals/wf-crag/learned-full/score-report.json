@@ -1,0 +1,173 @@
+{
+  "total": 16,
+  "overall": {
+    "total": 16,
+    "accurate": 6,
+    "missing": 5,
+    "incorrect": 5,
+    "accuracyPct": 37.5,
+    "hallucinationPct": 31.25,
+    "truthfulnessPct": 6.25
+  },
+  "byType": {
+    "aggregation": {
+      "total": 8,
+      "accurate": 2,
+      "missing": 3,
+      "incorrect": 3,
+      "accuracyPct": 25,
+      "hallucinationPct": 37.5,
+      "truthfulnessPct": -12.5
+    },
+    "comparison": {
+      "total": 8,
+      "accurate": 4,
+      "missing": 2,
+      "incorrect": 2,
+      "accuracyPct": 50,
+      "hallucinationPct": 25,
+      "truthfulnessPct": 25
+    }
+  },
+  "byAnswerType": {
+    "valid": {
+      "total": 16,
+      "accurate": 6,
+      "missing": 5,
+      "incorrect": 5,
+      "accuracyPct": 37.5,
+      "hallucinationPct": 31.25,
+      "truthfulnessPct": 6.25
+    }
+  },
+  "rows": [
+    {
+      "interaction_id": "040b8c87-7da9-4a93-92d4-54702d3fe327",
+      "question_type": "aggregation",
+      "answer_type": "valid",
+      "gold": "22%",
+      "predicted": "tool-backed chain absent: trajectory touched df.db.* but contained neither df.lib.* nor df.tool.* calls. Tool-backed episodes must derive outputs through a learned/seed helper or official tool call; db-only placeholder contact is rejected.",
+      "verdict": "incorrect"
+    },
+    {
+      "interaction_id": "0a16bc7e-c5de-4bd4-a6e1-ed091eec92a8",
+      "question_type": "aggregation",
+      "answer_type": "valid",
+      "gold": "there are 504 stocks in the spy fund but only two has over 5% weightage - msft and aapl",
+      "predicted": null,
+      "verdict": "missing"
+    },
+    {
+      "interaction_id": "0b2d62b4-cc68-4fbc-8f57-f9891df3751f",
+      "question_type": "aggregation",
+      "answer_type": "valid",
+      "gold": "1",
+      "predicted": "1",
+      "verdict": "accurate"
+    },
+    {
+      "interaction_id": "0cc26310-086b-4c6f-a168-8c2a0f9fd8b4",
+      "question_type": "aggregation",
+      "answer_type": "valid",
+      "gold": "$14.39",
+      "predicted": "i don't know",
+      "verdict": "missing"
+    },
+    {
+      "interaction_id": "0f2505e7-df78-4df9-aa7f-b060e5848e0f",
+      "question_type": "aggregation",
+      "answer_type": "valid",
+      "gold": "10",
+      "predicted": "29",
+      "verdict": "incorrect"
+    },
+    {
+      "interaction_id": "1c8c76bd-4626-4fb2-bd27-64fdc8a59347",
+      "question_type": "aggregation",
+      "answer_type": "valid",
+      "gold": "$26.59",
+      "predicted": "i don't know",
+      "verdict": "missing"
+    },
+    {
+      "interaction_id": "1dfba3a3-4fc6-4399-ac24-3f60bf1f6eee",
+      "question_type": "aggregation",
+      "answer_type": "valid",
+      "gold": "the top 3 state-owned companies emitted 138.15 billion tonnes carbon dioxide equivalent from 1965 yo 2017, with saudi aramco emitting 59.26, gazprom emitting 43.23, and national iranian oil co emitting 35.66.",
+      "predicted": "tool-backed chain absent: trajectory touched df.db.* but contained neither df.lib.* nor df.tool.* calls. Tool-backed episodes must derive outputs through a learned/seed helper or official tool call; db-only placeholder contact is rejected.",
+      "verdict": "incorrect"
+    },
+    {
+      "interaction_id": "26c66de1-e750-49b4-8c4b-c03a05e1e41d",
+      "question_type": "aggregation",
+      "answer_type": "valid",
+      "gold": "0",
+      "predicted": "0",
+      "verdict": "accurate"
+    },
+    {
+      "interaction_id": "055d5b5b-6659-4a78-afe4-7c946e8ec62b",
+      "question_type": "comparison",
+      "answer_type": "valid",
+      "gold": "as of the current financial data, splunk has a higher price-to-book ratio than mongodb, with a price-to-book ratio of 132.33 compared to mongodb's 32.98.",
+      "predicted": "Splunk",
+      "verdict": "accurate"
+    },
+    {
+      "interaction_id": "0fd92bc4-5945-4b2a-b40e-c067d871ab29",
+      "question_type": "comparison",
+      "answer_type": "valid",
+      "gold": "adt",
+      "predicted": "ADT",
+      "verdict": "accurate"
+    },
+    {
+      "interaction_id": "10db2c9d-8d19-4690-b069-cf383ec9d8ed",
+      "question_type": "comparison",
+      "answer_type": "valid",
+      "gold": "2024-01-23",
+      "predicted": "2024-01-02 00:00:00 EST",
+      "verdict": "incorrect"
+    },
+    {
+      "interaction_id": "1420e577-2bea-41b9-a6fa-49e62570ce75",
+      "question_type": "comparison",
+      "answer_type": "valid",
+      "gold": "inaq",
+      "predicted": "tie",
+      "verdict": "incorrect"
+    },
+    {
+      "interaction_id": "18a6b711-afa8-413f-b103-a3a4ff30fc48",
+      "question_type": "comparison",
+      "answer_type": "valid",
+      "gold": "as of the current market situation, pfizer has a higher dividend yield of 6.3% compared to ford's 5.58%.",
+      "predicted": "Pfizer",
+      "verdict": "accurate"
+    },
+    {
+      "interaction_id": "18dabb4f-d025-426c-9915-4c5995790f60",
+      "question_type": "comparison",
+      "answer_type": "valid",
+      "gold": "in the 4th quarter of 2023 apple had the gross income of 54,855,000 which is higher than microsoft's 42,397,000 gross income",
+      "predicted": "i don't know",
+      "verdict": "missing"
+    },
+    {
+      "interaction_id": "1988dbca-c14f-496c-a61e-e8bf22c629b9",
+      "question_type": "comparison",
+      "answer_type": "valid",
+      "gold": "the value of bitcoin volume traded today is $51.89 billion more than ethereum's.",
+      "predicted": "i don't know",
+      "verdict": "missing"
+    },
+    {
+      "interaction_id": "19c28ca8-31ec-4d8c-9c69-6f86f3972df7",
+      "question_type": "comparison",
+      "answer_type": "valid",
+      "gold": "$10.47",
+      "predicted": "10.4399995803833",
+      "verdict": "accurate"
+    }
+  ]
+}

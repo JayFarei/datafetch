@@ -1,0 +1,11 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260529131132_lduumu",
+  "answer": {
+    "status": "unsupported",
+    "value": "i don't know",
+    "evidence": [],
+    "reason": "No holdings data available for SPY",
+    "createdAt": "2026-05-29T13:11:32.624Z"
+  }
+}

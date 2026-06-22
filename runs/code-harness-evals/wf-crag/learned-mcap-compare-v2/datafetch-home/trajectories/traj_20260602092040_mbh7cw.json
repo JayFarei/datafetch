@@ -1,0 +1,243 @@
+{
+  "id": "traj_20260602092040_mbh7cw",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "TIRX"
+      },
+      "output": [
+        {
+          "id": "TIRX",
+          "recordKey": "crag-finance:TIRX",
+          "family": "crag-finance",
+          "entity": "TIRX",
+          "label": "TIAN RUIXIANG Holdings Ltd Class A Ordinary Shares",
+          "attributes": {
+            "name": "TIAN RUIXIANG Holdings Ltd Class A Ordinary Shares",
+            "symbol": "TIRX"
+          }
+        },
+        {
+          "id": "IR",
+          "recordKey": "crag-finance:IR",
+          "family": "crag-finance",
+          "entity": "IR",
+          "label": "Ingersoll Rand Inc. Common Stock",
+          "attributes": {
+            "name": "Ingersoll Rand Inc. Common Stock",
+            "symbol": "IR"
+          }
+        },
+        {
+          "id": "R",
+          "recordKey": "crag-finance:R",
+          "family": "crag-finance",
+          "entity": "R",
+          "label": "Ryder System Inc. Common Stock",
+          "attributes": {
+            "name": "Ryder System Inc. Common Stock",
+            "symbol": "R"
+          }
+        },
+        {
+          "id": "T",
+          "recordKey": "crag-finance:T",
+          "family": "crag-finance",
+          "entity": "T",
+          "label": "AT&T Inc.",
+          "attributes": {
+            "name": "AT&T Inc.",
+            "symbol": "T"
+          }
+        },
+        {
+          "id": "X",
+          "recordKey": "crag-finance:X",
+          "family": "crag-finance",
+          "entity": "X",
+          "label": "United States Steel Corporation Common Stock",
+          "attributes": {
+            "name": "United States Steel Corporation Common Stock",
+            "symbol": "X"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:20:40.910Z",
+      "durationMs": 7.063125000000582
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "GDO"
+      },
+      "output": [
+        {
+          "id": "GDO",
+          "recordKey": "crag-finance:GDO",
+          "family": "crag-finance",
+          "entity": "GDO",
+          "label": "Western Asset Global Corporate Defined Opportunity Fund Inc.",
+          "attributes": {
+            "name": "Western Asset Global Corporate Defined Opportunity Fund Inc.",
+            "symbol": "GDO"
+          }
+        },
+        {
+          "id": "D",
+          "recordKey": "crag-finance:D",
+          "family": "crag-finance",
+          "entity": "D",
+          "label": "Dominion Energy Inc. Common Stock",
+          "attributes": {
+            "name": "Dominion Energy Inc. Common Stock",
+            "symbol": "D"
+          }
+        },
+        {
+          "id": "DO",
+          "recordKey": "crag-finance:DO",
+          "family": "crag-finance",
+          "entity": "DO",
+          "label": "Diamond Offshore Drilling Inc. Common Stock",
+          "attributes": {
+            "name": "Diamond Offshore Drilling Inc. Common Stock",
+            "symbol": "DO"
+          }
+        },
+        {
+          "id": "G",
+          "recordKey": "crag-finance:G",
+          "family": "crag-finance",
+          "entity": "G",
+          "label": "Genpact Limited Common Stock",
+          "attributes": {
+            "name": "Genpact Limited Common Stock",
+            "symbol": "G"
+          }
+        },
+        {
+          "id": "GD",
+          "recordKey": "crag-finance:GD",
+          "family": "crag-finance",
+          "entity": "GD",
+          "label": "General Dynamics Corporation Common Stock",
+          "attributes": {
+            "name": "General Dynamics Corporation Common Stock",
+            "symbol": "GD"
+          }
+        },
+        {
+          "id": "O",
+          "recordKey": "crag-finance:O",
+          "family": "crag-finance",
+          "entity": "O",
+          "label": "Realty Income Corporation Common Stock",
+          "attributes": {
+            "name": "Realty Income Corporation Common Stock",
+            "symbol": "O"
+          }
+        },
+        {
+          "id": "DDL",
+          "recordKey": "crag-finance:DDL",
+          "family": "crag-finance",
+          "entity": "DDL",
+          "label": "Dingdong (Cayman) Limited American Depositary Shares (each two representing three Ordinary Shares)",
+          "attributes": {
+            "name": "Dingdong (Cayman) Limited American Depositary Shares (each two representing three Ordinary Shares)",
+            "symbol": "DDL"
+          }
+        },
+        {
+          "id": "GDOT",
+          "recordKey": "crag-finance:GDOT",
+          "family": "crag-finance",
+          "entity": "GDOT",
+          "label": "Green Dot Corporation Class A Common Stock $0.001 par value",
+          "attributes": {
+            "name": "Green Dot Corporation Class A Common Stock $0.001 par value",
+            "symbol": "GDOT"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:20:40.915Z",
+      "durationMs": 2.6924999999973807
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "GDO"
+      },
+      "output": 188210000,
+      "startedAt": "2026-06-02T09:20:40.918Z",
+      "durationMs": 527.8974170000001
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "TIRX"
+      },
+      "output": 1828945.33636364,
+      "startedAt": "2026-06-02T09:20:40.917Z",
+      "durationMs": 530.2207920000001
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:20:40.908Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v2/questions/001-comparison-2713f555-59b0-44d2-8f5e-6290c7b585e3/workspace\");\n\n// CRAG finance — comparison question 2713f555-59b0-44d2-8f5e-6290c7b585e3\n//\n// Question (verbatim):\n// which company have larger market cap, tirx or gdo?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [tirxMatches, gdoMatches] = await Promise.all([\n    df.db.records.search(\"TIRX\"),\n    df.db.records.search(\"GDO\"),\n  ]);\n\n  const tirxRecord = tirxMatches[0];\n  const gdoRecord = gdoMatches[0];\n\n  const [tirxMcap, gdoMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"TIRX\" }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"GDO\" }),\n  ]);\n\n  const larger = tirxMcap > gdoMcap ? \"TIRX\" : \"GDO\";\n\n  return df.answer({\n    status: \"answered\",\n    value: larger,\n    evidence: [\n      { recordKey: tirxRecord?.recordKey, reason: `TIRX market cap: ${tirxMcap}` },\n      { recordKey: gdoRecord?.recordKey, reason: `GDO market cap: ${gdoMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "10a114437e0d562d8696754c44b77621330ede9bf849bcc5441910b8a78cac4b",
+  "result": {
+    "status": "answered",
+    "value": "GDO",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:TIRX",
+        "reason": "TIRX market cap: 1828945.33636364"
+      },
+      {
+        "recordKey": "crag-finance:GDO",
+        "reason": "GDO market cap: 188210000"
+      }
+    ],
+    "createdAt": "2026-06-02T09:20:41.448Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "GDO",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:TIRX",
+        "reason": "TIRX market cap: 1828945.33636364"
+      },
+      {
+        "recordKey": "crag-finance:GDO",
+        "reason": "GDO market cap: 188210000"
+      }
+    ],
+    "createdAt": "2026-06-02T09:20:41.448Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 1067.8967080000002
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

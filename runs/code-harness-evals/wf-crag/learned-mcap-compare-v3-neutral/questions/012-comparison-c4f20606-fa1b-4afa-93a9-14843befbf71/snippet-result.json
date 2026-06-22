@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602104443_nx7l68",
+  "answer": {
+    "status": "answered",
+    "value": "Tradeweb Markets Inc. Class A Common Stock",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:GXO",
+        "reason": "GXO market cap: 6205216276.563025"
+      },
+      {
+        "recordKey": "crag-finance:TW",
+        "reason": "TW market cap: 25001299311.695843"
+      }
+    ],
+    "createdAt": "2026-06-02T10:44:44.160Z"
+  }
+}

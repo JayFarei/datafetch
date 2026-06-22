@@ -1,0 +1,452 @@
+{
+  "id": "traj_20260602091200_787vs8",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "Tron"
+      },
+      "output": [
+        {
+          "id": "T",
+          "recordKey": "crag-finance:T",
+          "family": "crag-finance",
+          "entity": "T",
+          "label": "AT&T Inc.",
+          "attributes": {
+            "name": "AT&T Inc.",
+            "symbol": "T"
+          }
+        },
+        {
+          "id": "AAOI",
+          "recordKey": "crag-finance:AAOI",
+          "family": "crag-finance",
+          "entity": "AAOI",
+          "label": "Applied Optoelectronics Inc. Common Stock",
+          "attributes": {
+            "name": "Applied Optoelectronics Inc. Common Stock",
+            "symbol": "AAOI"
+          }
+        },
+        {
+          "id": "ALOT",
+          "recordKey": "crag-finance:ALOT",
+          "family": "crag-finance",
+          "entity": "ALOT",
+          "label": "AstroNova Inc. Common Stock",
+          "attributes": {
+            "name": "AstroNova Inc. Common Stock",
+            "symbol": "ALOT"
+          }
+        },
+        {
+          "id": "ARW",
+          "recordKey": "crag-finance:ARW",
+          "family": "crag-finance",
+          "entity": "ARW",
+          "label": "Arrow Electronics Inc. Common Stock",
+          "attributes": {
+            "name": "Arrow Electronics Inc. Common Stock",
+            "symbol": "ARW"
+          }
+        },
+        {
+          "id": "ATRO",
+          "recordKey": "crag-finance:ATRO",
+          "family": "crag-finance",
+          "entity": "ATRO",
+          "label": "Astronics Corporation Common Stock",
+          "attributes": {
+            "name": "Astronics Corporation Common Stock",
+            "symbol": "ATRO"
+          }
+        },
+        {
+          "id": "AWI",
+          "recordKey": "crag-finance:AWI",
+          "family": "crag-finance",
+          "entity": "AWI",
+          "label": "Armstrong World Industries Inc Common Stock",
+          "attributes": {
+            "name": "Armstrong World Industries Inc Common Stock",
+            "symbol": "AWI"
+          }
+        },
+        {
+          "id": "BHE",
+          "recordKey": "crag-finance:BHE",
+          "family": "crag-finance",
+          "entity": "BHE",
+          "label": "Benchmark Electronics Inc. Common Stock",
+          "attributes": {
+            "name": "Benchmark Electronics Inc. Common Stock",
+            "symbol": "BHE"
+          }
+        },
+        {
+          "id": "DAKT",
+          "recordKey": "crag-finance:DAKT",
+          "family": "crag-finance",
+          "entity": "DAKT",
+          "label": "Daktronics Inc. Common Stock",
+          "attributes": {
+            "name": "Daktronics Inc. Common Stock",
+            "symbol": "DAKT"
+          }
+        },
+        {
+          "id": "DYNT",
+          "recordKey": "crag-finance:DYNT",
+          "family": "crag-finance",
+          "entity": "DYNT",
+          "label": "Dynatronics Corporation Common Stock",
+          "attributes": {
+            "name": "Dynatronics Corporation Common Stock",
+            "symbol": "DYNT"
+          }
+        },
+        {
+          "id": "EA",
+          "recordKey": "crag-finance:EA",
+          "family": "crag-finance",
+          "entity": "EA",
+          "label": "Electronic Arts Inc. Common Stock",
+          "attributes": {
+            "name": "Electronic Arts Inc. Common Stock",
+            "symbol": "EA"
+          }
+        },
+        {
+          "id": "ESP",
+          "recordKey": "crag-finance:ESP",
+          "family": "crag-finance",
+          "entity": "ESP",
+          "label": "Espey Mfg. & Electronics Corp. Common Stock",
+          "attributes": {
+            "name": "Espey Mfg. & Electronics Corp. Common Stock",
+            "symbol": "ESP"
+          }
+        },
+        {
+          "id": "FEIM",
+          "recordKey": "crag-finance:FEIM",
+          "family": "crag-finance",
+          "entity": "FEIM",
+          "label": "Frequency Electronics Inc. Common Stock",
+          "attributes": {
+            "name": "Frequency Electronics Inc. Common Stock",
+            "symbol": "FEIM"
+          }
+        },
+        {
+          "id": "GTH",
+          "recordKey": "crag-finance:GTH",
+          "family": "crag-finance",
+          "entity": "GTH",
+          "label": "Genetron Holdings Limited ADS",
+          "attributes": {
+            "name": "Genetron Holdings Limited ADS",
+            "symbol": "GTH"
+          }
+        },
+        {
+          "id": "HASI",
+          "recordKey": "crag-finance:HASI",
+          "family": "crag-finance",
+          "entity": "HASI",
+          "label": "Hannon Armstrong Sustainable Infrastructure Capital Inc. Common Stock",
+          "attributes": {
+            "name": "Hannon Armstrong Sustainable Infrastructure Capital Inc. Common Stock",
+            "symbol": "HASI"
+          }
+        },
+        {
+          "id": "HEPS",
+          "recordKey": "crag-finance:HEPS",
+          "family": "crag-finance",
+          "entity": "HEPS",
+          "label": "D-Market Electronic Services & Trading American Depositary Shares",
+          "attributes": {
+            "name": "D-Market Electronic Services & Trading American Depositary Shares",
+            "symbol": "HEPS"
+          }
+        },
+        {
+          "id": "ITRI",
+          "recordKey": "crag-finance:ITRI",
+          "family": "crag-finance",
+          "entity": "ITRI",
+          "label": "Itron Inc. Common Stock",
+          "attributes": {
+            "name": "Itron Inc. Common Stock",
+            "symbol": "ITRI"
+          }
+        },
+        {
+          "id": "KE",
+          "recordKey": "crag-finance:KE",
+          "family": "crag-finance",
+          "entity": "KE",
+          "label": "Kimball Electronics Inc. Common Stock",
+          "attributes": {
+            "name": "Kimball Electronics Inc. Common Stock",
+            "symbol": "KE"
+          }
+        },
+        {
+          "id": "KTCC",
+          "recordKey": "crag-finance:KTCC",
+          "family": "crag-finance",
+          "entity": "KTCC",
+          "label": "Key Tronic Corporation Common Stock",
+          "attributes": {
+            "name": "Key Tronic Corporation Common Stock",
+            "symbol": "KTCC"
+          }
+        },
+        {
+          "id": "LINK",
+          "recordKey": "crag-finance:LINK",
+          "family": "crag-finance",
+          "entity": "LINK",
+          "label": "Interlink Electronics Inc. Common Stock",
+          "attributes": {
+            "name": "Interlink Electronics Inc. Common Stock",
+            "symbol": "LINK"
+          }
+        },
+        {
+          "id": "LTRX",
+          "recordKey": "crag-finance:LTRX",
+          "family": "crag-finance",
+          "entity": "LTRX",
+          "label": "Lantronix Inc. Common Stock",
+          "attributes": {
+            "name": "Lantronix Inc. Common Stock",
+            "symbol": "LTRX"
+          }
+        },
+        {
+          "id": "MDT",
+          "recordKey": "crag-finance:MDT",
+          "family": "crag-finance",
+          "entity": "MDT",
+          "label": "Medtronic plc. Ordinary Shares",
+          "attributes": {
+            "name": "Medtronic plc. Ordinary Shares",
+            "symbol": "MDT"
+          }
+        },
+        {
+          "id": "MEI",
+          "recordKey": "crag-finance:MEI",
+          "family": "crag-finance",
+          "entity": "MEI",
+          "label": "Methode Electronics Inc. Common Stock",
+          "attributes": {
+            "name": "Methode Electronics Inc. Common Stock",
+            "symbol": "MEI"
+          }
+        },
+        {
+          "id": "MPTI",
+          "recordKey": "crag-finance:MPTI",
+          "family": "crag-finance",
+          "entity": "MPTI",
+          "label": "M-tron Industries Inc. Common Stock",
+          "attributes": {
+            "name": "M-tron Industries Inc. Common Stock",
+            "symbol": "MPTI"
+          }
+        },
+        {
+          "id": "PLAB",
+          "recordKey": "crag-finance:PLAB",
+          "family": "crag-finance",
+          "entity": "PLAB",
+          "label": "Photronics Inc. Common Stock",
+          "attributes": {
+            "name": "Photronics Inc. Common Stock",
+            "symbol": "PLAB"
+          }
+        },
+        {
+          "id": "RELL",
+          "recordKey": "crag-finance:RELL",
+          "family": "crag-finance",
+          "entity": "RELL",
+          "label": "Richardson Electronics Ltd. Common Stock",
+          "attributes": {
+            "name": "Richardson Electronics Ltd. Common Stock",
+            "symbol": "RELL"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:12:00.904Z",
+      "durationMs": 6.034917000011774
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "MGRM"
+      },
+      "output": [
+        {
+          "id": "MGRM",
+          "recordKey": "crag-finance:MGRM",
+          "family": "crag-finance",
+          "entity": "MGRM",
+          "label": "Monogram Orthopaedics Inc. Common Stock",
+          "attributes": {
+            "name": "Monogram Orthopaedics Inc. Common Stock",
+            "symbol": "MGRM"
+          }
+        },
+        {
+          "id": "G",
+          "recordKey": "crag-finance:G",
+          "family": "crag-finance",
+          "entity": "G",
+          "label": "Genpact Limited Common Stock",
+          "attributes": {
+            "name": "Genpact Limited Common Stock",
+            "symbol": "G"
+          }
+        },
+        {
+          "id": "M",
+          "recordKey": "crag-finance:M",
+          "family": "crag-finance",
+          "entity": "M",
+          "label": "Macy's Inc Common Stock",
+          "attributes": {
+            "name": "Macy's Inc Common Stock",
+            "symbol": "M"
+          }
+        },
+        {
+          "id": "MG",
+          "recordKey": "crag-finance:MG",
+          "family": "crag-finance",
+          "entity": "MG",
+          "label": "Mistras Group Inc Common Stock",
+          "attributes": {
+            "name": "Mistras Group Inc Common Stock",
+            "symbol": "MG"
+          }
+        },
+        {
+          "id": "MGR",
+          "recordKey": "crag-finance:MGR",
+          "family": "crag-finance",
+          "entity": "MGR",
+          "label": "Affiliated Managers Group Inc. 5.875% Junior Subordinated Notes due 2059",
+          "attributes": {
+            "name": "Affiliated Managers Group Inc. 5.875% Junior Subordinated Notes due 2059",
+            "symbol": "MGR"
+          }
+        },
+        {
+          "id": "R",
+          "recordKey": "crag-finance:R",
+          "family": "crag-finance",
+          "entity": "R",
+          "label": "Ryder System Inc. Common Stock",
+          "attributes": {
+            "name": "Ryder System Inc. Common Stock",
+            "symbol": "R"
+          }
+        },
+        {
+          "id": "RM",
+          "recordKey": "crag-finance:RM",
+          "family": "crag-finance",
+          "entity": "RM",
+          "label": "Regional Management Corp. Common Stock",
+          "attributes": {
+            "name": "Regional Management Corp. Common Stock",
+            "symbol": "RM"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:12:00.907Z",
+      "durationMs": 3.163541999994777
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "T"
+      },
+      "output": 121579589636.05154,
+      "startedAt": "2026-06-02T09:12:00.910Z",
+      "durationMs": 546.5178340000275
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MGRM"
+      },
+      "output": 76772900,
+      "startedAt": "2026-06-02T09:12:00.911Z",
+      "durationMs": 576.887458000012
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:12:00.902Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare/questions/009-comparison-8f723a0e-7904-4782-bbcf-b8bb8edfc74a/workspace\");\n\n// CRAG finance — comparison question 8f723a0e-7904-4782-bbcf-b8bb8edfc74a\n//\n// Question (verbatim):\n// which has a greater market capitalization, tron or mgrm?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [tronMatches, mgrmMatches] = await Promise.all([\n    df.db.records.search(\"Tron\"),\n    df.db.records.search(\"MGRM\"),\n  ]);\n\n  const tronRecord = tronMatches[0];\n  const mgrmRecord = mgrmMatches[0];\n\n  const tronTicker = tronRecord?.id;\n  const mgrmTicker = mgrmRecord?.id;\n\n  const [tronMcap, mgrmMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: tronTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: mgrmTicker }),\n  ]);\n\n  const winner = tronMcap > mgrmMcap ? \"tron\" : \"mgrm\";\n\n  return df.answer({\n    status: \"answered\",\n    value: winner,\n    evidence: [\n      { recordKey: tronRecord?.recordKey, reason: `Tron (${tronTicker}) market cap: ${tronMcap}` },\n      { recordKey: mgrmRecord?.recordKey, reason: `MGRM (${mgrmTicker}) market cap: ${mgrmMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "55fb17c6a1f11d70ad8384c480a21424d665c39cfaa506af90c139746f757069",
+  "result": {
+    "status": "answered",
+    "value": "tron",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:T",
+        "reason": "Tron (T) market cap: 121579589636.05154"
+      },
+      {
+        "recordKey": "crag-finance:MGRM",
+        "reason": "MGRM (MGRM) market cap: 76772900"
+      }
+    ],
+    "createdAt": "2026-06-02T09:12:01.488Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "tron",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:T",
+        "reason": "Tron (T) market cap: 121579589636.05154"
+      },
+      {
+        "recordKey": "crag-finance:MGRM",
+        "reason": "MGRM (MGRM) market cap: 76772900"
+      }
+    ],
+    "createdAt": "2026-06-02T09:12:01.488Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 1132.6227070000314
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

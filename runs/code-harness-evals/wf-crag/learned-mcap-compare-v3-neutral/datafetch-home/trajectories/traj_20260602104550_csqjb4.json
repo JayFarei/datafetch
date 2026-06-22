@@ -1,0 +1,122 @@
+{
+  "id": "traj_20260602104550_csqjb4",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.findExact",
+      "input": {
+        "filter": {
+          "symbol": "PLYA"
+        }
+      },
+      "output": [
+        {
+          "id": "PLYA",
+          "recordKey": "crag-finance:PLYA",
+          "family": "crag-finance",
+          "entity": "PLYA",
+          "label": "Playa Hotels & Resorts N.V. Ordinary Shares",
+          "attributes": {
+            "name": "Playa Hotels & Resorts N.V. Ordinary Shares",
+            "symbol": "PLYA"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:45:50.088Z",
+      "durationMs": 0.7414580000331625
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.findExact",
+      "input": {
+        "filter": {
+          "symbol": "USAS"
+        }
+      },
+      "output": [
+        {
+          "id": "USAS",
+          "recordKey": "crag-finance:USAS",
+          "family": "crag-finance",
+          "entity": "USAS",
+          "label": "Americas Gold and Silver Corporation Common Shares no par value",
+          "attributes": {
+            "name": "Americas Gold and Silver Corporation Common Shares no par value",
+            "symbol": "USAS"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:45:50.089Z",
+      "durationMs": 0.278416000015568
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "USAS"
+      },
+      "output": 60781739,
+      "startedAt": "2026-06-02T10:45:50.089Z",
+      "durationMs": 521.8187080000062
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "PLYA"
+      },
+      "output": 1252902365.0109892,
+      "startedAt": "2026-06-02T10:45:50.089Z",
+      "durationMs": 535.415541000024
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T10:45:50.086Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v3-neutral/questions/015-comparison-ce79ed8a-73cb-42ef-935b-121c13a9c61a/workspace\");\nconst safeRecordsFindExact = async (filter: Record<string, unknown>, limit?: number): Promise<any[]> => {\n  try {\n    const records = await (df as any).db?.records?.findExact?.(filter, limit);\n    return Array.isArray(records) ? records : [];\n  } catch (error) {\n    const message = String((error as any)?.message ?? error);\n    if (message.includes(\"ident not found across mounts\")) return [];\n    throw error;\n  }\n};\n// CRAG finance — comparison question ce79ed8a-73cb-42ef-935b-121c13a9c61a\n//\n// Question (verbatim):\n// which company have larger market cap, plya or usas?\n//\n// Replace the body below. Inspect /df.d.ts for every available surface\n// (df.db data, df.tool adapters, and any df.lib learned helpers), pick\n// whatever fits this question best, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [plyaRecords, usasRecords] = await Promise.all([\n    safeRecordsFindExact({ symbol: \"PLYA\" }),\n    safeRecordsFindExact({ symbol: \"USAS\" }),\n  ]);\n\n  const [plyaMcap, usasMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"PLYA\" }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"USAS\" }),\n  ]);\n\n  const winner = plyaMcap > usasMcap ? \"PLYA\" : \"USAS\";\n\n  return df.answer({\n    status: \"answered\",\n    value: winner,\n    evidence: [\n      { reason: `PLYA market cap: ${plyaMcap}` },\n      { reason: `USAS market cap: ${usasMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "58b061c3148e81367fbd78dbf1f1a2cfd63c5d4ce539e8b73aaad9e9dfd8bdef",
+  "result": {
+    "status": "answered",
+    "value": "PLYA",
+    "evidence": [
+      {
+        "reason": "PLYA market cap: 1252902365.0109892"
+      },
+      {
+        "reason": "USAS market cap: 60781739"
+      }
+    ],
+    "createdAt": "2026-06-02T10:45:50.624Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "PLYA",
+    "evidence": [
+      {
+        "reason": "PLYA market cap: 1252902365.0109892"
+      },
+      {
+        "reason": "USAS market cap: 60781739"
+      }
+    ],
+    "createdAt": "2026-06-02T10:45:50.624Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 1058.2702500000014
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

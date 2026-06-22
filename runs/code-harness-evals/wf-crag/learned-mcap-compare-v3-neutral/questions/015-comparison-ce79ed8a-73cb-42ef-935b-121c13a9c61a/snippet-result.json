@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602104550_csqjb4",
+  "answer": {
+    "status": "answered",
+    "value": "PLYA",
+    "evidence": [
+      {
+        "reason": "PLYA market cap: 1252902365.0109892"
+      },
+      {
+        "reason": "USAS market cap: 60781739"
+      }
+    ],
+    "createdAt": "2026-06-02T10:45:50.624Z"
+  }
+}

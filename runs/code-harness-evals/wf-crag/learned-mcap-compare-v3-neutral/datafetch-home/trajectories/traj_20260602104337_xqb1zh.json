@@ -1,0 +1,150 @@
+{
+  "id": "traj_20260602104337_xqb1zh",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "tron",
+        "opts": {
+          "limit": 3
+        }
+      },
+      "output": [
+        {
+          "id": "AAOI",
+          "recordKey": "crag-finance:AAOI",
+          "family": "crag-finance",
+          "entity": "AAOI",
+          "label": "Applied Optoelectronics Inc. Common Stock",
+          "attributes": {
+            "name": "Applied Optoelectronics Inc. Common Stock",
+            "symbol": "AAOI"
+          }
+        },
+        {
+          "id": "ALOT",
+          "recordKey": "crag-finance:ALOT",
+          "family": "crag-finance",
+          "entity": "ALOT",
+          "label": "AstroNova Inc. Common Stock",
+          "attributes": {
+            "name": "AstroNova Inc. Common Stock",
+            "symbol": "ALOT"
+          }
+        },
+        {
+          "id": "ARW",
+          "recordKey": "crag-finance:ARW",
+          "family": "crag-finance",
+          "entity": "ARW",
+          "label": "Arrow Electronics Inc. Common Stock",
+          "attributes": {
+            "name": "Arrow Electronics Inc. Common Stock",
+            "symbol": "ARW"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:43:37.711Z",
+      "durationMs": 6.100124999997206
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "mgrm",
+        "opts": {
+          "limit": 3
+        }
+      },
+      "output": [
+        {
+          "id": "MGRM",
+          "recordKey": "crag-finance:MGRM",
+          "family": "crag-finance",
+          "entity": "MGRM",
+          "label": "Monogram Orthopaedics Inc. Common Stock",
+          "attributes": {
+            "name": "Monogram Orthopaedics Inc. Common Stock",
+            "symbol": "MGRM"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:43:37.714Z",
+      "durationMs": 2.6868329999851994
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MGRM"
+      },
+      "output": 76772900,
+      "startedAt": "2026-06-02T10:43:37.717Z",
+      "durationMs": 436.45020799999475
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "AAOI"
+      },
+      "output": 585494026.0866407,
+      "startedAt": "2026-06-02T10:43:37.717Z",
+      "durationMs": 488.2826669999922
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T10:43:37.708Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v3-neutral/questions/009-comparison-8f723a0e-7904-4782-bbcf-b8bb8edfc74a/workspace\");\n\n// CRAG finance — comparison question 8f723a0e-7904-4782-bbcf-b8bb8edfc74a\n//\n// Question (verbatim):\n// which has a greater market capitalization, tron or mgrm?\n//\n// Replace the body below. Inspect /df.d.ts for every available surface\n// (df.db data, df.tool adapters, and any df.lib learned helpers), pick\n// whatever fits this question best, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [tronRecords, mgrmRecords] = await Promise.all([\n    df.db.records.search(\"tron\", { limit: 3 }),\n    df.db.records.search(\"mgrm\", { limit: 3 }),\n  ]);\n\n  const tronTicker = tronRecords[0]?.id;\n  const mgrmTicker = mgrmRecords[0]?.id;\n\n  const [tronMcap, mgrmMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: tronTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: mgrmTicker }),\n  ]);\n\n  const winner = tronMcap > mgrmMcap ? \"tron\" : \"mgrm\";\n\n  return df.answer({\n    status: \"answered\",\n    value: winner,\n    evidence: [\n      { recordKey: tronRecords[0]?.recordKey, reason: `tron mcap: ${tronMcap}` },\n      { recordKey: mgrmRecords[0]?.recordKey, reason: `mgrm mcap: ${mgrmMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "1614a5c1d97f1b0bc30e54155949d06d0a524250268c3c83df78fd1fab94a5ce",
+  "result": {
+    "status": "answered",
+    "value": "tron",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:AAOI",
+        "reason": "tron mcap: 585494026.0866407"
+      },
+      {
+        "recordKey": "crag-finance:MGRM",
+        "reason": "mgrm mcap: 76772900"
+      }
+    ],
+    "createdAt": "2026-06-02T10:43:38.205Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "tron",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:AAOI",
+        "reason": "tron mcap: 585494026.0866407"
+      },
+      {
+        "recordKey": "crag-finance:MGRM",
+        "reason": "mgrm mcap: 76772900"
+      }
+    ],
+    "createdAt": "2026-06-02T10:43:38.205Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 933.5367079999996
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602092421_djfca6",
+  "answer": {
+    "status": "answered",
+    "value": "MFICL",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:WIW",
+        "reason": "WIW market cap: 515780000"
+      },
+      {
+        "recordKey": "crag-finance:MFICL",
+        "reason": "MFICL market cap: 949435074.9318802"
+      }
+    ],
+    "createdAt": "2026-06-02T09:24:22.465Z"
+  }
+}

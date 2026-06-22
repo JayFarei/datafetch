@@ -1,0 +1,4 @@
+[crag-datafetch] arm=learned selected 16 question(s); out=/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned
+[crag-datafetch] [1/16] aggregation 040b8c87-7da9-4a93-92d4-54702d3fe327 status=unsupported pred=tool-backed chain absent: trajectory tou… gold=22% libUsed=0 wall=22674ms
+[crag-datafetch] [2/16] aggregation 0a16bc7e-c5de-4bd4-a6e1-ed091eec92a8 status=unsupported pred=i don't know gold=there are 504 stocks in the spy fund but… libUsed=0 wall=20869ms
+[crag-datafetch] [3/16] aggregation 0b2d62b4-cc68-4fbc-8f57-f9891df3751f status=answered pred=0 gold=1 libUsed=0 wall=20538ms

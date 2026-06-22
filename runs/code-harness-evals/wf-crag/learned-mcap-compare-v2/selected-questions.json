@@ -1,0 +1,122 @@
+[
+  {
+    "interaction_id": "25d230b2-e518-45e7-8c67-a762571fb5fe",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which company have larger market cap, rbc or rng?"
+  },
+  {
+    "interaction_id": "2713f555-59b0-44d2-8f5e-6290c7b585e3",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which company have larger market cap, tirx or gdo?"
+  },
+  {
+    "interaction_id": "2f3101f3-8852-435b-9d63-6286f07176e3",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which company's market capitalization is higher, nwgl or mficl?"
+  },
+  {
+    "interaction_id": "3300cef5-4c73-49e5-b93a-8f452d25872b",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "can you compare the market caps of cogt and ftft and tell which one is larger?"
+  },
+  {
+    "interaction_id": "4ae56c2a-9c76-429b-a660-448bbaeb3632",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "does berskhire hathaway have a higher market cap than tesla?"
+  },
+  {
+    "interaction_id": "65d83c7c-55f4-46d2-983e-5f28fa24e32c",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which company have larger market cap, hri or imppp?"
+  },
+  {
+    "interaction_id": "7101bf2b-e9f5-441a-b378-9f6e9057fc7f",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "could you tell me which company has a higher market cap, expo or nxst?"
+  },
+  {
+    "interaction_id": "7821dc79-dc9c-4775-b516-789153e6c98e",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which company have larger market cap, cmt or adea?"
+  },
+  {
+    "interaction_id": "7b38dd20-c216-403f-84e6-575f90bcb913",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which of the two companies, bksy or cvcy, has a higher market capitalization?"
+  },
+  {
+    "interaction_id": "8f723a0e-7904-4782-bbcf-b8bb8edfc74a",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which has a greater market capitalization, tron or mgrm?"
+  },
+  {
+    "interaction_id": "ad0871e9-657b-4d8a-8f8a-bcf1a5e9c066",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which company have larger market cap, mfd or allt?"
+  },
+  {
+    "interaction_id": "babb7da1-52c8-48bf-a3bf-93c3addf83a8",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which company has a greater market cap, wiw or mficl?"
+  },
+  {
+    "interaction_id": "c4f20606-fa1b-4afa-93a9-14843befbf71",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which company boasts a larger market cap, gxo or tw?"
+  },
+  {
+    "interaction_id": "c719dd99-aab7-4b33-9cca-95a5e53f1ed5",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which company had higher market cap now, chmg or htcr?"
+  },
+  {
+    "interaction_id": "cbc4fc3b-e16a-44d4-87b6-b44a796118ee",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which company has a higher market capitalization, walmart or broadcom?"
+  },
+  {
+    "interaction_id": "ce79ed8a-73cb-42ef-935b-121c13a9c61a",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which company have larger market cap, plya or usas?"
+  },
+  {
+    "interaction_id": "c0cb88b5-1de7-41f3-a832-aee4c3f85412",
+    "question_type": "multi-hop",
+    "answer_type": "valid",
+    "query": "what is the stock price of the company that currently has a higher market cap than apple?"
+  },
+  {
+    "interaction_id": "de681882-70b6-4d27-9c22-1cb9955eef34",
+    "question_type": "multi-hop",
+    "answer_type": "valid",
+    "query": "in the fortune 500 which company has the highest market cap in 2010 in the us"
+  },
+  {
+    "interaction_id": "a2d74fbe-09e2-4d2d-8b78-86ac0bf498b5",
+    "question_type": "post-processing",
+    "answer_type": "valid",
+    "query": "how big is the market cap of the new york stock exchange compared to the london stock exchange?"
+  },
+  {
+    "interaction_id": "4599a9a2-f9b9-418c-959f-84c39afc9e26",
+    "question_type": "set",
+    "answer_type": "valid",
+    "query": "what energy stocks has higher market cap than shell company in the whole world"
+  }
+]

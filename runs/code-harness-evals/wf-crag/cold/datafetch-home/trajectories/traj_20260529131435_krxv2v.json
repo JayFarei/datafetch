@@ -1,0 +1,481 @@
+{
+  "id": "traj_20260529131435_krxv2v",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "WU Western Union"
+      },
+      "output": [
+        {
+          "id": "WU",
+          "recordKey": "crag-finance:WU",
+          "family": "crag-finance",
+          "entity": "WU",
+          "label": "Western Union Company (The) Common Stock",
+          "attributes": {
+            "name": "Western Union Company (The) Common Stock",
+            "symbol": "WU"
+          }
+        },
+        {
+          "id": "U",
+          "recordKey": "crag-finance:U",
+          "family": "crag-finance",
+          "entity": "U",
+          "label": "Unity Software Inc. Common Stock",
+          "attributes": {
+            "name": "Unity Software Inc. Common Stock",
+            "symbol": "U"
+          }
+        },
+        {
+          "id": "W",
+          "recordKey": "crag-finance:W",
+          "family": "crag-finance",
+          "entity": "W",
+          "label": "Wayfair Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Wayfair Inc. Class A Common Stock",
+            "symbol": "W"
+          }
+        },
+        {
+          "id": "ARRWU",
+          "recordKey": "crag-finance:ARRWU",
+          "family": "crag-finance",
+          "entity": "ARRWU",
+          "label": "Arrowroot Acquisition Corp. Unit",
+          "attributes": {
+            "name": "Arrowroot Acquisition Corp. Unit",
+            "symbol": "ARRWU"
+          }
+        },
+        {
+          "id": "AUB",
+          "recordKey": "crag-finance:AUB",
+          "family": "crag-finance",
+          "entity": "AUB",
+          "label": "Atlantic Union Bankshares Corporation Common Stock",
+          "attributes": {
+            "name": "Atlantic Union Bankshares Corporation Common Stock",
+            "symbol": "AUB"
+          }
+        },
+        {
+          "id": "AUB^A",
+          "recordKey": "crag-finance:AUB^A",
+          "family": "crag-finance",
+          "entity": "AUB^A",
+          "label": "Atlantic Union Bankshares Corporation Depositary Shares each representing a 1/400th ownership interest in a share of 6.875% Perpetual Non-Cumulative Preferred Stock Series A",
+          "attributes": {
+            "name": "Atlantic Union Bankshares Corporation Depositary Shares each representing a 1/400th ownership interest in a share of 6.875% Perpetual Non-Cumulative Preferred Stock Series A",
+            "symbol": "AUB^A"
+          }
+        },
+        {
+          "id": "DMO",
+          "recordKey": "crag-finance:DMO",
+          "family": "crag-finance",
+          "entity": "DMO",
+          "label": "Western Asset Mortgage Opportunity Fund Inc. Common Stock",
+          "attributes": {
+            "name": "Western Asset Mortgage Opportunity Fund Inc. Common Stock",
+            "symbol": "DMO"
+          }
+        },
+        {
+          "id": "EHI",
+          "recordKey": "crag-finance:EHI",
+          "family": "crag-finance",
+          "entity": "EHI",
+          "label": "Western Asset Global High Income Fund Inc Common Stock",
+          "attributes": {
+            "name": "Western Asset Global High Income Fund Inc Common Stock",
+            "symbol": "EHI"
+          }
+        },
+        {
+          "id": "EMD",
+          "recordKey": "crag-finance:EMD",
+          "family": "crag-finance",
+          "entity": "EMD",
+          "label": "Western Asset Emerging Markets Debt Fund Inc Common Stock",
+          "attributes": {
+            "name": "Western Asset Emerging Markets Debt Fund Inc Common Stock",
+            "symbol": "EMD"
+          }
+        },
+        {
+          "id": "GDO",
+          "recordKey": "crag-finance:GDO",
+          "family": "crag-finance",
+          "entity": "GDO",
+          "label": "Western Asset Global Corporate Defined Opportunity Fund Inc.",
+          "attributes": {
+            "name": "Western Asset Global Corporate Defined Opportunity Fund Inc.",
+            "symbol": "GDO"
+          }
+        },
+        {
+          "id": "HIO",
+          "recordKey": "crag-finance:HIO",
+          "family": "crag-finance",
+          "entity": "HIO",
+          "label": "Western Asset High Income Opportunity Fund Inc. Common Stock",
+          "attributes": {
+            "name": "Western Asset High Income Opportunity Fund Inc. Common Stock",
+            "symbol": "HIO"
+          }
+        },
+        {
+          "id": "HIX",
+          "recordKey": "crag-finance:HIX",
+          "family": "crag-finance",
+          "entity": "HIX",
+          "label": "Western Asset High Income Fund II Inc. Common Stock",
+          "attributes": {
+            "name": "Western Asset High Income Fund II Inc. Common Stock",
+            "symbol": "HIX"
+          }
+        },
+        {
+          "id": "HYI",
+          "recordKey": "crag-finance:HYI",
+          "family": "crag-finance",
+          "entity": "HYI",
+          "label": "Western Asset High Yield Defined Opportunity Fund Inc. Common Stock",
+          "attributes": {
+            "name": "Western Asset High Yield Defined Opportunity Fund Inc. Common Stock",
+            "symbol": "HYI"
+          }
+        },
+        {
+          "id": "IGI",
+          "recordKey": "crag-finance:IGI",
+          "family": "crag-finance",
+          "entity": "IGI",
+          "label": "Western Asset Investment Grade Defined Opportunity Trust Inc. Common Stock",
+          "attributes": {
+            "name": "Western Asset Investment Grade Defined Opportunity Trust Inc. Common Stock",
+            "symbol": "IGI"
+          }
+        },
+        {
+          "id": "MHF",
+          "recordKey": "crag-finance:MHF",
+          "family": "crag-finance",
+          "entity": "MHF",
+          "label": "Western Asset Municipal High Income Fund Inc. Common Stock",
+          "attributes": {
+            "name": "Western Asset Municipal High Income Fund Inc. Common Stock",
+            "symbol": "MHF"
+          }
+        },
+        {
+          "id": "MMU",
+          "recordKey": "crag-finance:MMU",
+          "family": "crag-finance",
+          "entity": "MMU",
+          "label": "Western Asset Managed Municipals Fund Inc. Common Stock",
+          "attributes": {
+            "name": "Western Asset Managed Municipals Fund Inc. Common Stock",
+            "symbol": "MMU"
+          }
+        },
+        {
+          "id": "MYFW",
+          "recordKey": "crag-finance:MYFW",
+          "family": "crag-finance",
+          "entity": "MYFW",
+          "label": "First Western Financial Inc. Common Stock",
+          "attributes": {
+            "name": "First Western Financial Inc. Common Stock",
+            "symbol": "MYFW"
+          }
+        },
+        {
+          "id": "NWE",
+          "recordKey": "crag-finance:NWE",
+          "family": "crag-finance",
+          "entity": "NWE",
+          "label": "NorthWestern Energy Group Inc. Common Stock",
+          "attributes": {
+            "name": "NorthWestern Energy Group Inc. Common Stock",
+            "symbol": "NWE"
+          }
+        },
+        {
+          "id": "NWLI",
+          "recordKey": "crag-finance:NWLI",
+          "family": "crag-finance",
+          "entity": "NWLI",
+          "label": "National Western Life Group Inc. Class A Common Stock",
+          "attributes": {
+            "name": "National Western Life Group Inc. Class A Common Stock",
+            "symbol": "NWLI"
+          }
+        },
+        {
+          "id": "PAI",
+          "recordKey": "crag-finance:PAI",
+          "family": "crag-finance",
+          "entity": "PAI",
+          "label": "Western Asset Investment Grade Income Fund Inc.",
+          "attributes": {
+            "name": "Western Asset Investment Grade Income Fund Inc.",
+            "symbol": "PAI"
+          }
+        },
+        {
+          "id": "PWUP",
+          "recordKey": "crag-finance:PWUP",
+          "family": "crag-finance",
+          "entity": "PWUP",
+          "label": "PowerUp Acquisition Corp. Class A Ordinary Shares",
+          "attributes": {
+            "name": "PowerUp Acquisition Corp. Class A Ordinary Shares",
+            "symbol": "PWUP"
+          }
+        },
+        {
+          "id": "PWUPU",
+          "recordKey": "crag-finance:PWUPU",
+          "family": "crag-finance",
+          "entity": "PWUPU",
+          "label": "PowerUp Acquisition Corp. Unit",
+          "attributes": {
+            "name": "PowerUp Acquisition Corp. Unit",
+            "symbol": "PWUPU"
+          }
+        },
+        {
+          "id": "PWUPW",
+          "recordKey": "crag-finance:PWUPW",
+          "family": "crag-finance",
+          "entity": "PWUPW",
+          "label": "PowerUp Acquisition Corp. Warrant",
+          "attributes": {
+            "name": "PowerUp Acquisition Corp. Warrant",
+            "symbol": "PWUPW"
+          }
+        },
+        {
+          "id": "SBI",
+          "recordKey": "crag-finance:SBI",
+          "family": "crag-finance",
+          "entity": "SBI",
+          "label": "Western Asset Intermediate Muni Fund Inc Common Stock",
+          "attributes": {
+            "name": "Western Asset Intermediate Muni Fund Inc Common Stock",
+            "symbol": "SBI"
+          }
+        },
+        {
+          "id": "SWN",
+          "recordKey": "crag-finance:SWN",
+          "family": "crag-finance",
+          "entity": "SWN",
+          "label": "Southwestern Energy Company Common Stock",
+          "attributes": {
+            "name": "Southwestern Energy Company Common Stock",
+            "symbol": "SWN"
+          }
+        }
+      ],
+      "startedAt": "2026-05-29T13:14:35.787Z",
+      "durationMs": 5.785792000009678
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "ADT"
+      },
+      "output": [
+        {
+          "id": "ADT",
+          "recordKey": "crag-finance:ADT",
+          "family": "crag-finance",
+          "entity": "ADT",
+          "label": "ADT Inc. Common Stock",
+          "attributes": {
+            "name": "ADT Inc. Common Stock",
+            "symbol": "ADT"
+          }
+        },
+        {
+          "id": "A",
+          "recordKey": "crag-finance:A",
+          "family": "crag-finance",
+          "entity": "A",
+          "label": "Agilent Technologies Inc. Common Stock",
+          "attributes": {
+            "name": "Agilent Technologies Inc. Common Stock",
+            "symbol": "A"
+          }
+        },
+        {
+          "id": "D",
+          "recordKey": "crag-finance:D",
+          "family": "crag-finance",
+          "entity": "D",
+          "label": "Dominion Energy Inc. Common Stock",
+          "attributes": {
+            "name": "Dominion Energy Inc. Common Stock",
+            "symbol": "D"
+          }
+        },
+        {
+          "id": "DT",
+          "recordKey": "crag-finance:DT",
+          "family": "crag-finance",
+          "entity": "DT",
+          "label": "Dynatrace Inc. Common Stock",
+          "attributes": {
+            "name": "Dynatrace Inc. Common Stock",
+            "symbol": "DT"
+          }
+        },
+        {
+          "id": "T",
+          "recordKey": "crag-finance:T",
+          "family": "crag-finance",
+          "entity": "T",
+          "label": "AT&T Inc.",
+          "attributes": {
+            "name": "AT&T Inc.",
+            "symbol": "T"
+          }
+        },
+        {
+          "id": "ADTH",
+          "recordKey": "crag-finance:ADTH",
+          "family": "crag-finance",
+          "entity": "ADTH",
+          "label": "AdTheorent Holding Company Inc. Common Stock",
+          "attributes": {
+            "name": "AdTheorent Holding Company Inc. Common Stock",
+            "symbol": "ADTH"
+          }
+        },
+        {
+          "id": "ADTHW",
+          "recordKey": "crag-finance:ADTHW",
+          "family": "crag-finance",
+          "entity": "ADTHW",
+          "label": "AdTheorent Holding Company Inc. Warrants",
+          "attributes": {
+            "name": "AdTheorent Holding Company Inc. Warrants",
+            "symbol": "ADTHW"
+          }
+        },
+        {
+          "id": "ADTN",
+          "recordKey": "crag-finance:ADTN",
+          "family": "crag-finance",
+          "entity": "ADTN",
+          "label": "ADTRAN Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "ADTRAN Holdings Inc. Common Stock",
+            "symbol": "ADTN"
+          }
+        },
+        {
+          "id": "ADTX",
+          "recordKey": "crag-finance:ADTX",
+          "family": "crag-finance",
+          "entity": "ADTX",
+          "label": "Aditxt Inc. Common Stock",
+          "attributes": {
+            "name": "Aditxt Inc. Common Stock",
+            "symbol": "ADTX"
+          }
+        },
+        {
+          "id": "ATGE",
+          "recordKey": "crag-finance:ATGE",
+          "family": "crag-finance",
+          "entity": "ATGE",
+          "label": "Adtalem Global Education Inc. Common Stock",
+          "attributes": {
+            "name": "Adtalem Global Education Inc. Common Stock",
+            "symbol": "ATGE"
+          }
+        }
+      ],
+      "startedAt": "2026-05-29T13:14:35.790Z",
+      "durationMs": 2.8315830000210553
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_pe_ratio",
+      "input": {
+        "ticker": "WU"
+      },
+      "output": 7.3904495,
+      "startedAt": "2026-05-29T13:14:35.793Z",
+      "durationMs": 427.0726250000007
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_pe_ratio",
+      "input": {
+        "ticker": "ADT"
+      },
+      "output": 14.2,
+      "startedAt": "2026-05-29T13:14:35.793Z",
+      "durationMs": 439.64212499998393
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-05-29T13:14:35.785Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/cold/questions/009-comparison-0fd92bc4-5945-4b2a-b40e-c067d871ab29/workspace\");\n\n// CRAG finance — comparison question 0fd92bc4-5945-4b2a-b40e-c067d871ab29\n//\n// Question (verbatim):\n// which company has a higher pe ratio, wu or  adt?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [wuMatches, adtMatches] = await Promise.all([\n    df.db.records.search(\"WU Western Union\"),\n    df.db.records.search(\"ADT\"),\n  ]);\n\n  const wuTicker = wuMatches[0]?.id ?? \"WU\";\n  const adtTicker = adtMatches[0]?.id ?? \"ADT\";\n\n  const [wuPE, adtPE] = await Promise.all([\n    df.tool.cragFinance.get_pe_ratio({ ticker: wuTicker }),\n    df.tool.cragFinance.get_pe_ratio({ ticker: adtTicker }),\n  ]);\n\n  const higher = wuPE > adtPE ? \"WU\" : \"ADT\";\n\n  return df.answer({\n    status: \"answered\",\n    value: higher,\n    evidence: [\n      { reason: `WU PE ratio: ${wuPE}` },\n      { reason: `ADT PE ratio: ${adtPE}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "4c3c7de68627b7d06f2a8db1c86d0c90441668c9d43f122ba051febe88266a65",
+  "result": {
+    "status": "answered",
+    "value": "ADT",
+    "evidence": [
+      {
+        "reason": "WU PE ratio: 7.3904495"
+      },
+      {
+        "reason": "ADT PE ratio: 14.2"
+      }
+    ],
+    "createdAt": "2026-05-29T13:14:36.233Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "ADT",
+    "evidence": [
+      {
+        "reason": "WU PE ratio: 7.3904495"
+      },
+      {
+        "reason": "ADT PE ratio: 14.2"
+      }
+    ],
+    "createdAt": "2026-05-29T13:14:36.233Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 875.3506240000133
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

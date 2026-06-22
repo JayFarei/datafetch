@@ -1,0 +1,128 @@
+{
+  "id": "traj_20260602104315_c8pejc",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.findExact",
+      "input": {
+        "filter": {
+          "symbol": "BKSY"
+        },
+        "limit": 1
+      },
+      "output": [
+        {
+          "id": "BKSY",
+          "recordKey": "crag-finance:BKSY",
+          "family": "crag-finance",
+          "entity": "BKSY",
+          "label": "BlackSky Technology Inc. Class A Common Stock",
+          "attributes": {
+            "name": "BlackSky Technology Inc. Class A Common Stock",
+            "symbol": "BKSY"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:43:15.326Z",
+      "durationMs": 0.7970830000122078
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.findExact",
+      "input": {
+        "filter": {
+          "symbol": "CVCY"
+        },
+        "limit": 1
+      },
+      "output": [
+        {
+          "id": "CVCY",
+          "recordKey": "crag-finance:CVCY",
+          "family": "crag-finance",
+          "entity": "CVCY",
+          "label": "Central Valley Community Bancorp Common Stock",
+          "attributes": {
+            "name": "Central Valley Community Bancorp Common Stock",
+            "symbol": "CVCY"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:43:15.327Z",
+      "durationMs": 0.28195800000685267
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CVCY"
+      },
+      "output": 216506479.28850323,
+      "startedAt": "2026-06-02T10:43:15.327Z",
+      "durationMs": 472.87524999998277
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BKSY"
+      },
+      "output": 214295368.9915244,
+      "startedAt": "2026-06-02T10:43:15.327Z",
+      "durationMs": 498.00412500000675
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T10:43:15.324Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v3-neutral/questions/008-comparison-7b38dd20-c216-403f-84e6-575f90bcb913/workspace\");\nconst safeRecordsFindExact = async (filter: Record<string, unknown>, limit?: number): Promise<any[]> => {\n  try {\n    const records = await (df as any).db?.records?.findExact?.(filter, limit);\n    return Array.isArray(records) ? records : [];\n  } catch (error) {\n    const message = String((error as any)?.message ?? error);\n    if (message.includes(\"ident not found across mounts\")) return [];\n    throw error;\n  }\n};\n// CRAG finance — comparison question 7b38dd20-c216-403f-84e6-575f90bcb913\n//\n// Question (verbatim):\n// which of the two companies, bksy or cvcy, has a higher market capitalization?\n//\n// Replace the body below. Inspect /df.d.ts for every available surface\n// (df.db data, df.tool adapters, and any df.lib learned helpers), pick\n// whatever fits this question best, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [bksyRec, cvcyRec] = await Promise.all([\n    safeRecordsFindExact({ symbol: \"BKSY\" }, 1),\n    safeRecordsFindExact({ symbol: \"CVCY\" }, 1),\n  ]);\n\n  const [bksyMcap, cvcyMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"BKSY\" }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"CVCY\" }),\n  ]);\n\n  const winner = bksyMcap > cvcyMcap ? \"BKSY\" : \"CVCY\";\n\n  return df.answer({\n    status: \"answered\",\n    value: winner,\n    evidence: [\n      { recordKey: bksyRec[0]?.recordKey, reason: `BKSY market cap: ${bksyMcap}` },\n      { recordKey: cvcyRec[0]?.recordKey, reason: `CVCY market cap: ${cvcyMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n",
+  "sourceHash": "080d851b940d75583e789218144e47417e8b139d46c287adb1bd084dc63cb4da",
+  "result": {
+    "status": "answered",
+    "value": "CVCY",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:BKSY",
+        "reason": "BKSY market cap: 214295368.9915244"
+      },
+      {
+        "recordKey": "crag-finance:CVCY",
+        "reason": "CVCY market cap: 216506479.28850323"
+      }
+    ],
+    "createdAt": "2026-06-02T10:43:15.825Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "CVCY",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:BKSY",
+        "reason": "BKSY market cap: 214295368.9915244"
+      },
+      {
+        "recordKey": "crag-finance:CVCY",
+        "reason": "CVCY market cap: 216506479.28850323"
+      }
+    ],
+    "createdAt": "2026-06-02T10:43:15.825Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 971.9788749999716
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

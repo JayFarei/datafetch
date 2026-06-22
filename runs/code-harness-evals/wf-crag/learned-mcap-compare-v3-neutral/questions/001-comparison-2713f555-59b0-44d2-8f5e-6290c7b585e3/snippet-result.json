@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602104052_xfokxp",
+  "answer": {
+    "status": "answered",
+    "value": "GDO",
+    "evidence": [
+      {
+        "reason": "TIRX market cap: 1828945.33636364"
+      },
+      {
+        "reason": "GDO market cap: 188210000"
+      }
+    ],
+    "createdAt": "2026-06-02T10:40:53.271Z"
+  }
+}

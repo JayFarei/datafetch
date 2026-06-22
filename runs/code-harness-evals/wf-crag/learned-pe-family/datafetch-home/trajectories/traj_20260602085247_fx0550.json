@@ -1,0 +1,37 @@
+{
+  "id": "traj_20260602085247_fx0550",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "interpreted",
+  "calls": [],
+  "errored": true,
+  "createdAt": "2026-06-02T08:52:47.072Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-pe-family/questions/005-simple-442591ae-b010-40d9-bfb9-0254275780c6/workspace\");\n\n// CRAG finance — simple question 442591ae-b010-40d9-bfb9-0254275780c6\n//\n// Question (verbatim):\n// i'm looking for the p/e ratio of ntr. can you provide that information?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  // const matches = await df.db.records.search(\"Apple\");\n  // const ticker = matches[0]?.id;\n  // const pe = await df.tool.cragFinance.get_pe_ratio({ ticker });\n  return df.answer({\n    status: \"unsupported\",\n    value: null,\n    evidence: [],\n  });\n}\n\nreturn await main();\n",
+  "sourceHash": "321bf5ec296b0eaa0f429798faeccd6d2ecb04c749500d4211827901dc0f02d8",
+  "result": {
+    "status": "unsupported",
+    "reason": "substrate-rooted chain absent: trajectory contained neither df.db.* nor df.lib.* calls. When df.db.records is mounted for this episode, scripts/answer.ts must reach the answer through df.db.records.* (entity lookup) and/or df.lib.<helper> (substrate-crystallised or seed helper); pure df.tool.* fan-out without a substrate-rooted entry point is rejected.",
+    "createdAt": "2026-06-02T08:52:47.074Z"
+  },
+  "answer": {
+    "status": "unsupported",
+    "reason": "substrate-rooted chain absent: trajectory contained neither df.db.* nor df.lib.* calls. When df.db.records is mounted for this episode, scripts/answer.ts must reach the answer through df.db.records.* (entity lookup) and/or df.lib.<helper> (substrate-crystallised or seed helper); pure df.tool.* fan-out without a substrate-rooted entry point is rejected.",
+    "createdAt": "2026-06-02T08:52:47.074Z"
+  },
+  "cost": {
+    "tier": 0,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 0
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

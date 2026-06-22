@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602090843_jek9c5",
+  "answer": {
+    "status": "answered",
+    "value": "RBC Bearings Incorporated Common Stock",
+    "evidence": [
+      {
+        "reason": "RBC market cap: 7953532534.291791"
+      },
+      {
+        "reason": "RNG market cap: 3058012039.1549377"
+      }
+    ],
+    "createdAt": "2026-06-02T09:08:43.976Z"
+  }
+}

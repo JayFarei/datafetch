@@ -1,0 +1,15 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602084225_irs6ko",
+  "answer": {
+    "status": "answered",
+    "value": 13.748841,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:DKS",
+        "reason": "P/E ratio for DKS"
+      }
+    ],
+    "createdAt": "2026-06-02T08:42:27.686Z"
+  }
+}

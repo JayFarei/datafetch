@@ -1,0 +1,206 @@
+{
+  "id": "traj_20260602091539_lrshoi",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "New York Stock Exchange",
+        "opts": {
+          "limit": 5
+        }
+      },
+      "output": [
+        {
+          "id": "E",
+          "recordKey": "crag-finance:E",
+          "family": "crag-finance",
+          "entity": "E",
+          "label": "ENI S.p.A. Common Stock",
+          "attributes": {
+            "name": "ENI S.p.A. Common Stock",
+            "symbol": "E"
+          }
+        },
+        {
+          "id": "S",
+          "recordKey": "crag-finance:S",
+          "family": "crag-finance",
+          "entity": "S",
+          "label": "SentinelOne Inc. Class A Common Stock",
+          "attributes": {
+            "name": "SentinelOne Inc. Class A Common Stock",
+            "symbol": "S"
+          }
+        },
+        {
+          "id": "BK",
+          "recordKey": "crag-finance:BK",
+          "family": "crag-finance",
+          "entity": "BK",
+          "label": "The Bank of New York Mellon Corporation Common Stock",
+          "attributes": {
+            "name": "The Bank of New York Mellon Corporation Common Stock",
+            "symbol": "BK"
+          }
+        },
+        {
+          "id": "MHN",
+          "recordKey": "crag-finance:MHN",
+          "family": "crag-finance",
+          "entity": "MHN",
+          "label": "Blackrock MuniHoldings New York Quality Fund Inc. Common Stock",
+          "attributes": {
+            "name": "Blackrock MuniHoldings New York Quality Fund Inc. Common Stock",
+            "symbol": "MHN"
+          }
+        },
+        {
+          "id": "MYN",
+          "recordKey": "crag-finance:MYN",
+          "family": "crag-finance",
+          "entity": "MYN",
+          "label": "Blackrock MuniYield New York Quality Fund Inc.Common Stock",
+          "attributes": {
+            "name": "Blackrock MuniYield New York Quality Fund Inc.Common Stock",
+            "symbol": "MYN"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:15:39.953Z",
+      "durationMs": 5.157207999960519
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "London Stock Exchange",
+        "opts": {
+          "limit": 5
+        }
+      },
+      "output": [
+        {
+          "id": "E",
+          "recordKey": "crag-finance:E",
+          "family": "crag-finance",
+          "entity": "E",
+          "label": "ENI S.p.A. Common Stock",
+          "attributes": {
+            "name": "ENI S.p.A. Common Stock",
+            "symbol": "E"
+          }
+        },
+        {
+          "id": "L",
+          "recordKey": "crag-finance:L",
+          "family": "crag-finance",
+          "entity": "L",
+          "label": "Loews Corporation Common Stock",
+          "attributes": {
+            "name": "Loews Corporation Common Stock",
+            "symbol": "L"
+          }
+        },
+        {
+          "id": "S",
+          "recordKey": "crag-finance:S",
+          "family": "crag-finance",
+          "entity": "S",
+          "label": "SentinelOne Inc. Class A Common Stock",
+          "attributes": {
+            "name": "SentinelOne Inc. Class A Common Stock",
+            "symbol": "S"
+          }
+        },
+        {
+          "id": "ICE",
+          "recordKey": "crag-finance:ICE",
+          "family": "crag-finance",
+          "entity": "ICE",
+          "label": "Intercontinental Exchange Inc. Common Stock",
+          "attributes": {
+            "name": "Intercontinental Exchange Inc. Common Stock",
+            "symbol": "ICE"
+          }
+        },
+        {
+          "id": "A",
+          "recordKey": "crag-finance:A",
+          "family": "crag-finance",
+          "entity": "A",
+          "label": "Agilent Technologies Inc. Common Stock",
+          "attributes": {
+            "name": "Agilent Technologies Inc. Common Stock",
+            "symbol": "A"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:15:39.958Z",
+      "durationMs": 3.7473749999771826
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "E"
+      },
+      "output": 48070799167,
+      "startedAt": "2026-06-02T09:15:39.962Z",
+      "durationMs": 370.36120800004574
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:15:39.950Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare/questions/018-post-processing-a2d74fbe-09e2-4d2d-8b78-86ac0bf498b5/workspace\");\n\n// CRAG finance — post-processing question a2d74fbe-09e2-4d2d-8b78-86ac0bf498b5\n//\n// Question (verbatim):\n// how big is the market cap of the new york stock exchange compared to the london stock exchange?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  // Search for NYSE (Intercontinental Exchange owns NYSE) and London Stock Exchange\n  const nyseMatches = await df.db.records.search(\"New York Stock Exchange\", { limit: 5 });\n  const lseMatches = await df.db.records.search(\"London Stock Exchange\", { limit: 5 });\n\n  // NYSE is owned by Intercontinental Exchange (ICE)\n  // LSE is London Stock Exchange Group (LSEG)\n  const iceTicker = nyseMatches[0]?.id ?? \"ICE\";\n  const lseTicker = lseMatches[0]?.id;\n\n  const nyseMcap = await df.tool.cragFinance.get_market_capitalization({ ticker: iceTicker });\n  let lseMcap: number | null = null;\n  if (lseTicker) {\n    lseMcap = await df.tool.cragFinance.get_market_capitalization({ ticker: lseTicker });\n  }\n\n  if (!nyseMcap || !lseMcap) {\n    return df.answer({\n      status: \"unsupported\",\n      value: \"i don't know\",\n      evidence: [],\n    });\n  }\n\n  const ratio = nyseMcap / lseMcap;\n\n  return df.answer({\n    status: \"answered\",\n    value: `The New York Stock Exchange (operator: ICE, ticker ${iceTicker}) has a market cap of ~$${(nyseMcap / 1e9).toFixed(2)}B, while the London Stock Exchange Group (ticker ${lseTicker}) has a market cap of ~$${(lseMcap / 1e9).toFixed(2)}B. NYSE's operator is approximately ${ratio.toFixed(2)}x the size of LSE's operator by market cap.`,\n    evidence: [\n      { recordKey: nyseMatches[0]?.recordKey, reason: `NYSE operator market cap: $${nyseMcap}` },\n      { recordKey: lseMatches[0]?.recordKey, reason: `LSE market cap: $${lseMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "7488348c1b3f4b2b3958ae7fffc18aaed2003bdcf353c6017c71e21903d05125",
+  "result": {
+    "status": "answered",
+    "value": "The New York Stock Exchange (operator: ICE, ticker E) has a market cap of ~$48.07B, while the London Stock Exchange Group (ticker E) has a market cap of ~$48.07B. NYSE's operator is approximately 1.00x the size of LSE's operator by market cap.",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:E",
+        "reason": "NYSE operator market cap: $48070799167"
+      },
+      {
+        "recordKey": "crag-finance:E",
+        "reason": "LSE market cap: $48070799167"
+      }
+    ],
+    "createdAt": "2026-06-02T09:15:40.333Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "The New York Stock Exchange (operator: ICE, ticker E) has a market cap of ~$48.07B, while the London Stock Exchange Group (ticker E) has a market cap of ~$48.07B. NYSE's operator is approximately 1.00x the size of LSE's operator by market cap.",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:E",
+        "reason": "NYSE operator market cap: $48070799167"
+      },
+      {
+        "recordKey": "crag-finance:E",
+        "reason": "LSE market cap: $48070799167"
+      }
+    ],
+    "createdAt": "2026-06-02T09:15:40.333Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 379.2793739999761
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

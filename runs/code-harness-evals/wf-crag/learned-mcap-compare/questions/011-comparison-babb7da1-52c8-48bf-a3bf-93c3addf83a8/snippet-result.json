@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602091243_hnz47d",
+  "answer": {
+    "status": "answered",
+    "value": "MFICL",
+    "evidence": [
+      {
+        "reason": "WIW market cap: 515780000"
+      },
+      {
+        "reason": "MFICL market cap: 949435074.9318802"
+      }
+    ],
+    "createdAt": "2026-06-02T09:12:43.485Z"
+  }
+}

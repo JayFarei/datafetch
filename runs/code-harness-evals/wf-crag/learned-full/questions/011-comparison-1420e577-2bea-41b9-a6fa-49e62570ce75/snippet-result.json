@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260529132754_wd9u0c",
+  "answer": {
+    "status": "answered",
+    "value": "tie",
+    "evidence": [
+      {
+        "reason": "MACAU volume on 2024-02-21: 0"
+      },
+      {
+        "reason": "INAQ volume on 2024-02-21: 0"
+      }
+    ],
+    "createdAt": "2026-05-29T13:27:54.711Z"
+  }
+}

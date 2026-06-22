@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602092102_wkbzvc",
+  "answer": {
+    "status": "answered",
+    "value": "NWGL",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:NWGL",
+        "reason": "NWGL market cap: 1751791527"
+      },
+      {
+        "recordKey": "crag-finance:MFICL",
+        "reason": "MFICL market cap: 949435074.9318802"
+      }
+    ],
+    "createdAt": "2026-06-02T09:21:02.530Z"
+  }
+}

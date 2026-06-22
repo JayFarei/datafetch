@@ -1,0 +1,11 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260529132005_bnhed4",
+  "answer": {
+    "status": "unsupported",
+    "value": "i don't know",
+    "evidence": [],
+    "reason": "Holdings data not available in SPY info",
+    "createdAt": "2026-05-29T13:20:05.961Z"
+  }
+}

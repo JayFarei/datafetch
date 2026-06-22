@@ -1,0 +1,221 @@
+{
+  "id": "traj_20260602092126_lmkktl",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "COGT"
+      },
+      "output": [
+        {
+          "id": "COGT",
+          "recordKey": "crag-finance:COGT",
+          "family": "crag-finance",
+          "entity": "COGT",
+          "label": "Cogent Biosciences Inc. Common Stock",
+          "attributes": {
+            "name": "Cogent Biosciences Inc. Common Stock",
+            "symbol": "COGT"
+          }
+        },
+        {
+          "id": "C",
+          "recordKey": "crag-finance:C",
+          "family": "crag-finance",
+          "entity": "C",
+          "label": "Citigroup Inc. Common Stock",
+          "attributes": {
+            "name": "Citigroup Inc. Common Stock",
+            "symbol": "C"
+          }
+        },
+        {
+          "id": "G",
+          "recordKey": "crag-finance:G",
+          "family": "crag-finance",
+          "entity": "G",
+          "label": "Genpact Limited Common Stock",
+          "attributes": {
+            "name": "Genpact Limited Common Stock",
+            "symbol": "G"
+          }
+        },
+        {
+          "id": "GT",
+          "recordKey": "crag-finance:GT",
+          "family": "crag-finance",
+          "entity": "GT",
+          "label": "The Goodyear Tire & Rubber Company Common Stock",
+          "attributes": {
+            "name": "The Goodyear Tire & Rubber Company Common Stock",
+            "symbol": "GT"
+          }
+        },
+        {
+          "id": "O",
+          "recordKey": "crag-finance:O",
+          "family": "crag-finance",
+          "entity": "O",
+          "label": "Realty Income Corporation Common Stock",
+          "attributes": {
+            "name": "Realty Income Corporation Common Stock",
+            "symbol": "O"
+          }
+        },
+        {
+          "id": "T",
+          "recordKey": "crag-finance:T",
+          "family": "crag-finance",
+          "entity": "T",
+          "label": "AT&T Inc.",
+          "attributes": {
+            "name": "AT&T Inc.",
+            "symbol": "T"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:21:26.773Z",
+      "durationMs": 8.767332999996142
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "FTFT"
+      },
+      "output": [
+        {
+          "id": "FTFT",
+          "recordKey": "crag-finance:FTFT",
+          "family": "crag-finance",
+          "entity": "FTFT",
+          "label": "Future FinTech Group Inc. Common Stock",
+          "attributes": {
+            "name": "Future FinTech Group Inc. Common Stock",
+            "symbol": "FTFT"
+          }
+        },
+        {
+          "id": "F",
+          "recordKey": "crag-finance:F",
+          "family": "crag-finance",
+          "entity": "F",
+          "label": "Ford Motor Company Common Stock",
+          "attributes": {
+            "name": "Ford Motor Company Common Stock",
+            "symbol": "F"
+          }
+        },
+        {
+          "id": "FT",
+          "recordKey": "crag-finance:FT",
+          "family": "crag-finance",
+          "entity": "FT",
+          "label": "Franklin Universal Trust Common Stock",
+          "attributes": {
+            "name": "Franklin Universal Trust Common Stock",
+            "symbol": "FT"
+          }
+        },
+        {
+          "id": "FTF",
+          "recordKey": "crag-finance:FTF",
+          "family": "crag-finance",
+          "entity": "FTF",
+          "label": "Franklin Limited Duration Income Trust Common Shares of Beneficial Interest",
+          "attributes": {
+            "name": "Franklin Limited Duration Income Trust Common Shares of Beneficial Interest",
+            "symbol": "FTF"
+          }
+        },
+        {
+          "id": "T",
+          "recordKey": "crag-finance:T",
+          "family": "crag-finance",
+          "entity": "T",
+          "label": "AT&T Inc.",
+          "attributes": {
+            "name": "AT&T Inc.",
+            "symbol": "T"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:21:26.779Z",
+      "durationMs": 3.3065000000060536
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "FTFT"
+      },
+      "output": 16887707.52173913,
+      "startedAt": "2026-06-02T09:21:26.783Z",
+      "durationMs": 422.0431249999965
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "COGT"
+      },
+      "output": 778311333,
+      "startedAt": "2026-06-02T09:21:26.782Z",
+      "durationMs": 427.1023750000022
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:21:26.770Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v2/questions/003-comparison-3300cef5-4c73-49e5-b93a-8f452d25872b/workspace\");\n\n// CRAG finance — comparison question 3300cef5-4c73-49e5-b93a-8f452d25872b\n//\n// Question (verbatim):\n// can you compare the market caps of cogt and ftft and tell which one is larger?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [cogtRecords, ftftRecords] = await Promise.all([\n    df.db.records.search(\"COGT\"),\n    df.db.records.search(\"FTFT\"),\n  ]);\n\n  const cogtTicker = cogtRecords[0]?.id ?? \"COGT\";\n  const ftftTicker = ftftRecords[0]?.id ?? \"FTFT\";\n\n  const [cogtMcap, ftftMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: cogtTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: ftftTicker }),\n  ]);\n\n  const larger = cogtMcap > ftftMcap ? cogtTicker : ftftTicker;\n\n  return df.answer({\n    status: \"answered\",\n    value: `${larger} has the larger market cap. COGT market cap: ${cogtMcap}, FTFT market cap: ${ftftMcap}.`,\n    evidence: [\n      { recordKey: cogtRecords[0]?.recordKey, reason: `COGT market cap: ${cogtMcap}` },\n      { recordKey: ftftRecords[0]?.recordKey, reason: `FTFT market cap: ${ftftMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "687cd9466eaf79fef43f3ede349665a63201929ce149e7b10a11c69f125bc7c9",
+  "result": {
+    "status": "answered",
+    "value": "COGT has the larger market cap. COGT market cap: 778311333, FTFT market cap: 16887707.52173913.",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:COGT",
+        "reason": "COGT market cap: 778311333"
+      },
+      {
+        "recordKey": "crag-finance:FTFT",
+        "reason": "FTFT market cap: 16887707.52173913"
+      }
+    ],
+    "createdAt": "2026-06-02T09:21:27.209Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "COGT has the larger market cap. COGT market cap: 778311333, FTFT market cap: 16887707.52173913.",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:COGT",
+        "reason": "COGT market cap: 778311333"
+      },
+      {
+        "recordKey": "crag-finance:FTFT",
+        "reason": "FTFT market cap: 16887707.52173913"
+      }
+    ],
+    "createdAt": "2026-06-02T09:21:27.209Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 861.2484160000022
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

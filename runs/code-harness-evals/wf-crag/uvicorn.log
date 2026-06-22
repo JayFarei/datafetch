@@ -1,0 +1,27 @@
+INFO:     Started server process [50051]
+INFO:     Waiting for application startup.
+2026-05-29 14:07:30.329 | INFO     | cragapi.open:__init__:24 - Reading open_kg file from: /Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/eval/crag/vendor/CRAG/mock_api/cragkg/open/kg.0.jsonl.bz2
+ERROR:    Traceback (most recent call last):
+  File "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/eval/crag/vendor/venv311/lib/python3.11/site-packages/starlette/routing.py", line 677, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/Users/jayfarei/.local/share/uv/python/cpython-3.11.11-macos-aarch64-none/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/eval/crag/vendor/CRAG/mock_api/server.py", line 25, in lifespan
+    API["open"] = OpenKG()
+                  ^^^^^^^^
+  File "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/eval/crag/vendor/CRAG/mock_api/cragapi/open.py", line 26, in __init__
+    l = f.readline()
+        ^^^^^^^^^^^^
+  File "/Users/jayfarei/.local/share/uv/python/cpython-3.11.11-macos-aarch64-none/lib/python3.11/bz2.py", line 176, in read1
+    return self._buffer.read1(size)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayfarei/.local/share/uv/python/cpython-3.11.11-macos-aarch64-none/lib/python3.11/_compression.py", line 68, in readinto
+    data = self.read(len(byte_view))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jayfarei/.local/share/uv/python/cpython-3.11.11-macos-aarch64-none/lib/python3.11/_compression.py", line 103, in read
+    data = self._decompressor.decompress(rawblock, size)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: Invalid data stream
+
+ERROR:    Application startup failed. Exiting.

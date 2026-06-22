@@ -1,0 +1,10 @@
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260602090843_jek9c5","shapeHash":"8e24ebb3","templateName":"recordToolLookup","recordedAt":"2026-06-02T09:08:43.979Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260602090906_vctkva","shapeHash":"ae3773fd","templateName":"recordToolLookup","recordedAt":"2026-06-02T09:09:07.720Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260602091015_nwp49g","shapeHash":"8e24ebb3","templateName":"recordToolLookup","recordedAt":"2026-06-02T09:10:16.192Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260602091139_tfcg0h","shapeHash":"8e24ebb3","templateName":"recordToolLookup","recordedAt":"2026-06-02T09:11:40.675Z"}
+{"intentSignature":"db→tool→db→tool","trajectoryId":"traj_20260602091438_y4gcv6","shapeHash":"2dbefeeb","templateName":"cragfinanceGetMarketCapitalization","recordedAt":"2026-06-02T09:14:39.827Z"}
+{"intentSignature":"tool→db→tool","trajectoryId":"traj_20260602091438_y4gcv6","shapeHash":"6936a5c0","templateName":"cragfinanceGetMarketCapitalizationFa","recordedAt":"2026-06-02T09:14:39.828Z"}
+{"intentSignature":"db→tool→db→tool→db→tool→db→tool→db→tool→db","trajectoryId":"traj_20260602091514_i4cf6u","shapeHash":"89919880","templateName":"cragfinanceGetPriceHistory","recordedAt":"2026-06-02T09:15:16.997Z"}
+{"intentSignature":"tool→db→tool→db→tool→db→tool→db→tool→db","trajectoryId":"traj_20260602091514_i4cf6u","shapeHash":"2b7c7eeb","templateName":"cragfinanceGetPriceHistoryFanout","recordedAt":"2026-06-02T09:15:16.997Z"}
+{"intentSignature":"db→tool→FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260602091605_ejqfw6","shapeHash":"1250dde2","templateName":"cragfinanceGetMarketCapitalization","recordedAt":"2026-06-02T09:16:35.009Z"}
+{"intentSignature":"tool→FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260602091605_ejqfw6","shapeHash":"50339cd5","templateName":"cragfinanceGetMarketCapitalizationFa","recordedAt":"2026-06-02T09:16:35.010Z"}

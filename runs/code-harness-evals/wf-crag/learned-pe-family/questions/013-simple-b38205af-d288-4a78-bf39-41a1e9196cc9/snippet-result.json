@@ -1,0 +1,26 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602090505_zivsr8",
+  "answer": {
+    "status": "answered",
+    "value": null,
+    "evidence": [
+      {
+        "reason": "P/E ratio for UZF"
+      }
+    ],
+    "createdAt": "2026-06-02T09:05:05.604Z",
+    "qualityWarnings": [
+      {
+        "code": "low_quality_output",
+        "message": "Output has 1 placeholder field(s) (Unknown / None / null / N/A / \"\") and 0 zero numeric field(s) out of 1 total. The agent's extraction logic likely didn't match the actual data shape — probe the tool response with `pnpm datafetch:run` and fix before committing.",
+        "totalFields": 1,
+        "placeholderFields": 1,
+        "zeroNumericFields": 0,
+        "examples": [
+          "value=null"
+        ]
+      }
+    ]
+  }
+}

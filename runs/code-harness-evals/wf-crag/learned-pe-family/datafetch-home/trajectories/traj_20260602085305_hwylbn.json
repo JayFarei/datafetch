@@ -1,0 +1,93 @@
+{
+  "id": "traj_20260602085305_hwylbn",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "Littelfuse"
+      },
+      "output": [
+        {
+          "id": "L",
+          "recordKey": "crag-finance:L",
+          "family": "crag-finance",
+          "entity": "L",
+          "label": "Loews Corporation Common Stock",
+          "attributes": {
+            "name": "Loews Corporation Common Stock",
+            "symbol": "L"
+          }
+        },
+        {
+          "id": "LFUS",
+          "recordKey": "crag-finance:LFUS",
+          "family": "crag-finance",
+          "entity": "LFUS",
+          "label": "Littelfuse Inc. Common Stock",
+          "attributes": {
+            "name": "Littelfuse Inc. Common Stock",
+            "symbol": "LFUS"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T08:53:05.680Z",
+      "durationMs": 3.420583999948576
+    },
+    {
+      "index": 1,
+      "primitive": "tool.cragFinance.get_pe_ratio",
+      "input": {
+        "ticker": "L"
+      },
+      "output": 25.95517,
+      "startedAt": "2026-06-02T08:53:05.683Z",
+      "durationMs": 626.4238340000156
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T08:53:05.678Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-pe-family/questions/006-simple-4ac9d25a-0f88-4366-b297-220e9697d2fe/workspace\");\n\n// CRAG finance — simple question 4ac9d25a-0f88-4366-b297-220e9697d2fe\n//\n// Question (verbatim):\n// what is the current price-to-earnings ratio of littelfuse ?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const matches = await df.db.records.search(\"Littelfuse\");\n  const ticker = matches[0]?.id;\n  const pe = await df.tool.cragFinance.get_pe_ratio({ ticker });\n  return df.answer({\n    status: \"answered\",\n    value: pe,\n    evidence: [{ recordKey: matches[0]?.recordKey, reason: `P/E ratio for ${ticker}` }],\n  });\n}\n\nreturn await main();\n",
+  "sourceHash": "9ba82e6ca888fc0dc26a61380065aef230b5030d0cad19382bf678078dba439f",
+  "result": {
+    "status": "answered",
+    "value": 25.95517,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:L",
+        "reason": "P/E ratio for L"
+      }
+    ],
+    "createdAt": "2026-06-02T08:53:06.310Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": 25.95517,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:L",
+        "reason": "P/E ratio for L"
+      }
+    ],
+    "createdAt": "2026-06-02T08:53:06.310Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 629.8559159999713
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

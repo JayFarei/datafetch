@@ -1,0 +1,1781 @@
+{
+  "id": "traj_20260602091605_ejqfw6",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "Shell"
+      },
+      "output": [
+        {
+          "id": "S",
+          "recordKey": "crag-finance:S",
+          "family": "crag-finance",
+          "entity": "S",
+          "label": "SentinelOne Inc. Class A Common Stock",
+          "attributes": {
+            "name": "SentinelOne Inc. Class A Common Stock",
+            "symbol": "S"
+          }
+        },
+        {
+          "id": "SHEL",
+          "recordKey": "crag-finance:SHEL",
+          "family": "crag-finance",
+          "entity": "SHEL",
+          "label": "Shell PLC American Depositary Shares (each representing two (2) Ordinary Shares)",
+          "attributes": {
+            "name": "Shell PLC American Depositary Shares (each representing two (2) Ordinary Shares)",
+            "symbol": "SHEL"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:16:05.524Z",
+      "durationMs": 2.646833000006154
+    },
+    {
+      "index": 1,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "SHEL"
+      },
+      "output": 159223835751.42593,
+      "startedAt": "2026-06-02T09:16:05.527Z",
+      "durationMs": 361.6807919999701
+    },
+    {
+      "index": 2,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "energy",
+        "opts": {
+          "limit": 20
+        }
+      },
+      "output": [
+        {
+          "id": "ADSE",
+          "recordKey": "crag-finance:ADSE",
+          "family": "crag-finance",
+          "entity": "ADSE",
+          "label": "ADS-TEC ENERGY PLC Ordinary Shares",
+          "attributes": {
+            "name": "ADS-TEC ENERGY PLC Ordinary Shares",
+            "symbol": "ADSE"
+          }
+        },
+        {
+          "id": "AE",
+          "recordKey": "crag-finance:AE",
+          "family": "crag-finance",
+          "entity": "AE",
+          "label": "Adams Resources & Energy Inc. Common Stock",
+          "attributes": {
+            "name": "Adams Resources & Energy Inc. Common Stock",
+            "symbol": "AE"
+          }
+        },
+        {
+          "id": "AEAE",
+          "recordKey": "crag-finance:AEAE",
+          "family": "crag-finance",
+          "entity": "AEAE",
+          "label": "AltEnergy Acquisition Corp. Class A Common Stock",
+          "attributes": {
+            "name": "AltEnergy Acquisition Corp. Class A Common Stock",
+            "symbol": "AEAE"
+          }
+        },
+        {
+          "id": "AEAEW",
+          "recordKey": "crag-finance:AEAEW",
+          "family": "crag-finance",
+          "entity": "AEAEW",
+          "label": "AltEnergy Acquisition Corp. Warrant",
+          "attributes": {
+            "name": "AltEnergy Acquisition Corp. Warrant",
+            "symbol": "AEAEW"
+          }
+        },
+        {
+          "id": "AEIS",
+          "recordKey": "crag-finance:AEIS",
+          "family": "crag-finance",
+          "entity": "AEIS",
+          "label": "Advanced Energy Industries Inc. Common Stock",
+          "attributes": {
+            "name": "Advanced Energy Industries Inc. Common Stock",
+            "symbol": "AEIS"
+          }
+        },
+        {
+          "id": "AESI",
+          "recordKey": "crag-finance:AESI",
+          "family": "crag-finance",
+          "entity": "AESI",
+          "label": "Atlas Energy Solutions Inc. Common Stock",
+          "attributes": {
+            "name": "Atlas Energy Solutions Inc. Common Stock",
+            "symbol": "AESI"
+          }
+        },
+        {
+          "id": "ALCE",
+          "recordKey": "crag-finance:ALCE",
+          "family": "crag-finance",
+          "entity": "ALCE",
+          "label": "Alternus Clean Energy Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Alternus Clean Energy Inc. Class A Common Stock",
+            "symbol": "ALCE"
+          }
+        },
+        {
+          "id": "AMPY",
+          "recordKey": "crag-finance:AMPY",
+          "family": "crag-finance",
+          "entity": "AMPY",
+          "label": "Amplify Energy Corp. Common Stock",
+          "attributes": {
+            "name": "Amplify Energy Corp. Common Stock",
+            "symbol": "AMPY"
+          }
+        },
+        {
+          "id": "ATO",
+          "recordKey": "crag-finance:ATO",
+          "family": "crag-finance",
+          "entity": "ATO",
+          "label": "Atmos Energy Corporation Common Stock",
+          "attributes": {
+            "name": "Atmos Energy Corporation Common Stock",
+            "symbol": "ATO"
+          }
+        },
+        {
+          "id": "BE",
+          "recordKey": "crag-finance:BE",
+          "family": "crag-finance",
+          "entity": "BE",
+          "label": "Bloom Energy Corporation Class A Common Stock",
+          "attributes": {
+            "name": "Bloom Energy Corporation Class A Common Stock",
+            "symbol": "BE"
+          }
+        },
+        {
+          "id": "BGR",
+          "recordKey": "crag-finance:BGR",
+          "family": "crag-finance",
+          "entity": "BGR",
+          "label": "BlackRock Energy and Resources Trust",
+          "attributes": {
+            "name": "BlackRock Energy and Resources Trust",
+            "symbol": "BGR"
+          }
+        },
+        {
+          "id": "BNRG",
+          "recordKey": "crag-finance:BNRG",
+          "family": "crag-finance",
+          "entity": "BNRG",
+          "label": "Brenmiller Energy Ltd Ordinary Shares",
+          "attributes": {
+            "name": "Brenmiller Energy Ltd Ordinary Shares",
+            "symbol": "BNRG"
+          }
+        },
+        {
+          "id": "BROG",
+          "recordKey": "crag-finance:BROG",
+          "family": "crag-finance",
+          "entity": "BROG",
+          "label": "Brooge Energy Limited Ordinary Shares",
+          "attributes": {
+            "name": "Brooge Energy Limited Ordinary Shares",
+            "symbol": "BROG"
+          }
+        },
+        {
+          "id": "BTE",
+          "recordKey": "crag-finance:BTE",
+          "family": "crag-finance",
+          "entity": "BTE",
+          "label": "Baytex Energy Corp Common Shares",
+          "attributes": {
+            "name": "Baytex Energy Corp Common Shares",
+            "symbol": "BTE"
+          }
+        },
+        {
+          "id": "BTU",
+          "recordKey": "crag-finance:BTU",
+          "family": "crag-finance",
+          "entity": "BTU",
+          "label": "Peabody Energy Corporation Common Stock",
+          "attributes": {
+            "name": "Peabody Energy Corporation Common Stock",
+            "symbol": "BTU"
+          }
+        },
+        {
+          "id": "CBAT",
+          "recordKey": "crag-finance:CBAT",
+          "family": "crag-finance",
+          "entity": "CBAT",
+          "label": "CBAK Energy Technology Inc. Common Stock",
+          "attributes": {
+            "name": "CBAK Energy Technology Inc. Common Stock",
+            "symbol": "CBAT"
+          }
+        },
+        {
+          "id": "CEG",
+          "recordKey": "crag-finance:CEG",
+          "family": "crag-finance",
+          "entity": "CEG",
+          "label": "Constellation Energy Corporation Common Stock",
+          "attributes": {
+            "name": "Constellation Energy Corporation Common Stock",
+            "symbol": "CEG"
+          }
+        },
+        {
+          "id": "CEI",
+          "recordKey": "crag-finance:CEI",
+          "family": "crag-finance",
+          "entity": "CEI",
+          "label": "Camber Energy Inc. Common Stock",
+          "attributes": {
+            "name": "Camber Energy Inc. Common Stock",
+            "symbol": "CEI"
+          }
+        },
+        {
+          "id": "CEIX",
+          "recordKey": "crag-finance:CEIX",
+          "family": "crag-finance",
+          "entity": "CEIX",
+          "label": "CONSOL Energy Inc. Common Stock",
+          "attributes": {
+            "name": "CONSOL Energy Inc. Common Stock",
+            "symbol": "CEIX"
+          }
+        },
+        {
+          "id": "CETY",
+          "recordKey": "crag-finance:CETY",
+          "family": "crag-finance",
+          "entity": "CETY",
+          "label": "Clean Energy Technologies Inc. Common Stock",
+          "attributes": {
+            "name": "Clean Energy Technologies Inc. Common Stock",
+            "symbol": "CETY"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:16:05.889Z",
+      "durationMs": 3.3493329999619164
+    },
+    {
+      "index": 3,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "oil",
+        "opts": {
+          "limit": 20
+        }
+      },
+      "output": [
+        {
+          "id": "BATL",
+          "recordKey": "crag-finance:BATL",
+          "family": "crag-finance",
+          "entity": "BATL",
+          "label": "Battalion Oil Corporation Common Stock",
+          "attributes": {
+            "name": "Battalion Oil Corporation Common Stock",
+            "symbol": "BATL"
+          }
+        },
+        {
+          "id": "IMO",
+          "recordKey": "crag-finance:IMO",
+          "family": "crag-finance",
+          "entity": "IMO",
+          "label": "Imperial Oil Limited Common Stock",
+          "attributes": {
+            "name": "Imperial Oil Limited Common Stock",
+            "symbol": "IMO"
+          }
+        },
+        {
+          "id": "MGY",
+          "recordKey": "crag-finance:MGY",
+          "family": "crag-finance",
+          "entity": "MGY",
+          "label": "Magnolia Oil & Gas Corporation Class A Common Stock",
+          "attributes": {
+            "name": "Magnolia Oil & Gas Corporation Class A Common Stock",
+            "symbol": "MGY"
+          }
+        },
+        {
+          "id": "MRO",
+          "recordKey": "crag-finance:MRO",
+          "family": "crag-finance",
+          "entity": "MRO",
+          "label": "Marathon Oil Corporation Common Stock",
+          "attributes": {
+            "name": "Marathon Oil Corporation Common Stock",
+            "symbol": "MRO"
+          }
+        },
+        {
+          "id": "MUR",
+          "recordKey": "crag-finance:MUR",
+          "family": "crag-finance",
+          "entity": "MUR",
+          "label": "Murphy Oil Corporation Common Stock",
+          "attributes": {
+            "name": "Murphy Oil Corporation Common Stock",
+            "symbol": "MUR"
+          }
+        },
+        {
+          "id": "MVO",
+          "recordKey": "crag-finance:MVO",
+          "family": "crag-finance",
+          "entity": "MVO",
+          "label": "MV Oil Trust Units of Beneficial Interests",
+          "attributes": {
+            "name": "MV Oil Trust Units of Beneficial Interests",
+            "symbol": "MVO"
+          }
+        },
+        {
+          "id": "NOG",
+          "recordKey": "crag-finance:NOG",
+          "family": "crag-finance",
+          "entity": "NOG",
+          "label": "Northern Oil and Gas Inc. Common Stock",
+          "attributes": {
+            "name": "Northern Oil and Gas Inc. Common Stock",
+            "symbol": "NOG"
+          }
+        },
+        {
+          "id": "NRT",
+          "recordKey": "crag-finance:NRT",
+          "family": "crag-finance",
+          "entity": "NRT",
+          "label": "North European Oil Royality Trust Common Stock",
+          "attributes": {
+            "name": "North European Oil Royality Trust Common Stock",
+            "symbol": "NRT"
+          }
+        },
+        {
+          "id": "ODC",
+          "recordKey": "crag-finance:ODC",
+          "family": "crag-finance",
+          "entity": "ODC",
+          "label": "Oil-Dri Corporation Of America Common Stock",
+          "attributes": {
+            "name": "Oil-Dri Corporation Of America Common Stock",
+            "symbol": "ODC"
+          }
+        },
+        {
+          "id": "OIS",
+          "recordKey": "crag-finance:OIS",
+          "family": "crag-finance",
+          "entity": "OIS",
+          "label": "Oil States International Inc. Common Stock",
+          "attributes": {
+            "name": "Oil States International Inc. Common Stock",
+            "symbol": "OIS"
+          }
+        },
+        {
+          "id": "SOI",
+          "recordKey": "crag-finance:SOI",
+          "family": "crag-finance",
+          "entity": "SOI",
+          "label": "Solaris Oilfield Infrastructure Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Solaris Oilfield Infrastructure Inc. Class A Common Stock",
+            "symbol": "SOI"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:16:05.892Z",
+      "durationMs": 2.610666000051424
+    },
+    {
+      "index": 4,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "petroleum",
+        "opts": {
+          "limit": 20
+        }
+      },
+      "output": [
+        {
+          "id": "CPE",
+          "recordKey": "crag-finance:CPE",
+          "family": "crag-finance",
+          "entity": "CPE",
+          "label": "Callon Petroleum Company Common Stock",
+          "attributes": {
+            "name": "Callon Petroleum Company Common Stock",
+            "symbol": "CPE"
+          }
+        },
+        {
+          "id": "EP",
+          "recordKey": "crag-finance:EP",
+          "family": "crag-finance",
+          "entity": "EP",
+          "label": "Empire Petroleum Corporation Common Stock",
+          "attributes": {
+            "name": "Empire Petroleum Corporation Common Stock",
+            "symbol": "EP"
+          }
+        },
+        {
+          "id": "EPM",
+          "recordKey": "crag-finance:EPM",
+          "family": "crag-finance",
+          "entity": "EPM",
+          "label": "Evolution Petroleum Corporation Inc. Common Stock",
+          "attributes": {
+            "name": "Evolution Petroleum Corporation Inc. Common Stock",
+            "symbol": "EPM"
+          }
+        },
+        {
+          "id": "IMPP",
+          "recordKey": "crag-finance:IMPP",
+          "family": "crag-finance",
+          "entity": "IMPP",
+          "label": "Imperial Petroleum Inc. Common Shares",
+          "attributes": {
+            "name": "Imperial Petroleum Inc. Common Shares",
+            "symbol": "IMPP"
+          }
+        },
+        {
+          "id": "IMPPP",
+          "recordKey": "crag-finance:IMPPP",
+          "family": "crag-finance",
+          "entity": "IMPPP",
+          "label": "Imperial Petroleum Inc. 8.75% Series A Cumulative Redeemable Perpetual Preferred Shares",
+          "attributes": {
+            "name": "Imperial Petroleum Inc. 8.75% Series A Cumulative Redeemable Perpetual Preferred Shares",
+            "symbol": "IMPPP"
+          }
+        },
+        {
+          "id": "MARPS",
+          "recordKey": "crag-finance:MARPS",
+          "family": "crag-finance",
+          "entity": "MARPS",
+          "label": "Marine Petroleum Trust Units of Beneficial Interest",
+          "attributes": {
+            "name": "Marine Petroleum Trust Units of Beneficial Interest",
+            "symbol": "MARPS"
+          }
+        },
+        {
+          "id": "MPC",
+          "recordKey": "crag-finance:MPC",
+          "family": "crag-finance",
+          "entity": "MPC",
+          "label": "Marathon Petroleum Corporation Common Stock",
+          "attributes": {
+            "name": "Marathon Petroleum Corporation Common Stock",
+            "symbol": "MPC"
+          }
+        },
+        {
+          "id": "OXY",
+          "recordKey": "crag-finance:OXY",
+          "family": "crag-finance",
+          "entity": "OXY",
+          "label": "Occidental Petroleum Corporation Common Stock",
+          "attributes": {
+            "name": "Occidental Petroleum Corporation Common Stock",
+            "symbol": "OXY"
+          }
+        },
+        {
+          "id": "TPET",
+          "recordKey": "crag-finance:TPET",
+          "family": "crag-finance",
+          "entity": "TPET",
+          "label": "Trio Petroleum Corp. Common Stock",
+          "attributes": {
+            "name": "Trio Petroleum Corp. Common Stock",
+            "symbol": "TPET"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:16:05.895Z",
+      "durationMs": 1.939416999986861
+    },
+    {
+      "index": 5,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "exxon",
+        "opts": {
+          "limit": 20
+        }
+      },
+      "output": [
+        {
+          "id": "XOM",
+          "recordKey": "crag-finance:XOM",
+          "family": "crag-finance",
+          "entity": "XOM",
+          "label": "Exxon Mobil Corporation Common Stock",
+          "attributes": {
+            "name": "Exxon Mobil Corporation Common Stock",
+            "symbol": "XOM"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:16:05.897Z",
+      "durationMs": 2.4611670000012964
+    },
+    {
+      "index": 6,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "chevron",
+        "opts": {
+          "limit": 20
+        }
+      },
+      "output": [
+        {
+          "id": "CVX",
+          "recordKey": "crag-finance:CVX",
+          "family": "crag-finance",
+          "entity": "CVX",
+          "label": "Chevron Corporation Common Stock",
+          "attributes": {
+            "name": "Chevron Corporation Common Stock",
+            "symbol": "CVX"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:16:05.899Z",
+      "durationMs": 2.377457999973558
+    },
+    {
+      "index": 7,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "bp",
+        "opts": {
+          "limit": 20
+        }
+      },
+      "output": [
+        {
+          "id": "AMBP",
+          "recordKey": "crag-finance:AMBP",
+          "family": "crag-finance",
+          "entity": "AMBP",
+          "label": "Ardagh Metal Packaging S.A. Ordinary Shares",
+          "attributes": {
+            "name": "Ardagh Metal Packaging S.A. Ordinary Shares",
+            "symbol": "AMBP"
+          }
+        },
+        {
+          "id": "BCBP",
+          "recordKey": "crag-finance:BCBP",
+          "family": "crag-finance",
+          "entity": "BCBP",
+          "label": "BCB Bancorp Inc. (NJ) Common Stock",
+          "attributes": {
+            "name": "BCB Bancorp Inc. (NJ) Common Stock",
+            "symbol": "BCBP"
+          }
+        },
+        {
+          "id": "BP",
+          "recordKey": "crag-finance:BP",
+          "family": "crag-finance",
+          "entity": "BP",
+          "label": "BP p.l.c. Common Stock",
+          "attributes": {
+            "name": "BP p.l.c. Common Stock",
+            "symbol": "BP"
+          }
+        },
+        {
+          "id": "BPMC",
+          "recordKey": "crag-finance:BPMC",
+          "family": "crag-finance",
+          "entity": "BPMC",
+          "label": "Blueprint Medicines Corporation Common Stock",
+          "attributes": {
+            "name": "Blueprint Medicines Corporation Common Stock",
+            "symbol": "BPMC"
+          }
+        },
+        {
+          "id": "BPOP",
+          "recordKey": "crag-finance:BPOP",
+          "family": "crag-finance",
+          "entity": "BPOP",
+          "label": "Popular Inc. Common Stock",
+          "attributes": {
+            "name": "Popular Inc. Common Stock",
+            "symbol": "BPOP"
+          }
+        },
+        {
+          "id": "BPOPM",
+          "recordKey": "crag-finance:BPOPM",
+          "family": "crag-finance",
+          "entity": "BPOPM",
+          "label": "Popular Inc. Popular Capital Trust II - 6.125% Cumulative Monthly Income Trust Preferred Securities",
+          "attributes": {
+            "name": "Popular Inc. Popular Capital Trust II - 6.125% Cumulative Monthly Income Trust Preferred Securities",
+            "symbol": "BPOPM"
+          }
+        },
+        {
+          "id": "BPRN",
+          "recordKey": "crag-finance:BPRN",
+          "family": "crag-finance",
+          "entity": "BPRN",
+          "label": "Princeton Bancorp Inc. Common Stock (PA)",
+          "attributes": {
+            "name": "Princeton Bancorp Inc. Common Stock (PA)",
+            "symbol": "BPRN"
+          }
+        },
+        {
+          "id": "BPT",
+          "recordKey": "crag-finance:BPT",
+          "family": "crag-finance",
+          "entity": "BPT",
+          "label": "BP Prudhoe Bay Royalty Trust Common Stock",
+          "attributes": {
+            "name": "BP Prudhoe Bay Royalty Trust Common Stock",
+            "symbol": "BPT"
+          }
+        },
+        {
+          "id": "BPTH",
+          "recordKey": "crag-finance:BPTH",
+          "family": "crag-finance",
+          "entity": "BPTH",
+          "label": "Bio-Path Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "Bio-Path Holdings Inc. Common Stock",
+            "symbol": "BPTH"
+          }
+        },
+        {
+          "id": "BPTS",
+          "recordKey": "crag-finance:BPTS",
+          "family": "crag-finance",
+          "entity": "BPTS",
+          "label": "Biophytis SA American Depositary Share (0.01 Euro)",
+          "attributes": {
+            "name": "Biophytis SA American Depositary Share (0.01 Euro)",
+            "symbol": "BPTS"
+          }
+        },
+        {
+          "id": "BPYPM",
+          "recordKey": "crag-finance:BPYPM",
+          "family": "crag-finance",
+          "entity": "BPYPM",
+          "label": "Brookfield Property Partners L.P. 6.25% Class A Cumulative Redeemable Preferred Units Series 1",
+          "attributes": {
+            "name": "Brookfield Property Partners L.P. 6.25% Class A Cumulative Redeemable Preferred Units Series 1",
+            "symbol": "BPYPM"
+          }
+        },
+        {
+          "id": "BPYPN",
+          "recordKey": "crag-finance:BPYPN",
+          "family": "crag-finance",
+          "entity": "BPYPN",
+          "label": "Brookfield Property Partners L.P. 5.750% Class A Cumulative Redeemable Perpetual Preferred Units Series 3",
+          "attributes": {
+            "name": "Brookfield Property Partners L.P. 5.750% Class A Cumulative Redeemable Perpetual Preferred Units Series 3",
+            "symbol": "BPYPN"
+          }
+        },
+        {
+          "id": "BPYPO",
+          "recordKey": "crag-finance:BPYPO",
+          "family": "crag-finance",
+          "entity": "BPYPO",
+          "label": "Brookfield Property Partners L.P. 6.375% Class A Cumulative Redeemable Perpetual Preferred Units Series 2",
+          "attributes": {
+            "name": "Brookfield Property Partners L.P. 6.375% Class A Cumulative Redeemable Perpetual Preferred Units Series 2",
+            "symbol": "BPYPO"
+          }
+        },
+        {
+          "id": "BPYPP",
+          "recordKey": "crag-finance:BPYPP",
+          "family": "crag-finance",
+          "entity": "BPYPP",
+          "label": "Brookfield Property Partners L.P. 6.50% Class A Cumulative Redeemable Perpetual Preferred Units",
+          "attributes": {
+            "name": "Brookfield Property Partners L.P. 6.50% Class A Cumulative Redeemable Perpetual Preferred Units",
+            "symbol": "BPYPP"
+          }
+        },
+        {
+          "id": "BWBBP",
+          "recordKey": "crag-finance:BWBBP",
+          "family": "crag-finance",
+          "entity": "BWBBP",
+          "label": "Bridgewater Bancshares Inc. Depositary Shares Each Representing a 1/100th Interest in a Share of 5.875% Non-Cumulative Perpetual Preferred Stock Series A",
+          "attributes": {
+            "name": "Bridgewater Bancshares Inc. Depositary Shares Each Representing a 1/100th Interest in a Share of 5.875% Non-Cumulative Perpetual Preferred Stock Series A",
+            "symbol": "BWBBP"
+          }
+        },
+        {
+          "id": "CNOBP",
+          "recordKey": "crag-finance:CNOBP",
+          "family": "crag-finance",
+          "entity": "CNOBP",
+          "label": "ConnectOne Bancorp Inc. Depositary Shares each representing a 1/40th interest in a share of 5.25% Fixed-Rate Reset Non-Cumulative Perpetual Preferred Stock Series A",
+          "attributes": {
+            "name": "ConnectOne Bancorp Inc. Depositary Shares each representing a 1/40th interest in a share of 5.25% Fixed-Rate Reset Non-Cumulative Perpetual Preferred Stock Series A",
+            "symbol": "CNOBP"
+          }
+        },
+        {
+          "id": "CRBP",
+          "recordKey": "crag-finance:CRBP",
+          "family": "crag-finance",
+          "entity": "CRBP",
+          "label": "Corbus Pharmaceuticals Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "Corbus Pharmaceuticals Holdings Inc. Common Stock",
+            "symbol": "CRBP"
+          }
+        },
+        {
+          "id": "FATBP",
+          "recordKey": "crag-finance:FATBP",
+          "family": "crag-finance",
+          "entity": "FATBP",
+          "label": "FAT Brands Inc. 8.25% Series B Cumulative Preferred Stock",
+          "attributes": {
+            "name": "FAT Brands Inc. 8.25% Series B Cumulative Preferred Stock",
+            "symbol": "FATBP"
+          }
+        },
+        {
+          "id": "FBP",
+          "recordKey": "crag-finance:FBP",
+          "family": "crag-finance",
+          "entity": "FBP",
+          "label": "First BanCorp. New Common Stock",
+          "attributes": {
+            "name": "First BanCorp. New Common Stock",
+            "symbol": "FBP"
+          }
+        },
+        {
+          "id": "FITBP",
+          "recordKey": "crag-finance:FITBP",
+          "family": "crag-finance",
+          "entity": "FITBP",
+          "label": "Fifth Third Bancorp Depositary Shares each representing 1/40th share of Fifth Third 6.00% Non-Cumulative Perpetual Class B Preferred Stock Series A",
+          "attributes": {
+            "name": "Fifth Third Bancorp Depositary Shares each representing 1/40th share of Fifth Third 6.00% Non-Cumulative Perpetual Class B Preferred Stock Series A",
+            "symbol": "FITBP"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:16:05.902Z",
+      "durationMs": 1.8509170000324957
+    },
+    {
+      "index": 8,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "totalenergies",
+        "opts": {
+          "limit": 20
+        }
+      },
+      "output": [
+        {
+          "id": "TTE",
+          "recordKey": "crag-finance:TTE",
+          "family": "crag-finance",
+          "entity": "TTE",
+          "label": "TotalEnergies SE",
+          "attributes": {
+            "name": "TotalEnergies SE",
+            "symbol": "TTE"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:16:05.904Z",
+      "durationMs": 2.301500000001397
+    },
+    {
+      "index": 9,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "conocophillips",
+        "opts": {
+          "limit": 20
+        }
+      },
+      "output": [
+        {
+          "id": "COP",
+          "recordKey": "crag-finance:COP",
+          "family": "crag-finance",
+          "entity": "COP",
+          "label": "ConocoPhillips Common Stock",
+          "attributes": {
+            "name": "ConocoPhillips Common Stock",
+            "symbol": "COP"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:16:05.906Z",
+      "durationMs": 2.5394159999559633
+    },
+    {
+      "index": 10,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "saudi aramco",
+        "opts": {
+          "limit": 20
+        }
+      },
+      "output": [],
+      "startedAt": "2026-06-02T09:16:05.908Z",
+      "durationMs": 3.75266699999338
+    },
+    {
+      "index": 11,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "petro",
+        "opts": {
+          "limit": 20
+        }
+      },
+      "output": [
+        {
+          "id": "CPE",
+          "recordKey": "crag-finance:CPE",
+          "family": "crag-finance",
+          "entity": "CPE",
+          "label": "Callon Petroleum Company Common Stock",
+          "attributes": {
+            "name": "Callon Petroleum Company Common Stock",
+            "symbol": "CPE"
+          }
+        },
+        {
+          "id": "EC",
+          "recordKey": "crag-finance:EC",
+          "family": "crag-finance",
+          "entity": "EC",
+          "label": "Ecopetrol S.A. American Depositary Shares",
+          "attributes": {
+            "name": "Ecopetrol S.A. American Depositary Shares",
+            "symbol": "EC"
+          }
+        },
+        {
+          "id": "EP",
+          "recordKey": "crag-finance:EP",
+          "family": "crag-finance",
+          "entity": "EP",
+          "label": "Empire Petroleum Corporation Common Stock",
+          "attributes": {
+            "name": "Empire Petroleum Corporation Common Stock",
+            "symbol": "EP"
+          }
+        },
+        {
+          "id": "EPM",
+          "recordKey": "crag-finance:EPM",
+          "family": "crag-finance",
+          "entity": "EPM",
+          "label": "Evolution Petroleum Corporation Inc. Common Stock",
+          "attributes": {
+            "name": "Evolution Petroleum Corporation Inc. Common Stock",
+            "symbol": "EPM"
+          }
+        },
+        {
+          "id": "IMPP",
+          "recordKey": "crag-finance:IMPP",
+          "family": "crag-finance",
+          "entity": "IMPP",
+          "label": "Imperial Petroleum Inc. Common Shares",
+          "attributes": {
+            "name": "Imperial Petroleum Inc. Common Shares",
+            "symbol": "IMPP"
+          }
+        },
+        {
+          "id": "IMPPP",
+          "recordKey": "crag-finance:IMPPP",
+          "family": "crag-finance",
+          "entity": "IMPPP",
+          "label": "Imperial Petroleum Inc. 8.75% Series A Cumulative Redeemable Perpetual Preferred Shares",
+          "attributes": {
+            "name": "Imperial Petroleum Inc. 8.75% Series A Cumulative Redeemable Perpetual Preferred Shares",
+            "symbol": "IMPPP"
+          }
+        },
+        {
+          "id": "MARPS",
+          "recordKey": "crag-finance:MARPS",
+          "family": "crag-finance",
+          "entity": "MARPS",
+          "label": "Marine Petroleum Trust Units of Beneficial Interest",
+          "attributes": {
+            "name": "Marine Petroleum Trust Units of Beneficial Interest",
+            "symbol": "MARPS"
+          }
+        },
+        {
+          "id": "MPC",
+          "recordKey": "crag-finance:MPC",
+          "family": "crag-finance",
+          "entity": "MPC",
+          "label": "Marathon Petroleum Corporation Common Stock",
+          "attributes": {
+            "name": "Marathon Petroleum Corporation Common Stock",
+            "symbol": "MPC"
+          }
+        },
+        {
+          "id": "OXY",
+          "recordKey": "crag-finance:OXY",
+          "family": "crag-finance",
+          "entity": "OXY",
+          "label": "Occidental Petroleum Corporation Common Stock",
+          "attributes": {
+            "name": "Occidental Petroleum Corporation Common Stock",
+            "symbol": "OXY"
+          }
+        },
+        {
+          "id": "PBR",
+          "recordKey": "crag-finance:PBR",
+          "family": "crag-finance",
+          "entity": "PBR",
+          "label": "Petroleo Brasileiro S.A.- Petrobras Common Stock",
+          "attributes": {
+            "name": "Petroleo Brasileiro S.A.- Petrobras Common Stock",
+            "symbol": "PBR"
+          }
+        },
+        {
+          "id": "PTPI",
+          "recordKey": "crag-finance:PTPI",
+          "family": "crag-finance",
+          "entity": "PTPI",
+          "label": "Petros Pharmaceuticals Inc. Common Stock",
+          "attributes": {
+            "name": "Petros Pharmaceuticals Inc. Common Stock",
+            "symbol": "PTPI"
+          }
+        },
+        {
+          "id": "PUMP",
+          "recordKey": "crag-finance:PUMP",
+          "family": "crag-finance",
+          "entity": "PUMP",
+          "label": "ProPetro Holding Corp. Common Stock",
+          "attributes": {
+            "name": "ProPetro Holding Corp. Common Stock",
+            "symbol": "PUMP"
+          }
+        },
+        {
+          "id": "TPET",
+          "recordKey": "crag-finance:TPET",
+          "family": "crag-finance",
+          "entity": "TPET",
+          "label": "Trio Petroleum Corp. Common Stock",
+          "attributes": {
+            "name": "Trio Petroleum Corp. Common Stock",
+            "symbol": "TPET"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:16:05.912Z",
+      "durationMs": 1.9109170000301674
+    },
+    {
+      "index": 12,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "ADSE"
+      },
+      "output": 489180926.73267335,
+      "startedAt": "2026-06-02T09:16:05.914Z",
+      "durationMs": 377.5110829999903
+    },
+    {
+      "index": 13,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "AE"
+      },
+      "output": 66805874.94074361,
+      "startedAt": "2026-06-02T09:16:06.292Z",
+      "durationMs": 356.65904200001387
+    },
+    {
+      "index": 14,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "AEAE"
+      },
+      "output": 81304233,
+      "startedAt": "2026-06-02T09:16:06.648Z",
+      "durationMs": 355.411334000004
+    },
+    {
+      "index": 15,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "AEAEW"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T09:16:07.004Z",
+      "durationMs": 355.04812499997206
+    },
+    {
+      "index": 16,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "AEIS"
+      },
+      "output": 3669774639.426085,
+      "startedAt": "2026-06-02T09:16:07.359Z",
+      "durationMs": 378.68874999997206
+    },
+    {
+      "index": 17,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "AESI"
+      },
+      "output": 2821487162.4033318,
+      "startedAt": "2026-06-02T09:16:07.738Z",
+      "durationMs": 393.29174999997485
+    },
+    {
+      "index": 18,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "ALCE"
+      },
+      "output": 28681336.76092545,
+      "startedAt": "2026-06-02T09:16:08.131Z",
+      "durationMs": 398.4037079999689
+    },
+    {
+      "index": 19,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "AMPY"
+      },
+      "output": 240835667.9934959,
+      "startedAt": "2026-06-02T09:16:08.529Z",
+      "durationMs": 385.3779579999973
+    },
+    {
+      "index": 20,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "ATO"
+      },
+      "output": 16976254574.571714,
+      "startedAt": "2026-06-02T09:16:08.915Z",
+      "durationMs": 385.7210830000113
+    },
+    {
+      "index": 21,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BE"
+      },
+      "output": 2084375974.2961369,
+      "startedAt": "2026-06-02T09:16:09.301Z",
+      "durationMs": 377.75975000002654
+    },
+    {
+      "index": 22,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BGR"
+      },
+      "output": 342560000,
+      "startedAt": "2026-06-02T09:16:09.678Z",
+      "durationMs": 407.3764160000137
+    },
+    {
+      "index": 23,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BNRG"
+      },
+      "output": 8868031,
+      "startedAt": "2026-06-02T09:16:10.086Z",
+      "durationMs": 398.67137499997625
+    },
+    {
+      "index": 24,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BROG"
+      },
+      "output": 250020117.99999997,
+      "startedAt": "2026-06-02T09:16:10.484Z",
+      "durationMs": 407.04087500000605
+    },
+    {
+      "index": 25,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BTE"
+      },
+      "output": 3998742132,
+      "startedAt": "2026-06-02T09:16:10.892Z",
+      "durationMs": 439.95912499999395
+    },
+    {
+      "index": 26,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BTU"
+      },
+      "output": 3212296478.782383,
+      "startedAt": "2026-06-02T09:16:11.332Z",
+      "durationMs": 421.16633300000103
+    },
+    {
+      "index": 27,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CBAT"
+      },
+      "output": 87706396.4855533,
+      "startedAt": "2026-06-02T09:16:11.753Z",
+      "durationMs": 439.8174580000341
+    },
+    {
+      "index": 28,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CEG"
+      },
+      "output": 50644351742.55958,
+      "startedAt": "2026-06-02T09:16:12.193Z",
+      "durationMs": 423.1763749999809
+    },
+    {
+      "index": 29,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CEI"
+      },
+      "output": 23441812,
+      "startedAt": "2026-06-02T09:16:12.616Z",
+      "durationMs": 445.7134589999914
+    },
+    {
+      "index": 30,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CEIX"
+      },
+      "output": 2490983113.0833936,
+      "startedAt": "2026-06-02T09:16:13.062Z",
+      "durationMs": 438.2481670000125
+    },
+    {
+      "index": 31,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CETY"
+      },
+      "output": 26051976.2374584,
+      "startedAt": "2026-06-02T09:16:13.500Z",
+      "durationMs": 384.0663749999949
+    },
+    {
+      "index": 32,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BATL"
+      },
+      "output": 97258278.76897135,
+      "startedAt": "2026-06-02T09:16:13.884Z",
+      "durationMs": 447.6548329999787
+    },
+    {
+      "index": 33,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "IMO"
+      },
+      "output": 45717594929,
+      "startedAt": "2026-06-02T09:16:14.332Z",
+      "durationMs": 411.053459000017
+    },
+    {
+      "index": 34,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MGY"
+      },
+      "output": 4556401496.225305,
+      "startedAt": "2026-06-02T09:16:14.743Z",
+      "durationMs": 445.79679100000067
+    },
+    {
+      "index": 35,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MRO"
+      },
+      "output": 14054756920.568136,
+      "startedAt": "2026-06-02T09:16:15.189Z",
+      "durationMs": 442.7369169999729
+    },
+    {
+      "index": 36,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MUR"
+      },
+      "output": 6119366928,
+      "startedAt": "2026-06-02T09:16:15.631Z",
+      "durationMs": 402.4023750000051
+    },
+    {
+      "index": 37,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MVO"
+      },
+      "output": 125470000,
+      "startedAt": "2026-06-02T09:16:16.034Z",
+      "durationMs": 459.3786249999539
+    },
+    {
+      "index": 38,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "NOG"
+      },
+      "output": 3559812423.6427145,
+      "startedAt": "2026-06-02T09:16:16.493Z",
+      "durationMs": 407.9380419999943
+    },
+    {
+      "index": 39,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "NRT"
+      },
+      "output": 50820000,
+      "startedAt": "2026-06-02T09:16:16.901Z",
+      "durationMs": 408.50379200000316
+    },
+    {
+      "index": 40,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "ODC"
+      },
+      "output": 476398490.4522835,
+      "startedAt": "2026-06-02T09:16:17.310Z",
+      "durationMs": 463.8929580000113
+    },
+    {
+      "index": 41,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "OIS"
+      },
+      "output": 355582550.7975544,
+      "startedAt": "2026-06-02T09:16:17.774Z",
+      "durationMs": 419.39816699997755
+    },
+    {
+      "index": 42,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "SOI"
+      },
+      "output": 370399592,
+      "startedAt": "2026-06-02T09:16:18.193Z",
+      "durationMs": 443.12541700003203
+    },
+    {
+      "index": 43,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CPE"
+      },
+      "output": 2071067500.9619772,
+      "startedAt": "2026-06-02T09:16:18.636Z",
+      "durationMs": 429.74479199998314
+    },
+    {
+      "index": 44,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "EP"
+      },
+      "output": 134721057.74017096,
+      "startedAt": "2026-06-02T09:16:19.066Z",
+      "durationMs": 415.3791659999988
+    },
+    {
+      "index": 45,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "EPM"
+      },
+      "output": 190366521.84895837,
+      "startedAt": "2026-06-02T09:16:19.481Z",
+      "durationMs": 385.10899999999674
+    },
+    {
+      "index": 46,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "IMPP"
+      },
+      "output": 54339446.22902913,
+      "startedAt": "2026-06-02T09:16:19.867Z",
+      "durationMs": 530.6882919999771
+    },
+    {
+      "index": 47,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "IMPPP"
+      },
+      "output": 53278322.48737864,
+      "startedAt": "2026-06-02T09:16:20.397Z",
+      "durationMs": 472.82654199999524
+    },
+    {
+      "index": 48,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MARPS"
+      },
+      "output": 8560000,
+      "startedAt": "2026-06-02T09:16:20.870Z",
+      "durationMs": 394.97583300003316
+    },
+    {
+      "index": 49,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MPC"
+      },
+      "output": 64529557320.76697,
+      "startedAt": "2026-06-02T09:16:21.265Z",
+      "durationMs": 491.7465840000077
+    },
+    {
+      "index": 50,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "OXY"
+      },
+      "output": 53429590283.2797,
+      "startedAt": "2026-06-02T09:16:21.757Z",
+      "durationMs": 459.3173330000136
+    },
+    {
+      "index": 51,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "TPET"
+      },
+      "output": 3135700,
+      "startedAt": "2026-06-02T09:16:22.216Z",
+      "durationMs": 446.48708399996394
+    },
+    {
+      "index": 52,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "XOM"
+      },
+      "output": 419841163398.6709,
+      "startedAt": "2026-06-02T09:16:22.663Z",
+      "durationMs": 451.16204199998174
+    },
+    {
+      "index": 53,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CVX"
+      },
+      "output": 284645079084.7137,
+      "startedAt": "2026-06-02T09:16:23.114Z",
+      "durationMs": 427.6891670000041
+    },
+    {
+      "index": 54,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "AMBP"
+      },
+      "output": 1960091623.2380953,
+      "startedAt": "2026-06-02T09:16:23.542Z",
+      "durationMs": 415.2937909999746
+    },
+    {
+      "index": 55,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BCBP"
+      },
+      "output": 179431250,
+      "startedAt": "2026-06-02T09:16:23.957Z",
+      "durationMs": 439.3927079999703
+    },
+    {
+      "index": 56,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BP"
+      },
+      "output": 78398661873.25156,
+      "startedAt": "2026-06-02T09:16:24.396Z",
+      "durationMs": 415.82224999996834
+    },
+    {
+      "index": 57,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BPMC"
+      },
+      "output": 6040872216.412617,
+      "startedAt": "2026-06-02T09:16:24.812Z",
+      "durationMs": 431.345500000054
+    },
+    {
+      "index": 58,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BPOP"
+      },
+      "output": 6050802371.305579,
+      "startedAt": "2026-06-02T09:16:25.244Z",
+      "durationMs": 423.5068339999998
+    },
+    {
+      "index": 59,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BPOPM"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T09:16:25.667Z",
+      "durationMs": 427.7146669999929
+    },
+    {
+      "index": 60,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BPRN"
+      },
+      "output": 195531131.09080645,
+      "startedAt": "2026-06-02T09:16:26.095Z",
+      "durationMs": 435.55529200000456
+    },
+    {
+      "index": 61,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BPT"
+      },
+      "output": 51360000,
+      "startedAt": "2026-06-02T09:16:26.531Z",
+      "durationMs": 412.0542499999865
+    },
+    {
+      "index": 62,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BPTH"
+      },
+      "output": 2853464.79452055,
+      "startedAt": "2026-06-02T09:16:26.943Z",
+      "durationMs": 420.81300000002375
+    },
+    {
+      "index": 63,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BPTS"
+      },
+      "output": 3991250,
+      "startedAt": "2026-06-02T09:16:27.364Z",
+      "durationMs": 462.4086670000106
+    },
+    {
+      "index": 64,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BPYPM"
+      },
+      "output": 666820000,
+      "startedAt": "2026-06-02T09:16:27.826Z",
+      "durationMs": 426.282583000022
+    },
+    {
+      "index": 65,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BPYPN"
+      },
+      "output": 97520000,
+      "startedAt": "2026-06-02T09:16:28.252Z",
+      "durationMs": 408.3117499999935
+    },
+    {
+      "index": 66,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BPYPO"
+      },
+      "output": 97520000,
+      "startedAt": "2026-06-02T09:16:28.661Z",
+      "durationMs": 458.1523750000051
+    },
+    {
+      "index": 67,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BPYPP"
+      },
+      "output": 97520000,
+      "startedAt": "2026-06-02T09:16:29.119Z",
+      "durationMs": 404.83720799995353
+    },
+    {
+      "index": 68,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BWBBP"
+      },
+      "output": 333206788.59060407,
+      "startedAt": "2026-06-02T09:16:29.524Z",
+      "durationMs": 540.3593339999788
+    },
+    {
+      "index": 69,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CNOBP"
+      },
+      "output": 764240407.0000001,
+      "startedAt": "2026-06-02T09:16:30.064Z",
+      "durationMs": 518.8646249999874
+    },
+    {
+      "index": 70,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CRBP"
+      },
+      "output": 288810791.09704643,
+      "startedAt": "2026-06-02T09:16:30.583Z",
+      "durationMs": 430.79691700002877
+    },
+    {
+      "index": 71,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "FATBP"
+      },
+      "output": 146476831.95445222,
+      "startedAt": "2026-06-02T09:16:31.014Z",
+      "durationMs": 426.945624999993
+    },
+    {
+      "index": 72,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "FBP"
+      },
+      "output": 2887660817.2238803,
+      "startedAt": "2026-06-02T09:16:31.441Z",
+      "durationMs": 495.4253750000498
+    },
+    {
+      "index": 73,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "FITBP"
+      },
+      "output": 23198831365.47218,
+      "startedAt": "2026-06-02T09:16:31.936Z",
+      "durationMs": 427.91816599998856
+    },
+    {
+      "index": 74,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "TTE"
+      },
+      "output": 138129932739,
+      "startedAt": "2026-06-02T09:16:32.364Z",
+      "durationMs": 474.53670799999963
+    },
+    {
+      "index": 75,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "COP"
+      },
+      "output": 132451814057.99545,
+      "startedAt": "2026-06-02T09:16:32.839Z",
+      "durationMs": 463.4494169999962
+    },
+    {
+      "index": 76,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "EC"
+      },
+      "output": 97035400937500,
+      "startedAt": "2026-06-02T09:16:33.302Z",
+      "durationMs": 454.95066699996823
+    },
+    {
+      "index": 77,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "PBR"
+      },
+      "output": 566046921977,
+      "startedAt": "2026-06-02T09:16:33.757Z",
+      "durationMs": 395.93512500001816
+    },
+    {
+      "index": 78,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "PTPI"
+      },
+      "output": 3653775,
+      "startedAt": "2026-06-02T09:16:34.153Z",
+      "durationMs": 425.92404199996963
+    },
+    {
+      "index": 79,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "PUMP"
+      },
+      "output": 830089915,
+      "startedAt": "2026-06-02T09:16:34.579Z",
+      "durationMs": 421.9494169999962
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:16:05.522Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare/questions/019-set-4599a9a2-f9b9-418c-959f-84c39afc9e26/workspace\");\n\n// CRAG finance — set question 4599a9a2-f9b9-418c-959f-84c39afc9e26\n//\n// Question (verbatim):\n// what energy stocks has higher market cap than shell company in the whole world\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  // Find Shell company ticker\n  const shellMatches = await df.db.records.search(\"Shell\");\n  const shellRecord = shellMatches.find(r =>\n    r.label.toLowerCase().includes(\"shell\") &&\n    !r.label.toLowerCase().includes(\"nutshell\")\n  );\n  if (!shellRecord) {\n    return df.answer({ status: \"unsupported\", value: null, evidence: [] });\n  }\n  const shellTicker = shellRecord.id;\n  const shellMcap = await df.tool.cragFinance.get_market_capitalization({ ticker: shellTicker });\n\n  // Search for energy companies broadly\n  const energySearchTerms = [\"energy\", \"oil\", \"petroleum\", \"exxon\", \"chevron\", \"bp\", \"totalenergies\", \"conocophillips\", \"saudi aramco\", \"petro\"];\n  const allMatches: Array<{ id: string; label: string }> = [];\n  const seen = new Set<string>();\n\n  for (const term of energySearchTerms) {\n    const results = await df.db.records.search(term, { limit: 20 });\n    for (const r of results) {\n      if (!seen.has(r.id)) {\n        seen.add(r.id);\n        allMatches.push({ id: r.id, label: r.label });\n      }\n    }\n  }\n\n  // Get market caps and filter those higher than Shell\n  const higher: Array<{ ticker: string; name: string; mcap: number }> = [];\n\n  for (const company of allMatches) {\n    if (company.id === shellTicker) continue;\n    try {\n      const mcap = await df.tool.cragFinance.get_market_capitalization({ ticker: company.id });\n      if (mcap > shellMcap) {\n        higher.push({ ticker: company.id, name: company.label, mcap });\n      }\n    } catch {\n      // skip companies where data unavailable\n    }\n  }\n\n  higher.sort((a, b) => b.mcap - a.mcap);\n\n  const value = higher.length > 0\n    ? higher.map(c => `${c.name} (${c.ticker})`).join(\", \")\n    : \"none found\";\n\n  return df.answer({\n    status: \"answered\",\n    value,\n    evidence: [\n      { reason: `Shell (${shellTicker}) market cap: ${shellMcap}` },\n      ...higher.map(c => ({ reason: `${c.name} (${c.ticker}): ${c.mcap}` }))\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "9c735155d5558a8e11f5dfbef80ee7474868756ae1fdb69746575c7c88428ef0",
+  "result": {
+    "status": "answered",
+    "value": "Ecopetrol S.A. American Depositary Shares (EC), Petroleo Brasileiro S.A.- Petrobras Common Stock (PBR), Exxon Mobil Corporation Common Stock (XOM), Chevron Corporation Common Stock (CVX)",
+    "evidence": [
+      {
+        "reason": "Shell (SHEL) market cap: 159223835751.42593"
+      },
+      {
+        "reason": "Ecopetrol S.A. American Depositary Shares (EC): 97035400937500"
+      },
+      {
+        "reason": "Petroleo Brasileiro S.A.- Petrobras Common Stock (PBR): 566046921977"
+      },
+      {
+        "reason": "Exxon Mobil Corporation Common Stock (XOM): 419841163398.6709"
+      },
+      {
+        "reason": "Chevron Corporation Common Stock (CVX): 284645079084.7137"
+      }
+    ],
+    "createdAt": "2026-06-02T09:16:35.001Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "Ecopetrol S.A. American Depositary Shares (EC), Petroleo Brasileiro S.A.- Petrobras Common Stock (PBR), Exxon Mobil Corporation Common Stock (XOM), Chevron Corporation Common Stock (CVX)",
+    "evidence": [
+      {
+        "reason": "Shell (SHEL) market cap: 159223835751.42593"
+      },
+      {
+        "reason": "Ecopetrol S.A. American Depositary Shares (EC): 97035400937500"
+      },
+      {
+        "reason": "Petroleo Brasileiro S.A.- Petrobras Common Stock (PBR): 566046921977"
+      },
+      {
+        "reason": "Exxon Mobil Corporation Common Stock (XOM): 419841163398.6709"
+      },
+      {
+        "reason": "Chevron Corporation Common Stock (CVX): 284645079084.7137"
+      }
+    ],
+    "createdAt": "2026-06-02T09:16:35.001Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 29474.834629000223
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

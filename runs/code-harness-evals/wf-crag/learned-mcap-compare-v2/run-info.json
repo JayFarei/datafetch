@@ -1,0 +1,19 @@
+{
+  "generatedAt": "2026-06-02T09:20:00.078Z",
+  "questionsPath": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/eval/crag/families/family-marketcap-compare.json",
+  "dictPath": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/eval/crag/vendor/CRAG/mock_api/cragkg/finance/company_name.dict",
+  "toolRunnerPath": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/eval/crag/scripts/crag-tool-runner.py",
+  "types": [
+    "comparison",
+    "multi-hop",
+    "post-processing",
+    "set"
+  ],
+  "limit": 20,
+  "arm": "learned",
+  "model": "claude-sonnet-4-6",
+  "reasoningEffort": "low",
+  "selected": 20,
+  "mountId": "crag-finance-companies",
+  "toolBundle": "cragFinance"
+}

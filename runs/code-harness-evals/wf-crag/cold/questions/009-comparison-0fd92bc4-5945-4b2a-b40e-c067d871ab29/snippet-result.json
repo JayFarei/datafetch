@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260529131435_krxv2v",
+  "answer": {
+    "status": "answered",
+    "value": "ADT",
+    "evidence": [
+      {
+        "reason": "WU PE ratio: 7.3904495"
+      },
+      {
+        "reason": "ADT PE ratio: 14.2"
+      }
+    ],
+    "createdAt": "2026-05-29T13:14:36.233Z"
+  }
+}

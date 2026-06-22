@@ -1,0 +1,18 @@
+[crag-datafetch] arm=learned selected 16 question(s); out=/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-full
+[crag-datafetch] [1/16] aggregation 040b8c87-7da9-4a93-92d4-54702d3fe327 status=unsupported pred=tool-backed chain absent: trajectory tou… gold=22% libUsed=0 wall=20916ms
+[crag-datafetch] [2/16] aggregation 0a16bc7e-c5de-4bd4-a6e1-ed091eec92a8 status=unsupported pred=null gold=there are 504 stocks in the spy fund but… libUsed=0 wall=20685ms
+[crag-datafetch] [3/16] aggregation 0b2d62b4-cc68-4fbc-8f57-f9891df3751f status=answered pred=1 gold=1 libUsed=0 wall=21477ms
+[crag-datafetch] [4/16] aggregation 0cc26310-086b-4c6f-a168-8c2a0f9fd8b4 status=unsupported pred=i don't know gold=$14.39 libUsed=0 wall=21840ms
+[crag-datafetch] [5/16] aggregation 0f2505e7-df78-4df9-aa7f-b060e5848e0f status=answered pred=29 gold=10 libUsed=0 wall=23238ms
+[crag-datafetch] [6/16] aggregation 1c8c76bd-4626-4fb2-bd27-64fdc8a59347 status=unsupported pred=i don't know gold=$26.59 libUsed=0 wall=22810ms
+[crag-datafetch] [7/16] aggregation 1dfba3a3-4fc6-4399-ac24-3f60bf1f6eee status=unsupported pred=tool-backed chain absent: trajectory tou… gold=the top 3 state-owned companies emitted … libUsed=0 wall=38983ms
+[crag-datafetch] [8/16] aggregation 26c66de1-e750-49b4-8c4b-c03a05e1e41d status=answered pred=0 gold=0 libUsed=0 wall=21391ms
+[crag-datafetch] [9/16] comparison 055d5b5b-6659-4a78-afe4-7c946e8ec62b status=answered pred=Splunk gold=as of the current financial data, splunk… libUsed=0 wall=21521ms
+[crag-datafetch] [10/16] comparison 0fd92bc4-5945-4b2a-b40e-c067d871ab29 status=answered pred=ADT gold=adt libUsed=0 wall=19543ms
+[crag-datafetch] [11/16] comparison 10db2c9d-8d19-4690-b069-cf383ec9d8ed status=answered pred=2024-01-02 00:00:00 EST gold=2024-01-23 libUsed=0 wall=19459ms
+[crag-datafetch] [12/16] comparison 1420e577-2bea-41b9-a6fa-49e62570ce75 status=answered pred=tie gold=inaq libUsed=0 wall=23232ms
+[crag-datafetch] [13/16] comparison 18a6b711-afa8-413f-b103-a3a4ff30fc48 status=answered pred=Pfizer gold=as of the current market situation, pfiz… libUsed=0 wall=19492ms
+[crag-datafetch] [14/16] comparison 18dabb4f-d025-426c-9915-4c5995790f60 status=unsupported pred=i don't know gold=in the 4th quarter of 2023 apple had the… libUsed=0 wall=37859ms
+[crag-datafetch] [15/16] comparison 1988dbca-c14f-496c-a61e-e8bf22c629b9 status=unsupported pred=i don't know gold=the value of bitcoin volume traded today… libUsed=0 wall=20264ms
+[crag-datafetch] [16/16] comparison 19c28ca8-31ec-4d8c-9c69-6f86f3972df7 status=answered pred=10.4399995803833 gold=$10.47 libUsed=0 wall=24561ms
+[crag-datafetch] done. completed=16 failed=0. results=/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-full/results.jsonl

@@ -1,0 +1,14 @@
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260602104029_7yg0j1","shapeHash":"8e24ebb3","templateName":"recordToolLookup","recordedAt":"2026-06-02T10:40:30.670Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260602104052_xfokxp","shapeHash":"a3c1dc5d","templateName":"recordToolLookup","recordedAt":"2026-06-02T10:40:53.272Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260602104158_2bm5xt","shapeHash":"8e24ebb3","templateName":"recordToolLookup","recordedAt":"2026-06-02T10:41:59.195Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260602104237_agyzua","shapeHash":"8e24ebb3","templateName":"recordToolLookup","recordedAt":"2026-06-02T10:42:38.385Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260602104315_c8pejc","shapeHash":"910bd453","templateName":"recordToolLookup","recordedAt":"2026-06-02T10:43:15.826Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260602104337_xqb1zh","shapeHash":"8e24ebb3","templateName":"recordToolLookup","recordedAt":"2026-06-02T10:43:38.206Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260602104443_nx7l68","shapeHash":"8e24ebb3","templateName":"recordToolLookup","recordedAt":"2026-06-02T10:44:44.161Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260602104529_jqvrwg","shapeHash":"8e24ebb3","templateName":"recordToolLookup","recordedAt":"2026-06-02T10:45:29.848Z"}
+{"intentSignature":"db→tool→db→FANOUT(tool)","trajectoryId":"traj_20260602104614_bg7o30","shapeHash":"035c5a1c","templateName":"cragfinanceGetMarketCapitalization","recordedAt":"2026-06-02T10:46:15.290Z"}
+{"intentSignature":"tool→db→FANOUT(tool)","trajectoryId":"traj_20260602104614_bg7o30","shapeHash":"cab38697","templateName":"cragfinanceGetMarketCapitalizationFa","recordedAt":"2026-06-02T10:46:15.290Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260602104658_u26rmy","shapeHash":"77d1d3bb","templateName":"recordToolLookup","recordedAt":"2026-06-02T10:47:10.193Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260602104734_n0hiuh","shapeHash":"8e24ebb3","templateName":"recordToolLookup","recordedAt":"2026-06-02T10:47:35.593Z"}
+{"intentSignature":"db→tool→db→FANOUT(tool)","trajectoryId":"traj_20260602104801_1hp21g","shapeHash":"4779b9d3","templateName":"cragfinanceGetMarketCapitalization","recordedAt":"2026-06-02T10:48:26.397Z"}
+{"intentSignature":"tool→db→FANOUT(tool)","trajectoryId":"traj_20260602104801_1hp21g","shapeHash":"28d71a94","templateName":"cragfinanceGetMarketCapitalizationFa","recordedAt":"2026-06-02T10:48:26.422Z"}

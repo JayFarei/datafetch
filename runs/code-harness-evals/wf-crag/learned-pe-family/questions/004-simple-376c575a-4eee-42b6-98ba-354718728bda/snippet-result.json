@@ -1,0 +1,9 @@
+{
+  "exitCode": 1,
+  "trajectoryId": "traj_20260602084745_7ryrl5",
+  "answer": {
+    "status": "unsupported",
+    "reason": "substrate-rooted chain absent: trajectory contained neither df.db.* nor df.lib.* calls. When df.db.records is mounted for this episode, scripts/answer.ts must reach the answer through df.db.records.* (entity lookup) and/or df.lib.<helper> (substrate-crystallised or seed helper); pure df.tool.* fan-out without a substrate-rooted entry point is rejected.",
+    "createdAt": "2026-06-02T08:47:45.915Z"
+  }
+}

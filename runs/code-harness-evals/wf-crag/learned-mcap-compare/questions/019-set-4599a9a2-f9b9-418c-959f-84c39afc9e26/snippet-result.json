@@ -1,0 +1,26 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602091605_ejqfw6",
+  "answer": {
+    "status": "answered",
+    "value": "Ecopetrol S.A. American Depositary Shares (EC), Petroleo Brasileiro S.A.- Petrobras Common Stock (PBR), Exxon Mobil Corporation Common Stock (XOM), Chevron Corporation Common Stock (CVX)",
+    "evidence": [
+      {
+        "reason": "Shell (SHEL) market cap: 159223835751.42593"
+      },
+      {
+        "reason": "Ecopetrol S.A. American Depositary Shares (EC): 97035400937500"
+      },
+      {
+        "reason": "Petroleo Brasileiro S.A.- Petrobras Common Stock (PBR): 566046921977"
+      },
+      {
+        "reason": "Exxon Mobil Corporation Common Stock (XOM): 419841163398.6709"
+      },
+      {
+        "reason": "Chevron Corporation Common Stock (CVX): 284645079084.7137"
+      }
+    ],
+    "createdAt": "2026-06-02T09:16:35.001Z"
+  }
+}

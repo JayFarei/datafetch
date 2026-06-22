@@ -1,0 +1,8 @@
+TypeError: Cannot read properties of null (reading 'holdings')
+    at main (/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-full/questions/001-aggregation-0a16bc7e-c5de-4bd4-a6e1-ed091eec92a8/workspace/scripts/.datafetch-run-49182-1780061040878-1.mts:22:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async <anonymous> (/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-full/questions/001-aggregation-0a16bc7e-c5de-4bd4-a6e1-ed091eec92a8/workspace/scripts/.datafetch-run-49182-1780061040878-1.mts:42:8)
+    at async runSnippet (/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/src/snippet/runtime.ts:504:21)
+    at async DiskSnippetRuntime.run (/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/src/snippet/runtime.ts:127:62)
+    at async runLiveQuestion (/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/src/eval/cragFullDatafetch.ts:335:17)
+    at async main (/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/src/eval/cragFullDatafetch.ts:231:19)

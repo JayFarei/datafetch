@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602104337_xqb1zh",
+  "answer": {
+    "status": "answered",
+    "value": "tron",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:AAOI",
+        "reason": "tron mcap: 585494026.0866407"
+      },
+      {
+        "recordKey": "crag-finance:MGRM",
+        "reason": "mgrm mcap: 76772900"
+      }
+    ],
+    "createdAt": "2026-06-02T10:43:38.205Z"
+  }
+}

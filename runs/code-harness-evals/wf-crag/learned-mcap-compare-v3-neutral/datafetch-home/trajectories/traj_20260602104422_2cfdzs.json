@@ -1,0 +1,122 @@
+{
+  "id": "traj_20260602104422_2cfdzs",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.findExact",
+      "input": {
+        "filter": {
+          "symbol": "WIW"
+        }
+      },
+      "output": [
+        {
+          "id": "WIW",
+          "recordKey": "crag-finance:WIW",
+          "family": "crag-finance",
+          "entity": "WIW",
+          "label": "Western Asset Inflation-Linked Opportunities & Income Fund",
+          "attributes": {
+            "name": "Western Asset Inflation-Linked Opportunities & Income Fund",
+            "symbol": "WIW"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:44:22.277Z",
+      "durationMs": 1.3764589999918826
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.findExact",
+      "input": {
+        "filter": {
+          "symbol": "MFICL"
+        }
+      },
+      "output": [
+        {
+          "id": "MFICL",
+          "recordKey": "crag-finance:MFICL",
+          "family": "crag-finance",
+          "entity": "MFICL",
+          "label": "MidCap Financial Investment Corporation 8.00% Notes due 2028",
+          "attributes": {
+            "name": "MidCap Financial Investment Corporation 8.00% Notes due 2028",
+            "symbol": "MFICL"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:44:22.278Z",
+      "durationMs": 0.48912499999278225
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "WIW"
+      },
+      "output": 515780000,
+      "startedAt": "2026-06-02T10:44:22.279Z",
+      "durationMs": 528.1239589999896
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MFICL"
+      },
+      "output": 949435074.9318802,
+      "startedAt": "2026-06-02T10:44:22.281Z",
+      "durationMs": 528.6652079999913
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T10:44:22.275Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v3-neutral/questions/011-comparison-babb7da1-52c8-48bf-a3bf-93c3addf83a8/workspace\");\nconst safeRecordsFindExact = async (filter: Record<string, unknown>, limit?: number): Promise<any[]> => {\n  try {\n    const records = await (df as any).db?.records?.findExact?.(filter, limit);\n    return Array.isArray(records) ? records : [];\n  } catch (error) {\n    const message = String((error as any)?.message ?? error);\n    if (message.includes(\"ident not found across mounts\")) return [];\n    throw error;\n  }\n};\n// CRAG finance — comparison question babb7da1-52c8-48bf-a3bf-93c3addf83a8\n//\n// Question (verbatim):\n// which company has a greater market cap, wiw or mficl?\n//\n// Replace the body below. Inspect /df.d.ts for every available surface\n// (df.db data, df.tool adapters, and any df.lib learned helpers), pick\n// whatever fits this question best, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [wiwRecords, mficlRecords] = await Promise.all([\n    safeRecordsFindExact({ symbol: \"WIW\" }),\n    safeRecordsFindExact({ symbol: \"MFICL\" }),\n  ]);\n\n  const [wiwMcap, mficlMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"WIW\" }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"MFICL\" }),\n  ]);\n\n  const winner = wiwMcap > mficlMcap ? \"WIW\" : \"MFICL\";\n\n  return df.answer({\n    status: \"answered\",\n    value: winner,\n    evidence: [\n      { reason: `WIW market cap: ${wiwMcap}` },\n      { reason: `MFICL market cap: ${mficlMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "1ea38fa192850c4c8700ad42882121b8bec518b97a81894a0e70bee366f9fddb",
+  "result": {
+    "status": "answered",
+    "value": "MFICL",
+    "evidence": [
+      {
+        "reason": "WIW market cap: 515780000"
+      },
+      {
+        "reason": "MFICL market cap: 949435074.9318802"
+      }
+    ],
+    "createdAt": "2026-06-02T10:44:22.810Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "MFICL",
+    "evidence": [
+      {
+        "reason": "WIW market cap: 515780000"
+      },
+      {
+        "reason": "MFICL market cap: 949435074.9318802"
+      }
+    ],
+    "createdAt": "2026-06-02T10:44:22.810Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 1058.6808740000124
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

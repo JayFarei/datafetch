@@ -1,0 +1,161 @@
+{
+  "id": "traj_20260602104158_2bm5xt",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "Berkshire Hathaway",
+        "opts": {
+          "limit": 3
+        }
+      },
+      "output": [
+        {
+          "id": "B",
+          "recordKey": "crag-finance:B",
+          "family": "crag-finance",
+          "entity": "B",
+          "label": "Barnes Group Inc. Common Stock",
+          "attributes": {
+            "name": "Barnes Group Inc. Common Stock",
+            "symbol": "B"
+          }
+        },
+        {
+          "id": "H",
+          "recordKey": "crag-finance:H",
+          "family": "crag-finance",
+          "entity": "H",
+          "label": "Hyatt Hotels Corporation Class A Common Stock",
+          "attributes": {
+            "name": "Hyatt Hotels Corporation Class A Common Stock",
+            "symbol": "H"
+          }
+        },
+        {
+          "id": "BRK/A",
+          "recordKey": "crag-finance:BRK/A",
+          "family": "crag-finance",
+          "entity": "BRK/A",
+          "label": "Berkshire Hathaway Inc.",
+          "attributes": {
+            "name": "Berkshire Hathaway Inc.",
+            "symbol": "BRK/A"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:41:58.718Z",
+      "durationMs": 6.527665999994497
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "Tesla",
+        "opts": {
+          "limit": 3
+        }
+      },
+      "output": [
+        {
+          "id": "T",
+          "recordKey": "crag-finance:T",
+          "family": "crag-finance",
+          "entity": "T",
+          "label": "AT&T Inc.",
+          "attributes": {
+            "name": "AT&T Inc.",
+            "symbol": "T"
+          }
+        },
+        {
+          "id": "TSLA",
+          "recordKey": "crag-finance:TSLA",
+          "family": "crag-finance",
+          "entity": "TSLA",
+          "label": "Tesla Inc. Common Stock",
+          "attributes": {
+            "name": "Tesla Inc. Common Stock",
+            "symbol": "TSLA"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:41:58.721Z",
+      "durationMs": 2.9159159999981057
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "B"
+      },
+      "output": 1788319574.8342733,
+      "startedAt": "2026-06-02T10:41:58.724Z",
+      "durationMs": 388.88908300000185
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "T"
+      },
+      "output": 121579589636.05154,
+      "startedAt": "2026-06-02T10:41:58.725Z",
+      "durationMs": 469.29604200000176
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T10:41:58.716Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v3-neutral/questions/004-comparison-4ae56c2a-9c76-429b-a660-448bbaeb3632/workspace\");\n\n// CRAG finance — comparison question 4ae56c2a-9c76-429b-a660-448bbaeb3632\n//\n// Question (verbatim):\n// does berskhire hathaway have a higher market cap than tesla?\n//\n// Replace the body below. Inspect /df.d.ts for every available surface\n// (df.db data, df.tool adapters, and any df.lib learned helpers), pick\n// whatever fits this question best, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [brkRecords, tslaRecords] = await Promise.all([\n    df.db.records.search(\"Berkshire Hathaway\", { limit: 3 }),\n    df.db.records.search(\"Tesla\", { limit: 3 }),\n  ]);\n\n  const brkRecord = brkRecords[0];\n  const tslaRecord = tslaRecords[0];\n\n  const brkTicker = brkRecord?.attributes?.symbol ?? \"BRK-B\";\n  const tslaTicker = tslaRecord?.attributes?.symbol ?? \"TSLA\";\n\n  const [brkMcap, tslaMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: brkTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: tslaTicker }),\n  ]);\n\n  const answer = brkMcap > tslaMcap ? \"yes\" : \"no\";\n\n  return df.answer({\n    status: \"answered\",\n    value: answer,\n    evidence: [\n      { recordKey: brkRecord?.recordKey, reason: `Berkshire Hathaway (${brkTicker}) market cap: ${brkMcap}` },\n      { recordKey: tslaRecord?.recordKey, reason: `Tesla (${tslaTicker}) market cap: ${tslaMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n",
+  "sourceHash": "7707906462bbe75c7d43fc268e38bb7591d259ce6fa703ad373d3a4925ac60b3",
+  "result": {
+    "status": "answered",
+    "value": "no",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:B",
+        "reason": "Berkshire Hathaway (B) market cap: 1788319574.8342733"
+      },
+      {
+        "recordKey": "crag-finance:T",
+        "reason": "Tesla (T) market cap: 121579589636.05154"
+      }
+    ],
+    "createdAt": "2026-06-02T10:41:59.194Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "no",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:B",
+        "reason": "Berkshire Hathaway (B) market cap: 1788319574.8342733"
+      },
+      {
+        "recordKey": "crag-finance:T",
+        "reason": "Tesla (T) market cap: 121579589636.05154"
+      }
+    ],
+    "createdAt": "2026-06-02T10:41:59.194Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 867.6489999999903
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602091200_787vs8",
+  "answer": {
+    "status": "answered",
+    "value": "tron",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:T",
+        "reason": "Tron (T) market cap: 121579589636.05154"
+      },
+      {
+        "recordKey": "crag-finance:MGRM",
+        "reason": "MGRM (MGRM) market cap: 76772900"
+      }
+    ],
+    "createdAt": "2026-06-02T09:12:01.488Z"
+  }
+}

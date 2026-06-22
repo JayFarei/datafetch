@@ -1,0 +1,117 @@
+{
+  "id": "traj_20260602085915_y73qfw",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "haia"
+      },
+      "output": [
+        {
+          "id": "HAIA",
+          "recordKey": "crag-finance:HAIA",
+          "family": "crag-finance",
+          "entity": "HAIA",
+          "label": "Healthcare AI Acquisition Corp. Class A Ordinary Shares",
+          "attributes": {
+            "name": "Healthcare AI Acquisition Corp. Class A Ordinary Shares",
+            "symbol": "HAIA"
+          }
+        },
+        {
+          "id": "HAIAW",
+          "recordKey": "crag-finance:HAIAW",
+          "family": "crag-finance",
+          "entity": "HAIAW",
+          "label": "Healthcare AI Acquisition Corp. Warrants",
+          "attributes": {
+            "name": "Healthcare AI Acquisition Corp. Warrants",
+            "symbol": "HAIAW"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T08:59:15.972Z",
+      "durationMs": 3.5819580000825226
+    },
+    {
+      "index": 1,
+      "primitive": "tool.cragFinance.get_pe_ratio",
+      "input": {
+        "ticker": "HAIA"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T08:59:15.976Z",
+      "durationMs": 558.1369999998715
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T08:59:15.970Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-pe-family/questions/010-simple-98a1c1a0-4dda-43aa-8f87-3d58a7775623/workspace\");\n\n// CRAG finance — simple question 98a1c1a0-4dda-43aa-8f87-3d58a7775623\n//\n// Question (verbatim):\n// what is the price-to-earnings ratio of haia\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const matches = await df.db.records.search(\"haia\");\n  const ticker = matches[0]?.id;\n  if (!ticker) {\n    return df.answer({ status: \"unsupported\", value: \"i don't know\", evidence: [] });\n  }\n  const pe = await df.tool.cragFinance.get_pe_ratio({ ticker });\n  return df.answer({\n    status: \"answered\",\n    value: pe,\n    evidence: [{ recordKey: matches[0].recordKey, reason: `P/E ratio for ${ticker}` }],\n  });\n}\n\nreturn await main();\n",
+  "sourceHash": "828f5ffb7a6f5d2a39594437df0b1a0489e5a8b248f0e1d07b2c270af9501606",
+  "result": {
+    "status": "answered",
+    "value": null,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:HAIA",
+        "reason": "P/E ratio for HAIA"
+      }
+    ],
+    "createdAt": "2026-06-02T08:59:16.534Z",
+    "qualityWarnings": [
+      {
+        "code": "low_quality_output",
+        "message": "Output has 1 placeholder field(s) (Unknown / None / null / N/A / \"\") and 0 zero numeric field(s) out of 1 total. The agent's extraction logic likely didn't match the actual data shape — probe the tool response with `pnpm datafetch:run` and fix before committing.",
+        "totalFields": 1,
+        "placeholderFields": 1,
+        "zeroNumericFields": 0,
+        "examples": [
+          "value=null"
+        ]
+      }
+    ]
+  },
+  "answer": {
+    "status": "answered",
+    "value": null,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:HAIA",
+        "reason": "P/E ratio for HAIA"
+      }
+    ],
+    "createdAt": "2026-06-02T08:59:16.534Z",
+    "qualityWarnings": [
+      {
+        "code": "low_quality_output",
+        "message": "Output has 1 placeholder field(s) (Unknown / None / null / N/A / \"\") and 0 zero numeric field(s) out of 1 total. The agent's extraction logic likely didn't match the actual data shape — probe the tool response with `pnpm datafetch:run` and fix before committing.",
+        "totalFields": 1,
+        "placeholderFields": 1,
+        "zeroNumericFields": 0,
+        "examples": [
+          "value=null"
+        ]
+      }
+    ]
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 561.7300840001553
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

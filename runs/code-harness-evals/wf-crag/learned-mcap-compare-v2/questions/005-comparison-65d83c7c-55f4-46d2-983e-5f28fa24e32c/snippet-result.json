@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602092211_v8xd07",
+  "answer": {
+    "status": "answered",
+    "value": "HRI",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:HRI",
+        "reason": "HRI market cap: 4358121284.448982"
+      },
+      {
+        "recordKey": "crag-finance:IMPPP",
+        "reason": "IMPPP market cap: 53278322.48737864"
+      }
+    ],
+    "createdAt": "2026-06-02T09:22:11.912Z"
+  }
+}

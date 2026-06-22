@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602092715_gk30h4",
+  "answer": {
+    "status": "answered",
+    "value": "NYSE (Intercontinental Exchange, E) market cap: ~$48.07B; London Stock Exchange Group (E) market cap: ~$48.07B. NYSE operator is roughly 1.00x the size of LSEG by market cap.",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:E",
+        "reason": "NYSE operator ticker E mcap 48070799167"
+      },
+      {
+        "recordKey": "crag-finance:E",
+        "reason": "LSEG ticker E mcap 48070799167"
+      }
+    ],
+    "createdAt": "2026-06-02T09:27:15.793Z"
+  }
+}

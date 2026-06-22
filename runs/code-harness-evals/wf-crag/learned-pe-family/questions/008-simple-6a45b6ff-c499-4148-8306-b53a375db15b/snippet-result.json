@@ -1,0 +1,15 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602085357_7a9pei",
+  "answer": {
+    "status": "answered",
+    "value": 6.7490654,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:CHRD",
+        "reason": "P/E ratio for CHRD"
+      }
+    ],
+    "createdAt": "2026-06-02T08:53:57.555Z"
+  }
+}

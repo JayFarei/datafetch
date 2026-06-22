@@ -1,0 +1,638 @@
+{
+  "id": "traj_20260602104658_u26rmy",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "fortune 500 largest US company market cap",
+        "opts": {
+          "limit": 20
+        }
+      },
+      "output": [
+        {
+          "id": "0",
+          "recordKey": "crag-finance:0",
+          "family": "crag-finance",
+          "entity": "0",
+          "label": "Nano Labs Ltd American Depositary Shares",
+          "attributes": {
+            "name": "Nano Labs Ltd American Depositary Shares",
+            "symbol": "0"
+          }
+        },
+        {
+          "id": "F^D",
+          "recordKey": "crag-finance:F^D",
+          "family": "crag-finance",
+          "entity": "F^D",
+          "label": "Ford Motor Company 6.500% Notes due August 15 2062",
+          "attributes": {
+            "name": "Ford Motor Company 6.500% Notes due August 15 2062",
+            "symbol": "F^D"
+          }
+        },
+        {
+          "id": "S",
+          "recordKey": "crag-finance:S",
+          "family": "crag-finance",
+          "entity": "S",
+          "label": "SentinelOne Inc. Class A Common Stock",
+          "attributes": {
+            "name": "SentinelOne Inc. Class A Common Stock",
+            "symbol": "S"
+          }
+        },
+        {
+          "id": "U",
+          "recordKey": "crag-finance:U",
+          "family": "crag-finance",
+          "entity": "U",
+          "label": "Unity Software Inc. Common Stock",
+          "attributes": {
+            "name": "Unity Software Inc. Common Stock",
+            "symbol": "U"
+          }
+        },
+        {
+          "id": "BANFP",
+          "recordKey": "crag-finance:BANFP",
+          "family": "crag-finance",
+          "entity": "BANFP",
+          "label": "BancFirst Corporation - BFC Capital Trust II Cumulative Trust Preferred Securities",
+          "attributes": {
+            "name": "BancFirst Corporation - BFC Capital Trust II Cumulative Trust Preferred Securities",
+            "symbol": "BANFP"
+          }
+        },
+        {
+          "id": "BCAT",
+          "recordKey": "crag-finance:BCAT",
+          "family": "crag-finance",
+          "entity": "BCAT",
+          "label": "BlackRock Capital Allocation Term Trust Common Shares of Beneficial Interest",
+          "attributes": {
+            "name": "BlackRock Capital Allocation Term Trust Common Shares of Beneficial Interest",
+            "symbol": "BCAT"
+          }
+        },
+        {
+          "id": "BHAC",
+          "recordKey": "crag-finance:BHAC",
+          "family": "crag-finance",
+          "entity": "BHAC",
+          "label": "Focus Impact BH3 Acquisition Company Class A Common Stock",
+          "attributes": {
+            "name": "Focus Impact BH3 Acquisition Company Class A Common Stock",
+            "symbol": "BHAC"
+          }
+        },
+        {
+          "id": "BHACW",
+          "recordKey": "crag-finance:BHACW",
+          "family": "crag-finance",
+          "entity": "BHACW",
+          "label": "Focus Impact BH3 Acquisition Company Warrants",
+          "attributes": {
+            "name": "Focus Impact BH3 Acquisition Company Warrants",
+            "symbol": "BHACW"
+          }
+        },
+        {
+          "id": "BPOPM",
+          "recordKey": "crag-finance:BPOPM",
+          "family": "crag-finance",
+          "entity": "BPOPM",
+          "label": "Popular Inc. Popular Capital Trust II - 6.125% Cumulative Monthly Income Trust Preferred Securities",
+          "attributes": {
+            "name": "Popular Inc. Popular Capital Trust II - 6.125% Cumulative Monthly Income Trust Preferred Securities",
+            "symbol": "BPOPM"
+          }
+        },
+        {
+          "id": "C^N",
+          "recordKey": "crag-finance:C^N",
+          "family": "crag-finance",
+          "entity": "C^N",
+          "label": "Citigroup Capital XIII 7.875% Fixed rate Floating Rate trust Preferred Securities (TruPS)",
+          "attributes": {
+            "name": "Citigroup Capital XIII 7.875% Fixed rate Floating Rate trust Preferred Securities (TruPS)",
+            "symbol": "C^N"
+          }
+        },
+        {
+          "id": "CETU",
+          "recordKey": "crag-finance:CETU",
+          "family": "crag-finance",
+          "entity": "CETU",
+          "label": "Cetus Capital Acquisition Corp. Class A Common Stock",
+          "attributes": {
+            "name": "Cetus Capital Acquisition Corp. Class A Common Stock",
+            "symbol": "CETU"
+          }
+        },
+        {
+          "id": "CETUR",
+          "recordKey": "crag-finance:CETUR",
+          "family": "crag-finance",
+          "entity": "CETUR",
+          "label": "Cetus Capital Acquisition Corp. Right to receive 1/6 of one share of Class A Common Stock",
+          "attributes": {
+            "name": "Cetus Capital Acquisition Corp. Right to receive 1/6 of one share of Class A Common Stock",
+            "symbol": "CETUR"
+          }
+        },
+        {
+          "id": "CETUW",
+          "recordKey": "crag-finance:CETUW",
+          "family": "crag-finance",
+          "entity": "CETUW",
+          "label": "Cetus Capital Acquisition Corp. Warrant",
+          "attributes": {
+            "name": "Cetus Capital Acquisition Corp. Warrant",
+            "symbol": "CETUW"
+          }
+        },
+        {
+          "id": "CMCA",
+          "recordKey": "crag-finance:CMCA",
+          "family": "crag-finance",
+          "entity": "CMCA",
+          "label": "Capitalworks Emerging Markets Acquisition Corp Class A Ordinary Shares",
+          "attributes": {
+            "name": "Capitalworks Emerging Markets Acquisition Corp Class A Ordinary Shares",
+            "symbol": "CMCA"
+          }
+        },
+        {
+          "id": "CMCAU",
+          "recordKey": "crag-finance:CMCAU",
+          "family": "crag-finance",
+          "entity": "CMCAU",
+          "label": "Capitalworks Emerging Markets Acquisition Corp Unit",
+          "attributes": {
+            "name": "Capitalworks Emerging Markets Acquisition Corp Unit",
+            "symbol": "CMCAU"
+          }
+        },
+        {
+          "id": "CMCAW",
+          "recordKey": "crag-finance:CMCAW",
+          "family": "crag-finance",
+          "entity": "CMCAW",
+          "label": "Capitalworks Emerging Markets Acquisition Corp Warrant",
+          "attributes": {
+            "name": "Capitalworks Emerging Markets Acquisition Corp Warrant",
+            "symbol": "CMCAW"
+          }
+        },
+        {
+          "id": "DDT",
+          "recordKey": "crag-finance:DDT",
+          "family": "crag-finance",
+          "entity": "DDT",
+          "label": "Dillard's Capital Trust I",
+          "attributes": {
+            "name": "Dillard's Capital Trust I",
+            "symbol": "DDT"
+          }
+        },
+        {
+          "id": "ECAT",
+          "recordKey": "crag-finance:ECAT",
+          "family": "crag-finance",
+          "entity": "ECAT",
+          "label": "BlackRock ESG Capital Allocation Term Trust Common Shares of Beneficial Interest",
+          "attributes": {
+            "name": "BlackRock ESG Capital Allocation Term Trust Common Shares of Beneficial Interest",
+            "symbol": "ECAT"
+          }
+        },
+        {
+          "id": "EDF",
+          "recordKey": "crag-finance:EDF",
+          "family": "crag-finance",
+          "entity": "EDF",
+          "label": "Virtus Stone Harbor Emerging Markets Income Fund Common Shares of Beneficial Interest",
+          "attributes": {
+            "name": "Virtus Stone Harbor Emerging Markets Income Fund Common Shares of Beneficial Interest",
+            "symbol": "EDF"
+          }
+        },
+        {
+          "id": "GAIN",
+          "recordKey": "crag-finance:GAIN",
+          "family": "crag-finance",
+          "entity": "GAIN",
+          "label": "Gladstone Investment Corporation Business Development Company",
+          "attributes": {
+            "name": "Gladstone Investment Corporation Business Development Company",
+            "symbol": "GAIN"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:46:58.314Z",
+      "durationMs": 6.585041000042111
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "ExxonMobil",
+        "opts": {
+          "limit": 5
+        }
+      },
+      "output": [
+        {
+          "id": "E",
+          "recordKey": "crag-finance:E",
+          "family": "crag-finance",
+          "entity": "E",
+          "label": "ENI S.p.A. Common Stock",
+          "attributes": {
+            "name": "ENI S.p.A. Common Stock",
+            "symbol": "E"
+          }
+        },
+        {
+          "id": "M",
+          "recordKey": "crag-finance:M",
+          "family": "crag-finance",
+          "entity": "M",
+          "label": "Macy's Inc Common Stock",
+          "attributes": {
+            "name": "Macy's Inc Common Stock",
+            "symbol": "M"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:46:58.321Z",
+      "durationMs": 2.7671250000130385
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "0"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T10:46:58.324Z",
+      "durationMs": 381.84995800000615
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "F^D"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T10:46:58.706Z",
+      "durationMs": 393.2937080000411
+    },
+    {
+      "index": 4,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "S"
+      },
+      "output": 8616767442.478949,
+      "startedAt": "2026-06-02T10:46:59.099Z",
+      "durationMs": 389.95383300003596
+    },
+    {
+      "index": 5,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "U"
+      },
+      "output": 11219682390.321987,
+      "startedAt": "2026-06-02T10:46:59.489Z",
+      "durationMs": 365.68887499999255
+    },
+    {
+      "index": 6,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BANFP"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T10:46:59.855Z",
+      "durationMs": 373.6881660000072
+    },
+    {
+      "index": 7,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BCAT"
+      },
+      "output": 1689070000,
+      "startedAt": "2026-06-02T10:47:00.228Z",
+      "durationMs": 374.2270830000052
+    },
+    {
+      "index": 8,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BHAC"
+      },
+      "output": 115708817.56896552,
+      "startedAt": "2026-06-02T10:47:00.603Z",
+      "durationMs": 357.7317499999772
+    },
+    {
+      "index": 9,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BHACW"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T10:47:00.960Z",
+      "durationMs": 357.8605409999727
+    },
+    {
+      "index": 10,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BPOPM"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T10:47:01.318Z",
+      "durationMs": 381.08962500002235
+    },
+    {
+      "index": 11,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "C^N"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T10:47:01.699Z",
+      "durationMs": 344.88562499999534
+    },
+    {
+      "index": 12,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CETU"
+      },
+      "output": 78934100,
+      "startedAt": "2026-06-02T10:47:02.044Z",
+      "durationMs": 340.16820800001733
+    },
+    {
+      "index": 13,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CETUR"
+      },
+      "output": 78934100,
+      "startedAt": "2026-06-02T10:47:02.384Z",
+      "durationMs": 343.0419589999947
+    },
+    {
+      "index": 14,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CETUW"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T10:47:02.728Z",
+      "durationMs": 376.84224999998696
+    },
+    {
+      "index": 15,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CMCA"
+      },
+      "output": 110682261,
+      "startedAt": "2026-06-02T10:47:03.104Z",
+      "durationMs": 384.2783749999944
+    },
+    {
+      "index": 16,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CMCAU"
+      },
+      "output": 110682261,
+      "startedAt": "2026-06-02T10:47:03.489Z",
+      "durationMs": 368.94945900002494
+    },
+    {
+      "index": 17,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CMCAW"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T10:47:03.858Z",
+      "durationMs": 359.7845409999718
+    },
+    {
+      "index": 18,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "DDT"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T10:47:04.218Z",
+      "durationMs": 354.87066600000253
+    },
+    {
+      "index": 19,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "ECAT"
+      },
+      "output": 1743570000,
+      "startedAt": "2026-06-02T10:47:04.572Z",
+      "durationMs": 364.2147920000134
+    },
+    {
+      "index": 20,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "EDF"
+      },
+      "output": 79790000,
+      "startedAt": "2026-06-02T10:47:04.937Z",
+      "durationMs": 374.4381660000072
+    },
+    {
+      "index": 21,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "GAIN"
+      },
+      "output": 503538940.2582688,
+      "startedAt": "2026-06-02T10:47:05.311Z",
+      "durationMs": 363.6955420000013
+    },
+    {
+      "index": 22,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "E"
+      },
+      "output": 48070799167,
+      "startedAt": "2026-06-02T10:47:05.675Z",
+      "durationMs": 353.1952910000109
+    },
+    {
+      "index": 23,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "M"
+      },
+      "output": 5154798291.104,
+      "startedAt": "2026-06-02T10:47:06.028Z",
+      "durationMs": 344.70549999998184
+    },
+    {
+      "index": 24,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "XOM"
+      },
+      "output": 419841163398.6709,
+      "startedAt": "2026-06-02T10:47:06.373Z",
+      "durationMs": 371.52104099997086
+    },
+    {
+      "index": 25,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "AAPL"
+      },
+      "output": 2784634449820.876,
+      "startedAt": "2026-06-02T10:47:06.744Z",
+      "durationMs": 384.40649999998277
+    },
+    {
+      "index": 26,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MSFT"
+      },
+      "output": 3027754157239,
+      "startedAt": "2026-06-02T10:47:07.129Z",
+      "durationMs": 374.40708299999824
+    },
+    {
+      "index": 27,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "WMT"
+      },
+      "output": 480550392502.5927,
+      "startedAt": "2026-06-02T10:47:07.503Z",
+      "durationMs": 342.04691700002877
+    },
+    {
+      "index": 28,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BRK-B"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T10:47:07.845Z",
+      "durationMs": 388.3587079999852
+    },
+    {
+      "index": 29,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "GE"
+      },
+      "output": 168735344808.70914,
+      "startedAt": "2026-06-02T10:47:08.234Z",
+      "durationMs": 390.5035410000128
+    },
+    {
+      "index": 30,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CVX"
+      },
+      "output": 284645079084.7137,
+      "startedAt": "2026-06-02T10:47:08.624Z",
+      "durationMs": 379.7124579999945
+    },
+    {
+      "index": 31,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "JNJ"
+      },
+      "output": 387763355133.0001,
+      "startedAt": "2026-06-02T10:47:09.004Z",
+      "durationMs": 394.93533300003037
+    },
+    {
+      "index": 32,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "JPM"
+      },
+      "output": 532004622350.64105,
+      "startedAt": "2026-06-02T10:47:09.399Z",
+      "durationMs": 395.97958300000755
+    },
+    {
+      "index": 33,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "PG"
+      },
+      "output": 374836251859.0001,
+      "startedAt": "2026-06-02T10:47:09.795Z",
+      "durationMs": 395.73783299996285
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T10:46:58.311Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v3-neutral/questions/017-multi-hop-de681882-70b6-4d27-9c22-1cb9955eef34/workspace\");\n\n// CRAG finance — multi-hop question de681882-70b6-4d27-9c22-1cb9955eef34\n//\n// Question (verbatim):\n// in the fortune 500 which company has the highest market cap in 2010 in the us\n//\n// Strategy: search DB for top US Fortune 500 companies, get market caps,\n// find the highest.\n\nasync function main() {\n  // Search for major US Fortune 500 candidates known to be top by market cap around 2010\n  const candidates = [\n    \"ExxonMobil\", \"Apple\", \"Microsoft\", \"Walmart\", \"Berkshire Hathaway\",\n    \"General Electric\", \"Chevron\", \"Johnson Johnson\", \"JPMorgan Chase\", \"Procter Gamble\"\n  ];\n\n  // Root the chain in the substrate\n  const records = await df.db.records.search(\"fortune 500 largest US company market cap\", { limit: 20 });\n\n  // Also search for exxon specifically\n  const exxonRec = await df.db.records.search(\"ExxonMobil\", { limit: 5 });\n\n  // Build ticker list from records + known tickers\n  const tickerSet = new Map<string, string>();\n  for (const r of [...records, ...exxonRec]) {\n    tickerSet.set(r.id, r.label);\n  }\n\n  // Also add well-known tickers directly\n  const knownTickers: Array<[string, string]> = [\n    [\"XOM\", \"ExxonMobil\"],\n    [\"AAPL\", \"Apple\"],\n    [\"MSFT\", \"Microsoft\"],\n    [\"WMT\", \"Walmart\"],\n    [\"BRK-B\", \"Berkshire Hathaway\"],\n    [\"GE\", \"General Electric\"],\n    [\"CVX\", \"Chevron\"],\n    [\"JNJ\", \"Johnson & Johnson\"],\n    [\"JPM\", \"JPMorgan Chase\"],\n    [\"PG\", \"Procter & Gamble\"],\n  ];\n  for (const [ticker, name] of knownTickers) {\n    tickerSet.set(ticker, name);\n  }\n\n  // Get market caps for all candidates\n  const results: Array<{ ticker: string; name: string; mcap: number }> = [];\n  for (const [ticker, name] of tickerSet.entries()) {\n    try {\n      const mcap = await df.tool.cragFinance.get_market_capitalization({ ticker });\n      if (mcap && mcap > 0) {\n        results.push({ ticker, name, mcap });\n      }\n    } catch (_) {\n      // skip failures\n    }\n  }\n\n  if (results.length === 0) {\n    return df.answer({ status: \"unsupported\", value: \"i don't know\", evidence: [] });\n  }\n\n  results.sort((a, b) => b.mcap - a.mcap);\n  const top = results[0];\n\n  return df.answer({\n    status: \"answered\",\n    value: top.name,\n    evidence: [{ reason: `${top.ticker} had the highest market cap: ${top.mcap}` }],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "1ccb2e2ed6d300ab900758316d340a3b1aff1c1083f4ba51a3916d3ebaa6abde",
+  "result": {
+    "status": "answered",
+    "value": "Microsoft",
+    "evidence": [
+      {
+        "reason": "MSFT had the highest market cap: 3027754157239"
+      }
+    ],
+    "createdAt": "2026-06-02T10:47:10.191Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "Microsoft",
+    "evidence": [
+      {
+        "reason": "MSFT had the highest market cap: 3027754157239"
+      }
+    ],
+    "createdAt": "2026-06-02T10:47:10.191Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 11875.740997000074
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

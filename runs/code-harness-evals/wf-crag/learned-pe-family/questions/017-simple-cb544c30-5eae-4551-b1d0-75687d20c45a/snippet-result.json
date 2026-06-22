@@ -1,0 +1,15 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602090620_owpth4",
+  "answer": {
+    "status": "answered",
+    "value": 39.065216,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:GNE",
+        "reason": "P/E ratio for GNE"
+      }
+    ],
+    "createdAt": "2026-06-02T09:06:21.237Z"
+  }
+}

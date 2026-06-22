@@ -1,0 +1,14 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602092610_rjtndy",
+  "answer": {
+    "status": "answered",
+    "value": "invalid question",
+    "evidence": [
+      {
+        "reason": "No company found with market cap higher than Apple (2784634449820.876)"
+      }
+    ],
+    "createdAt": "2026-06-02T09:26:11.203Z"
+  }
+}

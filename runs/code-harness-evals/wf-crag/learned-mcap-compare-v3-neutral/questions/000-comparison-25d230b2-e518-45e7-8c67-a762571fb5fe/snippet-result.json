@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602104029_7yg0j1",
+  "answer": {
+    "status": "answered",
+    "value": "RBC",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:RBC",
+        "reason": "RBC (RBC) market cap: 7953532534.291791"
+      },
+      {
+        "recordKey": "crag-finance:RNG",
+        "reason": "RNG (RNG) market cap: 3058012039.1549377"
+      }
+    ],
+    "createdAt": "2026-06-02T10:40:30.667Z"
+  }
+}

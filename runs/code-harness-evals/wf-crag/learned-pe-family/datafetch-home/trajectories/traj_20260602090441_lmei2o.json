@@ -1,0 +1,127 @@
+{
+  "id": "traj_20260602090441_lmei2o",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "WLDSW"
+      },
+      "output": [
+        {
+          "id": "WLDSW",
+          "recordKey": "crag-finance:WLDSW",
+          "family": "crag-finance",
+          "entity": "WLDSW",
+          "label": "Wearable Devices Ltd. Warrant",
+          "attributes": {
+            "name": "Wearable Devices Ltd. Warrant",
+            "symbol": "WLDSW"
+          }
+        },
+        {
+          "id": "D",
+          "recordKey": "crag-finance:D",
+          "family": "crag-finance",
+          "entity": "D",
+          "label": "Dominion Energy Inc. Common Stock",
+          "attributes": {
+            "name": "Dominion Energy Inc. Common Stock",
+            "symbol": "D"
+          }
+        },
+        {
+          "id": "L",
+          "recordKey": "crag-finance:L",
+          "family": "crag-finance",
+          "entity": "L",
+          "label": "Loews Corporation Common Stock",
+          "attributes": {
+            "name": "Loews Corporation Common Stock",
+            "symbol": "L"
+          }
+        },
+        {
+          "id": "S",
+          "recordKey": "crag-finance:S",
+          "family": "crag-finance",
+          "entity": "S",
+          "label": "SentinelOne Inc. Class A Common Stock",
+          "attributes": {
+            "name": "SentinelOne Inc. Class A Common Stock",
+            "symbol": "S"
+          }
+        },
+        {
+          "id": "W",
+          "recordKey": "crag-finance:W",
+          "family": "crag-finance",
+          "entity": "W",
+          "label": "Wayfair Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Wayfair Inc. Class A Common Stock",
+            "symbol": "W"
+          }
+        },
+        {
+          "id": "WLDS",
+          "recordKey": "crag-finance:WLDS",
+          "family": "crag-finance",
+          "entity": "WLDS",
+          "label": "Wearable Devices Ltd. Ordinary Share",
+          "attributes": {
+            "name": "Wearable Devices Ltd. Ordinary Share",
+            "symbol": "WLDS"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:04:41.033Z",
+      "durationMs": 2.87112500006333
+    },
+    {
+      "index": 1,
+      "primitive": "tool.cragFinance.get_pe_ratio",
+      "input": {
+        "ticker": "WLDSW"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T09:04:41.036Z",
+      "durationMs": 397.3055419998709
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:04:41.031Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-pe-family/questions/012-simple-adaaf1ac-17cc-43ea-b5df-2a9a00370bf5/workspace\");\n\n// CRAG finance — simple question adaaf1ac-17cc-43ea-b5df-2a9a00370bf5\n//\n// Question (verbatim):\n// can you tell me the p/e ratio of wldsw?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const matches = await df.db.records.search(\"WLDSW\");\n  const record = matches[0];\n  const ticker = record?.id ?? \"WLDSW\";\n  const pe = await df.tool.cragFinance.get_pe_ratio({ ticker });\n  if (pe == null) {\n    return df.answer({ status: \"unsupported\", value: \"i don't know\", evidence: [] });\n  }\n  return df.answer({\n    status: \"answered\",\n    value: pe,\n    evidence: record ? [{ recordKey: record.recordKey }] : [],\n  });\n}\n\nreturn await main();\n",
+  "sourceHash": "0992fdc6a56c7da6ce2eaaf992c0669b2c65ea00d9f8c79d5430328ec2e8eebe",
+  "result": {
+    "status": "unsupported",
+    "value": "i don't know",
+    "evidence": [],
+    "createdAt": "2026-06-02T09:04:41.434Z"
+  },
+  "answer": {
+    "status": "unsupported",
+    "value": "i don't know",
+    "evidence": [],
+    "createdAt": "2026-06-02T09:04:41.434Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 400.19774999981746
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

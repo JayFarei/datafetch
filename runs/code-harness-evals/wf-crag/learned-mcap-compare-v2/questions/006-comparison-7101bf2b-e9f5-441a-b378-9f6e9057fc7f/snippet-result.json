@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602092240_lkeryy",
+  "answer": {
+    "status": "answered",
+    "value": "Nexstar Media Group Inc. Common Stock",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:EXPO",
+        "reason": "EXPO market cap: 4015222923.3184233"
+      },
+      {
+        "recordKey": "crag-finance:NXST",
+        "reason": "NXST market cap: 5549586951.867024"
+      }
+    ],
+    "createdAt": "2026-06-02T09:22:41.297Z"
+  }
+}

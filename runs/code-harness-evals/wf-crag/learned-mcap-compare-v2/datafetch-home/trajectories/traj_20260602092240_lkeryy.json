@@ -1,0 +1,298 @@
+{
+  "id": "traj_20260602092240_lkeryy",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "EXPO"
+      },
+      "output": [
+        {
+          "id": "EXPO",
+          "recordKey": "crag-finance:EXPO",
+          "family": "crag-finance",
+          "entity": "EXPO",
+          "label": "Exponent Inc. Common Stock",
+          "attributes": {
+            "name": "Exponent Inc. Common Stock",
+            "symbol": "EXPO"
+          }
+        },
+        {
+          "id": "E",
+          "recordKey": "crag-finance:E",
+          "family": "crag-finance",
+          "entity": "E",
+          "label": "ENI S.p.A. Common Stock",
+          "attributes": {
+            "name": "ENI S.p.A. Common Stock",
+            "symbol": "E"
+          }
+        },
+        {
+          "id": "EXP",
+          "recordKey": "crag-finance:EXP",
+          "family": "crag-finance",
+          "entity": "EXP",
+          "label": "Eagle Materials Inc Common Stock",
+          "attributes": {
+            "name": "Eagle Materials Inc Common Stock",
+            "symbol": "EXP"
+          }
+        },
+        {
+          "id": "O",
+          "recordKey": "crag-finance:O",
+          "family": "crag-finance",
+          "entity": "O",
+          "label": "Realty Income Corporation Common Stock",
+          "attributes": {
+            "name": "Realty Income Corporation Common Stock",
+            "symbol": "O"
+          }
+        },
+        {
+          "id": "X",
+          "recordKey": "crag-finance:X",
+          "family": "crag-finance",
+          "entity": "X",
+          "label": "United States Steel Corporation Common Stock",
+          "attributes": {
+            "name": "United States Steel Corporation Common Stock",
+            "symbol": "X"
+          }
+        },
+        {
+          "id": "XP",
+          "recordKey": "crag-finance:XP",
+          "family": "crag-finance",
+          "entity": "XP",
+          "label": "XP Inc. Class A Common Stock",
+          "attributes": {
+            "name": "XP Inc. Class A Common Stock",
+            "symbol": "XP"
+          }
+        },
+        {
+          "id": "XPO",
+          "recordKey": "crag-finance:XPO",
+          "family": "crag-finance",
+          "entity": "XPO",
+          "label": "XPO Inc. Common Stock",
+          "attributes": {
+            "name": "XPO Inc. Common Stock",
+            "symbol": "XPO"
+          }
+        },
+        {
+          "id": "NREF",
+          "recordKey": "crag-finance:NREF",
+          "family": "crag-finance",
+          "entity": "NREF",
+          "label": "NexPoint Real Estate Finance Inc. Common Stock",
+          "attributes": {
+            "name": "NexPoint Real Estate Finance Inc. Common Stock",
+            "symbol": "NREF"
+          }
+        },
+        {
+          "id": "NREF^A",
+          "recordKey": "crag-finance:NREF^A",
+          "family": "crag-finance",
+          "entity": "NREF^A",
+          "label": "NexPoint Real Estate Finance Inc. 8.50% Series A Cumulative Redeemable Preferred Stock",
+          "attributes": {
+            "name": "NexPoint Real Estate Finance Inc. 8.50% Series A Cumulative Redeemable Preferred Stock",
+            "symbol": "NREF^A"
+          }
+        },
+        {
+          "id": "NXDT",
+          "recordKey": "crag-finance:NXDT",
+          "family": "crag-finance",
+          "entity": "NXDT",
+          "label": "NexPoint Diversified Real Estate Trust Common Stock",
+          "attributes": {
+            "name": "NexPoint Diversified Real Estate Trust Common Stock",
+            "symbol": "NXDT"
+          }
+        },
+        {
+          "id": "NXDT^A",
+          "recordKey": "crag-finance:NXDT^A",
+          "family": "crag-finance",
+          "entity": "NXDT^A",
+          "label": "NexPoint Diversified Real Estate Trust 5.50% Series A Cumulative Preferred Shares ($25.00 liquidation preference per share)",
+          "attributes": {
+            "name": "NexPoint Diversified Real Estate Trust 5.50% Series A Cumulative Preferred Shares ($25.00 liquidation preference per share)",
+            "symbol": "NXDT^A"
+          }
+        },
+        {
+          "id": "NXRT",
+          "recordKey": "crag-finance:NXRT",
+          "family": "crag-finance",
+          "entity": "NXRT",
+          "label": "NexPoint Residential Trust Inc. Common Stock",
+          "attributes": {
+            "name": "NexPoint Residential Trust Inc. Common Stock",
+            "symbol": "NXRT"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:22:40.839Z",
+      "durationMs": 5.703708999993978
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "NXST"
+      },
+      "output": [
+        {
+          "id": "NXST",
+          "recordKey": "crag-finance:NXST",
+          "family": "crag-finance",
+          "entity": "NXST",
+          "label": "Nexstar Media Group Inc. Common Stock",
+          "attributes": {
+            "name": "Nexstar Media Group Inc. Common Stock",
+            "symbol": "NXST"
+          }
+        },
+        {
+          "id": "NX",
+          "recordKey": "crag-finance:NX",
+          "family": "crag-finance",
+          "entity": "NX",
+          "label": "Quanex Building Products Corporation Common Stock",
+          "attributes": {
+            "name": "Quanex Building Products Corporation Common Stock",
+            "symbol": "NX"
+          }
+        },
+        {
+          "id": "S",
+          "recordKey": "crag-finance:S",
+          "family": "crag-finance",
+          "entity": "S",
+          "label": "SentinelOne Inc. Class A Common Stock",
+          "attributes": {
+            "name": "SentinelOne Inc. Class A Common Stock",
+            "symbol": "S"
+          }
+        },
+        {
+          "id": "ST",
+          "recordKey": "crag-finance:ST",
+          "family": "crag-finance",
+          "entity": "ST",
+          "label": "Sensata Technologies Holding plc Ordinary Shares",
+          "attributes": {
+            "name": "Sensata Technologies Holding plc Ordinary Shares",
+            "symbol": "ST"
+          }
+        },
+        {
+          "id": "T",
+          "recordKey": "crag-finance:T",
+          "family": "crag-finance",
+          "entity": "T",
+          "label": "AT&T Inc.",
+          "attributes": {
+            "name": "AT&T Inc.",
+            "symbol": "T"
+          }
+        },
+        {
+          "id": "X",
+          "recordKey": "crag-finance:X",
+          "family": "crag-finance",
+          "entity": "X",
+          "label": "United States Steel Corporation Common Stock",
+          "attributes": {
+            "name": "United States Steel Corporation Common Stock",
+            "symbol": "X"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:22:40.842Z",
+      "durationMs": 2.639374999998836
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "NXST"
+      },
+      "output": 5549586951.867024,
+      "startedAt": "2026-06-02T09:22:40.845Z",
+      "durationMs": 450.78041700000176
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "EXPO"
+      },
+      "output": 4015222923.3184233,
+      "startedAt": "2026-06-02T09:22:40.845Z",
+      "durationMs": 451.95437500000116
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:22:40.835Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v2/questions/006-comparison-7101bf2b-e9f5-441a-b378-9f6e9057fc7f/workspace\");\n\n// CRAG finance — comparison question 7101bf2b-e9f5-441a-b378-9f6e9057fc7f\n//\n// Question (verbatim):\n// could you tell me which company has a higher market cap, expo or nxst?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [expoMatches, nxstMatches] = await Promise.all([\n    df.db.records.search(\"EXPO\"),\n    df.db.records.search(\"NXST\"),\n  ]);\n\n  const expoTicker = expoMatches[0]?.id;\n  const nxstTicker = nxstMatches[0]?.id;\n\n  const [expoMcap, nxstMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: expoTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: nxstTicker }),\n  ]);\n\n  const winner = expoMcap > nxstMcap ? expoMatches[0]?.label ?? expoTicker : nxstMatches[0]?.label ?? nxstTicker;\n\n  return df.answer({\n    status: \"answered\",\n    value: winner,\n    evidence: [\n      { recordKey: expoMatches[0]?.recordKey, reason: `EXPO market cap: ${expoMcap}` },\n      { recordKey: nxstMatches[0]?.recordKey, reason: `NXST market cap: ${nxstMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "07012dc453b864ceb99027452bd3056010afe93eaf54d4aae9c35bff87c176b8",
+  "result": {
+    "status": "answered",
+    "value": "Nexstar Media Group Inc. Common Stock",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:EXPO",
+        "reason": "EXPO market cap: 4015222923.3184233"
+      },
+      {
+        "recordKey": "crag-finance:NXST",
+        "reason": "NXST market cap: 5549586951.867024"
+      }
+    ],
+    "createdAt": "2026-06-02T09:22:41.297Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "Nexstar Media Group Inc. Common Stock",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:EXPO",
+        "reason": "EXPO market cap: 4015222923.3184233"
+      },
+      {
+        "recordKey": "crag-finance:NXST",
+        "reason": "NXST market cap: 5549586951.867024"
+      }
+    ],
+    "createdAt": "2026-06-02T09:22:41.297Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 911.0958739999915
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

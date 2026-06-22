@@ -1,0 +1,14 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602083704_0b6r3r",
+  "answer": {
+    "status": "answered",
+    "value": 14.189705,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:D"
+      }
+    ],
+    "createdAt": "2026-06-02T08:37:05.761Z"
+  }
+}

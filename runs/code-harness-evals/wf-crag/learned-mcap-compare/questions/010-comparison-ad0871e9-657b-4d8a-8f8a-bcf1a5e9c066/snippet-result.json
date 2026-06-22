@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602091221_coilx7",
+  "answer": {
+    "status": "answered",
+    "value": "ALLT",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:MFD",
+        "reason": "MFD market cap: 62400000"
+      },
+      {
+        "recordKey": "crag-finance:ALLT",
+        "reason": "ALLT market cap: 74224218.68747474"
+      }
+    ],
+    "createdAt": "2026-06-02T09:12:22.307Z"
+  }
+}

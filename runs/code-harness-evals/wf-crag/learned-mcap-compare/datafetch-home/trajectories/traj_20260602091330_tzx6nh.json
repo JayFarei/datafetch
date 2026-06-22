@@ -1,0 +1,239 @@
+{
+  "id": "traj_20260602091330_tzx6nh",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "CHMG"
+      },
+      "output": [
+        {
+          "id": "CHMG",
+          "recordKey": "crag-finance:CHMG",
+          "family": "crag-finance",
+          "entity": "CHMG",
+          "label": "Chemung Financial Corp Common Stock",
+          "attributes": {
+            "name": "Chemung Financial Corp Common Stock",
+            "symbol": "CHMG"
+          }
+        },
+        {
+          "id": "C",
+          "recordKey": "crag-finance:C",
+          "family": "crag-finance",
+          "entity": "C",
+          "label": "Citigroup Inc. Common Stock",
+          "attributes": {
+            "name": "Citigroup Inc. Common Stock",
+            "symbol": "C"
+          }
+        },
+        {
+          "id": "G",
+          "recordKey": "crag-finance:G",
+          "family": "crag-finance",
+          "entity": "G",
+          "label": "Genpact Limited Common Stock",
+          "attributes": {
+            "name": "Genpact Limited Common Stock",
+            "symbol": "G"
+          }
+        },
+        {
+          "id": "H",
+          "recordKey": "crag-finance:H",
+          "family": "crag-finance",
+          "entity": "H",
+          "label": "Hyatt Hotels Corporation Class A Common Stock",
+          "attributes": {
+            "name": "Hyatt Hotels Corporation Class A Common Stock",
+            "symbol": "H"
+          }
+        },
+        {
+          "id": "M",
+          "recordKey": "crag-finance:M",
+          "family": "crag-finance",
+          "entity": "M",
+          "label": "Macy's Inc Common Stock",
+          "attributes": {
+            "name": "Macy's Inc Common Stock",
+            "symbol": "M"
+          }
+        },
+        {
+          "id": "MG",
+          "recordKey": "crag-finance:MG",
+          "family": "crag-finance",
+          "entity": "MG",
+          "label": "Mistras Group Inc Common Stock",
+          "attributes": {
+            "name": "Mistras Group Inc Common Stock",
+            "symbol": "MG"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:13:31.000Z",
+      "durationMs": 4.684416999982204
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "HTCR"
+      },
+      "output": [
+        {
+          "id": "HTCR",
+          "recordKey": "crag-finance:HTCR",
+          "family": "crag-finance",
+          "entity": "HTCR",
+          "label": "Heartcore Enterprises Inc. Common Stock",
+          "attributes": {
+            "name": "Heartcore Enterprises Inc. Common Stock",
+            "symbol": "HTCR"
+          }
+        },
+        {
+          "id": "C",
+          "recordKey": "crag-finance:C",
+          "family": "crag-finance",
+          "entity": "C",
+          "label": "Citigroup Inc. Common Stock",
+          "attributes": {
+            "name": "Citigroup Inc. Common Stock",
+            "symbol": "C"
+          }
+        },
+        {
+          "id": "CR",
+          "recordKey": "crag-finance:CR",
+          "family": "crag-finance",
+          "entity": "CR",
+          "label": "Crane Company Common Stock",
+          "attributes": {
+            "name": "Crane Company Common Stock",
+            "symbol": "CR"
+          }
+        },
+        {
+          "id": "H",
+          "recordKey": "crag-finance:H",
+          "family": "crag-finance",
+          "entity": "H",
+          "label": "Hyatt Hotels Corporation Class A Common Stock",
+          "attributes": {
+            "name": "Hyatt Hotels Corporation Class A Common Stock",
+            "symbol": "H"
+          }
+        },
+        {
+          "id": "R",
+          "recordKey": "crag-finance:R",
+          "family": "crag-finance",
+          "entity": "R",
+          "label": "Ryder System Inc. Common Stock",
+          "attributes": {
+            "name": "Ryder System Inc. Common Stock",
+            "symbol": "R"
+          }
+        },
+        {
+          "id": "T",
+          "recordKey": "crag-finance:T",
+          "family": "crag-finance",
+          "entity": "T",
+          "label": "AT&T Inc.",
+          "attributes": {
+            "name": "AT&T Inc.",
+            "symbol": "T"
+          }
+        },
+        {
+          "id": "TC",
+          "recordKey": "crag-finance:TC",
+          "family": "crag-finance",
+          "entity": "TC",
+          "label": "TuanChe Limited American Depositary Shares",
+          "attributes": {
+            "name": "TuanChe Limited American Depositary Shares",
+            "symbol": "TC"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:13:31.003Z",
+      "durationMs": 1.9455420000012964
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "HTCR"
+      },
+      "output": 13378940.78714623,
+      "startedAt": "2026-06-02T09:13:31.005Z",
+      "durationMs": 437.06379200000083
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CHMG"
+      },
+      "output": 199531379.9470588,
+      "startedAt": "2026-06-02T09:13:31.005Z",
+      "durationMs": 494.2596660000272
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:13:30.998Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare/questions/013-comparison-c719dd99-aab7-4b33-9cca-95a5e53f1ed5/workspace\");\n\n// CRAG finance — comparison question c719dd99-aab7-4b33-9cca-95a5e53f1ed5\n//\n// Question (verbatim):\n// which company had higher market cap now, chmg or htcr?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [chmgResults, htcrResults] = await Promise.all([\n    df.db.records.search(\"CHMG\"),\n    df.db.records.search(\"HTCR\"),\n  ]);\n\n  const chmgTicker = chmgResults[0]?.id ?? \"CHMG\";\n  const htcrTicker = htcrResults[0]?.id ?? \"HTCR\";\n\n  const [chmgMcap, htcrMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: chmgTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: htcrTicker }),\n  ]);\n\n  const higher = chmgMcap >= htcrMcap ? chmgTicker : htcrTicker;\n\n  return df.answer({\n    status: \"answered\",\n    value: higher,\n    evidence: [\n      { reason: `${chmgTicker} market cap: ${chmgMcap}` },\n      { reason: `${htcrTicker} market cap: ${htcrMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "aabeb66c8922e75712c16f18ff6234daca1aecf5f8fb345d9ce51d50abc43866",
+  "result": {
+    "status": "answered",
+    "value": "CHMG",
+    "evidence": [
+      {
+        "reason": "CHMG market cap: 199531379.9470588"
+      },
+      {
+        "reason": "HTCR market cap: 13378940.78714623"
+      }
+    ],
+    "createdAt": "2026-06-02T09:13:31.499Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "CHMG",
+    "evidence": [
+      {
+        "reason": "CHMG market cap: 199531379.9470588"
+      },
+      {
+        "reason": "HTCR market cap: 13378940.78714623"
+      }
+    ],
+    "createdAt": "2026-06-02T09:13:31.499Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 937.9695009999559
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

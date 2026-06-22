@@ -1,0 +1,14 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260529131731_ei2myc",
+  "answer": {
+    "status": "answered",
+    "value": 10.4399995803833,
+    "evidence": [
+      {
+        "reason": "Ticker: IPXXU, week dates: 2024-02-21 00:00:00 EST, 2024-02-22 00:00:00 EST, 2024-02-23 00:00:00 EST, 2024-02-26 00:00:00 EST, 2024-02-27 00:00:00 EST, low: 10.4399995803833"
+      }
+    ],
+    "createdAt": "2026-05-29T13:17:32.334Z"
+  }
+}

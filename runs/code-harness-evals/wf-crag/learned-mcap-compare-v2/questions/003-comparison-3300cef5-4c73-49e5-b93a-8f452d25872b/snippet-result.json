@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602092126_lmkktl",
+  "answer": {
+    "status": "answered",
+    "value": "COGT has the larger market cap. COGT market cap: 778311333, FTFT market cap: 16887707.52173913.",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:COGT",
+        "reason": "COGT market cap: 778311333"
+      },
+      {
+        "recordKey": "crag-finance:FTFT",
+        "reason": "FTFT market cap: 16887707.52173913"
+      }
+    ],
+    "createdAt": "2026-06-02T09:21:27.209Z"
+  }
+}

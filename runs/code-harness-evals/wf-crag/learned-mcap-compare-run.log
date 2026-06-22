@@ -1,0 +1,22 @@
+[crag-datafetch] arm=learned selected 20 question(s); out=/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare
+[crag-datafetch] [1/20] comparison 25d230b2-e518-45e7-8c67-a762571fb5fe status=answered pred=RBC Bearings Incorporated Common Stock gold=rbc libUsed=0 wall=21739ms
+[crag-datafetch] [2/20] comparison 2713f555-59b0-44d2-8f5e-6290c7b585e3 status=answered pred=GDO gold=gdo libUsed=0 wall=23796ms
+[crag-datafetch] [3/20] comparison 2f3101f3-8852-435b-9d63-6286f07176e3 status=answered pred=NWGL gold=nwgl libUsed=0 wall=21532ms
+[crag-datafetch] [4/20] comparison 3300cef5-4c73-49e5-b93a-8f452d25872b status=answered pred=COGT has the larger market cap (COGT: 77… gold=cogt libUsed=0 wall=24376ms
+[crag-datafetch] [5/20] comparison 4ae56c2a-9c76-429b-a660-448bbaeb3632 status=answered pred=no gold=yes libUsed=0 wall=22504ms
+[crag-datafetch] [6/20] comparison 65d83c7c-55f4-46d2-983e-5f28fa24e32c status=answered pred=HRI gold=hri libUsed=0 wall=19206ms
+[crag-datafetch] [7/20] comparison 7101bf2b-e9f5-441a-b378-9f6e9057fc7f status=answered pred=NXST gold=nxst libUsed=0 wall=21890ms
+[crag-datafetch] [8/20] comparison 7821dc79-dc9c-4775-b516-789153e6c98e status=answered pred=ADEA gold=adea libUsed=0 wall=22599ms
+[crag-datafetch] [9/20] comparison 7b38dd20-c216-403f-84e6-575f90bcb913 status=answered pred=CVCY gold=cvcy libUsed=0 wall=20788ms
+[crag-datafetch] [10/20] comparison 8f723a0e-7904-4782-bbcf-b8bb8edfc74a status=answered pred=tron gold=mgrm libUsed=0 wall=20814ms
+[crag-datafetch] [11/20] comparison ad0871e9-657b-4d8a-8f8a-bcf1a5e9c066 status=answered pred=ALLT gold=allt libUsed=0 wall=20819ms
+[crag-datafetch] [12/20] comparison babb7da1-52c8-48bf-a3bf-93c3addf83a8 status=answered pred=MFICL gold=mficl libUsed=0 wall=21177ms
+[crag-datafetch] [13/20] comparison c4f20606-fa1b-4afa-93a9-14843befbf71 status=answered pred=TW gold=tw libUsed=0 wall=24105ms
+[crag-datafetch] [14/20] comparison c719dd99-aab7-4b33-9cca-95a5e53f1ed5 status=answered pred=CHMG gold=chmg libUsed=0 wall=23908ms
+[crag-datafetch] [15/20] comparison cbc4fc3b-e16a-44d4-87b6-b44a796118ee status=answered pred=Walmart gold=as of the current market situation, broa… libUsed=0 wall=22241ms
+[crag-datafetch] [16/20] comparison ce79ed8a-73cb-42ef-935b-121c13a9c61a status=answered pred=PLYA gold=plya libUsed=0 wall=23723ms
+[crag-datafetch] [17/20] multi-hop c0cb88b5-1de7-41f3-a832-aee4c3f85412 status=answered pred=invalid question gold=microsoft which has the stock price of $… libUsed=0 wall=22355ms
+[crag-datafetch] [18/20] multi-hop de681882-70b6-4d27-9c22-1cb9955eef34 status=answered pred=ExxonMobil gold=back in 2010 the company with highest ma… libUsed=0 wall=37169ms
+[crag-datafetch] [19/20] post-processing a2d74fbe-09e2-4d2d-8b78-86ac0bf498b5 status=answered pred=The New York Stock Exchange (operator: I… gold=the market capitalization of the new yor… libUsed=0 wall=23336ms
+[crag-datafetch] [20/20] set 4599a9a2-f9b9-418c-959f-84c39afc9e26 status=answered pred=Ecopetrol S.A. American Depositary Share… gold=there are 3 energy stocks that has highe… libUsed=0 wall=54675ms
+[crag-datafetch] done. completed=20 failed=0. results=/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare/results.jsonl

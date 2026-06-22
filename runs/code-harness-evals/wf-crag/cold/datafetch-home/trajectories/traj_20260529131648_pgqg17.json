@@ -1,0 +1,874 @@
+{
+  "id": "traj_20260529131648_pgqg17",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "Apple Inc"
+      },
+      "output": [
+        {
+          "id": "A",
+          "recordKey": "crag-finance:A",
+          "family": "crag-finance",
+          "entity": "A",
+          "label": "Agilent Technologies Inc. Common Stock",
+          "attributes": {
+            "name": "Agilent Technologies Inc. Common Stock",
+            "symbol": "A"
+          }
+        },
+        {
+          "id": "AAPL",
+          "recordKey": "crag-finance:AAPL",
+          "family": "crag-finance",
+          "entity": "AAPL",
+          "label": "Apple Inc. Common Stock",
+          "attributes": {
+            "name": "Apple Inc. Common Stock",
+            "symbol": "AAPL"
+          }
+        },
+        {
+          "id": "APLE",
+          "recordKey": "crag-finance:APLE",
+          "family": "crag-finance",
+          "entity": "APLE",
+          "label": "Apple Hospitality REIT Inc. Common Shares",
+          "attributes": {
+            "name": "Apple Hospitality REIT Inc. Common Shares",
+            "symbol": "APLE"
+          }
+        },
+        {
+          "id": "MLP",
+          "recordKey": "crag-finance:MLP",
+          "family": "crag-finance",
+          "entity": "MLP",
+          "label": "Maui Land & Pineapple Company Inc. Common Stock",
+          "attributes": {
+            "name": "Maui Land & Pineapple Company Inc. Common Stock",
+            "symbol": "MLP"
+          }
+        },
+        {
+          "id": "PAPL",
+          "recordKey": "crag-finance:PAPL",
+          "family": "crag-finance",
+          "entity": "PAPL",
+          "label": "Pineapple Financial Inc. Common Stock",
+          "attributes": {
+            "name": "Pineapple Financial Inc. Common Stock",
+            "symbol": "PAPL"
+          }
+        },
+        {
+          "id": "PEGY",
+          "recordKey": "crag-finance:PEGY",
+          "family": "crag-finance",
+          "entity": "PEGY",
+          "label": "Pineapple Energy Inc. Common Stock",
+          "attributes": {
+            "name": "Pineapple Energy Inc. Common Stock",
+            "symbol": "PEGY"
+          }
+        },
+        {
+          "id": "AADI",
+          "recordKey": "crag-finance:AADI",
+          "family": "crag-finance",
+          "entity": "AADI",
+          "label": "Aadi Bioscience Inc. Common Stock",
+          "attributes": {
+            "name": "Aadi Bioscience Inc. Common Stock",
+            "symbol": "AADI"
+          }
+        },
+        {
+          "id": "AAGR",
+          "recordKey": "crag-finance:AAGR",
+          "family": "crag-finance",
+          "entity": "AAGR",
+          "label": "African Agriculture Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "African Agriculture Holdings Inc. Common Stock",
+            "symbol": "AAGR"
+          }
+        },
+        {
+          "id": "AAGRW",
+          "recordKey": "crag-finance:AAGRW",
+          "family": "crag-finance",
+          "entity": "AAGRW",
+          "label": "African Agriculture Holdings Inc. Warrant",
+          "attributes": {
+            "name": "African Agriculture Holdings Inc. Warrant",
+            "symbol": "AAGRW"
+          }
+        },
+        {
+          "id": "AAL",
+          "recordKey": "crag-finance:AAL",
+          "family": "crag-finance",
+          "entity": "AAL",
+          "label": "American Airlines Group Inc. Common Stock",
+          "attributes": {
+            "name": "American Airlines Group Inc. Common Stock",
+            "symbol": "AAL"
+          }
+        },
+        {
+          "id": "AAN",
+          "recordKey": "crag-finance:AAN",
+          "family": "crag-finance",
+          "entity": "AAN",
+          "label": "Aarons Holdings Company Inc. Common Stock",
+          "attributes": {
+            "name": "Aarons Holdings Company Inc. Common Stock",
+            "symbol": "AAN"
+          }
+        },
+        {
+          "id": "AAOI",
+          "recordKey": "crag-finance:AAOI",
+          "family": "crag-finance",
+          "entity": "AAOI",
+          "label": "Applied Optoelectronics Inc. Common Stock",
+          "attributes": {
+            "name": "Applied Optoelectronics Inc. Common Stock",
+            "symbol": "AAOI"
+          }
+        },
+        {
+          "id": "AAON",
+          "recordKey": "crag-finance:AAON",
+          "family": "crag-finance",
+          "entity": "AAON",
+          "label": "AAON Inc. Common Stock",
+          "attributes": {
+            "name": "AAON Inc. Common Stock",
+            "symbol": "AAON"
+          }
+        },
+        {
+          "id": "AAP",
+          "recordKey": "crag-finance:AAP",
+          "family": "crag-finance",
+          "entity": "AAP",
+          "label": "Advance Auto Parts Inc.",
+          "attributes": {
+            "name": "Advance Auto Parts Inc.",
+            "symbol": "AAP"
+          }
+        },
+        {
+          "id": "AAT",
+          "recordKey": "crag-finance:AAT",
+          "family": "crag-finance",
+          "entity": "AAT",
+          "label": "American Assets Trust Inc. Common Stock",
+          "attributes": {
+            "name": "American Assets Trust Inc. Common Stock",
+            "symbol": "AAT"
+          }
+        },
+        {
+          "id": "ABBV",
+          "recordKey": "crag-finance:ABBV",
+          "family": "crag-finance",
+          "entity": "ABBV",
+          "label": "AbbVie Inc. Common Stock",
+          "attributes": {
+            "name": "AbbVie Inc. Common Stock",
+            "symbol": "ABBV"
+          }
+        },
+        {
+          "id": "ABCL",
+          "recordKey": "crag-finance:ABCL",
+          "family": "crag-finance",
+          "entity": "ABCL",
+          "label": "AbCellera Biologics Inc. Common Shares",
+          "attributes": {
+            "name": "AbCellera Biologics Inc. Common Shares",
+            "symbol": "ABCL"
+          }
+        },
+        {
+          "id": "ABEO",
+          "recordKey": "crag-finance:ABEO",
+          "family": "crag-finance",
+          "entity": "ABEO",
+          "label": "Abeona Therapeutics Inc. Common Stock",
+          "attributes": {
+            "name": "Abeona Therapeutics Inc. Common Stock",
+            "symbol": "ABEO"
+          }
+        },
+        {
+          "id": "ABG",
+          "recordKey": "crag-finance:ABG",
+          "family": "crag-finance",
+          "entity": "ABG",
+          "label": "Asbury Automotive Group Inc Common Stock",
+          "attributes": {
+            "name": "Asbury Automotive Group Inc Common Stock",
+            "symbol": "ABG"
+          }
+        },
+        {
+          "id": "ABIO",
+          "recordKey": "crag-finance:ABIO",
+          "family": "crag-finance",
+          "entity": "ABIO",
+          "label": "ARCA biopharma Inc. Common Stock",
+          "attributes": {
+            "name": "ARCA biopharma Inc. Common Stock",
+            "symbol": "ABIO"
+          }
+        },
+        {
+          "id": "ABL",
+          "recordKey": "crag-finance:ABL",
+          "family": "crag-finance",
+          "entity": "ABL",
+          "label": "Abacus Life Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Abacus Life Inc. Class A Common Stock",
+            "symbol": "ABL"
+          }
+        },
+        {
+          "id": "ABLLL",
+          "recordKey": "crag-finance:ABLLL",
+          "family": "crag-finance",
+          "entity": "ABLLL",
+          "label": "Abacus Life Inc. 9.875% Fixed Rate Senior Notes due 2028",
+          "attributes": {
+            "name": "Abacus Life Inc. 9.875% Fixed Rate Senior Notes due 2028",
+            "symbol": "ABLLL"
+          }
+        },
+        {
+          "id": "ABLLW",
+          "recordKey": "crag-finance:ABLLW",
+          "family": "crag-finance",
+          "entity": "ABLLW",
+          "label": "Abacus Life Inc. Warrant",
+          "attributes": {
+            "name": "Abacus Life Inc. Warrant",
+            "symbol": "ABLLW"
+          }
+        },
+        {
+          "id": "ABLV",
+          "recordKey": "crag-finance:ABLV",
+          "family": "crag-finance",
+          "entity": "ABLV",
+          "label": "Able View Global Inc. Class B Ordinary Shares",
+          "attributes": {
+            "name": "Able View Global Inc. Class B Ordinary Shares",
+            "symbol": "ABLV"
+          }
+        },
+        {
+          "id": "ABLVW",
+          "recordKey": "crag-finance:ABLVW",
+          "family": "crag-finance",
+          "entity": "ABLVW",
+          "label": "Able View Global Inc. Warrant",
+          "attributes": {
+            "name": "Able View Global Inc. Warrant",
+            "symbol": "ABLVW"
+          }
+        }
+      ],
+      "startedAt": "2026-05-29T13:16:48.443Z",
+      "durationMs": 7.325917000009213
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "Microsoft"
+      },
+      "output": [
+        {
+          "id": "M",
+          "recordKey": "crag-finance:M",
+          "family": "crag-finance",
+          "entity": "M",
+          "label": "Macy's Inc Common Stock",
+          "attributes": {
+            "name": "Macy's Inc Common Stock",
+            "symbol": "M"
+          }
+        },
+        {
+          "id": "MSFT",
+          "recordKey": "crag-finance:MSFT",
+          "family": "crag-finance",
+          "entity": "MSFT",
+          "label": "Microsoft Corporation Common Stock",
+          "attributes": {
+            "name": "Microsoft Corporation Common Stock",
+            "symbol": "MSFT"
+          }
+        }
+      ],
+      "startedAt": "2026-05-29T13:16:48.448Z",
+      "durationMs": 2.6127500000293367
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_info",
+      "input": {
+        "ticker": "M"
+      },
+      "output": {
+        "address1": "151 West 34th Street",
+        "city": "New York",
+        "state": "NY",
+        "zip": "10001",
+        "country": "United States",
+        "phone": "212 494 1621",
+        "website": "https://www.macysinc.com",
+        "industry": "Department Stores",
+        "industryKey": "department-stores",
+        "industryDisp": "Department Stores",
+        "sector": "Consumer Cyclical",
+        "sectorKey": "consumer-cyclical",
+        "sectorDisp": "Consumer Cyclical",
+        "longBusinessSummary": "Macy's, Inc., an omni-channel retail organization, operates stores, websites, and mobile applications in the United States. The company sells a range of merchandise, such as apparel and accessories for men, women, and kids; cosmetics; home furnishings; and other consumer goods under the Macy's, Bloomingdale's, and bluemercury brands. It also operates in Dubai, the United Arab Emirates, and Al Zahra, Kuwait under the license agreements. The company was formerly known as Federated Department Stores, Inc. and changed its name to Macy's, Inc. in June 2007. The company was founded in 1830 and is based in New York, New York.",
+        "companyOfficers": [
+          {
+            "maxAge": 1,
+            "name": "Mr. Antony  Spring",
+            "age": 58,
+            "title": "CEO & Director",
+            "yearBorn": 1965,
+            "fiscalYear": 2022,
+            "totalPay": 1388815,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. Adrian V. Mitchell",
+            "age": 49,
+            "title": "Executive VP, COO & CFO",
+            "yearBorn": 1974,
+            "fiscalYear": 2022,
+            "totalPay": 1322357,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. Danielle L. Kirgan",
+            "age": 47,
+            "title": "Executive VP, Chief Transformation & Human Resources Officer",
+            "yearBorn": 1976,
+            "fiscalYear": 2022,
+            "totalPay": 1334940,
+            "exercisedValue": 0,
+            "unexercisedValue": 523740
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. Laura Marie Miller",
+            "age": 58,
+            "title": "Chief Information Officer",
+            "yearBorn": 1965,
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. Pamela Nagler Quintiliano",
+            "title": "Head of Investor Relations",
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. Tracy M. Preston Esq.",
+            "age": 57,
+            "title": "Chief Legal Officer & Corporate Secretary",
+            "yearBorn": 1966,
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. Sharon  Otterman",
+            "title": "Chief Marketing Officer",
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. Felicia  Williams",
+            "age": 57,
+            "title": "Chief Executive Officer of Action for Racial Equity",
+            "yearBorn": 1966,
+            "fiscalYear": 2022,
+            "totalPay": 1103053,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. Mike  Dervos",
+            "age": 72,
+            "title": "Senior VP & Regional Director of Chicago, Minneapolis & Detroit",
+            "yearBorn": 1951,
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. Shawn  Outler",
+            "title": "Chief Diversity, Equity and Inclusion (DEI) Officer",
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          }
+        ],
+        "auditRisk": 2,
+        "boardRisk": 2,
+        "compensationRisk": 1,
+        "shareHolderRightsRisk": 1,
+        "overallRisk": 1,
+        "governanceEpochDate": 1706745600,
+        "compensationAsOfEpochDate": 1672444800,
+        "maxAge": 86400,
+        "priceHint": 2,
+        "previousClose": 19.95,
+        "open": 19.6,
+        "dayLow": 18.595,
+        "dayHigh": 19.74,
+        "regularMarketPreviousClose": 19.95,
+        "regularMarketOpen": 19.6,
+        "regularMarketDayLow": 18.595,
+        "regularMarketDayHigh": 19.74,
+        "dividendRate": 0.69,
+        "dividendYield": 0.0348,
+        "exDividendDate": 1710374400,
+        "payoutRatio": 0.26680002,
+        "fiveYearAvgDividendYield": 7.85,
+        "beta": 2.187,
+        "trailingPE": 7.595959,
+        "forwardPE": 6.944067,
+        "volume": 7016301,
+        "regularMarketVolume": 7016301,
+        "averageVolume": 10237542,
+        "averageVolume10days": 8839730,
+        "averageDailyVolume10Day": 8839730,
+        "bid": 18.64,
+        "ask": 18.66,
+        "bidSize": 1400,
+        "askSize": 900,
+        "marketCap": 5102889472,
+        "fiftyTwoWeekLow": 10.54,
+        "fiftyTwoWeekHigh": 23.19,
+        "priceToSalesTrailing12Months": 0.2138142,
+        "fiftyDayAverage": 19.089,
+        "twoHundredDayAverage": 15.31775,
+        "trailingAnnualDividendRate": 0.662,
+        "trailingAnnualDividendYield": 0.033182956,
+        "currency": "USD",
+        "enterpriseValue": 10420289536,
+        "profitMargins": 0.0044,
+        "floatShares": 272253180,
+        "sharesOutstanding": 274072992,
+        "sharesShort": 17156050,
+        "sharesShortPriorMonth": 23382943,
+        "sharesShortPreviousMonthDate": 1705017600,
+        "dateShortInterest": 1707955200,
+        "sharesPercentSharesOut": 0.0626,
+        "heldPercentInsiders": 0.0061299996,
+        "heldPercentInstitutions": 0.90366995,
+        "shortRatio": 2.2,
+        "shortPercentOfFloat": 0.0705,
+        "impliedSharesOutstanding": 274200000,
+        "bookValue": 15.088,
+        "priceToBook": 1.2334372,
+        "lastFiscalYearEnd": 1706918400,
+        "nextFiscalYearEnd": 1738540800,
+        "mostRecentQuarter": 1706918400,
+        "netIncomeToCommon": 105000000,
+        "trailingEps": 2.45,
+        "forwardEps": 2.68,
+        "pegRatio": 0.59,
+        "lastSplitFactor": "2:1",
+        "lastSplitDate": 1150070400,
+        "enterpriseToRevenue": 0.437,
+        "enterpriseToEbitda": 4.619,
+        "52WeekChange": -0.02349484,
+        "SandP52WeekChange": 0.28516293,
+        "lastDividendValue": 0.165,
+        "lastDividendDate": 1702512000,
+        "exchange": "NYQ",
+        "quoteType": "EQUITY",
+        "symbol": "M",
+        "underlyingSymbol": "M",
+        "shortName": "Macy's Inc",
+        "longName": "Macy's, Inc.",
+        "firstTradeDateEpochUtc": 697300200,
+        "timeZoneFullName": "America/New_York",
+        "timeZoneShortName": "EST",
+        "uuid": "69691c7b-dcc3-3e6d-9d8a-1361f22d04ac",
+        "messageBoardId": "finmb_318091",
+        "gmtOffSetMilliseconds": -18000000,
+        "currentPrice": 18.6101,
+        "targetHighPrice": 23,
+        "targetLowPrice": 11,
+        "targetMeanPrice": 17.91,
+        "targetMedianPrice": 19,
+        "recommendationMean": 2.9,
+        "recommendationKey": "hold",
+        "numberOfAnalystOpinions": 10,
+        "totalCash": 1034000000,
+        "totalCashPerShare": 3.771,
+        "ebitda": 2256000000,
+        "totalDebt": 5984000000,
+        "quickRatio": 0.3,
+        "currentRatio": 1.374,
+        "totalRevenue": 23865999360,
+        "debtToEquity": 144.646,
+        "revenuePerShare": 87.039,
+        "returnOnAssets": 0.0513,
+        "returnOnEquity": 0.02555,
+        "freeCashflow": 566000000,
+        "operatingCashflow": 1304999936,
+        "revenueGrowth": -0.018,
+        "grossMargins": 0.4074,
+        "ebitdaMargins": 0.09453,
+        "operatingMargins": 0.10687,
+        "financialCurrency": "USD",
+        "trailingPegRatio": null
+      },
+      "startedAt": "2026-05-29T13:16:48.451Z",
+      "durationMs": 462.10504100000253
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_info",
+      "input": {
+        "ticker": "A"
+      },
+      "output": {
+        "address1": "5301 Stevens Creek Boulevard",
+        "city": "Santa Clara",
+        "state": "CA",
+        "zip": "95051",
+        "country": "United States",
+        "phone": "800 227 9770",
+        "fax": "866 497 1134",
+        "website": "https://www.agilent.com",
+        "industry": "Diagnostics & Research",
+        "industryKey": "diagnostics-research",
+        "industryDisp": "Diagnostics & Research",
+        "sector": "Healthcare",
+        "sectorKey": "healthcare",
+        "sectorDisp": "Healthcare",
+        "longBusinessSummary": "Agilent Technologies, Inc. provides application focused solutions to the life sciences, diagnostics, and applied chemical markets worldwide. The company operates in three segments: Life Sciences and Applied Markets, Diagnostics and Genomics, and Agilent CrossLab. The Life Sciences and Applied Markets segment offers liquid chromatography systems and components; liquid chromatography mass spectrometry systems; gas chromatography systems and components; gas chromatography mass spectrometry systems; inductively coupled plasma mass spectrometry instruments; atomic absorption instruments; microwave plasma-atomic emission spectrometry instruments; inductively coupled plasma optical emission spectrometry instruments; raman spectroscopy; cell analysis plate based assays; flow cytometer; real-time cell analyzer; cell imaging systems; microplate reader; laboratory software; information management and analytics; laboratory automation and robotic systems; dissolution testing; and vacuum pumps, and measurement technologies. The Diagnostics and Genomics segment focuses on genomics, nucleic acid contract manufacturing and research and development, pathology, companion diagnostics, reagent partnership, and biomolecular analysis businesses. The Agilent CrossLab segment provides GC and LC columns, sample preparation products, custom chemistries, and laboratory instrument supplies; and offers services portfolio, including repairs, parts, maintenance, installations, training, compliance support, software as a service, asset management, and consulting services. The company markets its products through direct sales, distributors, resellers, manufacturer's representatives, and electronic commerce. Agilent Technologies, Inc. was incorporated in 1999 and is headquartered in Santa Clara, California.",
+        "fullTimeEmployees": 18100,
+        "companyOfficers": [
+          {
+            "maxAge": 1,
+            "name": "Mr. Michael R. McMullen",
+            "age": 62,
+            "title": "CEO, President & Director",
+            "yearBorn": 1961,
+            "fiscalYear": 2023,
+            "totalPay": 1914330,
+            "exercisedValue": 16941404,
+            "unexercisedValue": 3994603
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. Robert W. McMahon",
+            "age": 54,
+            "title": "Senior VP, CFO and Interim President of Diagnostics & Genomics Group",
+            "yearBorn": 1969,
+            "fiscalYear": 2023,
+            "totalPay": 1075376,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. Henrik  Ancher-Jensen",
+            "age": 58,
+            "title": "Senior VP and President of Order Fulfillment & Supply Chain",
+            "yearBorn": 1965,
+            "fiscalYear": 2023,
+            "totalPay": 927444,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. Rodney  Gonsalves",
+            "age": 57,
+            "title": "Principal Accounting Officer, VP & Corporate Controller",
+            "yearBorn": 1966,
+            "fiscalYear": 2023,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. John  Kohl",
+            "title": "Senior Vice President & Chief Information Officer",
+            "fiscalYear": 2023,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. P. Diana Chiu",
+            "title": "VP, Interim General Counsel & Secretary",
+            "fiscalYear": 2023,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. Dominique P. Grau",
+            "age": 64,
+            "title": "Senior Vice President of Human Resources & Global Communications",
+            "yearBorn": 1959,
+            "fiscalYear": 2023,
+            "totalPay": 936311,
+            "exercisedValue": 0,
+            "unexercisedValue": 2955722
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. Allison  Ballmer",
+            "title": "Senior Vice President of Strategy & Corporate Development",
+            "fiscalYear": 2023,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. Yvonne  Mackie",
+            "title": "MD of UK & Ireland Operations and VP of Human Resources - Europe",
+            "fiscalYear": 2023,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. Jenipher E. Dalton",
+            "title": "Senior VP, Chief Quality & Regulatory Officer",
+            "fiscalYear": 2023,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          }
+        ],
+        "auditRisk": 10,
+        "boardRisk": 5,
+        "compensationRisk": 5,
+        "shareHolderRightsRisk": 9,
+        "overallRisk": 8,
+        "governanceEpochDate": 1706745600,
+        "compensationAsOfEpochDate": 1703980800,
+        "maxAge": 86400,
+        "priceHint": 2,
+        "previousClose": 132.55,
+        "open": 139.88,
+        "dayLow": 136.35,
+        "dayHigh": 139.88,
+        "regularMarketPreviousClose": 132.55,
+        "regularMarketOpen": 139.88,
+        "regularMarketDayLow": 136.35,
+        "regularMarketDayHigh": 139.88,
+        "dividendRate": 0.94,
+        "dividendYield": 0.0070999996,
+        "exDividendDate": 1711929600,
+        "payoutRatio": 0.2148,
+        "fiveYearAvgDividendYield": 0.69,
+        "trailingPE": 33.11217,
+        "forwardPE": 22.856672,
+        "volume": 795637,
+        "regularMarketVolume": 795637,
+        "averageVolume": 1594055,
+        "averageVolume10days": 1570430,
+        "averageDailyVolume10Day": 1570430,
+        "bid": 138.25,
+        "ask": 138.43,
+        "bidSize": 1100,
+        "askSize": 800,
+        "marketCap": 40656371712,
+        "fiftyTwoWeekLow": 96.8,
+        "fiftyTwoWeekHigh": 145.44,
+        "priceToSalesTrailing12Months": 6.0365806,
+        "fiftyDayAverage": 133.6552,
+        "twoHundredDayAverage": 122.1416,
+        "trailingAnnualDividendRate": 0.675,
+        "trailingAnnualDividendYield": 0.005092418,
+        "currency": "USD",
+        "enterpriseValue": 39649693696,
+        "profitMargins": 0.18351999,
+        "floatShares": 291910676,
+        "sharesOutstanding": 293040000,
+        "sharesShort": 3207167,
+        "sharesShortPriorMonth": 2785630,
+        "sharesShortPreviousMonthDate": 1705017600,
+        "dateShortInterest": 1707955200,
+        "sharesPercentSharesOut": 0.0109,
+        "heldPercentInsiders": 0.0028900001,
+        "heldPercentInstitutions": 0.91633004,
+        "shortRatio": 2.4,
+        "shortPercentOfFloat": 0.0123000005,
+        "impliedSharesOutstanding": 293040000,
+        "bookValue": 21.116,
+        "priceToBook": 6.5703735,
+        "lastFiscalYearEnd": 1698710400,
+        "nextFiscalYearEnd": 1730332800,
+        "mostRecentQuarter": 1706659200,
+        "earningsQuarterlyGrowth": -0.011,
+        "netIncomeToCommon": 1236000000,
+        "trailingEps": 4.19,
+        "forwardEps": 6.07,
+        "pegRatio": 2.52,
+        "lastSplitFactor": "1398:1000",
+        "lastSplitDate": 1414972800,
+        "enterpriseToRevenue": 5.887,
+        "enterpriseToEbitda": 24.325,
+        "52WeekChange": -0.03607011,
+        "SandP52WeekChange": 0.28516293,
+        "lastDividendValue": 0.236,
+        "lastDividendDate": 1703808000,
+        "exchange": "NYQ",
+        "quoteType": "EQUITY",
+        "symbol": "A",
+        "underlyingSymbol": "A",
+        "shortName": "Agilent Technologies, Inc.",
+        "longName": "Agilent Technologies, Inc.",
+        "firstTradeDateEpochUtc": 942935400,
+        "timeZoneFullName": "America/New_York",
+        "timeZoneShortName": "EST",
+        "uuid": "7fc56270-e7a7-3fa8-9a59-35b72eacbe29",
+        "messageBoardId": "finmb_154924",
+        "gmtOffSetMilliseconds": -18000000,
+        "currentPrice": 138.74,
+        "targetHighPrice": 165,
+        "targetLowPrice": 119,
+        "targetMeanPrice": 136.81,
+        "targetMedianPrice": 137,
+        "recommendationMean": 2.5,
+        "recommendationKey": "buy",
+        "numberOfAnalystOpinions": 16,
+        "totalCash": 1748000000,
+        "totalCashPerShare": 5.965,
+        "ebitda": 1630000000,
+        "totalDebt": 2555000064,
+        "quickRatio": 1.882,
+        "currentRatio": 2.683,
+        "totalRevenue": 6735000064,
+        "debtToEquity": 41.29,
+        "revenuePerShare": 22.967,
+        "returnOnAssets": 0.07797,
+        "returnOnEquity": 0.20954001,
+        "freeCashflow": 1018000000,
+        "operatingCashflow": 1960999936,
+        "earningsGrowth": -0.008,
+        "revenueGrowth": -0.056,
+        "grossMargins": 0.50557,
+        "ebitdaMargins": 0.24202,
+        "operatingMargins": 0.2316,
+        "financialCurrency": "USD",
+        "trailingPegRatio": 2.5461
+      },
+      "startedAt": "2026-05-29T13:16:48.450Z",
+      "durationMs": 467.70304100000067
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-05-29T13:16:48.440Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/cold/questions/013-comparison-18dabb4f-d025-426c-9915-4c5995790f60/workspace\");\n\n// CRAG finance — comparison question 18dabb4f-d025-426c-9915-4c5995790f60\n//\n// Question (verbatim):\n// which stock had higher gross income in the 4th quarter of 2023? apple or microsoft\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [appleMatches, msftMatches] = await Promise.all([\n    df.db.records.search(\"Apple Inc\"),\n    df.db.records.search(\"Microsoft\"),\n  ]);\n\n  const appleTicker = appleMatches[0]?.id ?? \"AAPL\";\n  const msftTicker = msftMatches[0]?.id ?? \"MSFT\";\n\n  const [appleInfo, msftInfo] = await Promise.all([\n    df.tool.cragFinance.get_info({ ticker: appleTicker }),\n    df.tool.cragFinance.get_info({ ticker: msftTicker }),\n  ]);\n\n  // Yahoo Finance get_info typically exposes grossProfits (TTM)\n  const getGross = (info: Record<string, unknown>): number | null => {\n    for (const key of [\"grossProfits\", \"grossProfit\", \"gross_profits\", \"gross_profit\"]) {\n      if (typeof info[key] === \"number\") return info[key] as number;\n    }\n    return null;\n  };\n\n  const appleGross = getGross(appleInfo as Record<string, unknown>);\n  const msftGross = getGross(msftInfo as Record<string, unknown>);\n\n  if (appleGross !== null && msftGross !== null) {\n    const winner = appleGross > msftGross ? \"Apple\" : \"Microsoft\";\n    return df.answer({\n      status: \"answered\",\n      value: winner,\n      evidence: [\n        { recordKey: `crag-finance:${appleTicker}`, reason: `Apple gross profit: ${appleGross}` },\n        { recordKey: `crag-finance:${msftTicker}`, reason: `Microsoft gross profit: ${msftGross}` },\n      ],\n    });\n  }\n\n  // Fallback: log all keys to understand what's available\n  const appleKeys = Object.keys(appleInfo as Record<string, unknown>);\n  const msftKeys = Object.keys(msftInfo as Record<string, unknown>);\n\n  return df.answer({\n    status: \"unsupported\",\n    value: null,\n    evidence: [\n      { reason: `Apple info keys: ${appleKeys.join(\", \")}` },\n      { reason: `MSFT info keys: ${msftKeys.join(\", \")}` },\n    ],\n    reason: \"Quarterly gross income data not found in get_info response\",\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "ceb46e5b8a41d22072d98ebaa487a61ccd37aff33b3bd4673d1ffec1f2d36d59",
+  "result": {
+    "status": "unsupported",
+    "value": null,
+    "evidence": [
+      {
+        "reason": "Apple info keys: address1, city, state, zip, country, phone, fax, website, industry, industryKey, industryDisp, sector, sectorKey, sectorDisp, longBusinessSummary, fullTimeEmployees, companyOfficers, auditRisk, boardRisk, compensationRisk, shareHolderRightsRisk, overallRisk, governanceEpochDate, compensationAsOfEpochDate, maxAge, priceHint, previousClose, open, dayLow, dayHigh, regularMarketPreviousClose, regularMarketOpen, regularMarketDayLow, regularMarketDayHigh, dividendRate, dividendYield, exDividendDate, payoutRatio, fiveYearAvgDividendYield, trailingPE, forwardPE, volume, regularMarketVolume, averageVolume, averageVolume10days, averageDailyVolume10Day, bid, ask, bidSize, askSize, marketCap, fiftyTwoWeekLow, fiftyTwoWeekHigh, priceToSalesTrailing12Months, fiftyDayAverage, twoHundredDayAverage, trailingAnnualDividendRate, trailingAnnualDividendYield, currency, enterpriseValue, profitMargins, floatShares, sharesOutstanding, sharesShort, sharesShortPriorMonth, sharesShortPreviousMonthDate, dateShortInterest, sharesPercentSharesOut, heldPercentInsiders, heldPercentInstitutions, shortRatio, shortPercentOfFloat, impliedSharesOutstanding, bookValue, priceToBook, lastFiscalYearEnd, nextFiscalYearEnd, mostRecentQuarter, earningsQuarterlyGrowth, netIncomeToCommon, trailingEps, forwardEps, pegRatio, lastSplitFactor, lastSplitDate, enterpriseToRevenue, enterpriseToEbitda, 52WeekChange, SandP52WeekChange, lastDividendValue, lastDividendDate, exchange, quoteType, symbol, underlyingSymbol, shortName, longName, firstTradeDateEpochUtc, timeZoneFullName, timeZoneShortName, uuid, messageBoardId, gmtOffSetMilliseconds, currentPrice, targetHighPrice, targetLowPrice, targetMeanPrice, targetMedianPrice, recommendationMean, recommendationKey, numberOfAnalystOpinions, totalCash, totalCashPerShare, ebitda, totalDebt, quickRatio, currentRatio, totalRevenue, debtToEquity, revenuePerShare, returnOnAssets, returnOnEquity, freeCashflow, operatingCashflow, earningsGrowth, revenueGrowth, grossMargins, ebitdaMargins, operatingMargins, financialCurrency, trailingPegRatio"
+      },
+      {
+        "reason": "MSFT info keys: address1, city, state, zip, country, phone, website, industry, industryKey, industryDisp, sector, sectorKey, sectorDisp, longBusinessSummary, companyOfficers, auditRisk, boardRisk, compensationRisk, shareHolderRightsRisk, overallRisk, governanceEpochDate, compensationAsOfEpochDate, maxAge, priceHint, previousClose, open, dayLow, dayHigh, regularMarketPreviousClose, regularMarketOpen, regularMarketDayLow, regularMarketDayHigh, dividendRate, dividendYield, exDividendDate, payoutRatio, fiveYearAvgDividendYield, beta, trailingPE, forwardPE, volume, regularMarketVolume, averageVolume, averageVolume10days, averageDailyVolume10Day, bid, ask, bidSize, askSize, marketCap, fiftyTwoWeekLow, fiftyTwoWeekHigh, priceToSalesTrailing12Months, fiftyDayAverage, twoHundredDayAverage, trailingAnnualDividendRate, trailingAnnualDividendYield, currency, enterpriseValue, profitMargins, floatShares, sharesOutstanding, sharesShort, sharesShortPriorMonth, sharesShortPreviousMonthDate, dateShortInterest, sharesPercentSharesOut, heldPercentInsiders, heldPercentInstitutions, shortRatio, shortPercentOfFloat, impliedSharesOutstanding, bookValue, priceToBook, lastFiscalYearEnd, nextFiscalYearEnd, mostRecentQuarter, netIncomeToCommon, trailingEps, forwardEps, pegRatio, lastSplitFactor, lastSplitDate, enterpriseToRevenue, enterpriseToEbitda, 52WeekChange, SandP52WeekChange, lastDividendValue, lastDividendDate, exchange, quoteType, symbol, underlyingSymbol, shortName, longName, firstTradeDateEpochUtc, timeZoneFullName, timeZoneShortName, uuid, messageBoardId, gmtOffSetMilliseconds, currentPrice, targetHighPrice, targetLowPrice, targetMeanPrice, targetMedianPrice, recommendationMean, recommendationKey, numberOfAnalystOpinions, totalCash, totalCashPerShare, ebitda, totalDebt, quickRatio, currentRatio, totalRevenue, debtToEquity, revenuePerShare, returnOnAssets, returnOnEquity, freeCashflow, operatingCashflow, revenueGrowth, grossMargins, ebitdaMargins, operatingMargins, financialCurrency, trailingPegRatio"
+      }
+    ],
+    "reason": "Quarterly gross income data not found in get_info response",
+    "createdAt": "2026-05-29T13:16:48.918Z",
+    "qualityWarnings": [
+      {
+        "code": "low_quality_output",
+        "message": "Output has 1 placeholder field(s) (Unknown / None / null / N/A / \"\") and 0 zero numeric field(s) out of 1 total. The agent's extraction logic likely didn't match the actual data shape — probe the tool response with `pnpm datafetch:run` and fix before committing.",
+        "totalFields": 1,
+        "placeholderFields": 1,
+        "zeroNumericFields": 0,
+        "examples": [
+          "value=null"
+        ]
+      }
+    ]
+  },
+  "answer": {
+    "status": "unsupported",
+    "value": null,
+    "evidence": [
+      {
+        "reason": "Apple info keys: address1, city, state, zip, country, phone, fax, website, industry, industryKey, industryDisp, sector, sectorKey, sectorDisp, longBusinessSummary, fullTimeEmployees, companyOfficers, auditRisk, boardRisk, compensationRisk, shareHolderRightsRisk, overallRisk, governanceEpochDate, compensationAsOfEpochDate, maxAge, priceHint, previousClose, open, dayLow, dayHigh, regularMarketPreviousClose, regularMarketOpen, regularMarketDayLow, regularMarketDayHigh, dividendRate, dividendYield, exDividendDate, payoutRatio, fiveYearAvgDividendYield, trailingPE, forwardPE, volume, regularMarketVolume, averageVolume, averageVolume10days, averageDailyVolume10Day, bid, ask, bidSize, askSize, marketCap, fiftyTwoWeekLow, fiftyTwoWeekHigh, priceToSalesTrailing12Months, fiftyDayAverage, twoHundredDayAverage, trailingAnnualDividendRate, trailingAnnualDividendYield, currency, enterpriseValue, profitMargins, floatShares, sharesOutstanding, sharesShort, sharesShortPriorMonth, sharesShortPreviousMonthDate, dateShortInterest, sharesPercentSharesOut, heldPercentInsiders, heldPercentInstitutions, shortRatio, shortPercentOfFloat, impliedSharesOutstanding, bookValue, priceToBook, lastFiscalYearEnd, nextFiscalYearEnd, mostRecentQuarter, earningsQuarterlyGrowth, netIncomeToCommon, trailingEps, forwardEps, pegRatio, lastSplitFactor, lastSplitDate, enterpriseToRevenue, enterpriseToEbitda, 52WeekChange, SandP52WeekChange, lastDividendValue, lastDividendDate, exchange, quoteType, symbol, underlyingSymbol, shortName, longName, firstTradeDateEpochUtc, timeZoneFullName, timeZoneShortName, uuid, messageBoardId, gmtOffSetMilliseconds, currentPrice, targetHighPrice, targetLowPrice, targetMeanPrice, targetMedianPrice, recommendationMean, recommendationKey, numberOfAnalystOpinions, totalCash, totalCashPerShare, ebitda, totalDebt, quickRatio, currentRatio, totalRevenue, debtToEquity, revenuePerShare, returnOnAssets, returnOnEquity, freeCashflow, operatingCashflow, earningsGrowth, revenueGrowth, grossMargins, ebitdaMargins, operatingMargins, financialCurrency, trailingPegRatio"
+      },
+      {
+        "reason": "MSFT info keys: address1, city, state, zip, country, phone, website, industry, industryKey, industryDisp, sector, sectorKey, sectorDisp, longBusinessSummary, companyOfficers, auditRisk, boardRisk, compensationRisk, shareHolderRightsRisk, overallRisk, governanceEpochDate, compensationAsOfEpochDate, maxAge, priceHint, previousClose, open, dayLow, dayHigh, regularMarketPreviousClose, regularMarketOpen, regularMarketDayLow, regularMarketDayHigh, dividendRate, dividendYield, exDividendDate, payoutRatio, fiveYearAvgDividendYield, beta, trailingPE, forwardPE, volume, regularMarketVolume, averageVolume, averageVolume10days, averageDailyVolume10Day, bid, ask, bidSize, askSize, marketCap, fiftyTwoWeekLow, fiftyTwoWeekHigh, priceToSalesTrailing12Months, fiftyDayAverage, twoHundredDayAverage, trailingAnnualDividendRate, trailingAnnualDividendYield, currency, enterpriseValue, profitMargins, floatShares, sharesOutstanding, sharesShort, sharesShortPriorMonth, sharesShortPreviousMonthDate, dateShortInterest, sharesPercentSharesOut, heldPercentInsiders, heldPercentInstitutions, shortRatio, shortPercentOfFloat, impliedSharesOutstanding, bookValue, priceToBook, lastFiscalYearEnd, nextFiscalYearEnd, mostRecentQuarter, netIncomeToCommon, trailingEps, forwardEps, pegRatio, lastSplitFactor, lastSplitDate, enterpriseToRevenue, enterpriseToEbitda, 52WeekChange, SandP52WeekChange, lastDividendValue, lastDividendDate, exchange, quoteType, symbol, underlyingSymbol, shortName, longName, firstTradeDateEpochUtc, timeZoneFullName, timeZoneShortName, uuid, messageBoardId, gmtOffSetMilliseconds, currentPrice, targetHighPrice, targetLowPrice, targetMeanPrice, targetMedianPrice, recommendationMean, recommendationKey, numberOfAnalystOpinions, totalCash, totalCashPerShare, ebitda, totalDebt, quickRatio, currentRatio, totalRevenue, debtToEquity, revenuePerShare, returnOnAssets, returnOnEquity, freeCashflow, operatingCashflow, revenueGrowth, grossMargins, ebitdaMargins, operatingMargins, financialCurrency, trailingPegRatio"
+      }
+    ],
+    "reason": "Quarterly gross income data not found in get_info response",
+    "createdAt": "2026-05-29T13:16:48.918Z",
+    "qualityWarnings": [
+      {
+        "code": "low_quality_output",
+        "message": "Output has 1 placeholder field(s) (Unknown / None / null / N/A / \"\") and 0 zero numeric field(s) out of 1 total. The agent's extraction logic likely didn't match the actual data shape — probe the tool response with `pnpm datafetch:run` and fix before committing.",
+        "totalFields": 1,
+        "placeholderFields": 1,
+        "zeroNumericFields": 0,
+        "examples": [
+          "value=null"
+        ]
+      }
+    ]
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 939.7689580000006
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

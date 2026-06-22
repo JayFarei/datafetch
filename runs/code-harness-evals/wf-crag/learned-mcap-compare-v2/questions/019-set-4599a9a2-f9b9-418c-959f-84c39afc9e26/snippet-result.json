@@ -1,0 +1,15 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602092746_a0n965",
+  "answer": {
+    "status": "answered",
+    "value": "none found",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:SHEL",
+        "reason": "Shell market cap: 159223835751.42593"
+      }
+    ],
+    "createdAt": "2026-06-02T09:28:08.954Z"
+  }
+}

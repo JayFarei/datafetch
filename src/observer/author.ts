@@ -364,21 +364,41 @@ function selectRecordBackedToolSteps(args: {
     return null;
   }
   if (firstLibIndex >= 0 && dbIndex >= firstLibIndex) return null;
+  // Span the leading contiguous db run. A single db lead-in (the SkillCraft
+  // norm) has dbRunEnd === dbIndex and is unaffected; a FANOUT(db) lead-in
+  // (e.g. a comparison that resolves two entities through two db lookups)
+  // ends after the last consecutive db step so its record signatures are
+  // all collected and the downstream tool fan-out starts after the run.
+  let dbRunEnd = dbIndex;
+  while (
+    dbRunEnd + 1 < template.steps.length &&
+    template.steps[dbRunEnd + 1]!.primitive.startsWith("db.")
+  ) {
+    dbRunEnd += 1;
+  }
   const upperBound =
     args.upperBound ?? (firstLibIndex >= 0 ? firstLibIndex : template.steps.length);
-  if (upperBound <= dbIndex + 1) return null;
+  if (upperBound <= dbRunEnd + 1) return null;
 
   const calls = callsForSteps(template.steps, trajectory);
   if (calls.length !== template.steps.length) return null;
-  const dbCall = calls[dbIndex];
-  if (!dbCall) return null;
-  const recordSigs = collectRecordValueSignatures(dbCall.output, {
-    identifierAttributeKeys: args.identifierAttributeKeys,
-  });
+  // Union record value signatures across every db call in the leading run,
+  // not just the first, so multi-entity FANOUT(db) lead-ins resolve all of
+  // their downstream tool calls (previously only the first entity matched).
+  const recordSigs: string[] = [];
+  for (let d = dbIndex; d <= dbRunEnd; d += 1) {
+    const c = calls[d];
+    if (!c) continue;
+    recordSigs.push(
+      ...collectRecordValueSignatures(c.output, {
+        identifierAttributeKeys: args.identifierAttributeKeys,
+      }),
+    );
+  }
   if (recordSigs.length === 0) return null;
   const candidates: TemplateStep[] = [];
   const erroredPrimitives = new Set<string>();
-  for (let i = dbIndex + 1; i < upperBound; i += 1) {
+  for (let i = dbRunEnd + 1; i < upperBound; i += 1) {
     const step = template.steps[i]!;
     if (!step.primitive.startsWith("tool.")) continue;
     const call = calls[i];

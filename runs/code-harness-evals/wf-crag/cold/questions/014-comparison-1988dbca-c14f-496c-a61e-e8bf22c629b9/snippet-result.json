@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260529131709_8e7p2x",
+  "answer": {
+    "status": "answered",
+    "value": -165122,
+    "evidence": [
+      {
+        "reason": "BTC-USD volume on 2024-02-28 00:00:00 EST: 33620"
+      },
+      {
+        "reason": "ETH-USD volume on 2024-02-28 00:00:00 EST: 198742"
+      }
+    ],
+    "createdAt": "2026-05-29T13:17:10.462Z"
+  }
+}

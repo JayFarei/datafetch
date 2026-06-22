@@ -1,0 +1,212 @@
+{
+  "id": "traj_20260602104734_n0hiuh",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "New York Stock Exchange NYSE ICE Intercontinental Exchange",
+        "opts": {
+          "limit": 5
+        }
+      },
+      "output": [
+        {
+          "id": "ICE",
+          "recordKey": "crag-finance:ICE",
+          "family": "crag-finance",
+          "entity": "ICE",
+          "label": "Intercontinental Exchange Inc. Common Stock",
+          "attributes": {
+            "name": "Intercontinental Exchange Inc. Common Stock",
+            "symbol": "ICE"
+          }
+        },
+        {
+          "id": "C",
+          "recordKey": "crag-finance:C",
+          "family": "crag-finance",
+          "entity": "C",
+          "label": "Citigroup Inc. Common Stock",
+          "attributes": {
+            "name": "Citigroup Inc. Common Stock",
+            "symbol": "C"
+          }
+        },
+        {
+          "id": "CE",
+          "recordKey": "crag-finance:CE",
+          "family": "crag-finance",
+          "entity": "CE",
+          "label": "Celanese Corporation Common Stock",
+          "attributes": {
+            "name": "Celanese Corporation Common Stock",
+            "symbol": "CE"
+          }
+        },
+        {
+          "id": "E",
+          "recordKey": "crag-finance:E",
+          "family": "crag-finance",
+          "entity": "E",
+          "label": "ENI S.p.A. Common Stock",
+          "attributes": {
+            "name": "ENI S.p.A. Common Stock",
+            "symbol": "E"
+          }
+        },
+        {
+          "id": "S",
+          "recordKey": "crag-finance:S",
+          "family": "crag-finance",
+          "entity": "S",
+          "label": "SentinelOne Inc. Class A Common Stock",
+          "attributes": {
+            "name": "SentinelOne Inc. Class A Common Stock",
+            "symbol": "S"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:47:34.980Z",
+      "durationMs": 14.71704099996714
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "London Stock Exchange LSE Group",
+        "opts": {
+          "limit": 5
+        }
+      },
+      "output": [
+        {
+          "id": "E",
+          "recordKey": "crag-finance:E",
+          "family": "crag-finance",
+          "entity": "E",
+          "label": "ENI S.p.A. Common Stock",
+          "attributes": {
+            "name": "ENI S.p.A. Common Stock",
+            "symbol": "E"
+          }
+        },
+        {
+          "id": "G",
+          "recordKey": "crag-finance:G",
+          "family": "crag-finance",
+          "entity": "G",
+          "label": "Genpact Limited Common Stock",
+          "attributes": {
+            "name": "Genpact Limited Common Stock",
+            "symbol": "G"
+          }
+        },
+        {
+          "id": "L",
+          "recordKey": "crag-finance:L",
+          "family": "crag-finance",
+          "entity": "L",
+          "label": "Loews Corporation Common Stock",
+          "attributes": {
+            "name": "Loews Corporation Common Stock",
+            "symbol": "L"
+          }
+        },
+        {
+          "id": "S",
+          "recordKey": "crag-finance:S",
+          "family": "crag-finance",
+          "entity": "S",
+          "label": "SentinelOne Inc. Class A Common Stock",
+          "attributes": {
+            "name": "SentinelOne Inc. Class A Common Stock",
+            "symbol": "S"
+          }
+        },
+        {
+          "id": "SE",
+          "recordKey": "crag-finance:SE",
+          "family": "crag-finance",
+          "entity": "SE",
+          "label": "Sea Limited American Depositary Shares each representing one Class A Ordinary Share",
+          "attributes": {
+            "name": "Sea Limited American Depositary Shares each representing one Class A Ordinary Share",
+            "symbol": "SE"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:47:34.990Z",
+      "durationMs": 5.553833000012673
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "ICE"
+      },
+      "output": 79524976081.81087,
+      "startedAt": "2026-06-02T10:47:34.995Z",
+      "durationMs": 593.7335409999941
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "LSEG.L"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T10:47:34.996Z",
+      "durationMs": 594.7237500000047
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T10:47:34.978Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v3-neutral/questions/018-post-processing-a2d74fbe-09e2-4d2d-8b78-86ac0bf498b5/workspace\");\n\n// CRAG finance — post-processing question a2d74fbe-09e2-4d2d-8b78-86ac0bf498b5\n//\n// Question (verbatim):\n// how big is the market cap of the new york stock exchange compared to the london stock exchange?\n//\n// Replace the body below. Inspect /df.d.ts for every available surface\n// (df.db data, df.tool adapters, and any df.lib learned helpers), pick\n// whatever fits this question best, compute, then RETURN df.answer(...).\n\nasync function main() {\n  // Search for NYSE (Intercontinental Exchange, parent of NYSE) and LSE Group\n  const [nyseRecords, lseRecords] = await Promise.all([\n    df.db.records.search(\"New York Stock Exchange NYSE ICE Intercontinental Exchange\", { limit: 5 }),\n    df.db.records.search(\"London Stock Exchange LSE Group\", { limit: 5 }),\n  ]);\n\n  // Try tickers: ICE for NYSE parent, LSEG.L or LSE for London Stock Exchange Group\n  // Also try direct ticker lookups\n  const nyseTicker = \"ICE\";\n  const lseTicker = \"LSEG.L\";\n\n  const [nyseMcap, lseMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: nyseTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: lseTicker }),\n  ]);\n\n  const ratio = nyseMcap / lseMcap;\n\n  return df.answer({\n    status: \"answered\",\n    value: `NYSE (Intercontinental Exchange, ticker ICE) market cap: ~$${(nyseMcap / 1e9).toFixed(2)}B; London Stock Exchange Group (LSEG.L) market cap: ~$${(lseMcap / 1e9).toFixed(2)}B. NYSE is approximately ${ratio.toFixed(2)}x the size of the LSE by market cap.`,\n    evidence: [\n      { reason: `ICE (NYSE parent) market cap: ${nyseMcap}` },\n      { reason: `LSEG.L (LSE Group) market cap: ${lseMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "965735f6088aead7f3d4666fd434be4a2d1e347b0a9be6d9915a22fc952aa4ea",
+  "result": {
+    "status": "answered",
+    "value": "NYSE (Intercontinental Exchange, ticker ICE) market cap: ~$79.52B; London Stock Exchange Group (LSEG.L) market cap: ~$0.00B. NYSE is approximately Infinityx the size of the LSE by market cap.",
+    "evidence": [
+      {
+        "reason": "ICE (NYSE parent) market cap: 79524976081.81087"
+      },
+      {
+        "reason": "LSEG.L (LSE Group) market cap: null"
+      }
+    ],
+    "createdAt": "2026-06-02T10:47:35.590Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "NYSE (Intercontinental Exchange, ticker ICE) market cap: ~$79.52B; London Stock Exchange Group (LSEG.L) market cap: ~$0.00B. NYSE is approximately Infinityx the size of the LSE by market cap.",
+    "evidence": [
+      {
+        "reason": "ICE (NYSE parent) market cap: 79524976081.81087"
+      },
+      {
+        "reason": "LSEG.L (LSE Group) market cap: null"
+      }
+    ],
+    "createdAt": "2026-06-02T10:47:35.590Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 1208.7476679999963
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

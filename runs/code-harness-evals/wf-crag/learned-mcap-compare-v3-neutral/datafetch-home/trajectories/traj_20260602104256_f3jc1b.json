@@ -1,0 +1,126 @@
+{
+  "id": "traj_20260602104256_f3jc1b",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.findExact",
+      "input": {
+        "filter": {
+          "symbol": "CMT"
+        }
+      },
+      "output": [
+        {
+          "id": "CMT",
+          "recordKey": "crag-finance:CMT",
+          "family": "crag-finance",
+          "entity": "CMT",
+          "label": "Core Molding Technologies Inc Common Stock",
+          "attributes": {
+            "name": "Core Molding Technologies Inc Common Stock",
+            "symbol": "CMT"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:42:56.031Z",
+      "durationMs": 1.247750000009546
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.findExact",
+      "input": {
+        "filter": {
+          "symbol": "ADEA"
+        }
+      },
+      "output": [
+        {
+          "id": "ADEA",
+          "recordKey": "crag-finance:ADEA",
+          "family": "crag-finance",
+          "entity": "ADEA",
+          "label": "Adeia Inc. Common Stock",
+          "attributes": {
+            "name": "Adeia Inc. Common Stock",
+            "symbol": "ADEA"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:42:56.032Z",
+      "durationMs": 0.16633399997954257
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "ADEA"
+      },
+      "output": 1231089267.7525952,
+      "startedAt": "2026-06-02T10:42:56.033Z",
+      "durationMs": 460.8177089999954
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CMT"
+      },
+      "output": 164359996.99999997,
+      "startedAt": "2026-06-02T10:42:56.033Z",
+      "durationMs": 478.4697499999893
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T10:42:56.029Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v3-neutral/questions/007-comparison-7821dc79-dc9c-4775-b516-789153e6c98e/workspace\");\nconst safeRecordsFindExact = async (filter: Record<string, unknown>, limit?: number): Promise<any[]> => {\n  try {\n    const records = await (df as any).db?.records?.findExact?.(filter, limit);\n    return Array.isArray(records) ? records : [];\n  } catch (error) {\n    const message = String((error as any)?.message ?? error);\n    if (message.includes(\"ident not found across mounts\")) return [];\n    throw error;\n  }\n};\n// CRAG finance — comparison question 7821dc79-dc9c-4775-b516-789153e6c98e\n//\n// Question (verbatim):\n// which company have larger market cap, cmt or adea?\n//\n// Replace the body below. Inspect /df.d.ts for every available surface\n// (df.db data, df.tool adapters, and any df.lib learned helpers), pick\n// whatever fits this question best, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [cmtRecords, adeaRecords] = await Promise.all([\n    safeRecordsFindExact({ symbol: \"CMT\" }),\n    safeRecordsFindExact({ symbol: \"ADEA\" }),\n  ]);\n\n  const [cmtMcap, adeaMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"CMT\" }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"ADEA\" }),\n  ]);\n\n  const larger = cmtMcap > adeaMcap ? \"CMT\" : \"ADEA\";\n\n  return df.answer({\n    status: \"answered\",\n    value: larger,\n    evidence: [\n      { recordKey: cmtRecords[0]?.recordKey, reason: `CMT market cap: ${cmtMcap}` },\n      { recordKey: adeaRecords[0]?.recordKey, reason: `ADEA market cap: ${adeaMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "fe643a043ae736858391ee8df5318955a9473d81c6aa1b635e7ca85aac97ce60",
+  "result": {
+    "status": "answered",
+    "value": "ADEA",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:CMT",
+        "reason": "CMT market cap: 164359996.99999997"
+      },
+      {
+        "recordKey": "crag-finance:ADEA",
+        "reason": "ADEA market cap: 1231089267.7525952"
+      }
+    ],
+    "createdAt": "2026-06-02T10:42:56.511Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "ADEA",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:CMT",
+        "reason": "CMT market cap: 164359996.99999997"
+      },
+      {
+        "recordKey": "crag-finance:ADEA",
+        "reason": "ADEA market cap: 1231089267.7525952"
+      }
+    ],
+    "createdAt": "2026-06-02T10:42:56.511Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 940.7156659999746
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

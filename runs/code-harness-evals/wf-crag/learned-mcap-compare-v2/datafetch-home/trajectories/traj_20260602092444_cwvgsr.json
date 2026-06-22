@@ -1,0 +1,124 @@
+{
+  "id": "traj_20260602092444_cwvgsr",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "GXO",
+        "opts": {
+          "limit": 1
+        }
+      },
+      "output": [
+        {
+          "id": "GXO",
+          "recordKey": "crag-finance:GXO",
+          "family": "crag-finance",
+          "entity": "GXO",
+          "label": "GXO Logistics Inc. Common Stock",
+          "attributes": {
+            "name": "GXO Logistics Inc. Common Stock",
+            "symbol": "GXO"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:24:44.720Z",
+      "durationMs": 8.193750000034925
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "TW",
+        "opts": {
+          "limit": 1
+        }
+      },
+      "output": [
+        {
+          "id": "TW",
+          "recordKey": "crag-finance:TW",
+          "family": "crag-finance",
+          "entity": "TW",
+          "label": "Tradeweb Markets Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Tradeweb Markets Inc. Class A Common Stock",
+            "symbol": "TW"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:24:44.724Z",
+      "durationMs": 3.8038330000126734
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "TW"
+      },
+      "output": 25001299311.695843,
+      "startedAt": "2026-06-02T09:24:44.728Z",
+      "durationMs": 427.2866660000291
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "GXO"
+      },
+      "output": 6205216276.563025,
+      "startedAt": "2026-06-02T09:24:44.728Z",
+      "durationMs": 433.3484580000513
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:24:44.717Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v2/questions/012-comparison-c4f20606-fa1b-4afa-93a9-14843befbf71/workspace\");\n\n// CRAG finance — comparison question c4f20606-fa1b-4afa-93a9-14843befbf71\n//\n// Question (verbatim):\n// which company boasts a larger market cap, gxo or tw?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [gxoMatches, twMatches] = await Promise.all([\n    df.db.records.search(\"GXO\", { limit: 1 }),\n    df.db.records.search(\"TW\", { limit: 1 }),\n  ]);\n\n  const gxoTicker = gxoMatches[0]?.id ?? \"GXO\";\n  const twTicker = twMatches[0]?.id ?? \"TW\";\n\n  const [gxoCap, twCap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: gxoTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: twTicker }),\n  ]);\n\n  const winner = gxoCap > twCap ? gxoTicker : twTicker;\n\n  return df.answer({\n    status: \"answered\",\n    value: winner,\n    evidence: [\n      { reason: `${gxoTicker} market cap: ${gxoCap}` },\n      { reason: `${twTicker} market cap: ${twCap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "1416c18c17f2b180bcfe76d5b1e2ffc3c88c12d0e87778a28de752ebc9f85ae9",
+  "result": {
+    "status": "answered",
+    "value": "TW",
+    "evidence": [
+      {
+        "reason": "GXO market cap: 6205216276.563025"
+      },
+      {
+        "reason": "TW market cap: 25001299311.695843"
+      }
+    ],
+    "createdAt": "2026-06-02T09:24:45.161Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "TW",
+    "evidence": [
+      {
+        "reason": "GXO market cap: 6205216276.563025"
+      },
+      {
+        "reason": "TW market cap: 25001299311.695843"
+      }
+    ],
+    "createdAt": "2026-06-02T09:24:45.161Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 872.6539169999305
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

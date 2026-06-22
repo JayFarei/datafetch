@@ -1,0 +1,31 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260529132851_vc9t1s",
+  "answer": {
+    "status": "unsupported",
+    "value": null,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:A",
+        "reason": "Apple Q4: undefined"
+      },
+      {
+        "recordKey": "crag-finance:M",
+        "reason": "MSFT Q4: undefined"
+      }
+    ],
+    "createdAt": "2026-05-29T13:28:52.063Z",
+    "qualityWarnings": [
+      {
+        "code": "low_quality_output",
+        "message": "Output has 1 placeholder field(s) (Unknown / None / null / N/A / \"\") and 0 zero numeric field(s) out of 1 total. The agent's extraction logic likely didn't match the actual data shape — probe the tool response with `pnpm datafetch:run` and fix before committing.",
+        "totalFields": 1,
+        "placeholderFields": 1,
+        "zeroNumericFields": 0,
+        "examples": [
+          "value=null"
+        ]
+      }
+    ]
+  }
+}

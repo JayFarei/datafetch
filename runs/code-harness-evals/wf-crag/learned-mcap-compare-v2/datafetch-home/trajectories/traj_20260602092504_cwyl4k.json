@@ -1,0 +1,118 @@
+{
+  "id": "traj_20260602092504_cwyl4k",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "chmg"
+      },
+      "output": [
+        {
+          "id": "CHMG",
+          "recordKey": "crag-finance:CHMG",
+          "family": "crag-finance",
+          "entity": "CHMG",
+          "label": "Chemung Financial Corp Common Stock",
+          "attributes": {
+            "name": "Chemung Financial Corp Common Stock",
+            "symbol": "CHMG"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:25:04.735Z",
+      "durationMs": 5.9359999999869615
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "htcr"
+      },
+      "output": [
+        {
+          "id": "HTCR",
+          "recordKey": "crag-finance:HTCR",
+          "family": "crag-finance",
+          "entity": "HTCR",
+          "label": "Heartcore Enterprises Inc. Common Stock",
+          "attributes": {
+            "name": "Heartcore Enterprises Inc. Common Stock",
+            "symbol": "HTCR"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:25:04.738Z",
+      "durationMs": 2.5874579999945126
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "HTCR"
+      },
+      "output": 13378940.78714623,
+      "startedAt": "2026-06-02T09:25:04.741Z",
+      "durationMs": 455.31233300000895
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CHMG"
+      },
+      "output": 199531379.9470588,
+      "startedAt": "2026-06-02T09:25:04.741Z",
+      "durationMs": 457.5100000000093
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:25:04.733Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v2/questions/013-comparison-c719dd99-aab7-4b33-9cca-95a5e53f1ed5/workspace\");\n\n// CRAG finance — comparison question c719dd99-aab7-4b33-9cca-95a5e53f1ed5\n//\n// Question (verbatim):\n// which company had higher market cap now, chmg or htcr?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [chmpMatches, htcrMatches] = await Promise.all([\n    df.db.records.search(\"chmg\"),\n    df.db.records.search(\"htcr\"),\n  ]);\n\n  const chmpTicker = chmpMatches[0]?.id ?? \"CHMG\";\n  const htcrTicker = htcrMatches[0]?.id ?? \"HTCR\";\n\n  const [chmpMcap, htcrMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: chmpTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: htcrTicker }),\n  ]);\n\n  const winner = chmpMcap >= htcrMcap ? chmpTicker : htcrTicker;\n\n  return df.answer({\n    status: \"answered\",\n    value: winner,\n    evidence: [\n      { reason: `${chmpTicker} market cap: ${chmpMcap}` },\n      { reason: `${htcrTicker} market cap: ${htcrMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "829c158364b7d66561c30e1b63800733917787e9c32ea4704c09e395c595286e",
+  "result": {
+    "status": "answered",
+    "value": "CHMG",
+    "evidence": [
+      {
+        "reason": "CHMG market cap: 199531379.9470588"
+      },
+      {
+        "reason": "HTCR market cap: 13378940.78714623"
+      }
+    ],
+    "createdAt": "2026-06-02T09:25:05.198Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "CHMG",
+    "evidence": [
+      {
+        "reason": "CHMG market cap: 199531379.9470588"
+      },
+      {
+        "reason": "HTCR market cap: 13378940.78714623"
+      }
+    ],
+    "createdAt": "2026-06-02T09:25:05.198Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 921.3630839999532
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602104158_2bm5xt",
+  "answer": {
+    "status": "answered",
+    "value": "no",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:B",
+        "reason": "Berkshire Hathaway (B) market cap: 1788319574.8342733"
+      },
+      {
+        "recordKey": "crag-finance:T",
+        "reason": "Tesla (T) market cap: 121579589636.05154"
+      }
+    ],
+    "createdAt": "2026-06-02T10:41:59.194Z"
+  }
+}

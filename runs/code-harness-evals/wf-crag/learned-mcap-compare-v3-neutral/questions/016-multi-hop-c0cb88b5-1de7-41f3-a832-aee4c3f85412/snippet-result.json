@@ -1,0 +1,15 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602104614_bg7o30",
+  "answer": {
+    "status": "answered",
+    "value": 406.6839904785156,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:MSFT",
+        "reason": "Microsoft market cap 3027754157239 > Apple market cap 2784634449820.876; latest close price on 2024-02-28 00:00:00 EST"
+      }
+    ],
+    "createdAt": "2026-06-02T10:46:15.287Z"
+  }
+}

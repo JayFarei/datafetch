@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2026-05-29T13:10:44.043Z",
+  "questionsPath": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/eval/crag/finance_composable.json",
+  "dictPath": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/eval/crag/vendor/CRAG/mock_api/cragkg/finance/company_name.dict",
+  "toolRunnerPath": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/eval/crag/scripts/crag-tool-runner.py",
+  "types": [
+    "comparison",
+    "aggregation"
+  ],
+  "limit": 16,
+  "arm": "cold",
+  "model": "claude-sonnet-4-6",
+  "reasoningEffort": "low",
+  "selected": 16,
+  "mountId": "crag-finance-companies",
+  "toolBundle": "cragFinance"
+}

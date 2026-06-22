@@ -1,0 +1,206 @@
+{
+  "id": "traj_20260602091416_54jrwj",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "PLYA"
+      },
+      "output": [
+        {
+          "id": "PLYA",
+          "recordKey": "crag-finance:PLYA",
+          "family": "crag-finance",
+          "entity": "PLYA",
+          "label": "Playa Hotels & Resorts N.V. Ordinary Shares",
+          "attributes": {
+            "name": "Playa Hotels & Resorts N.V. Ordinary Shares",
+            "symbol": "PLYA"
+          }
+        },
+        {
+          "id": "A",
+          "recordKey": "crag-finance:A",
+          "family": "crag-finance",
+          "entity": "A",
+          "label": "Agilent Technologies Inc. Common Stock",
+          "attributes": {
+            "name": "Agilent Technologies Inc. Common Stock",
+            "symbol": "A"
+          }
+        },
+        {
+          "id": "L",
+          "recordKey": "crag-finance:L",
+          "family": "crag-finance",
+          "entity": "L",
+          "label": "Loews Corporation Common Stock",
+          "attributes": {
+            "name": "Loews Corporation Common Stock",
+            "symbol": "L"
+          }
+        },
+        {
+          "id": "PL",
+          "recordKey": "crag-finance:PL",
+          "family": "crag-finance",
+          "entity": "PL",
+          "label": "Planet Labs PBC Class A Common Stock",
+          "attributes": {
+            "name": "Planet Labs PBC Class A Common Stock",
+            "symbol": "PL"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:14:16.964Z",
+      "durationMs": 4.236833999981172
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "USAS"
+      },
+      "output": [
+        {
+          "id": "USAS",
+          "recordKey": "crag-finance:USAS",
+          "family": "crag-finance",
+          "entity": "USAS",
+          "label": "Americas Gold and Silver Corporation Common Shares no par value",
+          "attributes": {
+            "name": "Americas Gold and Silver Corporation Common Shares no par value",
+            "symbol": "USAS"
+          }
+        },
+        {
+          "id": "A",
+          "recordKey": "crag-finance:A",
+          "family": "crag-finance",
+          "entity": "A",
+          "label": "Agilent Technologies Inc. Common Stock",
+          "attributes": {
+            "name": "Agilent Technologies Inc. Common Stock",
+            "symbol": "A"
+          }
+        },
+        {
+          "id": "S",
+          "recordKey": "crag-finance:S",
+          "family": "crag-finance",
+          "entity": "S",
+          "label": "SentinelOne Inc. Class A Common Stock",
+          "attributes": {
+            "name": "SentinelOne Inc. Class A Common Stock",
+            "symbol": "S"
+          }
+        },
+        {
+          "id": "SA",
+          "recordKey": "crag-finance:SA",
+          "family": "crag-finance",
+          "entity": "SA",
+          "label": "Seabridge Gold Inc. Ordinary Shares (Canada)",
+          "attributes": {
+            "name": "Seabridge Gold Inc. Ordinary Shares (Canada)",
+            "symbol": "SA"
+          }
+        },
+        {
+          "id": "U",
+          "recordKey": "crag-finance:U",
+          "family": "crag-finance",
+          "entity": "U",
+          "label": "Unity Software Inc. Common Stock",
+          "attributes": {
+            "name": "Unity Software Inc. Common Stock",
+            "symbol": "U"
+          }
+        },
+        {
+          "id": "USA",
+          "recordKey": "crag-finance:USA",
+          "family": "crag-finance",
+          "entity": "USA",
+          "label": "Liberty All-Star Equity Fund Common Stock",
+          "attributes": {
+            "name": "Liberty All-Star Equity Fund Common Stock",
+            "symbol": "USA"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:14:16.966Z",
+      "durationMs": 1.9811249999911524
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "PLYA"
+      },
+      "output": 1252902365.0109892,
+      "startedAt": "2026-06-02T09:14:16.968Z",
+      "durationMs": 412.56554199999664
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "USAS"
+      },
+      "output": 60781739,
+      "startedAt": "2026-06-02T09:14:16.969Z",
+      "durationMs": 503.46745799999917
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:14:16.961Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare/questions/015-comparison-ce79ed8a-73cb-42ef-935b-121c13a9c61a/workspace\");\n\n// CRAG finance — comparison question ce79ed8a-73cb-42ef-935b-121c13a9c61a\n//\n// Question (verbatim):\n// which company have larger market cap, plya or usas?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [plyaResults, usasResults] = await Promise.all([\n    df.db.records.search(\"PLYA\"),\n    df.db.records.search(\"USAS\"),\n  ]);\n\n  const plyaTicker = plyaResults[0]?.id ?? \"PLYA\";\n  const usasTicker = usasResults[0]?.id ?? \"USAS\";\n\n  const [plyaMcap, usasMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: plyaTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: usasTicker }),\n  ]);\n\n  const winner = plyaMcap > usasMcap ? plyaTicker : usasTicker;\n\n  return df.answer({\n    status: \"answered\",\n    value: winner,\n    evidence: [\n      { reason: `${plyaTicker} market cap: ${plyaMcap}` },\n      { reason: `${usasTicker} market cap: ${usasMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "902b5ff925da82e562fd30fd8b4aaa5d051357467c4c2ad40e4245d04ba7c52a",
+  "result": {
+    "status": "answered",
+    "value": "PLYA",
+    "evidence": [
+      {
+        "reason": "PLYA market cap: 1252902365.0109892"
+      },
+      {
+        "reason": "USAS market cap: 60781739"
+      }
+    ],
+    "createdAt": "2026-06-02T09:14:17.472Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "PLYA",
+    "evidence": [
+      {
+        "reason": "PLYA market cap: 1252902365.0109892"
+      },
+      {
+        "reason": "USAS market cap: 60781739"
+      }
+    ],
+    "createdAt": "2026-06-02T09:14:17.472Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 922.2702910000808
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

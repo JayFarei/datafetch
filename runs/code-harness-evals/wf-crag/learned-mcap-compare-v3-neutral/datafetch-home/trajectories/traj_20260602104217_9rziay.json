@@ -1,0 +1,126 @@
+{
+  "id": "traj_20260602104217_9rziay",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.findExact",
+      "input": {
+        "filter": {
+          "symbol": "HRI"
+        }
+      },
+      "output": [
+        {
+          "id": "HRI",
+          "recordKey": "crag-finance:HRI",
+          "family": "crag-finance",
+          "entity": "HRI",
+          "label": "Herc Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "Herc Holdings Inc. Common Stock",
+            "symbol": "HRI"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:42:17.063Z",
+      "durationMs": 1.7591669999965234
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.findExact",
+      "input": {
+        "filter": {
+          "symbol": "IMPPP"
+        }
+      },
+      "output": [
+        {
+          "id": "IMPPP",
+          "recordKey": "crag-finance:IMPPP",
+          "family": "crag-finance",
+          "entity": "IMPPP",
+          "label": "Imperial Petroleum Inc. 8.75% Series A Cumulative Redeemable Perpetual Preferred Shares",
+          "attributes": {
+            "name": "Imperial Petroleum Inc. 8.75% Series A Cumulative Redeemable Perpetual Preferred Shares",
+            "symbol": "IMPPP"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:42:17.064Z",
+      "durationMs": 0.6701670000038575
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "IMPPP"
+      },
+      "output": 53278322.48737864,
+      "startedAt": "2026-06-02T10:42:17.066Z",
+      "durationMs": 521.7839999999997
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "HRI"
+      },
+      "output": 4358121284.448982,
+      "startedAt": "2026-06-02T10:42:17.065Z",
+      "durationMs": 523.1892500000104
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T10:42:17.061Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v3-neutral/questions/005-comparison-65d83c7c-55f4-46d2-983e-5f28fa24e32c/workspace\");\nconst safeRecordsFindExact = async (filter: Record<string, unknown>, limit?: number): Promise<any[]> => {\n  try {\n    const records = await (df as any).db?.records?.findExact?.(filter, limit);\n    return Array.isArray(records) ? records : [];\n  } catch (error) {\n    const message = String((error as any)?.message ?? error);\n    if (message.includes(\"ident not found across mounts\")) return [];\n    throw error;\n  }\n};\n// CRAG finance — comparison question 65d83c7c-55f4-46d2-983e-5f28fa24e32c\n//\n// Question (verbatim):\n// which company have larger market cap, hri or imppp?\n//\n// Replace the body below. Inspect /df.d.ts for every available surface\n// (df.db data, df.tool adapters, and any df.lib learned helpers), pick\n// whatever fits this question best, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [hriRecs, imppRecs] = await Promise.all([\n    safeRecordsFindExact({ symbol: \"HRI\" }),\n    safeRecordsFindExact({ symbol: \"IMPPP\" }),\n  ]);\n\n  const hriKey = hriRecs[0]?.recordKey ?? \"HRI\";\n  const impppKey = imppRecs[0]?.recordKey ?? \"IMPPP\";\n\n  const [hriMcap, impppMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"HRI\" }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"IMPPP\" }),\n  ]);\n\n  const larger = hriMcap > impppMcap ? \"HRI\" : \"IMPPP\";\n\n  return df.answer({\n    status: \"answered\",\n    value: larger,\n    evidence: [\n      { recordKey: hriKey, reason: `HRI market cap: ${hriMcap}` },\n      { recordKey: impppKey, reason: `IMPPP market cap: ${impppMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n",
+  "sourceHash": "066bc16600a2732dad346476062071df32788aad2ca93ec36973cd38fb47d510",
+  "result": {
+    "status": "answered",
+    "value": "HRI",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:HRI",
+        "reason": "HRI market cap: 4358121284.448982"
+      },
+      {
+        "recordKey": "crag-finance:IMPPP",
+        "reason": "IMPPP market cap: 53278322.48737864"
+      }
+    ],
+    "createdAt": "2026-06-02T10:42:17.588Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "HRI",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:HRI",
+        "reason": "HRI market cap: 4358121284.448982"
+      },
+      {
+        "recordKey": "crag-finance:IMPPP",
+        "reason": "IMPPP market cap: 53278322.48737864"
+      }
+    ],
+    "createdAt": "2026-06-02T10:42:17.588Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 1047.4238350000087
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

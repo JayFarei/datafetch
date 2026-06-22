@@ -1,0 +1,122 @@
+{
+  "id": "traj_20260602104359_2uk8tk",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.findExact",
+      "input": {
+        "filter": {
+          "symbol": "MFD"
+        }
+      },
+      "output": [
+        {
+          "id": "MFD",
+          "recordKey": "crag-finance:MFD",
+          "family": "crag-finance",
+          "entity": "MFD",
+          "label": "Macquarie First Trust Global Common Stock",
+          "attributes": {
+            "name": "Macquarie First Trust Global Common Stock",
+            "symbol": "MFD"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:43:59.756Z",
+      "durationMs": 0.20220900001004338
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.findExact",
+      "input": {
+        "filter": {
+          "symbol": "ALLT"
+        }
+      },
+      "output": [
+        {
+          "id": "ALLT",
+          "recordKey": "crag-finance:ALLT",
+          "family": "crag-finance",
+          "entity": "ALLT",
+          "label": "Allot Ltd. Ordinary Shares",
+          "attributes": {
+            "name": "Allot Ltd. Ordinary Shares",
+            "symbol": "ALLT"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:43:59.756Z",
+      "durationMs": 0.07120800000848249
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MFD"
+      },
+      "output": 62400000,
+      "startedAt": "2026-06-02T10:43:59.756Z",
+      "durationMs": 518.4322500000126
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "ALLT"
+      },
+      "output": 74224218.68747474,
+      "startedAt": "2026-06-02T10:43:59.756Z",
+      "durationMs": 523.576624999987
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T10:43:59.754Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v3-neutral/questions/010-comparison-ad0871e9-657b-4d8a-8f8a-bcf1a5e9c066/workspace\");\nconst safeRecordsFindExact = async (filter: Record<string, unknown>, limit?: number): Promise<any[]> => {\n  try {\n    const records = await (df as any).db?.records?.findExact?.(filter, limit);\n    return Array.isArray(records) ? records : [];\n  } catch (error) {\n    const message = String((error as any)?.message ?? error);\n    if (message.includes(\"ident not found across mounts\")) return [];\n    throw error;\n  }\n};\n// CRAG finance — comparison question ad0871e9-657b-4d8a-8f8a-bcf1a5e9c066\n//\n// Question (verbatim):\n// which company have larger market cap, mfd or allt?\n//\n// Replace the body below. Inspect /df.d.ts for every available surface\n// (df.db data, df.tool adapters, and any df.lib learned helpers), pick\n// whatever fits this question best, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [mfdRecords, alltRecords] = await Promise.all([\n    safeRecordsFindExact({ symbol: \"MFD\" }),\n    safeRecordsFindExact({ symbol: \"ALLT\" }),\n  ]);\n\n  const [mfdMcap, alltMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"MFD\" }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"ALLT\" }),\n  ]);\n\n  const larger = mfdMcap > alltMcap ? \"MFD\" : \"ALLT\";\n\n  return df.answer({\n    status: \"answered\",\n    value: larger,\n    evidence: [\n      { reason: `MFD market cap: ${mfdMcap}` },\n      { reason: `ALLT market cap: ${alltMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "0ea18f277725ecc43024f5db33ca5be56683093b798ec5bac6e4507473b555d8",
+  "result": {
+    "status": "answered",
+    "value": "ALLT",
+    "evidence": [
+      {
+        "reason": "MFD market cap: 62400000"
+      },
+      {
+        "reason": "ALLT market cap: 74224218.68747474"
+      }
+    ],
+    "createdAt": "2026-06-02T10:44:00.280Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "ALLT",
+    "evidence": [
+      {
+        "reason": "MFD market cap: 62400000"
+      },
+      {
+        "reason": "ALLT market cap: 74224218.68747474"
+      }
+    ],
+    "createdAt": "2026-06-02T10:44:00.280Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 1042.2967510000453
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

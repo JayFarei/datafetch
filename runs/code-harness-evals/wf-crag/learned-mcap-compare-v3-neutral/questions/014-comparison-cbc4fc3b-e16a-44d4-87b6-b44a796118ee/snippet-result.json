@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602104529_jqvrwg",
+  "answer": {
+    "status": "answered",
+    "value": "Walmart",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:W",
+        "reason": "Walmart mcap: 6997753297.06104"
+      },
+      {
+        "recordKey": "crag-finance:B",
+        "reason": "Broadcom mcap: 1788319574.8342733"
+      }
+    ],
+    "createdAt": "2026-06-02T10:45:29.847Z"
+  }
+}

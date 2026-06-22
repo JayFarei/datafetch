@@ -1,0 +1,346 @@
+{
+  "id": "traj_20260602090643_lysw5h",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "Douyu International Holdings"
+      },
+      "output": [
+        {
+          "id": "D",
+          "recordKey": "crag-finance:D",
+          "family": "crag-finance",
+          "entity": "D",
+          "label": "Dominion Energy Inc. Common Stock",
+          "attributes": {
+            "name": "Dominion Energy Inc. Common Stock",
+            "symbol": "D"
+          }
+        },
+        {
+          "id": "DOYU",
+          "recordKey": "crag-finance:DOYU",
+          "family": "crag-finance",
+          "entity": "DOYU",
+          "label": "DouYu International Holdings Limited ADS",
+          "attributes": {
+            "name": "DouYu International Holdings Limited ADS",
+            "symbol": "DOYU"
+          }
+        },
+        {
+          "id": "H",
+          "recordKey": "crag-finance:H",
+          "family": "crag-finance",
+          "entity": "H",
+          "label": "Hyatt Hotels Corporation Class A Common Stock",
+          "attributes": {
+            "name": "Hyatt Hotels Corporation Class A Common Stock",
+            "symbol": "H"
+          }
+        },
+        {
+          "id": "AIH",
+          "recordKey": "crag-finance:AIH",
+          "family": "crag-finance",
+          "entity": "AIH",
+          "label": "Aesthetic Medical International Holdings Group Ltd. American Depositary Shares",
+          "attributes": {
+            "name": "Aesthetic Medical International Holdings Group Ltd. American Depositary Shares",
+            "symbol": "AIH"
+          }
+        },
+        {
+          "id": "ARGD",
+          "recordKey": "crag-finance:ARGD",
+          "family": "crag-finance",
+          "entity": "ARGD",
+          "label": "Argo Group International Holdings Ltd. 6.5% Senior Notes Due 2042",
+          "attributes": {
+            "name": "Argo Group International Holdings Ltd. 6.5% Senior Notes Due 2042",
+            "symbol": "ARGD"
+          }
+        },
+        {
+          "id": "ARGO^A",
+          "recordKey": "crag-finance:ARGO^A",
+          "family": "crag-finance",
+          "entity": "ARGO^A",
+          "label": "Argo Group International Holdings Inc. Depositary Shares Each Representing a 1/1000th Interest in a 7.00% Resettable Fixed Rate Preference Share Series A",
+          "attributes": {
+            "name": "Argo Group International Holdings Inc. Depositary Shares Each Representing a 1/1000th Interest in a 7.00% Resettable Fixed Rate Preference Share Series A",
+            "symbol": "ARGO^A"
+          }
+        },
+        {
+          "id": "EBON",
+          "recordKey": "crag-finance:EBON",
+          "family": "crag-finance",
+          "entity": "EBON",
+          "label": "Ebang International Holdings Inc. Class A Ordinary Shares",
+          "attributes": {
+            "name": "Ebang International Holdings Inc. Class A Ordinary Shares",
+            "symbol": "EBON"
+          }
+        },
+        {
+          "id": "IGIC",
+          "recordKey": "crag-finance:IGIC",
+          "family": "crag-finance",
+          "entity": "IGIC",
+          "label": "International General Insurance Holdings Ltd. Ordinary Share",
+          "attributes": {
+            "name": "International General Insurance Holdings Ltd. Ordinary Share",
+            "symbol": "IGIC"
+          }
+        },
+        {
+          "id": "MGIH",
+          "recordKey": "crag-finance:MGIH",
+          "family": "crag-finance",
+          "entity": "MGIH",
+          "label": "Millennium Group International Holdings Limited Ordinary Shares",
+          "attributes": {
+            "name": "Millennium Group International Holdings Limited Ordinary Shares",
+            "symbol": "MGIH"
+          }
+        },
+        {
+          "id": "MSC",
+          "recordKey": "crag-finance:MSC",
+          "family": "crag-finance",
+          "entity": "MSC",
+          "label": "Studio City International Holdings Limited American depositary shares each representing four  Class A ordinary shares",
+          "attributes": {
+            "name": "Studio City International Holdings Limited American depositary shares each representing four  Class A ordinary shares",
+            "symbol": "MSC"
+          }
+        },
+        {
+          "id": "PPIH",
+          "recordKey": "crag-finance:PPIH",
+          "family": "crag-finance",
+          "entity": "PPIH",
+          "label": "Perma-Pipe International Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "Perma-Pipe International Holdings Inc. Common Stock",
+            "symbol": "PPIH"
+          }
+        },
+        {
+          "id": "AAGR",
+          "recordKey": "crag-finance:AAGR",
+          "family": "crag-finance",
+          "entity": "AAGR",
+          "label": "African Agriculture Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "African Agriculture Holdings Inc. Common Stock",
+            "symbol": "AAGR"
+          }
+        },
+        {
+          "id": "AAGRW",
+          "recordKey": "crag-finance:AAGRW",
+          "family": "crag-finance",
+          "entity": "AAGRW",
+          "label": "African Agriculture Holdings Inc. Warrant",
+          "attributes": {
+            "name": "African Agriculture Holdings Inc. Warrant",
+            "symbol": "AAGRW"
+          }
+        },
+        {
+          "id": "AAN",
+          "recordKey": "crag-finance:AAN",
+          "family": "crag-finance",
+          "entity": "AAN",
+          "label": "Aarons Holdings Company Inc. Common Stock",
+          "attributes": {
+            "name": "Aarons Holdings Company Inc. Common Stock",
+            "symbol": "AAN"
+          }
+        },
+        {
+          "id": "ACT",
+          "recordKey": "crag-finance:ACT",
+          "family": "crag-finance",
+          "entity": "ACT",
+          "label": "Enact Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "Enact Holdings Inc. Common Stock",
+            "symbol": "ACT"
+          }
+        },
+        {
+          "id": "ADN",
+          "recordKey": "crag-finance:ADN",
+          "family": "crag-finance",
+          "entity": "ADN",
+          "label": "Advent Technologies Holdings Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Advent Technologies Holdings Inc. Class A Common Stock",
+            "symbol": "ADN"
+          }
+        },
+        {
+          "id": "ADNWW",
+          "recordKey": "crag-finance:ADNWW",
+          "family": "crag-finance",
+          "entity": "ADNWW",
+          "label": "Advent Technologies Holdings Inc. Warrant",
+          "attributes": {
+            "name": "Advent Technologies Holdings Inc. Warrant",
+            "symbol": "ADNWW"
+          }
+        },
+        {
+          "id": "ADTN",
+          "recordKey": "crag-finance:ADTN",
+          "family": "crag-finance",
+          "entity": "ADTN",
+          "label": "ADTRAN Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "ADTRAN Holdings Inc. Common Stock",
+            "symbol": "ADTN"
+          }
+        },
+        {
+          "id": "AEHL",
+          "recordKey": "crag-finance:AEHL",
+          "family": "crag-finance",
+          "entity": "AEHL",
+          "label": "Antelope Enterprise Holdings Limited Class A Ordinary Shares",
+          "attributes": {
+            "name": "Antelope Enterprise Holdings Limited Class A Ordinary Shares",
+            "symbol": "AEHL"
+          }
+        },
+        {
+          "id": "AER",
+          "recordKey": "crag-finance:AER",
+          "family": "crag-finance",
+          "entity": "AER",
+          "label": "AerCap Holdings N.V. Ordinary Shares",
+          "attributes": {
+            "name": "AerCap Holdings N.V. Ordinary Shares",
+            "symbol": "AER"
+          }
+        },
+        {
+          "id": "AFRM",
+          "recordKey": "crag-finance:AFRM",
+          "family": "crag-finance",
+          "entity": "AFRM",
+          "label": "Affirm Holdings Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Affirm Holdings Inc. Class A Common Stock",
+            "symbol": "AFRM"
+          }
+        },
+        {
+          "id": "AGMH",
+          "recordKey": "crag-finance:AGMH",
+          "family": "crag-finance",
+          "entity": "AGMH",
+          "label": "AGM Group Holdings Inc. Class A Ordinary Shares",
+          "attributes": {
+            "name": "AGM Group Holdings Inc. Class A Ordinary Shares",
+            "symbol": "AGMH"
+          }
+        },
+        {
+          "id": "AHL^C",
+          "recordKey": "crag-finance:AHL^C",
+          "family": "crag-finance",
+          "entity": "AHL^C",
+          "label": "Aspen Insurance Holdings Limited 5.95% Fixed-to-Floating Rate Perpetual Non-Cumulative Preference Shares",
+          "attributes": {
+            "name": "Aspen Insurance Holdings Limited 5.95% Fixed-to-Floating Rate Perpetual Non-Cumulative Preference Shares",
+            "symbol": "AHL^C"
+          }
+        },
+        {
+          "id": "AHL^D",
+          "recordKey": "crag-finance:AHL^D",
+          "family": "crag-finance",
+          "entity": "AHL^D",
+          "label": "Aspen Insurance Holdings Limited 5.625% Perpetual Non-Cumulative Preference Shares",
+          "attributes": {
+            "name": "Aspen Insurance Holdings Limited 5.625% Perpetual Non-Cumulative Preference Shares",
+            "symbol": "AHL^D"
+          }
+        },
+        {
+          "id": "AHL^E",
+          "recordKey": "crag-finance:AHL^E",
+          "family": "crag-finance",
+          "entity": "AHL^E",
+          "label": "Aspen Insurance Holdings Limited Depositary Shares each representing a 1/1000th interest in a share of 5.625% Perpetual Non-Cumulative Preference Shares",
+          "attributes": {
+            "name": "Aspen Insurance Holdings Limited Depositary Shares each representing a 1/1000th interest in a share of 5.625% Perpetual Non-Cumulative Preference Shares",
+            "symbol": "AHL^E"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:06:43.802Z",
+      "durationMs": 4.39304200001061
+    },
+    {
+      "index": 1,
+      "primitive": "tool.cragFinance.get_pe_ratio",
+      "input": {
+        "ticker": "D"
+      },
+      "output": 14.189705,
+      "startedAt": "2026-06-02T09:06:43.806Z",
+      "durationMs": 457.1352079999633
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:06:43.799Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-pe-family/questions/018-simple-cca512e1-e6b9-4d2e-ad0d-0d1f7f04c537/workspace\");\n\n// CRAG finance — simple question cca512e1-e6b9-4d2e-ad0d-0d1f7f04c537\n//\n// Question (verbatim):\n// as of now, what is the pe ratio of douyu international holdings limited ads?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const matches = await df.db.records.search(\"Douyu International Holdings\");\n  const ticker = matches[0]?.id;\n  const pe = await df.tool.cragFinance.get_pe_ratio({ ticker });\n  return df.answer({\n    status: \"answered\",\n    value: pe,\n    evidence: [{ recordKey: matches[0]?.recordKey, reason: `PE ratio for ${ticker}` }],\n  });\n}\n\nreturn await main();\n",
+  "sourceHash": "b0a5f4f656ea1ffde36d9cd431a6678f4e3f2a4e3160a74d2689a47311e86507",
+  "result": {
+    "status": "answered",
+    "value": 14.189705,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:D",
+        "reason": "PE ratio for D"
+      }
+    ],
+    "createdAt": "2026-06-02T09:06:44.263Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": 14.189705,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:D",
+        "reason": "PE ratio for D"
+      }
+    ],
+    "createdAt": "2026-06-02T09:06:44.263Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 461.5374169999268
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

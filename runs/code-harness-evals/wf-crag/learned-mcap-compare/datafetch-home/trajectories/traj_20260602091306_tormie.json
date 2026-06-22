@@ -1,0 +1,415 @@
+{
+  "id": "traj_20260602091306_tormie",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "GXO"
+      },
+      "output": [
+        {
+          "id": "GXO",
+          "recordKey": "crag-finance:GXO",
+          "family": "crag-finance",
+          "entity": "GXO",
+          "label": "GXO Logistics Inc. Common Stock",
+          "attributes": {
+            "name": "GXO Logistics Inc. Common Stock",
+            "symbol": "GXO"
+          }
+        },
+        {
+          "id": "G",
+          "recordKey": "crag-finance:G",
+          "family": "crag-finance",
+          "entity": "G",
+          "label": "Genpact Limited Common Stock",
+          "attributes": {
+            "name": "Genpact Limited Common Stock",
+            "symbol": "G"
+          }
+        },
+        {
+          "id": "O",
+          "recordKey": "crag-finance:O",
+          "family": "crag-finance",
+          "entity": "O",
+          "label": "Realty Income Corporation Common Stock",
+          "attributes": {
+            "name": "Realty Income Corporation Common Stock",
+            "symbol": "O"
+          }
+        },
+        {
+          "id": "X",
+          "recordKey": "crag-finance:X",
+          "family": "crag-finance",
+          "entity": "X",
+          "label": "United States Steel Corporation Common Stock",
+          "attributes": {
+            "name": "United States Steel Corporation Common Stock",
+            "symbol": "X"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:13:06.904Z",
+      "durationMs": 10.489457999996375
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "TW"
+      },
+      "output": [
+        {
+          "id": "TW",
+          "recordKey": "crag-finance:TW",
+          "family": "crag-finance",
+          "entity": "TW",
+          "label": "Tradeweb Markets Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Tradeweb Markets Inc. Class A Common Stock",
+            "symbol": "TW"
+          }
+        },
+        {
+          "id": "T",
+          "recordKey": "crag-finance:T",
+          "family": "crag-finance",
+          "entity": "T",
+          "label": "AT&T Inc.",
+          "attributes": {
+            "name": "AT&T Inc.",
+            "symbol": "T"
+          }
+        },
+        {
+          "id": "W",
+          "recordKey": "crag-finance:W",
+          "family": "crag-finance",
+          "entity": "W",
+          "label": "Wayfair Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Wayfair Inc. Class A Common Stock",
+            "symbol": "W"
+          }
+        },
+        {
+          "id": "AMBO",
+          "recordKey": "crag-finance:AMBO",
+          "family": "crag-finance",
+          "entity": "AMBO",
+          "label": "Ambow Education Holding Ltd. American Depository Shares each representing two Class A ordinary shares",
+          "attributes": {
+            "name": "Ambow Education Holding Ltd. American Depository Shares each representing two Class A ordinary shares",
+            "symbol": "AMBO"
+          }
+        },
+        {
+          "id": "AMCX",
+          "recordKey": "crag-finance:AMCX",
+          "family": "crag-finance",
+          "entity": "AMCX",
+          "label": "AMC Networks Inc. Class A Common Stock",
+          "attributes": {
+            "name": "AMC Networks Inc. Class A Common Stock",
+            "symbol": "AMCX"
+          }
+        },
+        {
+          "id": "AMSWA",
+          "recordKey": "crag-finance:AMSWA",
+          "family": "crag-finance",
+          "entity": "AMSWA",
+          "label": "American Software Inc. Class A Common Stock",
+          "attributes": {
+            "name": "American Software Inc. Class A Common Stock",
+            "symbol": "AMSWA"
+          }
+        },
+        {
+          "id": "AMX",
+          "recordKey": "crag-finance:AMX",
+          "family": "crag-finance",
+          "entity": "AMX",
+          "label": "America Movil S.A.B. de C.V. American Depositary Shares (each representing the right to receive twenty (20) Series B Shares",
+          "attributes": {
+            "name": "America Movil S.A.B. de C.V. American Depositary Shares (each representing the right to receive twenty (20) Series B Shares",
+            "symbol": "AMX"
+          }
+        },
+        {
+          "id": "ANET",
+          "recordKey": "crag-finance:ANET",
+          "family": "crag-finance",
+          "entity": "ANET",
+          "label": "Arista Networks Inc. Common Stock",
+          "attributes": {
+            "name": "Arista Networks Inc. Common Stock",
+            "symbol": "ANET"
+          }
+        },
+        {
+          "id": "AONC",
+          "recordKey": "crag-finance:AONC",
+          "family": "crag-finance",
+          "entity": "AONC",
+          "label": "American Oncology Network Inc. Class A Common Stock",
+          "attributes": {
+            "name": "American Oncology Network Inc. Class A Common Stock",
+            "symbol": "AONC"
+          }
+        },
+        {
+          "id": "AONCW",
+          "recordKey": "crag-finance:AONCW",
+          "family": "crag-finance",
+          "entity": "AONCW",
+          "label": "American Oncology Network Inc. Warrant",
+          "attributes": {
+            "name": "American Oncology Network Inc. Warrant",
+            "symbol": "AONCW"
+          }
+        },
+        {
+          "id": "ARTW",
+          "recordKey": "crag-finance:ARTW",
+          "family": "crag-finance",
+          "entity": "ARTW",
+          "label": "Art's-Way Manufacturing Co. Inc. Common Stock",
+          "attributes": {
+            "name": "Art's-Way Manufacturing Co. Inc. Common Stock",
+            "symbol": "ARTW"
+          }
+        },
+        {
+          "id": "ASNS",
+          "recordKey": "crag-finance:ASNS",
+          "family": "crag-finance",
+          "entity": "ASNS",
+          "label": "Actelis Networks Inc. Common Stock",
+          "attributes": {
+            "name": "Actelis Networks Inc. Common Stock",
+            "symbol": "ASNS"
+          }
+        },
+        {
+          "id": "ASUR",
+          "recordKey": "crag-finance:ASUR",
+          "family": "crag-finance",
+          "entity": "ASUR",
+          "label": "Asure Software Inc Common Stock",
+          "attributes": {
+            "name": "Asure Software Inc Common Stock",
+            "symbol": "ASUR"
+          }
+        },
+        {
+          "id": "ASX",
+          "recordKey": "crag-finance:ASX",
+          "family": "crag-finance",
+          "entity": "ASX",
+          "label": "ASE Technology Holding Co. Ltd. American Depositary Shares (each representing Two Common Shares)",
+          "attributes": {
+            "name": "ASE Technology Holding Co. Ltd. American Depositary Shares (each representing Two Common Shares)",
+            "symbol": "ASX"
+          }
+        },
+        {
+          "id": "ATEN",
+          "recordKey": "crag-finance:ATEN",
+          "family": "crag-finance",
+          "entity": "ATEN",
+          "label": "A10 Networks Inc. Common Stock",
+          "attributes": {
+            "name": "A10 Networks Inc. Common Stock",
+            "symbol": "ATEN"
+          }
+        },
+        {
+          "id": "AVNW",
+          "recordKey": "crag-finance:AVNW",
+          "family": "crag-finance",
+          "entity": "AVNW",
+          "label": "Aviat Networks Inc. Common Stock",
+          "attributes": {
+            "name": "Aviat Networks Inc. Common Stock",
+            "symbol": "AVNW"
+          }
+        },
+        {
+          "id": "AVPTW",
+          "recordKey": "crag-finance:AVPTW",
+          "family": "crag-finance",
+          "entity": "AVPTW",
+          "label": "AvePoint Inc. Warrant",
+          "attributes": {
+            "name": "AvePoint Inc. Warrant",
+            "symbol": "AVPTW"
+          }
+        },
+        {
+          "id": "BEATW",
+          "recordKey": "crag-finance:BEATW",
+          "family": "crag-finance",
+          "entity": "BEATW",
+          "label": "Heartbeam Inc. Warrant",
+          "attributes": {
+            "name": "Heartbeam Inc. Warrant",
+            "symbol": "BEATW"
+          }
+        },
+        {
+          "id": "BEST",
+          "recordKey": "crag-finance:BEST",
+          "family": "crag-finance",
+          "entity": "BEST",
+          "label": "BEST Inc. American Depositary Shares each representing twenty (20) Class A Ordinary Shares",
+          "attributes": {
+            "name": "BEST Inc. American Depositary Shares each representing twenty (20) Class A Ordinary Shares",
+            "symbol": "BEST"
+          }
+        },
+        {
+          "id": "BFLY",
+          "recordKey": "crag-finance:BFLY",
+          "family": "crag-finance",
+          "entity": "BFLY",
+          "label": "Butterfly Network Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Butterfly Network Inc. Class A Common Stock",
+            "symbol": "BFLY"
+          }
+        },
+        {
+          "id": "BHP",
+          "recordKey": "crag-finance:BHP",
+          "family": "crag-finance",
+          "entity": "BHP",
+          "label": "BHP Group Limited American Depositary Shares (Each representing two Ordinary Shares)",
+          "attributes": {
+            "name": "BHP Group Limited American Depositary Shares (Each representing two Ordinary Shares)",
+            "symbol": "BHP"
+          }
+        },
+        {
+          "id": "BTCTW",
+          "recordKey": "crag-finance:BTCTW",
+          "family": "crag-finance",
+          "entity": "BTCTW",
+          "label": "BTC Digital Ltd. Warrant",
+          "attributes": {
+            "name": "BTC Digital Ltd. Warrant",
+            "symbol": "BTCTW"
+          }
+        },
+        {
+          "id": "CANG",
+          "recordKey": "crag-finance:CANG",
+          "family": "crag-finance",
+          "entity": "CANG",
+          "label": "Cango Inc. American Depositary Shares  each representing two (2) Class A Ordinary Shares",
+          "attributes": {
+            "name": "Cango Inc. American Depositary Shares  each representing two (2) Class A Ordinary Shares",
+            "symbol": "CANG"
+          }
+        },
+        {
+          "id": "CAPTW",
+          "recordKey": "crag-finance:CAPTW",
+          "family": "crag-finance",
+          "entity": "CAPTW",
+          "label": "Captivision Inc. Warrant",
+          "attributes": {
+            "name": "Captivision Inc. Warrant",
+            "symbol": "CAPTW"
+          }
+        },
+        {
+          "id": "CDTTW",
+          "recordKey": "crag-finance:CDTTW",
+          "family": "crag-finance",
+          "entity": "CDTTW",
+          "label": "Conduit Pharmaceuticals Inc. Warrant",
+          "attributes": {
+            "name": "Conduit Pharmaceuticals Inc. Warrant",
+            "symbol": "CDTTW"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:13:06.910Z",
+      "durationMs": 5.0512089999974705
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "TW"
+      },
+      "output": 25001299311.695843,
+      "startedAt": "2026-06-02T09:13:06.915Z",
+      "durationMs": 618.5027910000063
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "GXO"
+      },
+      "output": 6205216276.563025,
+      "startedAt": "2026-06-02T09:13:06.915Z",
+      "durationMs": 674.1187919999938
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:13:06.900Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare/questions/012-comparison-c4f20606-fa1b-4afa-93a9-14843befbf71/workspace\");\n\n// CRAG finance — comparison question c4f20606-fa1b-4afa-93a9-14843befbf71\n//\n// Question (verbatim):\n// which company boasts a larger market cap, gxo or tw?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [gxoMatches, twMatches] = await Promise.all([\n    df.db.records.search(\"GXO\"),\n    df.db.records.search(\"TW\"),\n  ]);\n\n  const gxoTicker = gxoMatches[0]?.id ?? \"GXO\";\n  const twTicker = twMatches[0]?.id ?? \"TW\";\n\n  const [gxoCap, twCap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: gxoTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: twTicker }),\n  ]);\n\n  const winner = gxoCap > twCap ? \"GXO\" : \"TW\";\n\n  return df.answer({\n    status: \"answered\",\n    value: winner,\n    evidence: [\n      { reason: `GXO market cap: ${gxoCap}` },\n      { reason: `TW market cap: ${twCap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "479fada82f3de848c0725252b8990ee224fccf3cd9d535ebd7b39295b0ee2303",
+  "result": {
+    "status": "answered",
+    "value": "TW",
+    "evidence": [
+      {
+        "reason": "GXO market cap: 6205216276.563025"
+      },
+      {
+        "reason": "TW market cap: 25001299311.695843"
+      }
+    ],
+    "createdAt": "2026-06-02T09:13:07.589Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "TW",
+    "evidence": [
+      {
+        "reason": "GXO market cap: 6205216276.563025"
+      },
+      {
+        "reason": "TW market cap: 25001299311.695843"
+      }
+    ],
+    "createdAt": "2026-06-02T09:13:07.589Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 1308.19087400008
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

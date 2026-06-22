@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602090906_vctkva",
+  "answer": {
+    "status": "answered",
+    "value": "GDO",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:TIRX",
+        "reason": "TIRX market cap: 1828945.33636364"
+      },
+      {
+        "recordKey": "crag-finance:GDO",
+        "reason": "GDO market cap: 188210000"
+      }
+    ],
+    "createdAt": "2026-06-02T09:09:07.718Z"
+  }
+}

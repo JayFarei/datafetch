@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602091034_6pvvhu",
+  "answer": {
+    "status": "answered",
+    "value": "HRI",
+    "evidence": [
+      {
+        "reason": "HRI market cap: 4358121284.448982"
+      },
+      {
+        "reason": "IMPPP market cap: 53278322.48737864"
+      }
+    ],
+    "createdAt": "2026-06-02T09:10:35.396Z"
+  }
+}

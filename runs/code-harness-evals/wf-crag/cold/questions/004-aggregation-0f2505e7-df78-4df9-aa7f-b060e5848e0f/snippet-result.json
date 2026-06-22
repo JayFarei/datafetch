@@ -1,0 +1,15 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260529131235_vs4zap",
+  "answer": {
+    "status": "answered",
+    "value": 29,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:NDAQ",
+        "reason": "Nasdaq, Inc. operates 29 stock exchanges globally"
+      }
+    ],
+    "createdAt": "2026-05-29T13:12:36.291Z"
+  }
+}

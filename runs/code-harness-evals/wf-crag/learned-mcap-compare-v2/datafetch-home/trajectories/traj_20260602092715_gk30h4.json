@@ -1,0 +1,206 @@
+{
+  "id": "traj_20260602092715_gk30h4",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "Intercontinental Exchange NYSE",
+        "opts": {
+          "limit": 5
+        }
+      },
+      "output": [
+        {
+          "id": "E",
+          "recordKey": "crag-finance:E",
+          "family": "crag-finance",
+          "entity": "E",
+          "label": "ENI S.p.A. Common Stock",
+          "attributes": {
+            "name": "ENI S.p.A. Common Stock",
+            "symbol": "E"
+          }
+        },
+        {
+          "id": "S",
+          "recordKey": "crag-finance:S",
+          "family": "crag-finance",
+          "entity": "S",
+          "label": "SentinelOne Inc. Class A Common Stock",
+          "attributes": {
+            "name": "SentinelOne Inc. Class A Common Stock",
+            "symbol": "S"
+          }
+        },
+        {
+          "id": "SE",
+          "recordKey": "crag-finance:SE",
+          "family": "crag-finance",
+          "entity": "SE",
+          "label": "Sea Limited American Depositary Shares each representing one Class A Ordinary Share",
+          "attributes": {
+            "name": "Sea Limited American Depositary Shares each representing one Class A Ordinary Share",
+            "symbol": "SE"
+          }
+        },
+        {
+          "id": "YS",
+          "recordKey": "crag-finance:YS",
+          "family": "crag-finance",
+          "entity": "YS",
+          "label": "YS Biopharma Co. Ltd. Ordinary Shares",
+          "attributes": {
+            "name": "YS Biopharma Co. Ltd. Ordinary Shares",
+            "symbol": "YS"
+          }
+        },
+        {
+          "id": "ICE",
+          "recordKey": "crag-finance:ICE",
+          "family": "crag-finance",
+          "entity": "ICE",
+          "label": "Intercontinental Exchange Inc. Common Stock",
+          "attributes": {
+            "name": "Intercontinental Exchange Inc. Common Stock",
+            "symbol": "ICE"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:27:15.444Z",
+      "durationMs": 7.054500000027474
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "London Stock Exchange Group",
+        "opts": {
+          "limit": 5
+        }
+      },
+      "output": [
+        {
+          "id": "E",
+          "recordKey": "crag-finance:E",
+          "family": "crag-finance",
+          "entity": "E",
+          "label": "ENI S.p.A. Common Stock",
+          "attributes": {
+            "name": "ENI S.p.A. Common Stock",
+            "symbol": "E"
+          }
+        },
+        {
+          "id": "G",
+          "recordKey": "crag-finance:G",
+          "family": "crag-finance",
+          "entity": "G",
+          "label": "Genpact Limited Common Stock",
+          "attributes": {
+            "name": "Genpact Limited Common Stock",
+            "symbol": "G"
+          }
+        },
+        {
+          "id": "L",
+          "recordKey": "crag-finance:L",
+          "family": "crag-finance",
+          "entity": "L",
+          "label": "Loews Corporation Common Stock",
+          "attributes": {
+            "name": "Loews Corporation Common Stock",
+            "symbol": "L"
+          }
+        },
+        {
+          "id": "S",
+          "recordKey": "crag-finance:S",
+          "family": "crag-finance",
+          "entity": "S",
+          "label": "SentinelOne Inc. Class A Common Stock",
+          "attributes": {
+            "name": "SentinelOne Inc. Class A Common Stock",
+            "symbol": "S"
+          }
+        },
+        {
+          "id": "AAL",
+          "recordKey": "crag-finance:AAL",
+          "family": "crag-finance",
+          "entity": "AAL",
+          "label": "American Airlines Group Inc. Common Stock",
+          "attributes": {
+            "name": "American Airlines Group Inc. Common Stock",
+            "symbol": "AAL"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:27:15.451Z",
+      "durationMs": 7.267041999963112
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "E"
+      },
+      "output": 48070799167,
+      "startedAt": "2026-06-02T09:27:15.459Z",
+      "durationMs": 334.2503339999821
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:27:15.442Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v2/questions/018-post-processing-a2d74fbe-09e2-4d2d-8b78-86ac0bf498b5/workspace\");\n\n// CRAG finance — post-processing question a2d74fbe-09e2-4d2d-8b78-86ac0bf498b5\n//\n// Question (verbatim):\n// how big is the market cap of the new york stock exchange compared to the london stock exchange?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  // NYSE is operated by Intercontinental Exchange (ICE), London Stock Exchange Group (LSEG) is the LSE operator\n  const nyseMatches = await df.db.records.search(\"Intercontinental Exchange NYSE\", { limit: 5 });\n  const lseMatches = await df.db.records.search(\"London Stock Exchange Group\", { limit: 5 });\n\n  const nyseTicker = nyseMatches[0]?.id;\n  const lseTicker = lseMatches[0]?.id;\n\n  if (!nyseTicker || !lseTicker) {\n    return df.answer({ status: \"unsupported\", value: \"i don't know\", evidence: [] });\n  }\n\n  const [nyseMcap, lseMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: nyseTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: lseTicker }),\n  ]);\n\n  const ratio = nyseMcap / lseMcap;\n\n  return df.answer({\n    status: \"answered\",\n    value: `NYSE (Intercontinental Exchange, ${nyseTicker}) market cap: ~$${(nyseMcap / 1e9).toFixed(2)}B; London Stock Exchange Group (${lseTicker}) market cap: ~$${(lseMcap / 1e9).toFixed(2)}B. NYSE operator is roughly ${ratio.toFixed(2)}x the size of LSEG by market cap.`,\n    evidence: [\n      { recordKey: nyseMatches[0]?.recordKey, reason: `NYSE operator ticker ${nyseTicker} mcap ${nyseMcap}` },\n      { recordKey: lseMatches[0]?.recordKey, reason: `LSEG ticker ${lseTicker} mcap ${lseMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "7cb8f2690d15c1d1ad15dfff93424239098ad48e6f4c4dfcb82b155a758860a5",
+  "result": {
+    "status": "answered",
+    "value": "NYSE (Intercontinental Exchange, E) market cap: ~$48.07B; London Stock Exchange Group (E) market cap: ~$48.07B. NYSE operator is roughly 1.00x the size of LSEG by market cap.",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:E",
+        "reason": "NYSE operator ticker E mcap 48070799167"
+      },
+      {
+        "recordKey": "crag-finance:E",
+        "reason": "LSEG ticker E mcap 48070799167"
+      }
+    ],
+    "createdAt": "2026-06-02T09:27:15.793Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "NYSE (Intercontinental Exchange, E) market cap: ~$48.07B; London Stock Exchange Group (E) market cap: ~$48.07B. NYSE operator is roughly 1.00x the size of LSEG by market cap.",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:E",
+        "reason": "NYSE operator ticker E mcap 48070799167"
+      },
+      {
+        "recordKey": "crag-finance:E",
+        "reason": "LSEG ticker E mcap 48070799167"
+      }
+    ],
+    "createdAt": "2026-06-02T09:27:15.793Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 348.5829580000136
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

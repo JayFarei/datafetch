@@ -1,0 +1,1 @@
+[snippet/runtime] substrate-rooted chain gate fired: tool-backed chain absent: trajectory touched df.db.* but contained neither df.lib.* nor df.tool.* calls. Tool-backed episodes must derive outputs through a learned/seed helper or official tool call; db-only placeholder contact is rejected.

@@ -1,0 +1,14 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260529131459_u2txes",
+  "answer": {
+    "status": "answered",
+    "value": "2024-01-02 00:00:00 EST",
+    "evidence": [
+      {
+        "reason": "Asana (A) highest High price in January was 140.58999633789062 on 2024-01-02 00:00:00 EST"
+      }
+    ],
+    "createdAt": "2026-05-29T13:15:00.032Z"
+  }
+}

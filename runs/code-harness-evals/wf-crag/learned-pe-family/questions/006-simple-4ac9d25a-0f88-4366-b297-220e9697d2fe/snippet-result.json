@@ -1,0 +1,15 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602085305_hwylbn",
+  "answer": {
+    "status": "answered",
+    "value": 25.95517,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:L",
+        "reason": "P/E ratio for L"
+      }
+    ],
+    "createdAt": "2026-06-02T08:53:06.310Z"
+  }
+}

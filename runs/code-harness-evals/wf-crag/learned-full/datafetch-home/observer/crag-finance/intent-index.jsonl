@@ -1,0 +1,6 @@
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260529132652_oazzlr","shapeHash":"604ca9dd","templateName":"recordToolLookup","recordedAt":"2026-05-29T13:26:52.479Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260529132711_8iarun","shapeHash":"1d2336d9","templateName":"recordToolLookup","recordedAt":"2026-05-29T13:27:12.004Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260529132754_wd9u0c","shapeHash":"0e9b9b81","templateName":"recordToolLookup","recordedAt":"2026-05-29T13:27:54.714Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260529132813_mka1ed","shapeHash":"604ca9dd","templateName":"recordToolLookup","recordedAt":"2026-05-29T13:28:14.206Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260529132851_vc9t1s","shapeHash":"604ca9dd","templateName":"recordToolLookup","recordedAt":"2026-05-29T13:28:52.065Z"}
+{"intentSignature":"FANOUT(db)→FANOUT(tool)","trajectoryId":"traj_20260529132911_5frqbx","shapeHash":"ce300bdb","templateName":"recordToolLookup","recordedAt":"2026-05-29T13:29:12.328Z"}

@@ -1,0 +1,1405 @@
+{
+  "id": "traj_20260602092746_a0n965",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "Shell",
+        "opts": {
+          "limit": 10
+        }
+      },
+      "output": [
+        {
+          "id": "S",
+          "recordKey": "crag-finance:S",
+          "family": "crag-finance",
+          "entity": "S",
+          "label": "SentinelOne Inc. Class A Common Stock",
+          "attributes": {
+            "name": "SentinelOne Inc. Class A Common Stock",
+            "symbol": "S"
+          }
+        },
+        {
+          "id": "SHEL",
+          "recordKey": "crag-finance:SHEL",
+          "family": "crag-finance",
+          "entity": "SHEL",
+          "label": "Shell PLC American Depositary Shares (each representing two (2) Ordinary Shares)",
+          "attributes": {
+            "name": "Shell PLC American Depositary Shares (each representing two (2) Ordinary Shares)",
+            "symbol": "SHEL"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:27:46.238Z",
+      "durationMs": 3.0593750000116415
+    },
+    {
+      "index": 1,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "SHEL"
+      },
+      "output": 159223835751.42593,
+      "startedAt": "2026-06-02T09:27:46.241Z",
+      "durationMs": 354.1876250000205
+    },
+    {
+      "index": 2,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "energy",
+        "opts": {
+          "limit": 50
+        }
+      },
+      "output": [
+        {
+          "id": "ADSE",
+          "recordKey": "crag-finance:ADSE",
+          "family": "crag-finance",
+          "entity": "ADSE",
+          "label": "ADS-TEC ENERGY PLC Ordinary Shares",
+          "attributes": {
+            "name": "ADS-TEC ENERGY PLC Ordinary Shares",
+            "symbol": "ADSE"
+          }
+        },
+        {
+          "id": "AE",
+          "recordKey": "crag-finance:AE",
+          "family": "crag-finance",
+          "entity": "AE",
+          "label": "Adams Resources & Energy Inc. Common Stock",
+          "attributes": {
+            "name": "Adams Resources & Energy Inc. Common Stock",
+            "symbol": "AE"
+          }
+        },
+        {
+          "id": "AEAE",
+          "recordKey": "crag-finance:AEAE",
+          "family": "crag-finance",
+          "entity": "AEAE",
+          "label": "AltEnergy Acquisition Corp. Class A Common Stock",
+          "attributes": {
+            "name": "AltEnergy Acquisition Corp. Class A Common Stock",
+            "symbol": "AEAE"
+          }
+        },
+        {
+          "id": "AEAEW",
+          "recordKey": "crag-finance:AEAEW",
+          "family": "crag-finance",
+          "entity": "AEAEW",
+          "label": "AltEnergy Acquisition Corp. Warrant",
+          "attributes": {
+            "name": "AltEnergy Acquisition Corp. Warrant",
+            "symbol": "AEAEW"
+          }
+        },
+        {
+          "id": "AEIS",
+          "recordKey": "crag-finance:AEIS",
+          "family": "crag-finance",
+          "entity": "AEIS",
+          "label": "Advanced Energy Industries Inc. Common Stock",
+          "attributes": {
+            "name": "Advanced Energy Industries Inc. Common Stock",
+            "symbol": "AEIS"
+          }
+        },
+        {
+          "id": "AESI",
+          "recordKey": "crag-finance:AESI",
+          "family": "crag-finance",
+          "entity": "AESI",
+          "label": "Atlas Energy Solutions Inc. Common Stock",
+          "attributes": {
+            "name": "Atlas Energy Solutions Inc. Common Stock",
+            "symbol": "AESI"
+          }
+        },
+        {
+          "id": "ALCE",
+          "recordKey": "crag-finance:ALCE",
+          "family": "crag-finance",
+          "entity": "ALCE",
+          "label": "Alternus Clean Energy Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Alternus Clean Energy Inc. Class A Common Stock",
+            "symbol": "ALCE"
+          }
+        },
+        {
+          "id": "AMPY",
+          "recordKey": "crag-finance:AMPY",
+          "family": "crag-finance",
+          "entity": "AMPY",
+          "label": "Amplify Energy Corp. Common Stock",
+          "attributes": {
+            "name": "Amplify Energy Corp. Common Stock",
+            "symbol": "AMPY"
+          }
+        },
+        {
+          "id": "ATO",
+          "recordKey": "crag-finance:ATO",
+          "family": "crag-finance",
+          "entity": "ATO",
+          "label": "Atmos Energy Corporation Common Stock",
+          "attributes": {
+            "name": "Atmos Energy Corporation Common Stock",
+            "symbol": "ATO"
+          }
+        },
+        {
+          "id": "BE",
+          "recordKey": "crag-finance:BE",
+          "family": "crag-finance",
+          "entity": "BE",
+          "label": "Bloom Energy Corporation Class A Common Stock",
+          "attributes": {
+            "name": "Bloom Energy Corporation Class A Common Stock",
+            "symbol": "BE"
+          }
+        },
+        {
+          "id": "BGR",
+          "recordKey": "crag-finance:BGR",
+          "family": "crag-finance",
+          "entity": "BGR",
+          "label": "BlackRock Energy and Resources Trust",
+          "attributes": {
+            "name": "BlackRock Energy and Resources Trust",
+            "symbol": "BGR"
+          }
+        },
+        {
+          "id": "BNRG",
+          "recordKey": "crag-finance:BNRG",
+          "family": "crag-finance",
+          "entity": "BNRG",
+          "label": "Brenmiller Energy Ltd Ordinary Shares",
+          "attributes": {
+            "name": "Brenmiller Energy Ltd Ordinary Shares",
+            "symbol": "BNRG"
+          }
+        },
+        {
+          "id": "BROG",
+          "recordKey": "crag-finance:BROG",
+          "family": "crag-finance",
+          "entity": "BROG",
+          "label": "Brooge Energy Limited Ordinary Shares",
+          "attributes": {
+            "name": "Brooge Energy Limited Ordinary Shares",
+            "symbol": "BROG"
+          }
+        },
+        {
+          "id": "BTE",
+          "recordKey": "crag-finance:BTE",
+          "family": "crag-finance",
+          "entity": "BTE",
+          "label": "Baytex Energy Corp Common Shares",
+          "attributes": {
+            "name": "Baytex Energy Corp Common Shares",
+            "symbol": "BTE"
+          }
+        },
+        {
+          "id": "BTU",
+          "recordKey": "crag-finance:BTU",
+          "family": "crag-finance",
+          "entity": "BTU",
+          "label": "Peabody Energy Corporation Common Stock",
+          "attributes": {
+            "name": "Peabody Energy Corporation Common Stock",
+            "symbol": "BTU"
+          }
+        },
+        {
+          "id": "CBAT",
+          "recordKey": "crag-finance:CBAT",
+          "family": "crag-finance",
+          "entity": "CBAT",
+          "label": "CBAK Energy Technology Inc. Common Stock",
+          "attributes": {
+            "name": "CBAK Energy Technology Inc. Common Stock",
+            "symbol": "CBAT"
+          }
+        },
+        {
+          "id": "CEG",
+          "recordKey": "crag-finance:CEG",
+          "family": "crag-finance",
+          "entity": "CEG",
+          "label": "Constellation Energy Corporation Common Stock",
+          "attributes": {
+            "name": "Constellation Energy Corporation Common Stock",
+            "symbol": "CEG"
+          }
+        },
+        {
+          "id": "CEI",
+          "recordKey": "crag-finance:CEI",
+          "family": "crag-finance",
+          "entity": "CEI",
+          "label": "Camber Energy Inc. Common Stock",
+          "attributes": {
+            "name": "Camber Energy Inc. Common Stock",
+            "symbol": "CEI"
+          }
+        },
+        {
+          "id": "CEIX",
+          "recordKey": "crag-finance:CEIX",
+          "family": "crag-finance",
+          "entity": "CEIX",
+          "label": "CONSOL Energy Inc. Common Stock",
+          "attributes": {
+            "name": "CONSOL Energy Inc. Common Stock",
+            "symbol": "CEIX"
+          }
+        },
+        {
+          "id": "CETY",
+          "recordKey": "crag-finance:CETY",
+          "family": "crag-finance",
+          "entity": "CETY",
+          "label": "Clean Energy Technologies Inc. Common Stock",
+          "attributes": {
+            "name": "Clean Energy Technologies Inc. Common Stock",
+            "symbol": "CETY"
+          }
+        },
+        {
+          "id": "CHK",
+          "recordKey": "crag-finance:CHK",
+          "family": "crag-finance",
+          "entity": "CHK",
+          "label": "Chesapeake Energy Corporation Common Stock",
+          "attributes": {
+            "name": "Chesapeake Energy Corporation Common Stock",
+            "symbol": "CHK"
+          }
+        },
+        {
+          "id": "CHKEL",
+          "recordKey": "crag-finance:CHKEL",
+          "family": "crag-finance",
+          "entity": "CHKEL",
+          "label": "Chesapeake Energy Corporation Class C Warrants",
+          "attributes": {
+            "name": "Chesapeake Energy Corporation Class C Warrants",
+            "symbol": "CHKEL"
+          }
+        },
+        {
+          "id": "CHKEW",
+          "recordKey": "crag-finance:CHKEW",
+          "family": "crag-finance",
+          "entity": "CHKEW",
+          "label": "Chesapeake Energy Corporation Class A Warrants",
+          "attributes": {
+            "name": "Chesapeake Energy Corporation Class A Warrants",
+            "symbol": "CHKEW"
+          }
+        },
+        {
+          "id": "CHKEZ",
+          "recordKey": "crag-finance:CHKEZ",
+          "family": "crag-finance",
+          "entity": "CHKEZ",
+          "label": "Chesapeake Energy Corporation Class B Warrants",
+          "attributes": {
+            "name": "Chesapeake Energy Corporation Class B Warrants",
+            "symbol": "CHKEZ"
+          }
+        },
+        {
+          "id": "CHRD",
+          "recordKey": "crag-finance:CHRD",
+          "family": "crag-finance",
+          "entity": "CHRD",
+          "label": "Chord Energy Corporation Common Stock",
+          "attributes": {
+            "name": "Chord Energy Corporation Common Stock",
+            "symbol": "CHRD"
+          }
+        },
+        {
+          "id": "CLNE",
+          "recordKey": "crag-finance:CLNE",
+          "family": "crag-finance",
+          "entity": "CLNE",
+          "label": "Clean Energy Fuels Corp. Common Stock",
+          "attributes": {
+            "name": "Clean Energy Fuels Corp. Common Stock",
+            "symbol": "CLNE"
+          }
+        },
+        {
+          "id": "CMS",
+          "recordKey": "crag-finance:CMS",
+          "family": "crag-finance",
+          "entity": "CMS",
+          "label": "CMS Energy Corporation Common Stock",
+          "attributes": {
+            "name": "CMS Energy Corporation Common Stock",
+            "symbol": "CMS"
+          }
+        },
+        {
+          "id": "CMS^B",
+          "recordKey": "crag-finance:CMS^B",
+          "family": "crag-finance",
+          "entity": "CMS^B",
+          "label": "CMS Energy Corporation Preferred Stock",
+          "attributes": {
+            "name": "CMS Energy Corporation Preferred Stock",
+            "symbol": "CMS^B"
+          }
+        },
+        {
+          "id": "CMS^C",
+          "recordKey": "crag-finance:CMS^C",
+          "family": "crag-finance",
+          "entity": "CMS^C",
+          "label": "CMS Energy Corporation Depositary Shares each representing a 1/1000th interest in a share of 4.200% Cumulative Redeemable Perpetual Preferred Stock Series C",
+          "attributes": {
+            "name": "CMS Energy Corporation Depositary Shares each representing a 1/1000th interest in a share of 4.200% Cumulative Redeemable Perpetual Preferred Stock Series C",
+            "symbol": "CMS^C"
+          }
+        },
+        {
+          "id": "CMSA",
+          "recordKey": "crag-finance:CMSA",
+          "family": "crag-finance",
+          "entity": "CMSA",
+          "label": "CMS Energy Corporation 5.625% Junior Subordinated Notes due 2078",
+          "attributes": {
+            "name": "CMS Energy Corporation 5.625% Junior Subordinated Notes due 2078",
+            "symbol": "CMSA"
+          }
+        },
+        {
+          "id": "CMSC",
+          "recordKey": "crag-finance:CMSC",
+          "family": "crag-finance",
+          "entity": "CMSC",
+          "label": "CMS Energy Corporation 5.875% Junior Subordinated Notes due 2078",
+          "attributes": {
+            "name": "CMS Energy Corporation 5.875% Junior Subordinated Notes due 2078",
+            "symbol": "CMSC"
+          }
+        },
+        {
+          "id": "CMSD",
+          "recordKey": "crag-finance:CMSD",
+          "family": "crag-finance",
+          "entity": "CMSD",
+          "label": "CMS Energy Corporation 5.875% Junior Subordinated Notes due 2079",
+          "attributes": {
+            "name": "CMS Energy Corporation 5.875% Junior Subordinated Notes due 2079",
+            "symbol": "CMSD"
+          }
+        },
+        {
+          "id": "CNEY",
+          "recordKey": "crag-finance:CNEY",
+          "family": "crag-finance",
+          "entity": "CNEY",
+          "label": "CN Energy Group Inc. Class A Ordinary Shares",
+          "attributes": {
+            "name": "CN Energy Group Inc. Class A Ordinary Shares",
+            "symbol": "CNEY"
+          }
+        },
+        {
+          "id": "CNP",
+          "recordKey": "crag-finance:CNP",
+          "family": "crag-finance",
+          "entity": "CNP",
+          "label": "CenterPoint Energy Inc (Holding Co) Common Stock",
+          "attributes": {
+            "name": "CenterPoint Energy Inc (Holding Co) Common Stock",
+            "symbol": "CNP"
+          }
+        },
+        {
+          "id": "CPG",
+          "recordKey": "crag-finance:CPG",
+          "family": "crag-finance",
+          "entity": "CPG",
+          "label": "Crescent Point Energy Corporation Ordinary Shares (Canada)",
+          "attributes": {
+            "name": "Crescent Point Energy Corporation Ordinary Shares (Canada)",
+            "symbol": "CPG"
+          }
+        },
+        {
+          "id": "CQP",
+          "recordKey": "crag-finance:CQP",
+          "family": "crag-finance",
+          "entity": "CQP",
+          "label": "Cheniere Energy Partners LP Common Units",
+          "attributes": {
+            "name": "Cheniere Energy Partners LP Common Units",
+            "symbol": "CQP"
+          }
+        },
+        {
+          "id": "CRGY",
+          "recordKey": "crag-finance:CRGY",
+          "family": "crag-finance",
+          "entity": "CRGY",
+          "label": "Crescent Energy Company Class A Common Stock",
+          "attributes": {
+            "name": "Crescent Energy Company Class A Common Stock",
+            "symbol": "CRGY"
+          }
+        },
+        {
+          "id": "CTRA",
+          "recordKey": "crag-finance:CTRA",
+          "family": "crag-finance",
+          "entity": "CTRA",
+          "label": "Coterra Energy Inc. Common Stock",
+          "attributes": {
+            "name": "Coterra Energy Inc. Common Stock",
+            "symbol": "CTRA"
+          }
+        },
+        {
+          "id": "CVE",
+          "recordKey": "crag-finance:CVE",
+          "family": "crag-finance",
+          "entity": "CVE",
+          "label": "Cenovus Energy Inc Common Stock",
+          "attributes": {
+            "name": "Cenovus Energy Inc Common Stock",
+            "symbol": "CVE"
+          }
+        },
+        {
+          "id": "CVI",
+          "recordKey": "crag-finance:CVI",
+          "family": "crag-finance",
+          "entity": "CVI",
+          "label": "CVR Energy Inc. Common Stock",
+          "attributes": {
+            "name": "CVR Energy Inc. Common Stock",
+            "symbol": "CVI"
+          }
+        },
+        {
+          "id": "CWEN",
+          "recordKey": "crag-finance:CWEN",
+          "family": "crag-finance",
+          "entity": "CWEN",
+          "label": "Clearway Energy Inc. Class C Common Stock",
+          "attributes": {
+            "name": "Clearway Energy Inc. Class C Common Stock",
+            "symbol": "CWEN"
+          }
+        },
+        {
+          "id": "D",
+          "recordKey": "crag-finance:D",
+          "family": "crag-finance",
+          "entity": "D",
+          "label": "Dominion Energy Inc. Common Stock",
+          "attributes": {
+            "name": "Dominion Energy Inc. Common Stock",
+            "symbol": "D"
+          }
+        },
+        {
+          "id": "DEC",
+          "recordKey": "crag-finance:DEC",
+          "family": "crag-finance",
+          "entity": "DEC",
+          "label": "Diversified Energy Company plc Ordinary Shares",
+          "attributes": {
+            "name": "Diversified Energy Company plc Ordinary Shares",
+            "symbol": "DEC"
+          }
+        },
+        {
+          "id": "DFLI",
+          "recordKey": "crag-finance:DFLI",
+          "family": "crag-finance",
+          "entity": "DFLI",
+          "label": "Dragonfly Energy Holdings Corp. Common Stock (NV)",
+          "attributes": {
+            "name": "Dragonfly Energy Holdings Corp. Common Stock (NV)",
+            "symbol": "DFLI"
+          }
+        },
+        {
+          "id": "DFLIW",
+          "recordKey": "crag-finance:DFLIW",
+          "family": "crag-finance",
+          "entity": "DFLIW",
+          "label": "Dragonfly Energy Holdings Corp. Warrant",
+          "attributes": {
+            "name": "Dragonfly Energy Holdings Corp. Warrant",
+            "symbol": "DFLIW"
+          }
+        },
+        {
+          "id": "DQ",
+          "recordKey": "crag-finance:DQ",
+          "family": "crag-finance",
+          "entity": "DQ",
+          "label": "DAQO New Energy Corp. American Depositary Shares each representing five ordinary shares",
+          "attributes": {
+            "name": "DAQO New Energy Corp. American Depositary Shares each representing five ordinary shares",
+            "symbol": "DQ"
+          }
+        },
+        {
+          "id": "DTB",
+          "recordKey": "crag-finance:DTB",
+          "family": "crag-finance",
+          "entity": "DTB",
+          "label": "DTE Energy Company 2020 Series G 4.375% Junior Subordinated Debentures due 2080",
+          "attributes": {
+            "name": "DTE Energy Company 2020 Series G 4.375% Junior Subordinated Debentures due 2080",
+            "symbol": "DTB"
+          }
+        },
+        {
+          "id": "DTE",
+          "recordKey": "crag-finance:DTE",
+          "family": "crag-finance",
+          "entity": "DTE",
+          "label": "DTE Energy Company Common Stock",
+          "attributes": {
+            "name": "DTE Energy Company Common Stock",
+            "symbol": "DTE"
+          }
+        },
+        {
+          "id": "DTG",
+          "recordKey": "crag-finance:DTG",
+          "family": "crag-finance",
+          "entity": "DTG",
+          "label": "DTE Energy Company 2021 Series E 4.375% Junior Subordinated Debentures",
+          "attributes": {
+            "name": "DTE Energy Company 2021 Series E 4.375% Junior Subordinated Debentures",
+            "symbol": "DTG"
+          }
+        },
+        {
+          "id": "DTW",
+          "recordKey": "crag-finance:DTW",
+          "family": "crag-finance",
+          "entity": "DTW",
+          "label": "DTE Energy Company 2017 Series E 5.25% Junior Subordinated Debentures due 2077",
+          "attributes": {
+            "name": "DTE Energy Company 2017 Series E 5.25% Junior Subordinated Debentures due 2077",
+            "symbol": "DTW"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:27:46.595Z",
+      "durationMs": 3.0407080000150017
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "ADSE"
+      },
+      "output": 489180926.73267335,
+      "startedAt": "2026-06-02T09:27:46.598Z",
+      "durationMs": 362.1134590000147
+    },
+    {
+      "index": 4,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "AE"
+      },
+      "output": 66805874.94074361,
+      "startedAt": "2026-06-02T09:27:46.960Z",
+      "durationMs": 358.6294999999809
+    },
+    {
+      "index": 5,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "AEAE"
+      },
+      "output": 81304233,
+      "startedAt": "2026-06-02T09:27:47.319Z",
+      "durationMs": 338.27029200003017
+    },
+    {
+      "index": 6,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "AEAEW"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T09:27:47.657Z",
+      "durationMs": 294.09225000004517
+    },
+    {
+      "index": 7,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "AEIS"
+      },
+      "output": 3669774639.426085,
+      "startedAt": "2026-06-02T09:27:47.951Z",
+      "durationMs": 370.5647909999825
+    },
+    {
+      "index": 8,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "AESI"
+      },
+      "output": 2821487162.4033318,
+      "startedAt": "2026-06-02T09:27:48.322Z",
+      "durationMs": 340.2729169999948
+    },
+    {
+      "index": 9,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "ALCE"
+      },
+      "output": 28681336.76092545,
+      "startedAt": "2026-06-02T09:27:48.662Z",
+      "durationMs": 340.2661669999943
+    },
+    {
+      "index": 10,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "AMPY"
+      },
+      "output": 240835667.9934959,
+      "startedAt": "2026-06-02T09:27:49.003Z",
+      "durationMs": 363.23924999998417
+    },
+    {
+      "index": 11,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "ATO"
+      },
+      "output": 16976254574.571714,
+      "startedAt": "2026-06-02T09:27:49.366Z",
+      "durationMs": 378.5036250000121
+    },
+    {
+      "index": 12,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BE"
+      },
+      "output": 2084375974.2961369,
+      "startedAt": "2026-06-02T09:27:49.744Z",
+      "durationMs": 384.0804159999825
+    },
+    {
+      "index": 13,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BGR"
+      },
+      "output": 342560000,
+      "startedAt": "2026-06-02T09:27:50.128Z",
+      "durationMs": 344.3757500000065
+    },
+    {
+      "index": 14,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BNRG"
+      },
+      "output": 8868031,
+      "startedAt": "2026-06-02T09:27:50.473Z",
+      "durationMs": 352.7529579999973
+    },
+    {
+      "index": 15,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BROG"
+      },
+      "output": 250020117.99999997,
+      "startedAt": "2026-06-02T09:27:50.826Z",
+      "durationMs": 341.16125000000466
+    },
+    {
+      "index": 16,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BTE"
+      },
+      "output": 3998742132,
+      "startedAt": "2026-06-02T09:27:51.167Z",
+      "durationMs": 376.1467499999562
+    },
+    {
+      "index": 17,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BTU"
+      },
+      "output": 3212296478.782383,
+      "startedAt": "2026-06-02T09:27:51.543Z",
+      "durationMs": 350.5720830000355
+    },
+    {
+      "index": 18,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CBAT"
+      },
+      "output": 87706396.4855533,
+      "startedAt": "2026-06-02T09:27:51.894Z",
+      "durationMs": 367.2289580000215
+    },
+    {
+      "index": 19,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CEG"
+      },
+      "output": 50644351742.55958,
+      "startedAt": "2026-06-02T09:27:52.261Z",
+      "durationMs": 362.28504200000316
+    },
+    {
+      "index": 20,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CEI"
+      },
+      "output": 23441812,
+      "startedAt": "2026-06-02T09:27:52.623Z",
+      "durationMs": 358.8334999999497
+    },
+    {
+      "index": 21,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CEIX"
+      },
+      "output": 2490983113.0833936,
+      "startedAt": "2026-06-02T09:27:52.982Z",
+      "durationMs": 346.66399999998976
+    },
+    {
+      "index": 22,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CETY"
+      },
+      "output": 26051976.2374584,
+      "startedAt": "2026-06-02T09:27:53.329Z",
+      "durationMs": 351.212583000015
+    },
+    {
+      "index": 23,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CHK"
+      },
+      "output": 10717323715,
+      "startedAt": "2026-06-02T09:27:53.680Z",
+      "durationMs": 362.56729099998483
+    },
+    {
+      "index": 24,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CHKEL"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T09:27:54.043Z",
+      "durationMs": 373.6293750000186
+    },
+    {
+      "index": 25,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CHKEW"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T09:27:54.416Z",
+      "durationMs": 381.62087499996414
+    },
+    {
+      "index": 26,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CHKEZ"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T09:27:54.798Z",
+      "durationMs": 350.90154099999927
+    },
+    {
+      "index": 27,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CHRD"
+      },
+      "output": 6709247952.278812,
+      "startedAt": "2026-06-02T09:27:55.149Z",
+      "durationMs": 375.04750000004424
+    },
+    {
+      "index": 28,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CLNE"
+      },
+      "output": 680219986.4638158,
+      "startedAt": "2026-06-02T09:27:55.524Z",
+      "durationMs": 376.6232500000042
+    },
+    {
+      "index": 29,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CMS"
+      },
+      "output": 16880454077.999998,
+      "startedAt": "2026-06-02T09:27:55.901Z",
+      "durationMs": 349.97916600003373
+    },
+    {
+      "index": 30,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CMS^B"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T09:27:56.251Z",
+      "durationMs": 360.54200000001583
+    },
+    {
+      "index": 31,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CMS^C"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T09:27:56.611Z",
+      "durationMs": 341.50566600001184
+    },
+    {
+      "index": 32,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CMSA"
+      },
+      "output": 16948176115.989536,
+      "startedAt": "2026-06-02T09:27:56.953Z",
+      "durationMs": 358.7455840000184
+    },
+    {
+      "index": 33,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CMSC"
+      },
+      "output": 16930509497.38357,
+      "startedAt": "2026-06-02T09:27:57.312Z",
+      "durationMs": 350.81750000000466
+    },
+    {
+      "index": 34,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CMSD"
+      },
+      "output": 16930509497.38357,
+      "startedAt": "2026-06-02T09:27:57.662Z",
+      "durationMs": 370.44670800003223
+    },
+    {
+      "index": 35,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CNEY"
+      },
+      "output": 7060557.06122449,
+      "startedAt": "2026-06-02T09:27:58.033Z",
+      "durationMs": 368.85933400003705
+    },
+    {
+      "index": 36,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CNP"
+      },
+      "output": 17450960367.863655,
+      "startedAt": "2026-06-02T09:27:58.402Z",
+      "durationMs": 419.90795799996704
+    },
+    {
+      "index": 37,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CPG"
+      },
+      "output": 6046176516,
+      "startedAt": "2026-06-02T09:27:58.822Z",
+      "durationMs": 358.91700000001583
+    },
+    {
+      "index": 38,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CQP"
+      },
+      "output": 24274637776,
+      "startedAt": "2026-06-02T09:27:59.181Z",
+      "durationMs": 361.3556249999674
+    },
+    {
+      "index": 39,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CRGY"
+      },
+      "output": 1972632890,
+      "startedAt": "2026-06-02T09:27:59.542Z",
+      "durationMs": 455.0620840000338
+    },
+    {
+      "index": 40,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CTRA"
+      },
+      "output": 19532995422,
+      "startedAt": "2026-06-02T09:27:59.997Z",
+      "durationMs": 359.5403750000405
+    },
+    {
+      "index": 41,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CVE"
+      },
+      "output": 44438164276,
+      "startedAt": "2026-06-02T09:28:00.357Z",
+      "durationMs": 369.60987500002375
+    },
+    {
+      "index": 42,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CVI"
+      },
+      "output": 3263223295.3386955,
+      "startedAt": "2026-06-02T09:28:00.726Z",
+      "durationMs": 348.7170840000035
+    },
+    {
+      "index": 43,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CWEN"
+      },
+      "output": 4420647009.417868,
+      "startedAt": "2026-06-02T09:28:01.075Z",
+      "durationMs": 354.50720900000306
+    },
+    {
+      "index": 44,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "D"
+      },
+      "output": 40373139243.40176,
+      "startedAt": "2026-06-02T09:28:01.430Z",
+      "durationMs": 365.50741700001527
+    },
+    {
+      "index": 45,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "DEC"
+      },
+      "output": 475874799.3185697,
+      "startedAt": "2026-06-02T09:28:01.795Z",
+      "durationMs": 353.92291699995985
+    },
+    {
+      "index": 46,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "DFLI"
+      },
+      "output": 34402505.47736775,
+      "startedAt": "2026-06-02T09:28:02.149Z",
+      "durationMs": 388.5938749999623
+    },
+    {
+      "index": 47,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "DFLIW"
+      },
+      "output": null,
+      "startedAt": "2026-06-02T09:28:02.538Z",
+      "durationMs": 381.91479199996684
+    },
+    {
+      "index": 48,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "DQ"
+      },
+      "output": 1461355115,
+      "startedAt": "2026-06-02T09:28:02.920Z",
+      "durationMs": 370.4956249999814
+    },
+    {
+      "index": 49,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "DTB"
+      },
+      "output": 22263890570.509644,
+      "startedAt": "2026-06-02T09:28:03.290Z",
+      "durationMs": 364.62779200001387
+    },
+    {
+      "index": 50,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "DTE"
+      },
+      "output": 22278342279.89332,
+      "startedAt": "2026-06-02T09:28:03.655Z",
+      "durationMs": 366.20679099997506
+    },
+    {
+      "index": 51,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "DTG"
+      },
+      "output": 22278342279.89332,
+      "startedAt": "2026-06-02T09:28:04.021Z",
+      "durationMs": 376.92541599995457
+    },
+    {
+      "index": 52,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "DTW"
+      },
+      "output": 22263890570.509644,
+      "startedAt": "2026-06-02T09:28:04.398Z",
+      "durationMs": 363.60766600002535
+    },
+    {
+      "index": 53,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "oil",
+        "opts": {
+          "limit": 30
+        }
+      },
+      "output": [
+        {
+          "id": "BATL",
+          "recordKey": "crag-finance:BATL",
+          "family": "crag-finance",
+          "entity": "BATL",
+          "label": "Battalion Oil Corporation Common Stock",
+          "attributes": {
+            "name": "Battalion Oil Corporation Common Stock",
+            "symbol": "BATL"
+          }
+        },
+        {
+          "id": "IMO",
+          "recordKey": "crag-finance:IMO",
+          "family": "crag-finance",
+          "entity": "IMO",
+          "label": "Imperial Oil Limited Common Stock",
+          "attributes": {
+            "name": "Imperial Oil Limited Common Stock",
+            "symbol": "IMO"
+          }
+        },
+        {
+          "id": "MGY",
+          "recordKey": "crag-finance:MGY",
+          "family": "crag-finance",
+          "entity": "MGY",
+          "label": "Magnolia Oil & Gas Corporation Class A Common Stock",
+          "attributes": {
+            "name": "Magnolia Oil & Gas Corporation Class A Common Stock",
+            "symbol": "MGY"
+          }
+        },
+        {
+          "id": "MRO",
+          "recordKey": "crag-finance:MRO",
+          "family": "crag-finance",
+          "entity": "MRO",
+          "label": "Marathon Oil Corporation Common Stock",
+          "attributes": {
+            "name": "Marathon Oil Corporation Common Stock",
+            "symbol": "MRO"
+          }
+        },
+        {
+          "id": "MUR",
+          "recordKey": "crag-finance:MUR",
+          "family": "crag-finance",
+          "entity": "MUR",
+          "label": "Murphy Oil Corporation Common Stock",
+          "attributes": {
+            "name": "Murphy Oil Corporation Common Stock",
+            "symbol": "MUR"
+          }
+        },
+        {
+          "id": "MVO",
+          "recordKey": "crag-finance:MVO",
+          "family": "crag-finance",
+          "entity": "MVO",
+          "label": "MV Oil Trust Units of Beneficial Interests",
+          "attributes": {
+            "name": "MV Oil Trust Units of Beneficial Interests",
+            "symbol": "MVO"
+          }
+        },
+        {
+          "id": "NOG",
+          "recordKey": "crag-finance:NOG",
+          "family": "crag-finance",
+          "entity": "NOG",
+          "label": "Northern Oil and Gas Inc. Common Stock",
+          "attributes": {
+            "name": "Northern Oil and Gas Inc. Common Stock",
+            "symbol": "NOG"
+          }
+        },
+        {
+          "id": "NRT",
+          "recordKey": "crag-finance:NRT",
+          "family": "crag-finance",
+          "entity": "NRT",
+          "label": "North European Oil Royality Trust Common Stock",
+          "attributes": {
+            "name": "North European Oil Royality Trust Common Stock",
+            "symbol": "NRT"
+          }
+        },
+        {
+          "id": "ODC",
+          "recordKey": "crag-finance:ODC",
+          "family": "crag-finance",
+          "entity": "ODC",
+          "label": "Oil-Dri Corporation Of America Common Stock",
+          "attributes": {
+            "name": "Oil-Dri Corporation Of America Common Stock",
+            "symbol": "ODC"
+          }
+        },
+        {
+          "id": "OIS",
+          "recordKey": "crag-finance:OIS",
+          "family": "crag-finance",
+          "entity": "OIS",
+          "label": "Oil States International Inc. Common Stock",
+          "attributes": {
+            "name": "Oil States International Inc. Common Stock",
+            "symbol": "OIS"
+          }
+        },
+        {
+          "id": "SOI",
+          "recordKey": "crag-finance:SOI",
+          "family": "crag-finance",
+          "entity": "SOI",
+          "label": "Solaris Oilfield Infrastructure Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Solaris Oilfield Infrastructure Inc. Class A Common Stock",
+            "symbol": "SOI"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:28:04.762Z",
+      "durationMs": 3.345625000016298
+    },
+    {
+      "index": 54,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "BATL"
+      },
+      "output": 97258278.76897135,
+      "startedAt": "2026-06-02T09:28:04.765Z",
+      "durationMs": 380.78945800004294
+    },
+    {
+      "index": 55,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "IMO"
+      },
+      "output": 45717594929,
+      "startedAt": "2026-06-02T09:28:05.146Z",
+      "durationMs": 402.6555000000517
+    },
+    {
+      "index": 56,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MGY"
+      },
+      "output": 4556401496.225305,
+      "startedAt": "2026-06-02T09:28:05.549Z",
+      "durationMs": 454.14983300003223
+    },
+    {
+      "index": 57,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MRO"
+      },
+      "output": 14054756920.568136,
+      "startedAt": "2026-06-02T09:28:06.003Z",
+      "durationMs": 350.97950000001583
+    },
+    {
+      "index": 58,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MUR"
+      },
+      "output": 6119366928,
+      "startedAt": "2026-06-02T09:28:06.354Z",
+      "durationMs": 360.93412500002887
+    },
+    {
+      "index": 59,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MVO"
+      },
+      "output": 125470000,
+      "startedAt": "2026-06-02T09:28:06.715Z",
+      "durationMs": 360.93841599998996
+    },
+    {
+      "index": 60,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "NOG"
+      },
+      "output": 3559812423.6427145,
+      "startedAt": "2026-06-02T09:28:07.076Z",
+      "durationMs": 350.0332499999786
+    },
+    {
+      "index": 61,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "NRT"
+      },
+      "output": 50820000,
+      "startedAt": "2026-06-02T09:28:07.426Z",
+      "durationMs": 384.02545800001826
+    },
+    {
+      "index": 62,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "ODC"
+      },
+      "output": 476398490.4522835,
+      "startedAt": "2026-06-02T09:28:07.810Z",
+      "durationMs": 363.43466600001557
+    },
+    {
+      "index": 63,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "OIS"
+      },
+      "output": 355582550.7975544,
+      "startedAt": "2026-06-02T09:28:08.173Z",
+      "durationMs": 367.64937500003725
+    },
+    {
+      "index": 64,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "SOI"
+      },
+      "output": 370399592,
+      "startedAt": "2026-06-02T09:28:08.541Z",
+      "durationMs": 413.3359160000109
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:27:46.235Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v2/questions/019-set-4599a9a2-f9b9-418c-959f-84c39afc9e26/workspace\");\n\n// CRAG finance — set question 4599a9a2-f9b9-418c-959f-84c39afc9e26\n//\n// Question (verbatim):\n// what energy stocks has higher market cap than shell company in the whole world\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  // Find Shell company\n  const shellMatches = await df.db.records.search(\"Shell\", { limit: 10 });\n  const shellRecord = shellMatches.find(r =>\n    r.label.toLowerCase().includes(\"shell\") &&\n    (r.label.toLowerCase().includes(\"shell plc\") || r.label.toLowerCase().includes(\"royal dutch\") || r.id === \"SHEL\")\n  ) || shellMatches[0];\n\n  const shellTicker = shellRecord?.id;\n  if (!shellTicker) {\n    return df.answer({ status: \"unsupported\", value: \"i don't know\", evidence: [] });\n  }\n\n  const shellMcap = await df.tool.cragFinance.get_market_capitalization({ ticker: shellTicker });\n\n  // Search for energy companies\n  const energyMatches = await df.db.records.search(\"energy\", { limit: 50 });\n\n  // Get market caps for all energy companies\n  const results: Array<{ name: string; ticker: string; mcap: number }> = [];\n\n  for (const record of energyMatches) {\n    if (record.id === shellTicker) continue;\n    try {\n      const mcap = await df.tool.cragFinance.get_market_capitalization({ ticker: record.id });\n      if (mcap > shellMcap) {\n        results.push({ name: record.label, ticker: record.id, mcap });\n      }\n    } catch {\n      // skip\n    }\n  }\n\n  // Also search for oil companies\n  const oilMatches = await df.db.records.search(\"oil\", { limit: 30 });\n  for (const record of oilMatches) {\n    if (record.id === shellTicker) continue;\n    if (results.find(r => r.ticker === record.id)) continue;\n    try {\n      const mcap = await df.tool.cragFinance.get_market_capitalization({ ticker: record.id });\n      if (mcap > shellMcap) {\n        results.push({ name: record.label, ticker: record.id, mcap });\n      }\n    } catch {\n      // skip\n    }\n  }\n\n  // Sort by mcap descending\n  results.sort((a, b) => b.mcap - a.mcap);\n\n  const answer = results.map(r => `${r.name} (${r.ticker})`);\n\n  return df.answer({\n    status: \"answered\",\n    value: answer.length > 0 ? answer : \"none found\",\n    evidence: [\n      { recordKey: shellRecord.recordKey, reason: `Shell market cap: ${shellMcap}` },\n      ...results.map(r => ({ reason: `${r.name} (${r.ticker}): ${r.mcap}` })),\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "13dea2dd7e62e3fc0cb749723312eee35d056090c95f68bebd57830c186cf2a9",
+  "result": {
+    "status": "answered",
+    "value": "none found",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:SHEL",
+        "reason": "Shell market cap: 159223835751.42593"
+      }
+    ],
+    "createdAt": "2026-06-02T09:28:08.954Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "none found",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:SHEL",
+        "reason": "Shell market cap: 159223835751.42593"
+      }
+    ],
+    "createdAt": "2026-06-02T09:28:08.954Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 22715.098045999883
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

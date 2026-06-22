@@ -1,0 +1,15 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260529132731_ny4gdg",
+  "answer": {
+    "status": "answered",
+    "value": "2024-01-02 00:00:00 EST",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:A",
+        "reason": "Highest High price in Jan 2024 was 140.58999633789062 on 2024-01-02 00:00:00 EST"
+      }
+    ],
+    "createdAt": "2026-05-29T13:27:31.480Z"
+  }
+}

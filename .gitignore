@@ -19,6 +19,12 @@ data/
 eval/skillcraft/results/
 eval/finchain/results/
 eval/productFlow/results/
+eval/crag/results/
+# CRAG Task-3 vendor data (mock KG + mock-API server) pulled from
+# facebookresearch/CRAG; large/LFS, never committed.
+eval/crag/vendor/
+# CRAG-derived question slices (CC BY-NC; regenerable from HF Quivr/CRAG).
+eval/crag/finance_*.json
 
 # Goal-local raw probe workspaces are generated eval evidence; keep the
 # curated summaries under runs/code-harness-evals/*.md tracked instead.
@@ -65,3 +71,8 @@ runs/code-harness-evals/probes/
 /*_report.json
 /*_test.json
 /scripts/answer.ts
+
+# tau2-bench vendor (Sierra, MIT) - cloned, not committed
+eval/tau2/vendor/
+eval/tau2/results/
+eval/tau2/data/

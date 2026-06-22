@@ -1,0 +1,15 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602084244_iifb72",
+  "answer": {
+    "status": "answered",
+    "value": 10.481818,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:G",
+        "reason": "P/E ratio for G"
+      }
+    ],
+    "createdAt": "2026-06-02T08:42:44.658Z"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602085915_y73qfw",
+  "answer": {
+    "status": "answered",
+    "value": null,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:HAIA",
+        "reason": "P/E ratio for HAIA"
+      }
+    ],
+    "createdAt": "2026-06-02T08:59:16.534Z",
+    "qualityWarnings": [
+      {
+        "code": "low_quality_output",
+        "message": "Output has 1 placeholder field(s) (Unknown / None / null / N/A / \"\") and 0 zero numeric field(s) out of 1 total. The agent's extraction logic likely didn't match the actual data shape — probe the tool response with `pnpm datafetch:run` and fix before committing.",
+        "totalFields": 1,
+        "placeholderFields": 1,
+        "zeroNumericFields": 0,
+        "examples": [
+          "value=null"
+        ]
+      }
+    ]
+  }
+}

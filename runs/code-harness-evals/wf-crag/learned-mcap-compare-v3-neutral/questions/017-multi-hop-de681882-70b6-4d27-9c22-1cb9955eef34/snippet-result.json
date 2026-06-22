@@ -1,0 +1,14 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602104658_u26rmy",
+  "answer": {
+    "status": "answered",
+    "value": "Microsoft",
+    "evidence": [
+      {
+        "reason": "MSFT had the highest market cap: 3027754157239"
+      }
+    ],
+    "createdAt": "2026-06-02T10:47:10.191Z"
+  }
+}

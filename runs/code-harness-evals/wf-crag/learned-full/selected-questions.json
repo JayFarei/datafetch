@@ -1,0 +1,98 @@
+[
+  {
+    "interaction_id": "040b8c87-7da9-4a93-92d4-54702d3fe327",
+    "question_type": "aggregation",
+    "answer_type": "valid",
+    "query": "what is the market share of microsoft in the cloud computing industry compared to its competitors?"
+  },
+  {
+    "interaction_id": "0a16bc7e-c5de-4bd4-a6e1-ed091eec92a8",
+    "question_type": "aggregation",
+    "answer_type": "valid",
+    "query": "how many stock holdings in spy that has over 5% weightage"
+  },
+  {
+    "interaction_id": "0b2d62b4-cc68-4fbc-8f57-f9891df3751f",
+    "question_type": "aggregation",
+    "answer_type": "valid",
+    "query": "how many days did dhcni close higher this week?"
+  },
+  {
+    "interaction_id": "0cc26310-086b-4c6f-a168-8c2a0f9fd8b4",
+    "question_type": "aggregation",
+    "answer_type": "valid",
+    "query": "wavsw average closing price last week?"
+  },
+  {
+    "interaction_id": "0f2505e7-df78-4df9-aa7f-b060e5848e0f",
+    "question_type": "aggregation",
+    "answer_type": "valid",
+    "query": "how many stock exchanges are operated by nasdaq, inc?"
+  },
+  {
+    "interaction_id": "1c8c76bd-4626-4fb2-bd27-64fdc8a59347",
+    "question_type": "aggregation",
+    "answer_type": "valid",
+    "query": "blmn average closing price last week?"
+  },
+  {
+    "interaction_id": "1dfba3a3-4fc6-4399-ac24-3f60bf1f6eee",
+    "question_type": "aggregation",
+    "answer_type": "valid",
+    "query": "how many billion tonnes of carbon dioxide equivalent did the top 3 state-owned companies emit from 1965 to 2017?"
+  },
+  {
+    "interaction_id": "26c66de1-e750-49b4-8c4b-c03a05e1e41d",
+    "question_type": "aggregation",
+    "answer_type": "valid",
+    "query": "can you tell me the number of days pev closed higher this week?"
+  },
+  {
+    "interaction_id": "055d5b5b-6659-4a78-afe4-7c946e8ec62b",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which company has a higher price-to-book ratio, splunk or mongodb?"
+  },
+  {
+    "interaction_id": "0fd92bc4-5945-4b2a-b40e-c067d871ab29",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which company has a higher pe ratio, wu or  adt?"
+  },
+  {
+    "interaction_id": "10db2c9d-8d19-4690-b069-cf383ec9d8ed",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which day did asana have the highest price in jan?"
+  },
+  {
+    "interaction_id": "1420e577-2bea-41b9-a6fa-49e62570ce75",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which etf is traded more the day before yesterday, macau or inaq?"
+  },
+  {
+    "interaction_id": "18a6b711-afa8-413f-b103-a3a4ff30fc48",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which company has a higher dividend yield, ford or pfizer?"
+  },
+  {
+    "interaction_id": "18dabb4f-d025-426c-9915-4c5995790f60",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "which stock had higher gross income in the 4th quarter of 2023? apple or microsoft"
+  },
+  {
+    "interaction_id": "1988dbca-c14f-496c-a61e-e8bf22c629b9",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "how much more volume has been traded today in bitcoin than ethereum?"
+  },
+  {
+    "interaction_id": "19c28ca8-31ec-4d8c-9c69-6f86f3972df7",
+    "question_type": "comparison",
+    "answer_type": "valid",
+    "query": "what was the weekly low stock price of inflection point acquisition corp. ii unit in the most recent week?"
+  }
+]

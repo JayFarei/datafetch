@@ -1,0 +1,22 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260529132026_4do6ak",
+  "answer": {
+    "status": "answered",
+    "value": 0,
+    "evidence": [],
+    "createdAt": "2026-05-29T13:20:26.499Z",
+    "qualityWarnings": [
+      {
+        "code": "low_quality_output",
+        "message": "Output has 0 placeholder field(s) (Unknown / None / null / N/A / \"\") and 1 zero numeric field(s) out of 1 total. The agent's extraction logic likely didn't match the actual data shape — probe the tool response with `pnpm datafetch:run` and fix before committing.",
+        "totalFields": 1,
+        "placeholderFields": 0,
+        "zeroNumericFields": 1,
+        "examples": [
+          "value=0"
+        ]
+      }
+    ]
+  }
+}

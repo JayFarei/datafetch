@@ -1,0 +1,847 @@
+{
+  "id": "traj_20260529132813_mka1ed",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "Ford Motor"
+      },
+      "output": [
+        {
+          "id": "F",
+          "recordKey": "crag-finance:F",
+          "family": "crag-finance",
+          "entity": "F",
+          "label": "Ford Motor Company Common Stock",
+          "attributes": {
+            "name": "Ford Motor Company Common Stock",
+            "symbol": "F"
+          }
+        },
+        {
+          "id": "M",
+          "recordKey": "crag-finance:M",
+          "family": "crag-finance",
+          "entity": "M",
+          "label": "Macy's Inc Common Stock",
+          "attributes": {
+            "name": "Macy's Inc Common Stock",
+            "symbol": "M"
+          }
+        },
+        {
+          "id": "F^B",
+          "recordKey": "crag-finance:F^B",
+          "family": "crag-finance",
+          "entity": "F^B",
+          "label": "Ford Motor Company 6.20% Notes due June 1 2059",
+          "attributes": {
+            "name": "Ford Motor Company 6.20% Notes due June 1 2059",
+            "symbol": "F^B"
+          }
+        },
+        {
+          "id": "F^C",
+          "recordKey": "crag-finance:F^C",
+          "family": "crag-finance",
+          "entity": "F^C",
+          "label": "Ford Motor Company 6% Notes due December 1 2059",
+          "attributes": {
+            "name": "Ford Motor Company 6% Notes due December 1 2059",
+            "symbol": "F^C"
+          }
+        },
+        {
+          "id": "F^D",
+          "recordKey": "crag-finance:F^D",
+          "family": "crag-finance",
+          "entity": "F^D",
+          "label": "Ford Motor Company 6.500% Notes due August 15 2062",
+          "attributes": {
+            "name": "Ford Motor Company 6.500% Notes due August 15 2062",
+            "symbol": "F^D"
+          }
+        },
+        {
+          "id": "AHT",
+          "recordKey": "crag-finance:AHT",
+          "family": "crag-finance",
+          "entity": "AHT",
+          "label": "Ashford Hospitality Trust Inc Common Stock",
+          "attributes": {
+            "name": "Ashford Hospitality Trust Inc Common Stock",
+            "symbol": "AHT"
+          }
+        },
+        {
+          "id": "AHT^D",
+          "recordKey": "crag-finance:AHT^D",
+          "family": "crag-finance",
+          "entity": "AHT^D",
+          "label": "Ashford Hospitality Trust Inc 8.45% Series D Cumulative Preferred Stock",
+          "attributes": {
+            "name": "Ashford Hospitality Trust Inc 8.45% Series D Cumulative Preferred Stock",
+            "symbol": "AHT^D"
+          }
+        },
+        {
+          "id": "AHT^F",
+          "recordKey": "crag-finance:AHT^F",
+          "family": "crag-finance",
+          "entity": "AHT^F",
+          "label": "Ashford Hospitality Trust Inc 7.375% Series F Cumulative Preferred Stock",
+          "attributes": {
+            "name": "Ashford Hospitality Trust Inc 7.375% Series F Cumulative Preferred Stock",
+            "symbol": "AHT^F"
+          }
+        },
+        {
+          "id": "AHT^G",
+          "recordKey": "crag-finance:AHT^G",
+          "family": "crag-finance",
+          "entity": "AHT^G",
+          "label": "Ashford Hospitality Trust Inc 7.375% Series G Cumulative Preferred Stock",
+          "attributes": {
+            "name": "Ashford Hospitality Trust Inc 7.375% Series G Cumulative Preferred Stock",
+            "symbol": "AHT^G"
+          }
+        },
+        {
+          "id": "AHT^H",
+          "recordKey": "crag-finance:AHT^H",
+          "family": "crag-finance",
+          "entity": "AHT^H",
+          "label": "Ashford Hospitality Trust Inc 7.50% Series H Cumulative Preferred Stock",
+          "attributes": {
+            "name": "Ashford Hospitality Trust Inc 7.50% Series H Cumulative Preferred Stock",
+            "symbol": "AHT^H"
+          }
+        },
+        {
+          "id": "AHT^I",
+          "recordKey": "crag-finance:AHT^I",
+          "family": "crag-finance",
+          "entity": "AHT^I",
+          "label": "Ashford Hospitality Trust Inc 7.50% Series I Cumulative Preferred Stock",
+          "attributes": {
+            "name": "Ashford Hospitality Trust Inc 7.50% Series I Cumulative Preferred Stock",
+            "symbol": "AHT^I"
+          }
+        },
+        {
+          "id": "AINC",
+          "recordKey": "crag-finance:AINC",
+          "family": "crag-finance",
+          "entity": "AINC",
+          "label": "Ashford Inc. (Holding Company) Common Stock",
+          "attributes": {
+            "name": "Ashford Inc. (Holding Company) Common Stock",
+            "symbol": "AINC"
+          }
+        },
+        {
+          "id": "BRID",
+          "recordKey": "crag-finance:BRID",
+          "family": "crag-finance",
+          "entity": "BRID",
+          "label": "Bridgford Foods Corporation Common Stock",
+          "attributes": {
+            "name": "Bridgford Foods Corporation Common Stock",
+            "symbol": "BRID"
+          }
+        },
+        {
+          "id": "BUR",
+          "recordKey": "crag-finance:BUR",
+          "family": "crag-finance",
+          "entity": "BUR",
+          "label": "Burford Capital Limited Ordinary Shares",
+          "attributes": {
+            "name": "Burford Capital Limited Ordinary Shares",
+            "symbol": "BUR"
+          }
+        },
+        {
+          "id": "CJET",
+          "recordKey": "crag-finance:CJET",
+          "family": "crag-finance",
+          "entity": "CJET",
+          "label": "Chijet Motor Company Inc. Ordinary Shares",
+          "attributes": {
+            "name": "Chijet Motor Company Inc. Ordinary Shares",
+            "symbol": "CJET"
+          }
+        },
+        {
+          "id": "CRD/A",
+          "recordKey": "crag-finance:CRD/A",
+          "family": "crag-finance",
+          "entity": "CRD/A",
+          "label": "Crawford & Company",
+          "attributes": {
+            "name": "Crawford & Company",
+            "symbol": "CRD/A"
+          }
+        },
+        {
+          "id": "CRD/B",
+          "recordKey": "crag-finance:CRD/B",
+          "family": "crag-finance",
+          "entity": "CRD/B",
+          "label": "Crawford & Company",
+          "attributes": {
+            "name": "Crawford & Company",
+            "symbol": "CRD/B"
+          }
+        },
+        {
+          "id": "FORD",
+          "recordKey": "crag-finance:FORD",
+          "family": "crag-finance",
+          "entity": "FORD",
+          "label": "Forward Industries Inc. Common Stock",
+          "attributes": {
+            "name": "Forward Industries Inc. Common Stock",
+            "symbol": "FORD"
+          }
+        },
+        {
+          "id": "GM",
+          "recordKey": "crag-finance:GM",
+          "family": "crag-finance",
+          "entity": "GM",
+          "label": "General Motors Company Common Stock",
+          "attributes": {
+            "name": "General Motors Company Common Stock",
+            "symbol": "GM"
+          }
+        },
+        {
+          "id": "GP",
+          "recordKey": "crag-finance:GP",
+          "family": "crag-finance",
+          "entity": "GP",
+          "label": "GreenPower Motor Company Inc. Common Shares",
+          "attributes": {
+            "name": "GreenPower Motor Company Inc. Common Shares",
+            "symbol": "GP"
+          }
+        },
+        {
+          "id": "HIG",
+          "recordKey": "crag-finance:HIG",
+          "family": "crag-finance",
+          "entity": "HIG",
+          "label": "Hartford Financial Services Group Inc. (The) Common Stock",
+          "attributes": {
+            "name": "Hartford Financial Services Group Inc. (The) Common Stock",
+            "symbol": "HIG"
+          }
+        },
+        {
+          "id": "HIG^G",
+          "recordKey": "crag-finance:HIG^G",
+          "family": "crag-finance",
+          "entity": "HIG^G",
+          "label": "Hartford Financial Services Group Inc. (The) Depositary Shares each representing a 1/1000th interest in a share of 6.000% Non-Cumulative Preferred Stock Series G $0.01 par value",
+          "attributes": {
+            "name": "Hartford Financial Services Group Inc. (The) Depositary Shares each representing a 1/1000th interest in a share of 6.000% Non-Cumulative Preferred Stock Series G $0.01 par value",
+            "symbol": "HIG^G"
+          }
+        },
+        {
+          "id": "HMC",
+          "recordKey": "crag-finance:HMC",
+          "family": "crag-finance",
+          "entity": "HMC",
+          "label": "Honda Motor Company Ltd. Common Stock",
+          "attributes": {
+            "name": "Honda Motor Company Ltd. Common Stock",
+            "symbol": "HMC"
+          }
+        },
+        {
+          "id": "HYZN",
+          "recordKey": "crag-finance:HYZN",
+          "family": "crag-finance",
+          "entity": "HYZN",
+          "label": "Hyzon Motors Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Hyzon Motors Inc. Class A Common Stock",
+            "symbol": "HYZN"
+          }
+        },
+        {
+          "id": "HYZNW",
+          "recordKey": "crag-finance:HYZNW",
+          "family": "crag-finance",
+          "entity": "HYZNW",
+          "label": "Hyzon Motors Inc. Warrants",
+          "attributes": {
+            "name": "Hyzon Motors Inc. Warrants",
+            "symbol": "HYZNW"
+          }
+        }
+      ],
+      "startedAt": "2026-05-29T13:28:13.769Z",
+      "durationMs": 10.21875
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "Pfizer"
+      },
+      "output": [
+        {
+          "id": "PFE",
+          "recordKey": "crag-finance:PFE",
+          "family": "crag-finance",
+          "entity": "PFE",
+          "label": "Pfizer Inc. Common Stock",
+          "attributes": {
+            "name": "Pfizer Inc. Common Stock",
+            "symbol": "PFE"
+          }
+        }
+      ],
+      "startedAt": "2026-05-29T13:28:13.776Z",
+      "durationMs": 3.7403339999727905
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_info",
+      "input": {
+        "ticker": "PFE"
+      },
+      "output": {
+        "address1": "66 Hudson Boulevard East",
+        "city": "New York",
+        "state": "NY",
+        "zip": "10001-2192",
+        "country": "United States",
+        "phone": "212 733 2323",
+        "website": "https://www.pfizer.com",
+        "industry": "Drug Manufacturers - General",
+        "industryKey": "drug-manufacturers-general",
+        "industryDisp": "Drug Manufacturers - General",
+        "sector": "Healthcare",
+        "sectorKey": "healthcare",
+        "sectorDisp": "Healthcare",
+        "longBusinessSummary": "Pfizer Inc. discovers, develops, manufactures, markets, distributes, and sells biopharmaceutical products in the United States, Europe, and internationally. The company offers medicines and vaccines in various therapeutic areas, including cardiovascular metabolic, migraine, and women's health under the Eliquis, Nurtec ODT/Vydura, Zavzpret, and the Premarin family brands; infectious diseases with unmet medical needs under the Prevnar family, Abrysvo, Nimenrix, FSME/IMMUN-TicoVac, and Trumenba brands; and COVID-19 prevention and treatment, and potential future mRNA and antiviral products under the Comirnaty and Paxlovid brands. It also provides medicines and vaccines in various therapeutic areas, such as biosimilars for chronic immune and inflammatory diseases under the Xeljanz, Enbrel, Inflectra, Litfulo, Velsipity, and Cibinqo brands; amyloidosis, hemophilia, endocrine diseases, and sickle cell disease under the Vyndaqel family, Oxbryta, BeneFIX, Somavert, Ngenla, and Genotropin brands; sterile injectable and anti-infective medicines under the Sulperazon, Medrol, Zavicefta, Zithromax, and Panzyga brands; and biologics, small molecules, immunotherapies, and biosimilars under the Ibrance, Xtandi, Inlyta, Bosulif, Mektovi, Padcev, Adcetris, Talzenna, Tukysa, Elrexfio, Tivdak, Lorbrena, and Braftovi brands. In addition, the company involved in the contract manufacturing business. It serves wholesalers, retailers, hospitals, clinics, government agencies, pharmacies, individual provider offices, retail pharmacies, and integrated delivery systems. The company has collaboration agreements with Bristol-Myers Squibb Company; Astellas Pharma US, Inc.; Merck KGaA; and BioNTech SE. Pfizer Inc. was founded in 1849 and is headquartered in New York, New York.",
+        "fullTimeEmployees": 88000,
+        "companyOfficers": [
+          {
+            "maxAge": 1,
+            "name": "Dr. Albert  Bourla D.V.M., Ph.D.",
+            "age": 61,
+            "title": "Chairman of the Board & CEO",
+            "yearBorn": 1962,
+            "fiscalYear": 2022,
+            "totalPay": 11721071,
+            "exercisedValue": 0,
+            "unexercisedValue": 16848308
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. David M. Denton",
+            "age": 58,
+            "title": "Chief Financial Officer & Executive VP",
+            "yearBorn": 1965,
+            "fiscalYear": 2022,
+            "totalPay": 18194138,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Dr. Mikael  Dolsten M.D., Ph.D.",
+            "age": 65,
+            "title": "Chief Scientific Officer and President of Research & Development",
+            "yearBorn": 1958,
+            "fiscalYear": 2022,
+            "totalPay": 5815754,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. Jennifer B. Damico",
+            "age": 55,
+            "title": "Senior VP, Controller & Principal Accounting Officer",
+            "yearBorn": 1968,
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. Lidia L. Fonseca",
+            "age": 54,
+            "title": "Executive VP and Chief Digital & Technology Officer",
+            "yearBorn": 1969,
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. Francesca M. DeMartino",
+            "title": "Chief Investor Relations Officer",
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. Douglas M. Lankler",
+            "age": 57,
+            "title": "Executive VP & General Counsel",
+            "yearBorn": 1966,
+            "fiscalYear": 2022,
+            "totalPay": 3778726,
+            "exercisedValue": 1851947,
+            "unexercisedValue": 17962228
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. Rady A. Johnson",
+            "age": 61,
+            "title": "Executive VP and Chief Compliance, Quality & Risk Officer",
+            "yearBorn": 1962,
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. Andreas J. Panayiotou",
+            "title": "Global Chief Marketing Officer",
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. Payal Sahni Becher",
+            "age": 48,
+            "title": "Chief People Experience Officer & Executive VP",
+            "yearBorn": 1975,
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          }
+        ],
+        "auditRisk": 10,
+        "boardRisk": 6,
+        "compensationRisk": 3,
+        "shareHolderRightsRisk": 1,
+        "overallRisk": 5,
+        "governanceEpochDate": 1706745600,
+        "compensationAsOfEpochDate": 1672444800,
+        "maxAge": 86400,
+        "priceHint": 2,
+        "previousClose": 26.89,
+        "open": 26.96,
+        "dayLow": 26.82,
+        "dayHigh": 27.1,
+        "regularMarketPreviousClose": 26.89,
+        "regularMarketOpen": 26.96,
+        "regularMarketDayLow": 26.82,
+        "regularMarketDayHigh": 27.1,
+        "dividendRate": 1.68,
+        "dividendYield": 0.0625,
+        "exDividendDate": 1706140800,
+        "payoutRatio": 4.4323997,
+        "fiveYearAvgDividendYield": 3.87,
+        "beta": 0.568,
+        "trailingPE": 73.12162,
+        "forwardPE": 9.874087,
+        "volume": 5916480,
+        "regularMarketVolume": 5916480,
+        "averageVolume": 47526516,
+        "averageVolume10days": 34618660,
+        "averageDailyVolume10Day": 34618660,
+        "bid": 26.98,
+        "ask": 26.99,
+        "bidSize": 900,
+        "askSize": 900,
+        "marketCap": 152773640192,
+        "fiftyTwoWeekLow": 25.76,
+        "fiftyTwoWeekHigh": 42.22,
+        "priceToSalesTrailing12Months": 2.6116939,
+        "fiftyDayAverage": 27.9386,
+        "twoHundredDayAverage": 32.78135,
+        "trailingAnnualDividendRate": 1.64,
+        "trailingAnnualDividendYield": 0.060989216,
+        "currency": "USD",
+        "enterpriseValue": 214757867520,
+        "profitMargins": 0.03622,
+        "floatShares": 5638082386,
+        "sharesOutstanding": 5646779904,
+        "sharesShort": 60680875,
+        "sharesShortPriorMonth": 57575039,
+        "sharesShortPreviousMonthDate": 1705017600,
+        "dateShortInterest": 1707955200,
+        "sharesPercentSharesOut": 0.0107,
+        "heldPercentInsiders": 0.00045000002,
+        "heldPercentInstitutions": 0.70128995,
+        "shortRatio": 1.35,
+        "shortPercentOfFloat": 0.0107,
+        "impliedSharesOutstanding": 5646779904,
+        "bookValue": 15.766,
+        "priceToBook": 1.7160345,
+        "lastFiscalYearEnd": 1703980800,
+        "nextFiscalYearEnd": 1735603200,
+        "mostRecentQuarter": 1703980800,
+        "netIncomeToCommon": 2134000000,
+        "trailingEps": 0.37,
+        "forwardEps": 2.74,
+        "pegRatio": -10.29,
+        "lastSplitFactor": "1054:1000",
+        "lastSplitDate": 1605571200,
+        "enterpriseToRevenue": 3.671,
+        "enterpriseToEbitda": 18.647,
+        "52WeekChange": -0.33076155,
+        "SandP52WeekChange": 0.28516293,
+        "lastDividendValue": 0.42,
+        "lastDividendDate": 1706140800,
+        "exchange": "NYQ",
+        "quoteType": "EQUITY",
+        "symbol": "PFE",
+        "underlyingSymbol": "PFE",
+        "shortName": "Pfizer, Inc.",
+        "longName": "Pfizer Inc.",
+        "firstTradeDateEpochUtc": 76253400,
+        "timeZoneFullName": "America/New_York",
+        "timeZoneShortName": "EST",
+        "uuid": "72e0dcbd-2b61-3bbf-a98a-8b2df7c4850c",
+        "messageBoardId": "finmb_162270",
+        "gmtOffSetMilliseconds": -18000000,
+        "currentPrice": 27.055,
+        "targetHighPrice": 50,
+        "targetLowPrice": 26,
+        "targetMeanPrice": 32.32,
+        "targetMedianPrice": 31,
+        "recommendationMean": 2.4,
+        "recommendationKey": "buy",
+        "numberOfAnalystOpinions": 22,
+        "totalCash": 12689999872,
+        "totalCashPerShare": 2.247,
+        "ebitda": 11516999680,
+        "totalDebt": 75332001792,
+        "quickRatio": 0.583,
+        "currentRatio": 0.907,
+        "totalRevenue": 58496000000,
+        "debtToEquity": 84.37,
+        "revenuePerShare": 10.366,
+        "returnOnAssets": 0.01551,
+        "returnOnEquity": 0.02347,
+        "freeCashflow": 1024249984,
+        "operatingCashflow": 8700000256,
+        "revenueGrowth": -0.413,
+        "grossMargins": 0.5899,
+        "ebitdaMargins": 0.19689,
+        "operatingMargins": -0.49967998,
+        "financialCurrency": "USD",
+        "trailingPegRatio": null
+      },
+      "startedAt": "2026-05-29T13:28:13.780Z",
+      "durationMs": 417.3530840000021
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_info",
+      "input": {
+        "ticker": "F"
+      },
+      "output": {
+        "address1": "One American Road",
+        "city": "Dearborn",
+        "state": "MI",
+        "zip": "48126",
+        "country": "United States",
+        "phone": "313 322 3000",
+        "website": "https://www.ford.com",
+        "industry": "Auto Manufacturers",
+        "industryKey": "auto-manufacturers",
+        "industryDisp": "Auto Manufacturers",
+        "sector": "Consumer Cyclical",
+        "sectorKey": "consumer-cyclical",
+        "sectorDisp": "Consumer Cyclical",
+        "longBusinessSummary": "Ford Motor Company develops, delivers, and services a range of Ford trucks, commercial cars and vans, sport utility vehicles, and Lincoln luxury vehicles worldwide. It operates through Ford Blue, Ford Model e, and Ford Pro; Ford Next; and Ford Credit segments. The company sells Ford and Lincoln vehicles, service parts, and accessories through distributors and dealers, as well as through dealerships to commercial fleet customers, daily rental car companies, and governments. It also engages in vehicle-related financing and leasing activities to and through automotive dealers. In addition, the company provides retail installment sale contracts for new and used vehicles; and direct financing leases for new vehicles to retail and commercial customers, such as leasing companies, government entities, daily rental companies, and fleet customers. Further, it offers wholesale loans to dealers to finance the purchase of vehicle inventory; and loans to dealers to finance working capital and enhance dealership facilities, purchase dealership real estate, and other dealer vehicle programs. The company was incorporated in 1903 and is based in Dearborn, Michigan.",
+        "fullTimeEmployees": 177000,
+        "companyOfficers": [
+          {
+            "maxAge": 1,
+            "name": "Mr. William Clay Ford Jr.",
+            "age": 66,
+            "title": "Executive Chairman",
+            "yearBorn": 1957,
+            "fiscalYear": 2022,
+            "totalPay": 4454794,
+            "exercisedValue": 0,
+            "unexercisedValue": 3773581
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. James D. Farley Jr.",
+            "age": 61,
+            "title": "President, CEO & Director",
+            "yearBorn": 1962,
+            "fiscalYear": 2022,
+            "totalPay": 5850765,
+            "exercisedValue": 1869342,
+            "unexercisedValue": 4878137
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. John T. Lawler",
+            "age": 57,
+            "title": "VP & CFO",
+            "yearBorn": 1966,
+            "fiscalYear": 2022,
+            "totalPay": 2420308,
+            "exercisedValue": 81934,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. Ashwani Kumar Galhotra",
+            "age": 58,
+            "title": "Chief Operating Officer",
+            "yearBorn": 1965,
+            "fiscalYear": 2022,
+            "totalPay": 2160312,
+            "exercisedValue": 170586,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. John Douglas Field",
+            "age": 57,
+            "title": "Chief Advanced Product Development & Technology Officer",
+            "yearBorn": 1966,
+            "fiscalYear": 2022,
+            "totalPay": 970892,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. Mark  Kosman",
+            "age": 58,
+            "title": "Chief Accounting Officer",
+            "yearBorn": 1965,
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. Lynn Antipas Tyson",
+            "age": 60,
+            "title": "Executive Director of Investor Relations",
+            "yearBorn": 1963,
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. Steven P. Croley",
+            "age": 57,
+            "title": "Chief Policy Officer & General Counsel",
+            "yearBorn": 1966,
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Ms. Beth A. Rose",
+            "title": "Chief Compliance, Ethics & Integrity Officer",
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          },
+          {
+            "maxAge": 1,
+            "name": "Mr. Mark  Truby",
+            "age": 53,
+            "title": "Chief Communications Officer",
+            "yearBorn": 1970,
+            "fiscalYear": 2022,
+            "exercisedValue": 0,
+            "unexercisedValue": 0
+          }
+        ],
+        "auditRisk": 9,
+        "boardRisk": 10,
+        "compensationRisk": 8,
+        "shareHolderRightsRisk": 10,
+        "overallRisk": 10,
+        "governanceEpochDate": 1706745600,
+        "compensationAsOfEpochDate": 1672444800,
+        "maxAge": 86400,
+        "priceHint": 2,
+        "previousClose": 12,
+        "open": 11.97,
+        "dayLow": 11.955,
+        "dayHigh": 12.336,
+        "regularMarketPreviousClose": 12,
+        "regularMarketOpen": 11.97,
+        "regularMarketDayLow": 11.955,
+        "regularMarketDayHigh": 12.336,
+        "dividendRate": 0.6,
+        "dividendYield": 0.05,
+        "exDividendDate": 1707955200,
+        "payoutRatio": 0.5556,
+        "fiveYearAvgDividendYield": 5.76,
+        "beta": 1.643,
+        "trailingPE": 11.393518,
+        "forwardPE": 6.6875,
+        "volume": 15534810,
+        "regularMarketVolume": 15534810,
+        "averageVolume": 55532022,
+        "averageVolume10days": 45414660,
+        "averageDailyVolume10Day": 45414660,
+        "bid": 12.23,
+        "ask": 12.25,
+        "bidSize": 1000,
+        "askSize": 28000,
+        "marketCap": 48895516672,
+        "fiftyTwoWeekLow": 9.63,
+        "fiftyTwoWeekHigh": 15.42,
+        "priceToSalesTrailing12Months": 0.27751428,
+        "fiftyDayAverage": 11.9654,
+        "twoHundredDayAverage": 12.19575,
+        "trailingAnnualDividendRate": 0.6,
+        "trailingAnnualDividendYield": 0.05,
+        "currency": "USD",
+        "enterpriseValue": 170091593728,
+        "profitMargins": 0.02467,
+        "floatShares": 3892451784,
+        "sharesOutstanding": 3902779904,
+        "sharesShort": 156582876,
+        "sharesShortPriorMonth": 142241153,
+        "sharesShortPreviousMonthDate": 1705017600,
+        "dateShortInterest": 1707955200,
+        "sharesPercentSharesOut": 0.0394,
+        "heldPercentInsiders": 0.00187,
+        "heldPercentInstitutions": 0.56859,
+        "shortRatio": 2.42,
+        "shortPercentOfFloat": 0.0436,
+        "impliedSharesOutstanding": 3973629952,
+        "bookValue": 10.764,
+        "priceToBook": 1.1431624,
+        "lastFiscalYearEnd": 1703980800,
+        "nextFiscalYearEnd": 1735603200,
+        "mostRecentQuarter": 1703980800,
+        "netIncomeToCommon": 4346999808,
+        "trailingEps": 1.08,
+        "forwardEps": 1.84,
+        "pegRatio": -1.27,
+        "lastSplitFactor": "1748175:1000000",
+        "lastSplitDate": 965260800,
+        "enterpriseToRevenue": 0.965,
+        "enterpriseToEbitda": 14.394,
+        "52WeekChange": -0.025974035,
+        "SandP52WeekChange": 0.28516293,
+        "lastDividendValue": 0.33,
+        "lastDividendDate": 1707955200,
+        "exchange": "NYQ",
+        "quoteType": "EQUITY",
+        "symbol": "F",
+        "underlyingSymbol": "F",
+        "shortName": "Ford Motor Company",
+        "longName": "Ford Motor Company",
+        "firstTradeDateEpochUtc": 76253400,
+        "timeZoneFullName": "America/New_York",
+        "timeZoneShortName": "EST",
+        "uuid": "80061894-3025-315f-869e-4e1f09471012",
+        "messageBoardId": "finmb_106335",
+        "gmtOffSetMilliseconds": -18000000,
+        "currentPrice": 12.305,
+        "targetHighPrice": 21,
+        "targetLowPrice": 9.75,
+        "targetMeanPrice": 13.07,
+        "targetMedianPrice": 12.15,
+        "recommendationMean": 2.8,
+        "recommendationKey": "hold",
+        "numberOfAnalystOpinions": 22,
+        "totalCash": 28724000768,
+        "totalCashPerShare": 7.229,
+        "ebitda": 11816999936,
+        "totalDebt": 151106994176,
+        "quickRatio": 1.007,
+        "currentRatio": 1.196,
+        "totalRevenue": 176190996480,
+        "debtToEquity": 353.07,
+        "revenuePerShare": 44.07,
+        "returnOnAssets": 0.0126600005,
+        "returnOnEquity": 0.100719996,
+        "freeCashflow": -2417125120,
+        "operatingCashflow": 14917999616,
+        "revenueGrowth": 0.045,
+        "grossMargins": 0.09172,
+        "ebitdaMargins": 0.06707,
+        "operatingMargins": -0.01736,
+        "financialCurrency": "USD",
+        "trailingPegRatio": 0.7091
+      },
+      "startedAt": "2026-05-29T13:28:13.779Z",
+      "durationMs": 424.6828749999986
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-05-29T13:28:13.766Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-full/questions/012-comparison-18a6b711-afa8-413f-b103-a3a4ff30fc48/workspace\");\n\n// CRAG finance — comparison question 18a6b711-afa8-413f-b103-a3a4ff30fc48\n//\n// Question (verbatim):\n// which company has a higher dividend yield, ford or pfizer?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [fordResults, pfizerResults] = await Promise.all([\n    df.db.records.search(\"Ford Motor\"),\n    df.db.records.search(\"Pfizer\"),\n  ]);\n\n  const fordTicker = fordResults[0]?.id ?? \"F\";\n  const pfizerTicker = pfizerResults[0]?.id ?? \"PFE\";\n\n  const [fordInfo, pfizerInfo] = await Promise.all([\n    df.tool.cragFinance.get_info({ ticker: fordTicker }),\n    df.tool.cragFinance.get_info({ ticker: pfizerTicker }),\n  ]);\n\n  const fordYield = fordInfo.dividendYield as number;\n  const pfizerYield = pfizerInfo.dividendYield as number;\n\n  const winner = fordYield > pfizerYield ? \"Ford\" : pfizerYield > fordYield ? \"Pfizer\" : \"tie\";\n\n  return df.answer({\n    status: \"answered\",\n    value: winner,\n    evidence: [\n      { reason: `Ford (${fordTicker}) dividend yield: ${fordYield}` },\n      { reason: `Pfizer (${pfizerTicker}) dividend yield: ${pfizerYield}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "b19328348a11947ca233bdcb5a4fa2f0dadec76228119384fcccabadf65aeba2",
+  "result": {
+    "status": "answered",
+    "value": "Pfizer",
+    "evidence": [
+      {
+        "reason": "Ford (F) dividend yield: 0.05"
+      },
+      {
+        "reason": "Pfizer (PFE) dividend yield: 0.0625"
+      }
+    ],
+    "createdAt": "2026-05-29T13:28:14.204Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "Pfizer",
+    "evidence": [
+      {
+        "reason": "Ford (F) dividend yield: 0.05"
+      },
+      {
+        "reason": "Pfizer (PFE) dividend yield: 0.0625"
+      }
+    ],
+    "createdAt": "2026-05-29T13:28:14.204Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 856.0174590000533
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

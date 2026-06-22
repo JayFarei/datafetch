@@ -1,0 +1,2 @@
+[df.answer] quality warning (low_quality_output): Output has 0 placeholder field(s) (Unknown / None / null / N/A / "") and 1 zero numeric field(s) out of 1 total. The agent's extraction logic likely didn't match the actual data shape — probe the tool response with `pnpm datafetch:run` and fix before committing.
+[df.answer]   examples: value=0

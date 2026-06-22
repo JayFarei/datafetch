@@ -1,0 +1,31 @@
+{
+  "name": "recordToolLookup",
+  "path": "df.lib.recordToolLookup",
+  "intent": "learned interface recordToolLookup",
+  "evidencePolicy": "optional",
+  "maturity": "candidate-typescript",
+  "callability": "not-callable",
+  "implementation": {
+    "kind": "typescript",
+    "ref": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v2/datafetch-home/lib/crag-finance/recordToolLookup.ts"
+  },
+  "origin": {
+    "tenantId": "crag-finance",
+    "trajectoryIds": [
+      "traj_20260602092040_mbh7cw"
+    ],
+    "shapeHash": "ae3773fd",
+    "createdAt": "2026-06-02T09:20:41.457Z",
+    "updatedAt": "2026-06-02T09:20:41.458Z"
+  },
+  "stats": {
+    "attempts": 0,
+    "successes": 0,
+    "validationFailures": 0,
+    "runtimeErrors": 0,
+    "quotaFailures": 0,
+    "replaysPassed": 0,
+    "replaysFailed": 1,
+    "abstentions": 0
+  }
+}

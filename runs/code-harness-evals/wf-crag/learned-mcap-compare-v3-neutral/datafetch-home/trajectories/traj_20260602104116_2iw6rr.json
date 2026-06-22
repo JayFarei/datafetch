@@ -1,0 +1,122 @@
+{
+  "id": "traj_20260602104116_2iw6rr",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.findExact",
+      "input": {
+        "filter": {
+          "symbol": "NWGL"
+        }
+      },
+      "output": [
+        {
+          "id": "NWGL",
+          "recordKey": "crag-finance:NWGL",
+          "family": "crag-finance",
+          "entity": "NWGL",
+          "label": "Nature Wood Group Limited American Depositary Shares",
+          "attributes": {
+            "name": "Nature Wood Group Limited American Depositary Shares",
+            "symbol": "NWGL"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:41:16.403Z",
+      "durationMs": 0.7615000000077998
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.findExact",
+      "input": {
+        "filter": {
+          "symbol": "MFICL"
+        }
+      },
+      "output": [
+        {
+          "id": "MFICL",
+          "recordKey": "crag-finance:MFICL",
+          "family": "crag-finance",
+          "entity": "MFICL",
+          "label": "MidCap Financial Investment Corporation 8.00% Notes due 2028",
+          "attributes": {
+            "name": "MidCap Financial Investment Corporation 8.00% Notes due 2028",
+            "symbol": "MFICL"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T10:41:16.403Z",
+      "durationMs": 0.24683299999742303
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MFICL"
+      },
+      "output": 949435074.9318802,
+      "startedAt": "2026-06-02T10:41:16.404Z",
+      "durationMs": 500.9562500000029
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "NWGL"
+      },
+      "output": 1751791527,
+      "startedAt": "2026-06-02T10:41:16.404Z",
+      "durationMs": 536.4207920000044
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T10:41:16.400Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v3-neutral/questions/002-comparison-2f3101f3-8852-435b-9d63-6286f07176e3/workspace\");\nconst safeRecordsFindExact = async (filter: Record<string, unknown>, limit?: number): Promise<any[]> => {\n  try {\n    const records = await (df as any).db?.records?.findExact?.(filter, limit);\n    return Array.isArray(records) ? records : [];\n  } catch (error) {\n    const message = String((error as any)?.message ?? error);\n    if (message.includes(\"ident not found across mounts\")) return [];\n    throw error;\n  }\n};\n// CRAG finance — comparison question 2f3101f3-8852-435b-9d63-6286f07176e3\n//\n// Question (verbatim):\n// which company's market capitalization is higher, nwgl or mficl?\n//\n// Replace the body below. Inspect /df.d.ts for every available surface\n// (df.db data, df.tool adapters, and any df.lib learned helpers), pick\n// whatever fits this question best, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [nwglRecords, mficlRecords] = await Promise.all([\n    safeRecordsFindExact({ symbol: \"NWGL\" }),\n    safeRecordsFindExact({ symbol: \"MFICL\" }),\n  ]);\n\n  const [nwglMcap, mficlMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"NWGL\" }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"MFICL\" }),\n  ]);\n\n  const higher = nwglMcap > mficlMcap ? \"NWGL\" : \"MFICL\";\n\n  return df.answer({\n    status: \"answered\",\n    value: higher,\n    evidence: [\n      { reason: `NWGL market cap: ${nwglMcap}` },\n      { reason: `MFICL market cap: ${mficlMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "fe12dfa19a5b1758e1fcc50c0641a0cb66af02dda93dc9eb558e677bf2be2083",
+  "result": {
+    "status": "answered",
+    "value": "NWGL",
+    "evidence": [
+      {
+        "reason": "NWGL market cap: 1751791527"
+      },
+      {
+        "reason": "MFICL market cap: 949435074.9318802"
+      }
+    ],
+    "createdAt": "2026-06-02T10:41:16.940Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "NWGL",
+    "evidence": [
+      {
+        "reason": "NWGL market cap: 1751791527"
+      },
+      {
+        "reason": "MFICL market cap: 949435074.9318802"
+      }
+    ],
+    "createdAt": "2026-06-02T10:41:16.940Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 1038.422332999995
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

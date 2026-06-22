@@ -1,0 +1,15 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260529132936_b3zonq",
+  "answer": {
+    "status": "answered",
+    "value": 10.4399995803833,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:IPXXU",
+        "reason": "Weekly low for IPXXU in most recent week ending 2024-02-27 00:00:00 EST"
+      }
+    ],
+    "createdAt": "2026-05-29T13:29:36.887Z"
+  }
+}

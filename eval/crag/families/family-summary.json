@@ -1,0 +1,292 @@
+{
+  "totalQuestions": 659,
+  "familiesWithSizeGE": {
+    "4": 17
+  },
+  "questionsInFamilies": 651,
+  "topFamilies": [
+    {
+      "template": "price:single",
+      "size": 163,
+      "kgAnswerable": 162,
+      "types": [
+        "aggregation",
+        "comparison",
+        "false_premise",
+        "multi-hop",
+        "post-processing",
+        "simple",
+        "simple_w_condition"
+      ],
+      "exampleQueries": [
+        "what was the closing price of hamilton lane yesterday?",
+        "what was the volume of trading for colm on the most recent day that the market was open for trading?",
+        "what were the low and high prices of leco on the most recent trading day?"
+      ]
+    },
+    {
+      "template": "other:single",
+      "size": 113,
+      "kgAnswerable": 0,
+      "types": [
+        "aggregation",
+        "comparison",
+        "false_premise",
+        "multi-hop",
+        "post-processing",
+        "set",
+        "simple",
+        "simple_w_condition"
+      ],
+      "exampleQueries": [
+        "where did the ceo of salesforce previously work?",
+        "what company in the dow jones is the best performer today?",
+        "what are 3 examples of stocks that increased in value today?"
+      ]
+    },
+    {
+      "template": "other:single+agg",
+      "size": 75,
+      "kgAnswerable": 0,
+      "types": [
+        "aggregation",
+        "false_premise",
+        "multi-hop",
+        "post-processing",
+        "set",
+        "simple",
+        "simple_w_condition"
+      ],
+      "exampleQueries": [
+        "how much did voyager therapeutics's stock rise in value over the past month?",
+        "what was the total value of all corporate bond issuances in 2024 for the first week?",
+        "what was the total value of all mergers and acquisitions (m&a) in the healthcare sector in 2018?"
+      ]
+    },
+    {
+      "template": "other:compare",
+      "size": 63,
+      "kgAnswerable": 0,
+      "types": [
+        "aggregation",
+        "comparison",
+        "false_premise",
+        "multi-hop",
+        "set",
+        "simple",
+        "simple_w_condition"
+      ],
+      "exampleQueries": [
+        "which company in the s&p 500 index has the highest percentage of green energy usage?",
+        "which company's stock has had the lowest trading activity this week, kind or  casi?",
+        "which company had the higher debt-to-equity ratio in 2023 between meta and microsoft?"
+      ]
+    },
+    {
+      "template": "dividend:single",
+      "size": 60,
+      "kgAnswerable": 60,
+      "types": [
+        "aggregation",
+        "false_premise",
+        "multi-hop",
+        "set",
+        "simple",
+        "simple_w_condition"
+      ],
+      "exampleQueries": [
+        "on which date did sgml distribute dividends the first time",
+        "what is the ex-dividend date of microsoft in the 1st qtr of 2024",
+        "on the day that cgi last paid dividends, what was the closing stock price?"
+      ]
+    },
+    {
+      "template": "pe:single",
+      "size": 26,
+      "kgAnswerable": 26,
+      "types": [
+        "false_premise",
+        "simple"
+      ],
+      "exampleQueries": [
+        "i'm looking for the p/e ratio of dks. would you happen to know what it is?",
+        "what's the price-to-earnings ratio of ovbc as of now?",
+        "what is the price-to-earnings ratio of pmtu"
+      ]
+    },
+    {
+      "template": "price:compare",
+      "size": 24,
+      "kgAnswerable": 24,
+      "types": [
+        "comparison",
+        "false_premise",
+        "multi-hop",
+        "post-processing",
+        "set",
+        "simple"
+      ],
+      "exampleQueries": [
+        "which company has higher open stock price today, sabsw or  banc^f?",
+        "can you tell me the days in q4 2023 when the stock price of shc closed lower?",
+        "which five companies have been able to maintain a consistent return on investment (roi) of 50% or higher without any decrease in stock price?"
+      ]
+    },
+    {
+      "template": "marketcap:compare",
+      "size": 23,
+      "kgAnswerable": 23,
+      "types": [
+        "comparison",
+        "multi-hop",
+        "post-processing",
+        "set"
+      ],
+      "exampleQueries": [
+        "what energy stocks has higher market cap than shell company in the whole world",
+        "which company have larger market cap, hri or imppp?",
+        "can you compare the market caps of cogt and ftft and tell which one is larger?"
+      ]
+    },
+    {
+      "template": "eps:single",
+      "size": 18,
+      "kgAnswerable": 18,
+      "types": [
+        "false_premise",
+        "set",
+        "simple",
+        "simple_w_condition"
+      ],
+      "exampleQueries": [
+        "can you tell me the earnings per share of lgstw?",
+        "what were tesla's quarerly reported earnings per share for the fiscal year 2022?",
+        "what's auph's earnings per share?"
+      ]
+    },
+    {
+      "template": "marketcap:single",
+      "size": 17,
+      "kgAnswerable": 16,
+      "types": [
+        "false_premise",
+        "multi-hop",
+        "post-processing",
+        "simple"
+      ],
+      "exampleQueries": [
+        "nep's current market cap.",
+        "when did microsoft reach $3.3 trillion market capitalization?",
+        "what is the market capitalization of eea?"
+      ]
+    },
+    {
+      "template": "dividend:compare",
+      "size": 14,
+      "kgAnswerable": 14,
+      "types": [
+        "comparison",
+        "false_premise",
+        "multi-hop",
+        "simple"
+      ],
+      "exampleQueries": [
+        "which company distribute more dividends this year, muj or  tcbio?",
+        "which company has distributed more dividends this year, ggn or  eea?",
+        "which company distribute more dividends this year, ugp or  suz?"
+      ]
+    },
+    {
+      "template": "price:single+agg",
+      "size": 14,
+      "kgAnswerable": 14,
+      "types": [
+        "aggregation",
+        "comparison",
+        "simple",
+        "simple_w_condition"
+      ],
+      "exampleQueries": [
+        "on average, what was the daily high stock price of xpev over the past week?",
+        "for this week, what was the average daily maximum stock price of ccep?",
+        "what was the weekly average closing price of ph for the last week?"
+      ]
+    },
+    {
+      "template": "other:compare+agg",
+      "size": 14,
+      "kgAnswerable": 0,
+      "types": [
+        "aggregation",
+        "comparison",
+        "false_premise",
+        "multi-hop",
+        "post-processing",
+        "simple"
+      ],
+      "exampleQueries": [
+        "how many employees did microsoft have in 2023, compared to 2005?",
+        "which company in the s&p 500 index has the highest number of employees?",
+        "which company in the nasdaq 100 index has the highest number of employees?"
+      ]
+    },
+    {
+      "template": "dividend:single+agg",
+      "size": 10,
+      "kgAnswerable": 9,
+      "types": [
+        "aggregation",
+        "simple",
+        "simple_w_condition"
+      ],
+      "exampleQueries": [
+        "what is the total number of dividends that tnl has paid out in 2023?",
+        "how many times in a year does apple pay dividend to its investors?",
+        "what was the total amount of dividends paid out by companies in the energy sector in 2023?"
+      ]
+    },
+    {
+      "template": "marketcap:single+agg",
+      "size": 9,
+      "kgAnswerable": 9,
+      "types": [
+        "aggregation",
+        "post-processing",
+        "simple"
+      ],
+      "exampleQueries": [
+        "how many automaker companies has over 300billion market cap",
+        "what's the current total market cap of str's shares?",
+        "how much of the total cryptocurrency market cap is ethereum?"
+      ]
+    },
+    {
+      "template": "pe:compare",
+      "size": 4,
+      "kgAnswerable": 4,
+      "types": [
+        "comparison",
+        "multi-hop"
+      ],
+      "exampleQueries": [
+        "which company has a higher pe ratio, wu or  adt?",
+        "which company has higher p/e ratio, tdcx or  good?",
+        "which company's stock is more attractive based on the p/e ratio, inbx or  rxrx?"
+      ]
+    },
+    {
+      "template": "eps:compare",
+      "size": 4,
+      "kgAnswerable": 4,
+      "types": [
+        "comparison",
+        "multi-hop"
+      ],
+      "exampleQueries": [
+        "which company in the s&p 500 index has the highest earnings per share (eps) growth rate in the past 5 years?",
+        "which company in the russell 2000 index has the highest earnings per share (eps) growth rate in the past 5 years?",
+        "which company has a higher earnings per share, kla or netflix?"
+      ]
+    }
+  ]
+}

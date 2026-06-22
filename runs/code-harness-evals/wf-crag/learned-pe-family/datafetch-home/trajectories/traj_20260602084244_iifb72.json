@@ -1,0 +1,346 @@
+{
+  "id": "traj_20260602084244_iifb72",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "Motus GI Holdings"
+      },
+      "output": [
+        {
+          "id": "G",
+          "recordKey": "crag-finance:G",
+          "family": "crag-finance",
+          "entity": "G",
+          "label": "Genpact Limited Common Stock",
+          "attributes": {
+            "name": "Genpact Limited Common Stock",
+            "symbol": "G"
+          }
+        },
+        {
+          "id": "H",
+          "recordKey": "crag-finance:H",
+          "family": "crag-finance",
+          "entity": "H",
+          "label": "Hyatt Hotels Corporation Class A Common Stock",
+          "attributes": {
+            "name": "Hyatt Hotels Corporation Class A Common Stock",
+            "symbol": "H"
+          }
+        },
+        {
+          "id": "M",
+          "recordKey": "crag-finance:M",
+          "family": "crag-finance",
+          "entity": "M",
+          "label": "Macy's Inc Common Stock",
+          "attributes": {
+            "name": "Macy's Inc Common Stock",
+            "symbol": "M"
+          }
+        },
+        {
+          "id": "MOTS",
+          "recordKey": "crag-finance:MOTS",
+          "family": "crag-finance",
+          "entity": "MOTS",
+          "label": "Motus GI Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "Motus GI Holdings Inc. Common Stock",
+            "symbol": "MOTS"
+          }
+        },
+        {
+          "id": "ADN",
+          "recordKey": "crag-finance:ADN",
+          "family": "crag-finance",
+          "entity": "ADN",
+          "label": "Advent Technologies Holdings Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Advent Technologies Holdings Inc. Class A Common Stock",
+            "symbol": "ADN"
+          }
+        },
+        {
+          "id": "ADNWW",
+          "recordKey": "crag-finance:ADNWW",
+          "family": "crag-finance",
+          "entity": "ADNWW",
+          "label": "Advent Technologies Holdings Inc. Warrant",
+          "attributes": {
+            "name": "Advent Technologies Holdings Inc. Warrant",
+            "symbol": "ADNWW"
+          }
+        },
+        {
+          "id": "DNA",
+          "recordKey": "crag-finance:DNA",
+          "family": "crag-finance",
+          "entity": "DNA",
+          "label": "Ginkgo Bioworks Holdings Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Ginkgo Bioworks Holdings Inc. Class A Common Stock",
+            "symbol": "DNA"
+          }
+        },
+        {
+          "id": "DOCN",
+          "recordKey": "crag-finance:DOCN",
+          "family": "crag-finance",
+          "entity": "DOCN",
+          "label": "DigitalOcean Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "DigitalOcean Holdings Inc. Common Stock",
+            "symbol": "DOCN"
+          }
+        },
+        {
+          "id": "DRCT",
+          "recordKey": "crag-finance:DRCT",
+          "family": "crag-finance",
+          "entity": "DRCT",
+          "label": "Direct Digital Holdings Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Direct Digital Holdings Inc. Class A Common Stock",
+            "symbol": "DRCT"
+          }
+        },
+        {
+          "id": "ENR",
+          "recordKey": "crag-finance:ENR",
+          "family": "crag-finance",
+          "entity": "ENR",
+          "label": "Energizer Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "Energizer Holdings Inc. Common Stock",
+            "symbol": "ENR"
+          }
+        },
+        {
+          "id": "EVLV",
+          "recordKey": "crag-finance:EVLV",
+          "family": "crag-finance",
+          "entity": "EVLV",
+          "label": "Evolv Technologies Holdings Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Evolv Technologies Holdings Inc. Class A Common Stock",
+            "symbol": "EVLV"
+          }
+        },
+        {
+          "id": "EVLVW",
+          "recordKey": "crag-finance:EVLVW",
+          "family": "crag-finance",
+          "entity": "EVLVW",
+          "label": "Evolv Technologies Holdings Inc. Warrant",
+          "attributes": {
+            "name": "Evolv Technologies Holdings Inc. Warrant",
+            "symbol": "EVLVW"
+          }
+        },
+        {
+          "id": "IGIC",
+          "recordKey": "crag-finance:IGIC",
+          "family": "crag-finance",
+          "entity": "IGIC",
+          "label": "International General Insurance Holdings Ltd. Ordinary Share",
+          "attributes": {
+            "name": "International General Insurance Holdings Ltd. Ordinary Share",
+            "symbol": "IGIC"
+          }
+        },
+        {
+          "id": "LYT",
+          "recordKey": "crag-finance:LYT",
+          "family": "crag-finance",
+          "entity": "LYT",
+          "label": "Lytus Technologies Holdings PTV. Ltd. Common Shares",
+          "attributes": {
+            "name": "Lytus Technologies Holdings PTV. Ltd. Common Shares",
+            "symbol": "LYT"
+          }
+        },
+        {
+          "id": "MARA",
+          "recordKey": "crag-finance:MARA",
+          "family": "crag-finance",
+          "entity": "MARA",
+          "label": "Marathon Digital Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "Marathon Digital Holdings Inc. Common Stock",
+            "symbol": "MARA"
+          }
+        },
+        {
+          "id": "MGIH",
+          "recordKey": "crag-finance:MGIH",
+          "family": "crag-finance",
+          "entity": "MGIH",
+          "label": "Millennium Group International Holdings Limited Ordinary Shares",
+          "attributes": {
+            "name": "Millennium Group International Holdings Limited Ordinary Shares",
+            "symbol": "MGIH"
+          }
+        },
+        {
+          "id": "NCLH",
+          "recordKey": "crag-finance:NCLH",
+          "family": "crag-finance",
+          "entity": "NCLH",
+          "label": "Norwegian Cruise Line Holdings Ltd. Ordinary Shares",
+          "attributes": {
+            "name": "Norwegian Cruise Line Holdings Ltd. Ordinary Shares",
+            "symbol": "NCLH"
+          }
+        },
+        {
+          "id": "OGI",
+          "recordKey": "crag-finance:OGI",
+          "family": "crag-finance",
+          "entity": "OGI",
+          "label": "Organigram Holdings Inc. Common Shares",
+          "attributes": {
+            "name": "Organigram Holdings Inc. Common Shares",
+            "symbol": "OGI"
+          }
+        },
+        {
+          "id": "SPCE",
+          "recordKey": "crag-finance:SPCE",
+          "family": "crag-finance",
+          "entity": "SPCE",
+          "label": "Virgin Galactic Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "Virgin Galactic Holdings Inc. Common Stock",
+            "symbol": "SPCE"
+          }
+        },
+        {
+          "id": "SSNC",
+          "recordKey": "crag-finance:SSNC",
+          "family": "crag-finance",
+          "entity": "SSNC",
+          "label": "SS&C Technologies Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "SS&C Technologies Holdings Inc. Common Stock",
+            "symbol": "SSNC"
+          }
+        },
+        {
+          "id": "ULH",
+          "recordKey": "crag-finance:ULH",
+          "family": "crag-finance",
+          "entity": "ULH",
+          "label": "Universal Logistics Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "Universal Logistics Holdings Inc. Common Stock",
+            "symbol": "ULH"
+          }
+        },
+        {
+          "id": "YGMZ",
+          "recordKey": "crag-finance:YGMZ",
+          "family": "crag-finance",
+          "entity": "YGMZ",
+          "label": "MingZhu Logistics Holdings Limited Ordinary Shares",
+          "attributes": {
+            "name": "MingZhu Logistics Holdings Limited Ordinary Shares",
+            "symbol": "YGMZ"
+          }
+        },
+        {
+          "id": "A",
+          "recordKey": "crag-finance:A",
+          "family": "crag-finance",
+          "entity": "A",
+          "label": "Agilent Technologies Inc. Common Stock",
+          "attributes": {
+            "name": "Agilent Technologies Inc. Common Stock",
+            "symbol": "A"
+          }
+        },
+        {
+          "id": "AAGR",
+          "recordKey": "crag-finance:AAGR",
+          "family": "crag-finance",
+          "entity": "AAGR",
+          "label": "African Agriculture Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "African Agriculture Holdings Inc. Common Stock",
+            "symbol": "AAGR"
+          }
+        },
+        {
+          "id": "AAGRW",
+          "recordKey": "crag-finance:AAGRW",
+          "family": "crag-finance",
+          "entity": "AAGRW",
+          "label": "African Agriculture Holdings Inc. Warrant",
+          "attributes": {
+            "name": "African Agriculture Holdings Inc. Warrant",
+            "symbol": "AAGRW"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T08:42:44.269Z",
+      "durationMs": 5.377916999976151
+    },
+    {
+      "index": 1,
+      "primitive": "tool.cragFinance.get_pe_ratio",
+      "input": {
+        "ticker": "G"
+      },
+      "output": 10.481818,
+      "startedAt": "2026-06-02T08:42:44.274Z",
+      "durationMs": 383.56695900001796
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T08:42:44.267Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-pe-family/questions/003-simple-1cb92ad8-f72d-4c7b-b990-1fbf4f497df0/workspace\");\n\n// CRAG finance — simple question 1cb92ad8-f72d-4c7b-b990-1fbf4f497df0\n//\n// Question (verbatim):\n// what's the current stock price-to-earnings ratio of motus gi holdings?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const matches = await df.db.records.search(\"Motus GI Holdings\");\n  const ticker = matches[0]?.id;\n  if (!ticker) {\n    return df.answer({ status: \"unsupported\", value: null, evidence: [] });\n  }\n  const pe = await df.tool.cragFinance.get_pe_ratio({ ticker });\n  return df.answer({\n    status: \"answered\",\n    value: pe,\n    evidence: [{ recordKey: matches[0].recordKey, reason: `P/E ratio for ${ticker}` }],\n  });\n}\n\nreturn await main();\n",
+  "sourceHash": "a43656b095c6f582457c4a040818a488633b9c0d581ea8eaa62c7be06abfb68b",
+  "result": {
+    "status": "answered",
+    "value": 10.481818,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:G",
+        "reason": "P/E ratio for G"
+      }
+    ],
+    "createdAt": "2026-06-02T08:42:44.658Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": 10.481818,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:G",
+        "reason": "P/E ratio for G"
+      }
+    ],
+    "createdAt": "2026-06-02T08:42:44.658Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 388.95704200002365
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

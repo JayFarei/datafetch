@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602092525_5hueq6",
+  "answer": {
+    "status": "answered",
+    "value": "Walmart",
+    "evidence": [
+      {
+        "reason": "Walmart (W) market cap: 6997753297.06104"
+      },
+      {
+        "reason": "Broadcom (B) market cap: 1788319574.8342733"
+      }
+    ],
+    "createdAt": "2026-06-02T09:25:25.840Z"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602104734_n0hiuh",
+  "answer": {
+    "status": "answered",
+    "value": "NYSE (Intercontinental Exchange, ticker ICE) market cap: ~$79.52B; London Stock Exchange Group (LSEG.L) market cap: ~$0.00B. NYSE is approximately Infinityx the size of the LSE by market cap.",
+    "evidence": [
+      {
+        "reason": "ICE (NYSE parent) market cap: 79524976081.81087"
+      },
+      {
+        "reason": "LSEG.L (LSE Group) market cap: null"
+      }
+    ],
+    "createdAt": "2026-06-02T10:47:35.590Z"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602091514_i4cf6u",
+  "answer": {
+    "status": "answered",
+    "value": "ExxonMobil",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:E",
+        "reason": "ExxonMobil (XOM) was the Fortune 500 company with the highest market capitalization in 2010 in the US, at approximately $370 billion."
+      }
+    ],
+    "createdAt": "2026-06-02T09:15:16.985Z"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260529131540_uu5k2w",
+  "answer": {
+    "status": "answered",
+    "value": "Pfizer",
+    "evidence": [
+      {
+        "reason": "Ford (F) dividend yield: 0.05"
+      },
+      {
+        "reason": "Pfizer (PFE) dividend yield: 0.0625"
+      }
+    ],
+    "createdAt": "2026-05-29T13:15:40.752Z"
+  }
+}

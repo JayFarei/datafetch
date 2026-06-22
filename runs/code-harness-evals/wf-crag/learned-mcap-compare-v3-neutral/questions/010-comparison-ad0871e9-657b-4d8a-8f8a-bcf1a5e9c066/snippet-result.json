@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602104359_2uk8tk",
+  "answer": {
+    "status": "answered",
+    "value": "ALLT",
+    "evidence": [
+      {
+        "reason": "MFD market cap: 62400000"
+      },
+      {
+        "reason": "ALLT market cap: 74224218.68747474"
+      }
+    ],
+    "createdAt": "2026-06-02T10:44:00.280Z"
+  }
+}

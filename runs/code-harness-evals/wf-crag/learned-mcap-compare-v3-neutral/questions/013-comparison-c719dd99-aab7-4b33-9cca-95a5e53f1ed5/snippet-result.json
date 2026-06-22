@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602104507_dsboz3",
+  "answer": {
+    "status": "answered",
+    "value": "CHMG",
+    "evidence": [
+      {
+        "reason": "CHMG market cap: 199531379.9470588"
+      },
+      {
+        "reason": "HTCR market cap: 13378940.78714623"
+      }
+    ],
+    "createdAt": "2026-06-02T10:45:07.660Z"
+  }
+}

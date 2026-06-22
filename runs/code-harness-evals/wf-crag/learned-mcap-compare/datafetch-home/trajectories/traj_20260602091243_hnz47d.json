@@ -1,0 +1,217 @@
+{
+  "id": "traj_20260602091243_hnz47d",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "WIW"
+      },
+      "output": [
+        {
+          "id": "WIW",
+          "recordKey": "crag-finance:WIW",
+          "family": "crag-finance",
+          "entity": "WIW",
+          "label": "Western Asset Inflation-Linked Opportunities & Income Fund",
+          "attributes": {
+            "name": "Western Asset Inflation-Linked Opportunities & Income Fund",
+            "symbol": "WIW"
+          }
+        },
+        {
+          "id": "W",
+          "recordKey": "crag-finance:W",
+          "family": "crag-finance",
+          "entity": "W",
+          "label": "Wayfair Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Wayfair Inc. Class A Common Stock",
+            "symbol": "W"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:12:43.010Z",
+      "durationMs": 4.669917000021087
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "MFICL"
+      },
+      "output": [
+        {
+          "id": "MFICL",
+          "recordKey": "crag-finance:MFICL",
+          "family": "crag-finance",
+          "entity": "MFICL",
+          "label": "MidCap Financial Investment Corporation 8.00% Notes due 2028",
+          "attributes": {
+            "name": "MidCap Financial Investment Corporation 8.00% Notes due 2028",
+            "symbol": "MFICL"
+          }
+        },
+        {
+          "id": "C",
+          "recordKey": "crag-finance:C",
+          "family": "crag-finance",
+          "entity": "C",
+          "label": "Citigroup Inc. Common Stock",
+          "attributes": {
+            "name": "Citigroup Inc. Common Stock",
+            "symbol": "C"
+          }
+        },
+        {
+          "id": "CL",
+          "recordKey": "crag-finance:CL",
+          "family": "crag-finance",
+          "entity": "CL",
+          "label": "Colgate-Palmolive Company Common Stock",
+          "attributes": {
+            "name": "Colgate-Palmolive Company Common Stock",
+            "symbol": "CL"
+          }
+        },
+        {
+          "id": "F",
+          "recordKey": "crag-finance:F",
+          "family": "crag-finance",
+          "entity": "F",
+          "label": "Ford Motor Company Common Stock",
+          "attributes": {
+            "name": "Ford Motor Company Common Stock",
+            "symbol": "F"
+          }
+        },
+        {
+          "id": "FI",
+          "recordKey": "crag-finance:FI",
+          "family": "crag-finance",
+          "entity": "FI",
+          "label": "Fiserv Inc. Common Stock",
+          "attributes": {
+            "name": "Fiserv Inc. Common Stock",
+            "symbol": "FI"
+          }
+        },
+        {
+          "id": "ICL",
+          "recordKey": "crag-finance:ICL",
+          "family": "crag-finance",
+          "entity": "ICL",
+          "label": "ICL Group Ltd. Ordinary Shares",
+          "attributes": {
+            "name": "ICL Group Ltd. Ordinary Shares",
+            "symbol": "ICL"
+          }
+        },
+        {
+          "id": "L",
+          "recordKey": "crag-finance:L",
+          "family": "crag-finance",
+          "entity": "L",
+          "label": "Loews Corporation Common Stock",
+          "attributes": {
+            "name": "Loews Corporation Common Stock",
+            "symbol": "L"
+          }
+        },
+        {
+          "id": "M",
+          "recordKey": "crag-finance:M",
+          "family": "crag-finance",
+          "entity": "M",
+          "label": "Macy's Inc Common Stock",
+          "attributes": {
+            "name": "Macy's Inc Common Stock",
+            "symbol": "M"
+          }
+        },
+        {
+          "id": "MFIC",
+          "recordKey": "crag-finance:MFIC",
+          "family": "crag-finance",
+          "entity": "MFIC",
+          "label": "MidCap Financial Investment Corporation Common Stock",
+          "attributes": {
+            "name": "MidCap Financial Investment Corporation Common Stock",
+            "symbol": "MFIC"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:12:43.013Z",
+      "durationMs": 2.421875
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MFICL"
+      },
+      "output": 949435074.9318802,
+      "startedAt": "2026-06-02T09:12:43.015Z",
+      "durationMs": 420.83962499999325
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "WIW"
+      },
+      "output": 515780000,
+      "startedAt": "2026-06-02T09:12:43.015Z",
+      "durationMs": 469.7567909999925
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:12:43.008Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare/questions/011-comparison-babb7da1-52c8-48bf-a3bf-93c3addf83a8/workspace\");\n\n// CRAG finance — comparison question babb7da1-52c8-48bf-a3bf-93c3addf83a8\n//\n// Question (verbatim):\n// which company has a greater market cap, wiw or mficl?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [wiwMatches, mficlMatches] = await Promise.all([\n    df.db.records.search(\"WIW\"),\n    df.db.records.search(\"MFICL\"),\n  ]);\n\n  const wiwTicker = wiwMatches[0]?.id ?? \"WIW\";\n  const mficlTicker = mficlMatches[0]?.id ?? \"MFICL\";\n\n  const [wiwMcap, mficlMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: wiwTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: mficlTicker }),\n  ]);\n\n  const winner = wiwMcap > mficlMcap ? wiwTicker : mficlTicker;\n\n  return df.answer({\n    status: \"answered\",\n    value: winner,\n    evidence: [\n      { reason: `${wiwTicker} market cap: ${wiwMcap}` },\n      { reason: `${mficlTicker} market cap: ${mficlMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "28c0f26201821217295aee265b2f667860b7f7a2269cc78f0ee2df906e906946",
+  "result": {
+    "status": "answered",
+    "value": "MFICL",
+    "evidence": [
+      {
+        "reason": "WIW market cap: 515780000"
+      },
+      {
+        "reason": "MFICL market cap: 949435074.9318802"
+      }
+    ],
+    "createdAt": "2026-06-02T09:12:43.485Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "MFICL",
+    "evidence": [
+      {
+        "reason": "WIW market cap: 515780000"
+      },
+      {
+        "reason": "MFICL market cap: 949435074.9318802"
+      }
+    ],
+    "createdAt": "2026-06-02T09:12:43.485Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 897.7077920000302
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

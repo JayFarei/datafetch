@@ -1,0 +1,195 @@
+{
+  "id": "traj_20260602091034_6pvvhu",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "HRI"
+      },
+      "output": [
+        {
+          "id": "HRI",
+          "recordKey": "crag-finance:HRI",
+          "family": "crag-finance",
+          "entity": "HRI",
+          "label": "Herc Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "Herc Holdings Inc. Common Stock",
+            "symbol": "HRI"
+          }
+        },
+        {
+          "id": "H",
+          "recordKey": "crag-finance:H",
+          "family": "crag-finance",
+          "entity": "H",
+          "label": "Hyatt Hotels Corporation Class A Common Stock",
+          "attributes": {
+            "name": "Hyatt Hotels Corporation Class A Common Stock",
+            "symbol": "H"
+          }
+        },
+        {
+          "id": "HR",
+          "recordKey": "crag-finance:HR",
+          "family": "crag-finance",
+          "entity": "HR",
+          "label": "Healthcare Realty Trust Incorporated Common Stock",
+          "attributes": {
+            "name": "Healthcare Realty Trust Incorporated Common Stock",
+            "symbol": "HR"
+          }
+        },
+        {
+          "id": "R",
+          "recordKey": "crag-finance:R",
+          "family": "crag-finance",
+          "entity": "R",
+          "label": "Ryder System Inc. Common Stock",
+          "attributes": {
+            "name": "Ryder System Inc. Common Stock",
+            "symbol": "R"
+          }
+        },
+        {
+          "id": "NRIM",
+          "recordKey": "crag-finance:NRIM",
+          "family": "crag-finance",
+          "entity": "NRIM",
+          "label": "Northrim BanCorp Inc Common Stock",
+          "attributes": {
+            "name": "Northrim BanCorp Inc Common Stock",
+            "symbol": "NRIM"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:10:34.873Z",
+      "durationMs": 6.372541999997338
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "IMPPP"
+      },
+      "output": [
+        {
+          "id": "IMPPP",
+          "recordKey": "crag-finance:IMPPP",
+          "family": "crag-finance",
+          "entity": "IMPPP",
+          "label": "Imperial Petroleum Inc. 8.75% Series A Cumulative Redeemable Perpetual Preferred Shares",
+          "attributes": {
+            "name": "Imperial Petroleum Inc. 8.75% Series A Cumulative Redeemable Perpetual Preferred Shares",
+            "symbol": "IMPPP"
+          }
+        },
+        {
+          "id": "IMPP",
+          "recordKey": "crag-finance:IMPP",
+          "family": "crag-finance",
+          "entity": "IMPP",
+          "label": "Imperial Petroleum Inc. Common Shares",
+          "attributes": {
+            "name": "Imperial Petroleum Inc. Common Shares",
+            "symbol": "IMPP"
+          }
+        },
+        {
+          "id": "M",
+          "recordKey": "crag-finance:M",
+          "family": "crag-finance",
+          "entity": "M",
+          "label": "Macy's Inc Common Stock",
+          "attributes": {
+            "name": "Macy's Inc Common Stock",
+            "symbol": "M"
+          }
+        },
+        {
+          "id": "MP",
+          "recordKey": "crag-finance:MP",
+          "family": "crag-finance",
+          "entity": "MP",
+          "label": "MP Materials Corp. Common Stock",
+          "attributes": {
+            "name": "MP Materials Corp. Common Stock",
+            "symbol": "MP"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:10:34.876Z",
+      "durationMs": 3.1338340000074822
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "IMPPP"
+      },
+      "output": 53278322.48737864,
+      "startedAt": "2026-06-02T09:10:34.880Z",
+      "durationMs": 514.134625000006
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "HRI"
+      },
+      "output": 4358121284.448982,
+      "startedAt": "2026-06-02T09:10:34.880Z",
+      "durationMs": 516.5027500000142
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:10:34.870Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare/questions/005-comparison-65d83c7c-55f4-46d2-983e-5f28fa24e32c/workspace\");\n\n// CRAG finance — comparison question 65d83c7c-55f4-46d2-983e-5f28fa24e32c\n//\n// Question (verbatim):\n// which company have larger market cap, hri or imppp?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [hriMatches, impppMatches] = await Promise.all([\n    df.db.records.search(\"HRI\"),\n    df.db.records.search(\"IMPPP\"),\n  ]);\n\n  const hriTicker = hriMatches[0]?.id ?? \"HRI\";\n  const impppTicker = impppMatches[0]?.id ?? \"IMPPP\";\n\n  const [hriMcap, impppMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: hriTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: impppTicker }),\n  ]);\n\n  const winner = hriMcap > impppMcap ? hriTicker : impppTicker;\n\n  return df.answer({\n    status: \"answered\",\n    value: winner,\n    evidence: [\n      { reason: `${hriTicker} market cap: ${hriMcap}` },\n      { reason: `${impppTicker} market cap: ${impppMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "ecf8a8d43b1f9b86912c9041118227cef913cec1da682643fd442861efa93b07",
+  "result": {
+    "status": "answered",
+    "value": "HRI",
+    "evidence": [
+      {
+        "reason": "HRI market cap: 4358121284.448982"
+      },
+      {
+        "reason": "IMPPP market cap: 53278322.48737864"
+      }
+    ],
+    "createdAt": "2026-06-02T09:10:35.396Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "HRI",
+    "evidence": [
+      {
+        "reason": "HRI market cap: 4358121284.448982"
+      },
+      {
+        "reason": "IMPPP market cap: 53278322.48737864"
+      }
+    ],
+    "createdAt": "2026-06-02T09:10:35.396Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 1040.1754160000128
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

@@ -1,0 +1,168 @@
+{
+  "id": "traj_20260602092020_s1fnh9",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "RBC",
+        "opts": {
+          "limit": 3
+        }
+      },
+      "output": [
+        {
+          "id": "RBC",
+          "recordKey": "crag-finance:RBC",
+          "family": "crag-finance",
+          "entity": "RBC",
+          "label": "RBC Bearings Incorporated Common Stock",
+          "attributes": {
+            "name": "RBC Bearings Incorporated Common Stock",
+            "symbol": "RBC"
+          }
+        },
+        {
+          "id": "B",
+          "recordKey": "crag-finance:B",
+          "family": "crag-finance",
+          "entity": "B",
+          "label": "Barnes Group Inc. Common Stock",
+          "attributes": {
+            "name": "Barnes Group Inc. Common Stock",
+            "symbol": "B"
+          }
+        },
+        {
+          "id": "BC",
+          "recordKey": "crag-finance:BC",
+          "family": "crag-finance",
+          "entity": "BC",
+          "label": "Brunswick Corporation Common Stock",
+          "attributes": {
+            "name": "Brunswick Corporation Common Stock",
+            "symbol": "BC"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:20:20.203Z",
+      "durationMs": 7.485625000001164
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "RNG",
+        "opts": {
+          "limit": 3
+        }
+      },
+      "output": [
+        {
+          "id": "RNG",
+          "recordKey": "crag-finance:RNG",
+          "family": "crag-finance",
+          "entity": "RNG",
+          "label": "RingCentral Inc. Class A Common Stock",
+          "attributes": {
+            "name": "RingCentral Inc. Class A Common Stock",
+            "symbol": "RNG"
+          }
+        },
+        {
+          "id": "G",
+          "recordKey": "crag-finance:G",
+          "family": "crag-finance",
+          "entity": "G",
+          "label": "Genpact Limited Common Stock",
+          "attributes": {
+            "name": "Genpact Limited Common Stock",
+            "symbol": "G"
+          }
+        },
+        {
+          "id": "NG",
+          "recordKey": "crag-finance:NG",
+          "family": "crag-finance",
+          "entity": "NG",
+          "label": "Novagold Resources Inc.",
+          "attributes": {
+            "name": "Novagold Resources Inc.",
+            "symbol": "NG"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:20:20.207Z",
+      "durationMs": 3.474833000000217
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "RBC"
+      },
+      "output": 7953532534.291791,
+      "startedAt": "2026-06-02T09:20:20.210Z",
+      "durationMs": 458.89941700000054
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "RNG"
+      },
+      "output": 3058012039.1549377,
+      "startedAt": "2026-06-02T09:20:20.211Z",
+      "durationMs": 465.9603330000027
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:20:20.198Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v2/questions/000-comparison-25d230b2-e518-45e7-8c67-a762571fb5fe/workspace\");\n\n// CRAG finance — comparison question 25d230b2-e518-45e7-8c67-a762571fb5fe\n//\n// Question (verbatim):\n// which company have larger market cap, rbc or rng?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [rbcMatches, rngMatches] = await Promise.all([\n    df.db.records.search(\"RBC\", { limit: 3 }),\n    df.db.records.search(\"RNG\", { limit: 3 }),\n  ]);\n\n  const rbcTicker = rbcMatches[0]?.id;\n  const rngTicker = rngMatches[0]?.id;\n\n  const [rbcMcap, rngMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: rbcTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: rngTicker }),\n  ]);\n\n  const winner = rbcMcap > rngMcap ? \"RBC\" : \"RNG\";\n\n  return df.answer({\n    status: \"answered\",\n    value: winner,\n    evidence: [\n      { reason: `RBC (${rbcTicker}) market cap: ${rbcMcap}` },\n      { reason: `RNG (${rngTicker}) market cap: ${rngMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "f6912df0c546cad40a948786ec242d4e707c2a92a38bb781aeae18ca0a349947",
+  "result": {
+    "status": "answered",
+    "value": "RBC",
+    "evidence": [
+      {
+        "reason": "RBC (RBC) market cap: 7953532534.291791"
+      },
+      {
+        "reason": "RNG (RNG) market cap: 3058012039.1549377"
+      }
+    ],
+    "createdAt": "2026-06-02T09:20:20.677Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "RBC",
+    "evidence": [
+      {
+        "reason": "RBC (RBC) market cap: 7953532534.291791"
+      },
+      {
+        "reason": "RNG (RNG) market cap: 3058012039.1549377"
+      }
+    ],
+    "createdAt": "2026-06-02T09:20:20.677Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 935.8891679999979
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

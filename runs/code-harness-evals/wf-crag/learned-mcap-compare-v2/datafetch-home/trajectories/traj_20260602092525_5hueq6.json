@@ -1,0 +1,140 @@
+{
+  "id": "traj_20260602092525_5hueq6",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "Walmart"
+      },
+      "output": [
+        {
+          "id": "W",
+          "recordKey": "crag-finance:W",
+          "family": "crag-finance",
+          "entity": "W",
+          "label": "Wayfair Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Wayfair Inc. Class A Common Stock",
+            "symbol": "W"
+          }
+        },
+        {
+          "id": "WMT",
+          "recordKey": "crag-finance:WMT",
+          "family": "crag-finance",
+          "entity": "WMT",
+          "label": "Walmart Inc. Common Stock",
+          "attributes": {
+            "name": "Walmart Inc. Common Stock",
+            "symbol": "WMT"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:25:25.372Z",
+      "durationMs": 4.374542000005022
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "Broadcom"
+      },
+      "output": [
+        {
+          "id": "B",
+          "recordKey": "crag-finance:B",
+          "family": "crag-finance",
+          "entity": "B",
+          "label": "Barnes Group Inc. Common Stock",
+          "attributes": {
+            "name": "Barnes Group Inc. Common Stock",
+            "symbol": "B"
+          }
+        },
+        {
+          "id": "AVGO",
+          "recordKey": "crag-finance:AVGO",
+          "family": "crag-finance",
+          "entity": "AVGO",
+          "label": "Broadcom Inc. Common Stock",
+          "attributes": {
+            "name": "Broadcom Inc. Common Stock",
+            "symbol": "AVGO"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:25:25.374Z",
+      "durationMs": 2.0219580000266433
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "W"
+      },
+      "output": 6997753297.06104,
+      "startedAt": "2026-06-02T09:25:25.376Z",
+      "durationMs": 455.1162910000421
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "B"
+      },
+      "output": 1788319574.8342733,
+      "startedAt": "2026-06-02T09:25:25.376Z",
+      "durationMs": 463.6822909999755
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:25:25.370Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v2/questions/014-comparison-cbc4fc3b-e16a-44d4-87b6-b44a796118ee/workspace\");\n\n// CRAG finance — comparison question cbc4fc3b-e16a-44d4-87b6-b44a796118ee\n//\n// Question (verbatim):\n// which company has a higher market capitalization, walmart or broadcom?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [walmartMatches, broadcomMatches] = await Promise.all([\n    df.db.records.search(\"Walmart\"),\n    df.db.records.search(\"Broadcom\"),\n  ]);\n\n  const walmartTicker = walmartMatches[0]?.id;\n  const broadcomTicker = broadcomMatches[0]?.id;\n\n  const [walmartMcap, broadcomMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: walmartTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: broadcomTicker }),\n  ]);\n\n  const winner = walmartMcap > broadcomMcap ? \"Walmart\" : \"Broadcom\";\n\n  return df.answer({\n    status: \"answered\",\n    value: winner,\n    evidence: [\n      { reason: `Walmart (${walmartTicker}) market cap: ${walmartMcap}` },\n      { reason: `Broadcom (${broadcomTicker}) market cap: ${broadcomMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "1f1f5df7c2f245376ce4b8620eeae7be56efed31c67d6acb40a35fc1e9487992",
+  "result": {
+    "status": "answered",
+    "value": "Walmart",
+    "evidence": [
+      {
+        "reason": "Walmart (W) market cap: 6997753297.06104"
+      },
+      {
+        "reason": "Broadcom (B) market cap: 1788319574.8342733"
+      }
+    ],
+    "createdAt": "2026-06-02T09:25:25.840Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "Walmart",
+    "evidence": [
+      {
+        "reason": "Walmart (W) market cap: 6997753297.06104"
+      },
+      {
+        "reason": "Broadcom (B) market cap: 1788319574.8342733"
+      }
+    ],
+    "createdAt": "2026-06-02T09:25:25.840Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 925.2098339999793
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

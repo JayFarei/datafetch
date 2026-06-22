@@ -1,0 +1,80 @@
+{
+  "id": "traj_20260602083704_0b6r3r",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "DiDi"
+      },
+      "output": [
+        {
+          "id": "D",
+          "recordKey": "crag-finance:D",
+          "family": "crag-finance",
+          "entity": "D",
+          "label": "Dominion Energy Inc. Common Stock",
+          "attributes": {
+            "name": "Dominion Energy Inc. Common Stock",
+            "symbol": "D"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T08:37:04.993Z",
+      "durationMs": 5.545165999999881
+    },
+    {
+      "index": 1,
+      "primitive": "tool.cragFinance.get_pe_ratio",
+      "input": {
+        "ticker": "D"
+      },
+      "output": 14.189705,
+      "startedAt": "2026-06-02T08:37:04.999Z",
+      "durationMs": 761.8680420000019
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T08:37:04.937Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-pe-family/questions/000-false_premise-cc768f96-e078-4b92-81f7-3970cf2a3b7a/workspace\");\n\n// CRAG finance — false_premise question cc768f96-e078-4b92-81f7-3970cf2a3b7a\n//\n// Question (verbatim):\n// what is the price-to-earnings ratio of didi now?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const matches = await df.db.records.search(\"DiDi\");\n  const ticker = matches[0]?.id;\n  if (!ticker) {\n    return df.answer({ status: \"answered\", value: \"invalid question\", evidence: [] });\n  }\n  const pe = await df.tool.cragFinance.get_pe_ratio({ ticker });\n  if (pe === null || pe === undefined || isNaN(pe)) {\n    return df.answer({ status: \"answered\", value: \"invalid question\", evidence: [{ recordKey: matches[0]?.recordKey, reason: \"DiDi is delisted/no P/E ratio available\" }] });\n  }\n  return df.answer({ status: \"answered\", value: pe, evidence: [{ recordKey: matches[0]?.recordKey }] });\n}\n\nreturn await main();\n",
+  "sourceHash": "0761c4d0421d517f2174a3f814fd2cc5a44ba9343634d5189d4809a7a2dbc885",
+  "result": {
+    "status": "answered",
+    "value": 14.189705,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:D"
+      }
+    ],
+    "createdAt": "2026-06-02T08:37:05.761Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": 14.189705,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:D"
+      }
+    ],
+    "createdAt": "2026-06-02T08:37:05.761Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 767.4567510000015
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

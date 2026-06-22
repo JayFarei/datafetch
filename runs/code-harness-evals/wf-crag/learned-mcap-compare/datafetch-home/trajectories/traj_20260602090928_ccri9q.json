@@ -1,0 +1,261 @@
+{
+  "id": "traj_20260602090928_ccri9q",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "NWGL"
+      },
+      "output": [
+        {
+          "id": "NWGL",
+          "recordKey": "crag-finance:NWGL",
+          "family": "crag-finance",
+          "entity": "NWGL",
+          "label": "Nature Wood Group Limited American Depositary Shares",
+          "attributes": {
+            "name": "Nature Wood Group Limited American Depositary Shares",
+            "symbol": "NWGL"
+          }
+        },
+        {
+          "id": "G",
+          "recordKey": "crag-finance:G",
+          "family": "crag-finance",
+          "entity": "G",
+          "label": "Genpact Limited Common Stock",
+          "attributes": {
+            "name": "Genpact Limited Common Stock",
+            "symbol": "G"
+          }
+        },
+        {
+          "id": "GL",
+          "recordKey": "crag-finance:GL",
+          "family": "crag-finance",
+          "entity": "GL",
+          "label": "Globe Life Inc. Common Stock",
+          "attributes": {
+            "name": "Globe Life Inc. Common Stock",
+            "symbol": "GL"
+          }
+        },
+        {
+          "id": "L",
+          "recordKey": "crag-finance:L",
+          "family": "crag-finance",
+          "entity": "L",
+          "label": "Loews Corporation Common Stock",
+          "attributes": {
+            "name": "Loews Corporation Common Stock",
+            "symbol": "L"
+          }
+        },
+        {
+          "id": "NWG",
+          "recordKey": "crag-finance:NWG",
+          "family": "crag-finance",
+          "entity": "NWG",
+          "label": "NatWest Group plc American Depositary Shares (each representing two (2) Ordinary Shares)",
+          "attributes": {
+            "name": "NatWest Group plc American Depositary Shares (each representing two (2) Ordinary Shares)",
+            "symbol": "NWG"
+          }
+        },
+        {
+          "id": "W",
+          "recordKey": "crag-finance:W",
+          "family": "crag-finance",
+          "entity": "W",
+          "label": "Wayfair Inc. Class A Common Stock",
+          "attributes": {
+            "name": "Wayfair Inc. Class A Common Stock",
+            "symbol": "W"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:09:28.821Z",
+      "durationMs": 5.5833330000023125
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "MFICL"
+      },
+      "output": [
+        {
+          "id": "MFICL",
+          "recordKey": "crag-finance:MFICL",
+          "family": "crag-finance",
+          "entity": "MFICL",
+          "label": "MidCap Financial Investment Corporation 8.00% Notes due 2028",
+          "attributes": {
+            "name": "MidCap Financial Investment Corporation 8.00% Notes due 2028",
+            "symbol": "MFICL"
+          }
+        },
+        {
+          "id": "C",
+          "recordKey": "crag-finance:C",
+          "family": "crag-finance",
+          "entity": "C",
+          "label": "Citigroup Inc. Common Stock",
+          "attributes": {
+            "name": "Citigroup Inc. Common Stock",
+            "symbol": "C"
+          }
+        },
+        {
+          "id": "CL",
+          "recordKey": "crag-finance:CL",
+          "family": "crag-finance",
+          "entity": "CL",
+          "label": "Colgate-Palmolive Company Common Stock",
+          "attributes": {
+            "name": "Colgate-Palmolive Company Common Stock",
+            "symbol": "CL"
+          }
+        },
+        {
+          "id": "F",
+          "recordKey": "crag-finance:F",
+          "family": "crag-finance",
+          "entity": "F",
+          "label": "Ford Motor Company Common Stock",
+          "attributes": {
+            "name": "Ford Motor Company Common Stock",
+            "symbol": "F"
+          }
+        },
+        {
+          "id": "FI",
+          "recordKey": "crag-finance:FI",
+          "family": "crag-finance",
+          "entity": "FI",
+          "label": "Fiserv Inc. Common Stock",
+          "attributes": {
+            "name": "Fiserv Inc. Common Stock",
+            "symbol": "FI"
+          }
+        },
+        {
+          "id": "ICL",
+          "recordKey": "crag-finance:ICL",
+          "family": "crag-finance",
+          "entity": "ICL",
+          "label": "ICL Group Ltd. Ordinary Shares",
+          "attributes": {
+            "name": "ICL Group Ltd. Ordinary Shares",
+            "symbol": "ICL"
+          }
+        },
+        {
+          "id": "L",
+          "recordKey": "crag-finance:L",
+          "family": "crag-finance",
+          "entity": "L",
+          "label": "Loews Corporation Common Stock",
+          "attributes": {
+            "name": "Loews Corporation Common Stock",
+            "symbol": "L"
+          }
+        },
+        {
+          "id": "M",
+          "recordKey": "crag-finance:M",
+          "family": "crag-finance",
+          "entity": "M",
+          "label": "Macy's Inc Common Stock",
+          "attributes": {
+            "name": "Macy's Inc Common Stock",
+            "symbol": "M"
+          }
+        },
+        {
+          "id": "MFIC",
+          "recordKey": "crag-finance:MFIC",
+          "family": "crag-finance",
+          "entity": "MFIC",
+          "label": "MidCap Financial Investment Corporation Common Stock",
+          "attributes": {
+            "name": "MidCap Financial Investment Corporation Common Stock",
+            "symbol": "MFIC"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:09:28.824Z",
+      "durationMs": 2.4621250000054715
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "NWGL"
+      },
+      "output": 1751791527,
+      "startedAt": "2026-06-02T09:09:28.827Z",
+      "durationMs": 477.02162499999395
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MFICL"
+      },
+      "output": 949435074.9318802,
+      "startedAt": "2026-06-02T09:09:28.827Z",
+      "durationMs": 482.1844160000037
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:09:28.819Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare/questions/002-comparison-2f3101f3-8852-435b-9d63-6286f07176e3/workspace\");\n\n// CRAG finance — comparison question 2f3101f3-8852-435b-9d63-6286f07176e3\n//\n// Question (verbatim):\n// which company's market capitalization is higher, nwgl or mficl?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [nwglMatches, mficlMatches] = await Promise.all([\n    df.db.records.search(\"NWGL\"),\n    df.db.records.search(\"MFICL\"),\n  ]);\n\n  const nwglTicker = nwglMatches[0]?.id ?? \"NWGL\";\n  const mficlTicker = mficlMatches[0]?.id ?? \"MFICL\";\n\n  const [nwglMcap, mficlMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: nwglTicker }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: mficlTicker }),\n  ]);\n\n  const higher = nwglMcap > mficlMcap ? nwglTicker : mficlTicker;\n\n  return df.answer({\n    status: \"answered\",\n    value: higher,\n    evidence: [\n      { reason: `${nwglTicker} market cap: ${nwglMcap}` },\n      { reason: `${mficlTicker} market cap: ${mficlMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "352a6bc5a17ba7e3d756620a2d93f90e8b8ba3aafc0993699b9d3658f27e4e09",
+  "result": {
+    "status": "answered",
+    "value": "NWGL",
+    "evidence": [
+      {
+        "reason": "NWGL market cap: 1751791527"
+      },
+      {
+        "reason": "MFICL market cap: 949435074.9318802"
+      }
+    ],
+    "createdAt": "2026-06-02T09:09:29.309Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "NWGL",
+    "evidence": [
+      {
+        "reason": "NWGL market cap: 1751791527"
+      },
+      {
+        "reason": "MFICL market cap: 949435074.9318802"
+      }
+    ],
+    "createdAt": "2026-06-02T09:09:29.309Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 967.2876259999903
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

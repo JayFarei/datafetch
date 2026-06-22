@@ -1,0 +1,9 @@
+{
+  "exitCode": 1,
+  "trajectoryId": "traj_20260529132340_l6a4pc",
+  "answer": {
+    "status": "unsupported",
+    "reason": "tool-backed chain absent: trajectory touched df.db.* but contained neither df.lib.* nor df.tool.* calls. Tool-backed episodes must derive outputs through a learned/seed helper or official tool call; db-only placeholder contact is rejected.",
+    "createdAt": "2026-05-29T13:23:40.533Z"
+  }
+}

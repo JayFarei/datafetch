@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602091139_tfcg0h",
+  "answer": {
+    "status": "answered",
+    "value": "CVCY",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:BKSY",
+        "reason": "BKSY market cap: 214295368.9915244"
+      },
+      {
+        "recordKey": "crag-finance:CVCY",
+        "reason": "CVCY market cap: 216506479.28850323"
+      }
+    ],
+    "createdAt": "2026-06-02T09:11:40.672Z"
+  }
+}

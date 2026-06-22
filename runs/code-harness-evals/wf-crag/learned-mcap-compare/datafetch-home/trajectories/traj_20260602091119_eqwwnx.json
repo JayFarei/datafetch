@@ -1,0 +1,276 @@
+{
+  "id": "traj_20260602091119_eqwwnx",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "CMT"
+      },
+      "output": [
+        {
+          "id": "CMT",
+          "recordKey": "crag-finance:CMT",
+          "family": "crag-finance",
+          "entity": "CMT",
+          "label": "Core Molding Technologies Inc Common Stock",
+          "attributes": {
+            "name": "Core Molding Technologies Inc Common Stock",
+            "symbol": "CMT"
+          }
+        },
+        {
+          "id": "C",
+          "recordKey": "crag-finance:C",
+          "family": "crag-finance",
+          "entity": "C",
+          "label": "Citigroup Inc. Common Stock",
+          "attributes": {
+            "name": "Citigroup Inc. Common Stock",
+            "symbol": "C"
+          }
+        },
+        {
+          "id": "CM",
+          "recordKey": "crag-finance:CM",
+          "family": "crag-finance",
+          "entity": "CM",
+          "label": "Canadian Imperial Bank of Commerce Common Stock",
+          "attributes": {
+            "name": "Canadian Imperial Bank of Commerce Common Stock",
+            "symbol": "CM"
+          }
+        },
+        {
+          "id": "M",
+          "recordKey": "crag-finance:M",
+          "family": "crag-finance",
+          "entity": "M",
+          "label": "Macy's Inc Common Stock",
+          "attributes": {
+            "name": "Macy's Inc Common Stock",
+            "symbol": "M"
+          }
+        },
+        {
+          "id": "MT",
+          "recordKey": "crag-finance:MT",
+          "family": "crag-finance",
+          "entity": "MT",
+          "label": "Arcelor Mittal NY Registry Shares NEW",
+          "attributes": {
+            "name": "Arcelor Mittal NY Registry Shares NEW",
+            "symbol": "MT"
+          }
+        },
+        {
+          "id": "T",
+          "recordKey": "crag-finance:T",
+          "family": "crag-finance",
+          "entity": "T",
+          "label": "AT&T Inc.",
+          "attributes": {
+            "name": "AT&T Inc.",
+            "symbol": "T"
+          }
+        },
+        {
+          "id": "CMTG",
+          "recordKey": "crag-finance:CMTG",
+          "family": "crag-finance",
+          "entity": "CMTG",
+          "label": "Claros Mortgage Trust Inc. Common Stock",
+          "attributes": {
+            "name": "Claros Mortgage Trust Inc. Common Stock",
+            "symbol": "CMTG"
+          }
+        },
+        {
+          "id": "CMTL",
+          "recordKey": "crag-finance:CMTL",
+          "family": "crag-finance",
+          "entity": "CMTL",
+          "label": "Comtech Telecommunications Corp. Common Stock",
+          "attributes": {
+            "name": "Comtech Telecommunications Corp. Common Stock",
+            "symbol": "CMTL"
+          }
+        },
+        {
+          "id": "RCMT",
+          "recordKey": "crag-finance:RCMT",
+          "family": "crag-finance",
+          "entity": "RCMT",
+          "label": "RCM Technologies Inc. Common Stock",
+          "attributes": {
+            "name": "RCM Technologies Inc. Common Stock",
+            "symbol": "RCMT"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:11:19.342Z",
+      "durationMs": 5.375666999985697
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "ADEA"
+      },
+      "output": [
+        {
+          "id": "ADEA",
+          "recordKey": "crag-finance:ADEA",
+          "family": "crag-finance",
+          "entity": "ADEA",
+          "label": "Adeia Inc. Common Stock",
+          "attributes": {
+            "name": "Adeia Inc. Common Stock",
+            "symbol": "ADEA"
+          }
+        },
+        {
+          "id": "A",
+          "recordKey": "crag-finance:A",
+          "family": "crag-finance",
+          "entity": "A",
+          "label": "Agilent Technologies Inc. Common Stock",
+          "attributes": {
+            "name": "Agilent Technologies Inc. Common Stock",
+            "symbol": "A"
+          }
+        },
+        {
+          "id": "D",
+          "recordKey": "crag-finance:D",
+          "family": "crag-finance",
+          "entity": "D",
+          "label": "Dominion Energy Inc. Common Stock",
+          "attributes": {
+            "name": "Dominion Energy Inc. Common Stock",
+            "symbol": "D"
+          }
+        },
+        {
+          "id": "DE",
+          "recordKey": "crag-finance:DE",
+          "family": "crag-finance",
+          "entity": "DE",
+          "label": "Deere & Company Common Stock",
+          "attributes": {
+            "name": "Deere & Company Common Stock",
+            "symbol": "DE"
+          }
+        },
+        {
+          "id": "DEA",
+          "recordKey": "crag-finance:DEA",
+          "family": "crag-finance",
+          "entity": "DEA",
+          "label": "Easterly Government Properties Inc. Common Stock",
+          "attributes": {
+            "name": "Easterly Government Properties Inc. Common Stock",
+            "symbol": "DEA"
+          }
+        },
+        {
+          "id": "E",
+          "recordKey": "crag-finance:E",
+          "family": "crag-finance",
+          "entity": "E",
+          "label": "ENI S.p.A. Common Stock",
+          "attributes": {
+            "name": "ENI S.p.A. Common Stock",
+            "symbol": "E"
+          }
+        },
+        {
+          "id": "EA",
+          "recordKey": "crag-finance:EA",
+          "family": "crag-finance",
+          "entity": "EA",
+          "label": "Electronic Arts Inc. Common Stock",
+          "attributes": {
+            "name": "Electronic Arts Inc. Common Stock",
+            "symbol": "EA"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:11:19.344Z",
+      "durationMs": 2.500832999998238
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "CMT"
+      },
+      "output": 164359996.99999997,
+      "startedAt": "2026-06-02T09:11:19.347Z",
+      "durationMs": 515.8902499999967
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "ADEA"
+      },
+      "output": 1231089267.7525952,
+      "startedAt": "2026-06-02T09:11:19.347Z",
+      "durationMs": 538.3182500000112
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:11:19.340Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare/questions/007-comparison-7821dc79-dc9c-4775-b516-789153e6c98e/workspace\");\n\n// CRAG finance — comparison question 7821dc79-dc9c-4775-b516-789153e6c98e\n//\n// Question (verbatim):\n// which company have larger market cap, cmt or adea?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [cmtMatches, adeaMatches] = await Promise.all([\n    df.db.records.search(\"CMT\"),\n    df.db.records.search(\"ADEA\"),\n  ]);\n\n  const cmtRecord = cmtMatches.find(r => r.attributes.symbol === \"CMT\") || cmtMatches[0];\n  const adeaRecord = adeaMatches.find(r => r.attributes.symbol === \"ADEA\") || adeaMatches[0];\n\n  const [cmtMcap, adeaMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"CMT\" }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"ADEA\" }),\n  ]);\n\n  const larger = cmtMcap > adeaMcap ? \"CMT\" : \"ADEA\";\n\n  return df.answer({\n    status: \"answered\",\n    value: larger,\n    evidence: [\n      { recordKey: cmtRecord?.recordKey, reason: `CMT market cap: ${cmtMcap}` },\n      { recordKey: adeaRecord?.recordKey, reason: `ADEA market cap: ${adeaMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "15a86cbb99d4dc2d271b8870258cbb99c225cba9cac09601d723b65cd3e65fb2",
+  "result": {
+    "status": "answered",
+    "value": "ADEA",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:CMT",
+        "reason": "CMT market cap: 164359996.99999997"
+      },
+      {
+        "recordKey": "crag-finance:ADEA",
+        "reason": "ADEA market cap: 1231089267.7525952"
+      }
+    ],
+    "createdAt": "2026-06-02T09:11:19.886Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "ADEA",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:CMT",
+        "reason": "CMT market cap: 164359996.99999997"
+      },
+      {
+        "recordKey": "crag-finance:ADEA",
+        "reason": "ADEA market cap: 1231089267.7525952"
+      }
+    ],
+    "createdAt": "2026-06-02T09:11:19.886Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 1062.101416999998
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}

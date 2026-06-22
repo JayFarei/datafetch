@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260529131417_twmbuj",
+  "answer": {
+    "status": "answered",
+    "value": "Splunk",
+    "evidence": [
+      {
+        "reason": "Splunk (S) P/B: 5.358085"
+      },
+      {
+        "reason": "MongoDB (B) P/B: 1.3222272"
+      }
+    ],
+    "createdAt": "2026-05-29T13:14:17.699Z"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602104256_f3jc1b",
+  "answer": {
+    "status": "answered",
+    "value": "ADEA",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:CMT",
+        "reason": "CMT market cap: 164359996.99999997"
+      },
+      {
+        "recordKey": "crag-finance:ADEA",
+        "reason": "ADEA market cap: 1231089267.7525952"
+      }
+    ],
+    "createdAt": "2026-06-02T10:42:56.511Z"
+  }
+}

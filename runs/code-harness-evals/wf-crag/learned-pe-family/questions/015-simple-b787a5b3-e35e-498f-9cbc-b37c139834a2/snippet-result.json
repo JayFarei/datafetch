@@ -1,0 +1,15 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602090544_1j0roi",
+  "answer": {
+    "status": "answered",
+    "value": 27.899511,
+    "evidence": [
+      {
+        "recordKey": "crag-finance:BHP",
+        "reason": "P/E ratio for BHP"
+      }
+    ],
+    "createdAt": "2026-06-02T09:05:44.988Z"
+  }
+}

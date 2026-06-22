@@ -1,0 +1,19 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602091539_lrshoi",
+  "answer": {
+    "status": "answered",
+    "value": "The New York Stock Exchange (operator: ICE, ticker E) has a market cap of ~$48.07B, while the London Stock Exchange Group (ticker E) has a market cap of ~$48.07B. NYSE's operator is approximately 1.00x the size of LSE's operator by market cap.",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:E",
+        "reason": "NYSE operator market cap: $48070799167"
+      },
+      {
+        "recordKey": "crag-finance:E",
+        "reason": "LSE market cap: $48070799167"
+      }
+    ],
+    "createdAt": "2026-06-02T09:15:40.333Z"
+  }
+}

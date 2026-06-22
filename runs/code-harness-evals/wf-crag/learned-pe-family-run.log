@@ -1,0 +1,22 @@
+[crag-datafetch] arm=learned selected 20 question(s); out=/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-pe-family
+[crag-datafetch] [1/20] false_premise cc768f96-e078-4b92-81f7-3970cf2a3b7a status=answered pred=14.189705 gold=invalid question libUsed=0 wall=22067ms
+[crag-datafetch] [2/20] simple 03e1923a-ef68-4d20-b064-ef7996831b17 status=unsupported pred=substrate-rooted chain absent: trajector… gold=-2.33 libUsed=0 wall=300968ms
+[crag-datafetch] [3/20] simple 1b1a0725-6814-4c30-9adc-f3ec8b658c5e status=answered pred=13.748841 gold=13.75 libUsed=0 wall=20956ms
+[crag-datafetch] [4/20] simple 1cb92ad8-f72d-4c7b-b990-1fbf4f497df0 status=answered pred=10.481818 gold=-0.06 libUsed=0 wall=16971ms
+[crag-datafetch] [5/20] simple 376c575a-4eee-42b6-98ba-354718728bda status=unsupported pred=substrate-rooted chain absent: trajector… gold=i don't know libUsed=0 wall=301257ms
+[crag-datafetch] [6/20] simple 442591ae-b010-40d9-bfb9-0254275780c6 status=unsupported pred=substrate-rooted chain absent: trajector… gold=11.85 libUsed=0 wall=301128ms
+[crag-datafetch] [7/20] simple 4ac9d25a-0f88-4366-b297-220e9697d2fe status=answered pred=25.95517 gold=19.4 libUsed=0 wall=19236ms
+[crag-datafetch] [8/20] simple 5cc6a7e9-ef88-403d-a9e6-bc2faae48ba3 status=answered pred=6.416667 gold=6.42 libUsed=0 wall=22354ms
+[crag-datafetch] [9/20] simple 6a45b6ff-c499-4148-8306-b53a375db15b status=answered pred=6.7490654 gold=6.75 libUsed=0 wall=28890ms
+[crag-datafetch] [10/20] simple 7caa1e1c-d95a-4911-adf1-09ec1df5b982 status=unsupported pred=substrate-rooted chain absent: trajector… gold=13.43 libUsed=0 wall=301106ms
+[crag-datafetch] [11/20] simple 98a1c1a0-4dda-43aa-8f87-3d58a7775623 status=answered pred=null gold=i don't know libUsed=0 wall=17871ms
+[crag-datafetch] [12/20] simple a2a90080-6a9a-47be-beb7-a08b0065ca99 status=unsupported pred=substrate-rooted chain absent: trajector… gold=i don't know libUsed=0 wall=300977ms
+[crag-datafetch] [13/20] simple adaaf1ac-17cc-43ea-b5df-2a9a00370bf5 status=unsupported pred=i don't know gold=i don't know libUsed=0 wall=23919ms
+[crag-datafetch] [14/20] simple b38205af-d288-4a78-bf39-41a1e9196cc9 status=answered pred=null gold=i don't know libUsed=0 wall=24171ms
+[crag-datafetch] [15/20] simple b56c4063-5398-4cb4-b8e8-069279e49281 status=unsupported pred=i don't know gold=i don't know libUsed=0 wall=20003ms
+[crag-datafetch] [16/20] simple b787a5b3-e35e-498f-9cbc-b37c139834a2 status=answered pred=27.899511 gold=27.9 libUsed=0 wall=19380ms
+[crag-datafetch] [17/20] simple c2911bd8-227c-4d08-9eb7-68b219fcc469 status=answered pred=7.7815127 gold=23.56 libUsed=0 wall=18824ms
+[crag-datafetch] [18/20] simple cb544c30-5eae-4551-b1d0-75687d20c45a status=answered pred=39.065216 gold=39.07 libUsed=0 wall=17424ms
+[crag-datafetch] [19/20] simple cca512e1-e6b9-4d2e-ad0d-0d1f7f04c537 status=answered pred=14.189705 gold=24.9 libUsed=0 wall=23026ms
+[crag-datafetch] [20/20] simple d03b2ded-1395-4593-9aa3-92b6c4bd1c3b status=answered pred=null gold=i don't know libUsed=0 wall=17545ms
+[crag-datafetch] done. completed=20 failed=0. results=/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-pe-family/results.jsonl

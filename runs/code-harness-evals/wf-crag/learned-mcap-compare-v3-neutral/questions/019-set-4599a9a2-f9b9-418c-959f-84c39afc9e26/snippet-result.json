@@ -1,0 +1,14 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602104801_1hp21g",
+  "answer": {
+    "status": "answered",
+    "value": "No energy stocks found with higher market cap than Shell",
+    "evidence": [
+      {
+        "reason": "Shell (SHEL) market cap: $159.22B"
+      }
+    ],
+    "createdAt": "2026-06-02T10:48:26.394Z"
+  }
+}

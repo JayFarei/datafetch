@@ -1,0 +1,31 @@
+{
+  "name": "cragfinanceGetMarketCapitalization",
+  "path": "df.lib.cragfinanceGetMarketCapitalization",
+  "intent": "learned interface cragfinanceGetMarketCapitalization",
+  "evidencePolicy": "optional",
+  "maturity": "candidate-typescript",
+  "callability": "not-callable",
+  "implementation": {
+    "kind": "typescript",
+    "ref": "/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare-v3-neutral/datafetch-home/lib/crag-finance/cragfinanceGetMarketCapitalization.ts"
+  },
+  "origin": {
+    "tenantId": "crag-finance",
+    "trajectoryIds": [
+      "traj_20260602104801_1hp21g"
+    ],
+    "shapeHash": "4779b9d3",
+    "createdAt": "2026-06-02T10:48:26.405Z",
+    "updatedAt": "2026-06-02T10:48:26.406Z"
+  },
+  "stats": {
+    "attempts": 0,
+    "successes": 0,
+    "validationFailures": 0,
+    "runtimeErrors": 0,
+    "quotaFailures": 0,
+    "replaysPassed": 0,
+    "replaysFailed": 1,
+    "abstentions": 0
+  }
+}

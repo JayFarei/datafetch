@@ -1,0 +1,17 @@
+{
+  "exitCode": 0,
+  "trajectoryId": "traj_20260602092444_cwvgsr",
+  "answer": {
+    "status": "answered",
+    "value": "TW",
+    "evidence": [
+      {
+        "reason": "GXO market cap: 6205216276.563025"
+      },
+      {
+        "reason": "TW market cap: 25001299311.695843"
+      }
+    ],
+    "createdAt": "2026-06-02T09:24:45.161Z"
+  }
+}

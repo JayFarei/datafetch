@@ -1,0 +1,221 @@
+{
+  "id": "traj_20260602091221_coilx7",
+  "tenantId": "crag-finance",
+  "question": "const answer = df.answer.bind(df);",
+  "mode": "novel",
+  "calls": [
+    {
+      "index": 0,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "MFD"
+      },
+      "output": [
+        {
+          "id": "MFD",
+          "recordKey": "crag-finance:MFD",
+          "family": "crag-finance",
+          "entity": "MFD",
+          "label": "Macquarie First Trust Global Common Stock",
+          "attributes": {
+            "name": "Macquarie First Trust Global Common Stock",
+            "symbol": "MFD"
+          }
+        },
+        {
+          "id": "D",
+          "recordKey": "crag-finance:D",
+          "family": "crag-finance",
+          "entity": "D",
+          "label": "Dominion Energy Inc. Common Stock",
+          "attributes": {
+            "name": "Dominion Energy Inc. Common Stock",
+            "symbol": "D"
+          }
+        },
+        {
+          "id": "F",
+          "recordKey": "crag-finance:F",
+          "family": "crag-finance",
+          "entity": "F",
+          "label": "Ford Motor Company Common Stock",
+          "attributes": {
+            "name": "Ford Motor Company Common Stock",
+            "symbol": "F"
+          }
+        },
+        {
+          "id": "M",
+          "recordKey": "crag-finance:M",
+          "family": "crag-finance",
+          "entity": "M",
+          "label": "Macy's Inc Common Stock",
+          "attributes": {
+            "name": "Macy's Inc Common Stock",
+            "symbol": "M"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:12:21.760Z",
+      "durationMs": 8.405166999989888
+    },
+    {
+      "index": 1,
+      "primitive": "db.records.search",
+      "input": {
+        "query": "ALLT"
+      },
+      "output": [
+        {
+          "id": "ALLT",
+          "recordKey": "crag-finance:ALLT",
+          "family": "crag-finance",
+          "entity": "ALLT",
+          "label": "Allot Ltd. Ordinary Shares",
+          "attributes": {
+            "name": "Allot Ltd. Ordinary Shares",
+            "symbol": "ALLT"
+          }
+        },
+        {
+          "id": "A",
+          "recordKey": "crag-finance:A",
+          "family": "crag-finance",
+          "entity": "A",
+          "label": "Agilent Technologies Inc. Common Stock",
+          "attributes": {
+            "name": "Agilent Technologies Inc. Common Stock",
+            "symbol": "A"
+          }
+        },
+        {
+          "id": "AL",
+          "recordKey": "crag-finance:AL",
+          "family": "crag-finance",
+          "entity": "AL",
+          "label": "Air Lease Corporation Class A Common Stock",
+          "attributes": {
+            "name": "Air Lease Corporation Class A Common Stock",
+            "symbol": "AL"
+          }
+        },
+        {
+          "id": "ALL",
+          "recordKey": "crag-finance:ALL",
+          "family": "crag-finance",
+          "entity": "ALL",
+          "label": "Allstate Corporation (The) Common Stock",
+          "attributes": {
+            "name": "Allstate Corporation (The) Common Stock",
+            "symbol": "ALL"
+          }
+        },
+        {
+          "id": "L",
+          "recordKey": "crag-finance:L",
+          "family": "crag-finance",
+          "entity": "L",
+          "label": "Loews Corporation Common Stock",
+          "attributes": {
+            "name": "Loews Corporation Common Stock",
+            "symbol": "L"
+          }
+        },
+        {
+          "id": "LL",
+          "recordKey": "crag-finance:LL",
+          "family": "crag-finance",
+          "entity": "LL",
+          "label": "LL Flooring Holdings Inc. Common Stock",
+          "attributes": {
+            "name": "LL Flooring Holdings Inc. Common Stock",
+            "symbol": "LL"
+          }
+        },
+        {
+          "id": "T",
+          "recordKey": "crag-finance:T",
+          "family": "crag-finance",
+          "entity": "T",
+          "label": "AT&T Inc.",
+          "attributes": {
+            "name": "AT&T Inc.",
+            "symbol": "T"
+          }
+        }
+      ],
+      "startedAt": "2026-06-02T09:12:21.764Z",
+      "durationMs": 4.064041000005091
+    },
+    {
+      "index": 2,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "ALLT"
+      },
+      "output": 74224218.68747474,
+      "startedAt": "2026-06-02T09:12:21.769Z",
+      "durationMs": 433.18754199999967
+    },
+    {
+      "index": 3,
+      "primitive": "tool.cragFinance.get_market_capitalization",
+      "input": {
+        "ticker": "MFD"
+      },
+      "output": 62400000,
+      "startedAt": "2026-06-02T09:12:21.769Z",
+      "durationMs": 538.5099169999885
+    }
+  ],
+  "errored": false,
+  "createdAt": "2026-06-02T09:12:21.758Z",
+  "sourceText": "const answer = df.answer.bind(df);\nprocess.chdir(\"/Users/jayfarei/src/tries/2026-05-01-hackathon/.claude/worktrees/code-harness-evals/runs/code-harness-evals/wf-crag/learned-mcap-compare/questions/010-comparison-ad0871e9-657b-4d8a-8f8a-bcf1a5e9c066/workspace\");\n\n// CRAG finance — comparison question ad0871e9-657b-4d8a-8f8a-bcf1a5e9c066\n//\n// Question (verbatim):\n// which company have larger market cap, mfd or allt?\n//\n// Replace the body below. Resolve company names via df.db.records, fetch\n// finance data via df.tool.cragFinance.*, compute, then RETURN df.answer(...).\n\nasync function main() {\n  const [mfdResults, alltResults] = await Promise.all([\n    df.db.records.search(\"MFD\"),\n    df.db.records.search(\"ALLT\"),\n  ]);\n\n  const mfdRecord = mfdResults.find(r => r.attributes.symbol === \"MFD\") || mfdResults[0];\n  const alltRecord = alltResults.find(r => r.attributes.symbol === \"ALLT\") || alltResults[0];\n\n  const [mfdMcap, alltMcap] = await Promise.all([\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"MFD\" }),\n    df.tool.cragFinance.get_market_capitalization({ ticker: \"ALLT\" }),\n  ]);\n\n  const winner = mfdMcap > alltMcap ? \"MFD\" : \"ALLT\";\n\n  return df.answer({\n    status: \"answered\",\n    value: winner,\n    evidence: [\n      { recordKey: mfdRecord?.recordKey, reason: `MFD market cap: ${mfdMcap}` },\n      { recordKey: alltRecord?.recordKey, reason: `ALLT market cap: ${alltMcap}` },\n    ],\n  });\n}\n\nreturn await main();\n\n",
+  "sourceHash": "455d639f42249acb1ef39943d682dcb8ccb82362fd216c30a17fd54b94e7efc9",
+  "result": {
+    "status": "answered",
+    "value": "ALLT",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:MFD",
+        "reason": "MFD market cap: 62400000"
+      },
+      {
+        "recordKey": "crag-finance:ALLT",
+        "reason": "ALLT market cap: 74224218.68747474"
+      }
+    ],
+    "createdAt": "2026-06-02T09:12:22.307Z"
+  },
+  "answer": {
+    "status": "answered",
+    "value": "ALLT",
+    "evidence": [
+      {
+        "recordKey": "crag-finance:MFD",
+        "reason": "MFD market cap: 62400000"
+      },
+      {
+        "recordKey": "crag-finance:ALLT",
+        "reason": "ALLT market cap: 74224218.68747474"
+      }
+    ],
+    "createdAt": "2026-06-02T09:12:22.307Z"
+  },
+  "cost": {
+    "tier": 4,
+    "tokens": {
+      "hot": 0,
+      "cold": 0
+    },
+    "ms": {
+      "hot": 0,
+      "cold": 984.1932910000032
+    },
+    "llmCalls": 0
+  },
+  "provenance": {
+    "tenant": "crag-finance",
+    "mount": "crag-finance-companies"
+  }
+}
