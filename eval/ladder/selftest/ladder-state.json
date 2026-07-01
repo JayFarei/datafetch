@@ -1,0 +1,22 @@
+{
+  "alpha-open-high-count": {
+    "state": "promoted",
+    "provenance": "curated",
+    "promotedAt": 1800000000,
+    "evidence": {
+      "pairs": 30,
+      "wins": 25,
+      "boundaryRef": "selftest-boundary"
+    }
+  },
+  "beta-delivered-sum": {
+    "state": "promoted",
+    "provenance": "curated",
+    "promotedAt": 1800000000,
+    "evidence": {
+      "pairs": 30,
+      "wins": 24,
+      "boundaryRef": "selftest-boundary"
+    }
+  }
+}

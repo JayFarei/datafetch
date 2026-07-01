@@ -1,0 +1,3 @@
+TENANT alpha
+QUERY: How many open tickets are priority high?
+Instructions: use the library procedure(s): alpha-open-high-count.

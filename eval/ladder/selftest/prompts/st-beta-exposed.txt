@@ -1,0 +1,3 @@
+TENANT beta
+QUERY: What is the total value of delivered orders?
+Instructions: use the library procedure(s): beta-delivered-sum.

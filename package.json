@@ -43,7 +43,9 @@
     "api": "tsx watch src/server/server.ts",
     "api:once": "tsx src/server/server.ts",
     "web": "pnpm --dir web dev",
-    "web:install": "pnpm --dir web install"
+    "web:install": "pnpm --dir web install",
+    "ladder:gen-fixtures": "tsx eval/ladder/scripts/gen-substrate-fixtures.ts",
+    "ladder:replay": "bin/ladder-replay"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.92.0",
