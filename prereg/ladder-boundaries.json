@@ -1,0 +1,9 @@
+{
+  "registered": "2026-07-01",
+  "plan": "kb/plans/016-online-promotion-ladder.md",
+  "minPairs": 30,
+  "winFloor": 0.70,
+  "holdoutFloor": 0.60,
+  "pairWindowSec": 600,
+  "notes": "minPairs/winFloor follow the R8 dual-gate spirit (per-pair cost-win >= 0.70). holdoutFloor is the post-promotion temporal-holdout minimum for V7:G1. Frozen before the first episode; V0 fails if this file's commit does not predate the first episode or if the runtime hash diverges."
+}
