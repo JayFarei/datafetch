@@ -15,6 +15,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { validateAnswer } from "../../../src/ladder/answerContract.js";
 import { buildIndexes } from "../../../src/ladder/buildIndexes.js";
 import { execute } from "../../../src/ladder/executor.js";
 import { REPO_ROOT, tenantSnapshotDir } from "../../../src/ladder/paths.js";
@@ -79,7 +80,10 @@ const rows: Episode[] = specs.map((s) => {
     pairId: null,
     promptPath: path.relative(REPO_ROOT, promptPath),
     answer,
-    answerSchemaOk: answer.kind !== "abstain",
+    // The single gate every committed answer passes through. An abstain answer
+    // IS schema-valid (BUILD-SPEC §3/§4: drift episodes abstain yet V1 requires
+    // answerSchemaOk == true), so derive from the contract, never from the kind.
+    answerSchemaOk: validateAnswer(answer).ok,
     abstained: answer.kind === "abstain",
     drifted,
     turns,
