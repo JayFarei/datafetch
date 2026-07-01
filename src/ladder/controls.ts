@@ -6,8 +6,8 @@
 // less. The degenerate control (always-empty answer) is the D2 fixture. The
 // stale-clone control is wired by the drift probe in S2.
 
-import { makeAbstain } from "./answerContract.js";
 import { PASS, type Procedure } from "./executor.js";
+import { seedProcedure, type Seed } from "./seed.js";
 
 /**
  * Decorative shim: always PASSes. On the answer path it contributes nothing,
@@ -34,18 +34,37 @@ export const degenerateControl: Procedure = {
 };
 
 /**
- * Stale-clone control: a procedure that would serve a cached answer but must
- * abstain once the snapshot drifts. Modelled here as a drift-abstaining shim;
- * S2's forced-drift probe drives it across the promoted → quarantine edge.
+ * Stale-clone control: a REAL index-backed procedure (a clone of the alpha
+ * open+high count) with the standard drift guard. On a fresh snapshot its index
+ * matches the source fingerprint, so it serves the correct answer cheaply and
+ * can earn its way to `promoted` through the ladder like any procedure. Once the
+ * snapshot source is mutated, its committed index goes stale and the drift guard
+ * makes it ABSTAIN instead of serving the stale answer — the promoted ->
+ * quarantine demotion the forced-drift probe (src/ladder/driftProbe.ts) drives
+ * and observes on both edges (V4:drift). It is a `control` provenance so it can
+ * never satisfy V5's non-control promotion requirement.
+ *
+ * On the committed tenant snapshots no `stale-clone-count` index exists, so in
+ * normal traffic it simply abstains (drift:index-missing) and never promotes;
+ * the probe builds the index in an isolated workspace to exercise both edges.
  */
-export const staleCloneControl: Procedure = {
+export const staleCloneSeed: Seed = {
   id: "stale-clone-control",
-  run() {
-    // No live index of its own; it can never validate against the snapshot, so
-    // it always abstains under drift semantics.
-    return makeAbstain("drift:stale-clone");
+  taskId: "alpha-open-high",
+  provenance: "control",
+  indexName: "stale-clone-count",
+  buildIndex(records) {
+    const count = records.filter(
+      (r) => r["status"] === "open" && r["priority"] === "high",
+    ).length;
+    return { count };
+  },
+  reduceIndex(index) {
+    return { kind: "count", value: Number(index["count"]) };
   },
 };
+
+export const staleCloneControl: Procedure = seedProcedure(staleCloneSeed);
 
 export const CONTROL_PROCEDURES: Procedure[] = [
   shimControl,
