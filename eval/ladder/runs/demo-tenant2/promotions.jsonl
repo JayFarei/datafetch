@@ -1,0 +1,3 @@
+{"decision":"promote","id":"beta-delivered-sum","ts":1800003481,"boundaryRef":"prereg:0bc3ddcef56d8347e6a1d834dd0a41e6b948ee43fba6536a59b961bf349215fe@pairs=30,wins=30","reason":"crossed: 30 pairs (>= 30) at winRate 1.000 (>= 0.7)"}
+{"decision":"promote","id":"beta-open-regions-index","ts":1800008281,"boundaryRef":"prereg:0bc3ddcef56d8347e6a1d834dd0a41e6b948ee43fba6536a59b961bf349215fe@pairs=30,wins=30","reason":"crossed: 30 pairs (>= 30) at winRate 1.000 (>= 0.7)"}
+{"decision":"reject","id":"alpha-open-high-count","ts":1800013081,"reason":"rejected at gate: rung=shadow, winRate=0.000 never reached candidate"}

@@ -1,0 +1,3 @@
+TENANT beta
+QUERY: What is the total value of delivered orders?
+Instructions: compute the answer ONLY from the raw orders records provided below. No helper procedures and no procedure catalogue are available to you.

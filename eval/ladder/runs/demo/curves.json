@@ -1,0 +1,1204 @@
+{
+  "generatedBy": "src/ladder/demo.ts",
+  "driver": "scripted",
+  "note": "All turns are MEASURED executor round-trips; inline = masked-arm cost, exposed = library-backed cost.",
+  "tenants": {
+    "alpha": {
+      "promoted": [
+        "alpha-open-high-count",
+        "alpha-open-topics-index"
+      ],
+      "rejected": [
+        "shallow-control",
+        "degenerate-control"
+      ],
+      "dlPerIntent": [
+        {
+          "taskId": "alpha-open-high",
+          "intent": "count",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "turnsSaved": 2
+        },
+        {
+          "taskId": "alpha-open-topics",
+          "intent": "list",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "turnsSaved": 2
+        }
+      ],
+      "inlineRederivationCurve": [
+        {
+          "episodeIndex": 0,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 1,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 2,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 3,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 4,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 5,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 6,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 7,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 8,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 9,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 10,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 11,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 12,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 13,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 14,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 15,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 16,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 17,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 18,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 19,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 20,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 21,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 22,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 23,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 24,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 25,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 26,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 27,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 28,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 29,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 30,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 31,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 32,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 33,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 34,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 35,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 36,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 37,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 38,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 39,
+          "taskId": "alpha-open-high",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 40,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 41,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 42,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 43,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 44,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 45,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 46,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 47,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 48,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 49,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 50,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 51,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 52,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 53,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 54,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 55,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 56,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 57,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 58,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 59,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 60,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 61,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 62,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 63,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 64,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 65,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 66,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 67,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 68,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 69,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 70,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 71,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 72,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 73,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 74,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 75,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 76,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 77,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 78,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 79,
+          "taskId": "alpha-open-topics",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        }
+      ],
+      "inlineTurnsAvoidedCumulative": 60,
+      "depth": 1,
+      "suggestions": []
+    },
+    "beta": {
+      "promoted": [
+        "beta-delivered-sum",
+        "beta-open-regions-index"
+      ],
+      "rejected": [
+        "alpha-open-high-count"
+      ],
+      "dlPerIntent": [
+        {
+          "taskId": "beta-delivered-sum",
+          "intent": "count",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "turnsSaved": 2
+        },
+        {
+          "taskId": "beta-open-regions",
+          "intent": "list",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "turnsSaved": 2
+        }
+      ],
+      "inlineRederivationCurve": [
+        {
+          "episodeIndex": 0,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 1,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 2,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 3,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 4,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 5,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 6,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 7,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 8,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 9,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 10,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 11,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 12,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 13,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 14,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 15,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 16,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 17,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 18,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 19,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 20,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 21,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 22,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 23,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 24,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 25,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 26,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 27,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 28,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 29,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 30,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 31,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 32,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 33,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 34,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 35,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 36,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 37,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 38,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 39,
+          "taskId": "beta-delivered-sum",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 40,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 41,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 42,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 43,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 44,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 45,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 46,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 47,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 48,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 49,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 50,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 51,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 52,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 53,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 54,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 55,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 56,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 57,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 58,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 59,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 60,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 61,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 62,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 63,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 64,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 65,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 66,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 67,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 68,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 69,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": false
+        },
+        {
+          "episodeIndex": 70,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 71,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 72,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 73,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 74,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 75,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 76,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 77,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 78,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        },
+        {
+          "episodeIndex": 79,
+          "taskId": "beta-open-regions",
+          "inlineTurns": 3,
+          "exposedTurns": 1,
+          "servedByPromoted": true
+        }
+      ],
+      "inlineTurnsAvoidedCumulative": 60,
+      "depth": 1,
+      "suggestions": [
+        {
+          "procId": "alpha-open-high-count",
+          "from": "alpha",
+          "outcome": "stayed-put (declined by gate)"
+        }
+      ]
+    }
+  },
+  "systemLearning": {
+    "description": "alpha's promoted procedures are suggested into beta's quarantine; beta's gate judges them on beta's own paired evidence.",
+    "suggestions": [
+      {
+        "procId": "alpha-open-high-count",
+        "from": "alpha",
+        "outcome": "stayed-put (declined by gate)"
+      }
+    ]
+  }
+}

@@ -1,0 +1,3 @@
+TENANT alpha
+QUERY: How many open tickets are priority high?
+ADVERSARIAL: model returned {"kind":"count","value":"about forty ..."} — prose in a numeric field.
