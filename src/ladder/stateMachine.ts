@@ -155,16 +155,26 @@ export class Ladder {
 
   /**
    * Demote a promoted procedure to quarantine on observed drift (V4:drift).
-   * Re-arms the gate so a re-earned procedure could climb again on fresh
-   * evidence. Returns the rung it fell from.
+   *
+   * The pre-drift evidence is ARCHIVED (for audit) and the live bookkeeping is
+   * RESET to zero: a procedure that drifted must climb again on FRESH post-drift
+   * pairs. Without the reset, a procedure already past minPairs would re-satisfy
+   * the gate on its very next observation and re-promote on the wins it earned
+   * before the snapshot changed under it — exactly the stale-evidence promotion
+   * the drift guard exists to prevent. Returns the rung it fell from.
    */
   demote(id: string, reason: string): string {
     const { entry, book } = this.require(id);
     const from = entry.state;
     entry.state = "quarantine";
     delete entry.promotedAt;
+    if (entry.evidence) {
+      entry.demotedEvidence = { ...entry.evidence, reason };
+    }
+    entry.evidence = { pairs: 0, wins: 0 };
+    book.pairs = 0;
+    book.wins = 0;
     book.gated = false;
-    void reason;
     return from;
   }
 

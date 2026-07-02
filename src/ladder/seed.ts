@@ -31,7 +31,14 @@ export interface Seed {
 export function seedProcedure(seed: Seed): Procedure {
   return {
     id: seed.id,
-    run(ctx: ExecContext, _task: Task): ProcResult {
+    run(ctx: ExecContext, task: Task): ProcResult {
+      // A seed answers exactly one task. If it lands on any other task (e.g. a
+      // cross-tenant suggestion, or an index-name collision), it must ABSTAIN
+      // rather than serve an answer for the wrong question — a wrong-task serve
+      // could otherwise be scored as a spurious win.
+      if (task.id !== seed.taskId) {
+        return makeAbstain(`wrong-task: ${seed.id} answers ${seed.taskId}, not ${task.id}`);
+      }
       const index = ctx.readIndex(seed.indexName);
       if (!index) return makeAbstain("drift:index-missing");
       if (index.sourceFingerprint !== ctx.sourceFingerprint) {

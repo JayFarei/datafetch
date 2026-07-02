@@ -93,6 +93,29 @@ describe("ladder state machine (V4/V5)", () => {
     expect(ladder.entry("seed-a").promotedAt).toBeUndefined();
   });
 
+  it("demote() resets live evidence (archived) so it cannot instantly re-promote on pre-drift wins", () => {
+    const ladder = new Ladder(defaultLadderConfig());
+    ladder.admit("seed-a", "curated");
+    driveWins(ladder, "seed-a", 30, 1);
+    expect(ladder.stateOf("seed-a")).toBe("promoted");
+
+    ladder.demote("seed-a", "drift:stale-index");
+    const e = ladder.entry("seed-a");
+    // pre-drift evidence is archived, live evidence reset to zero
+    expect(e.demotedEvidence?.pairs).toBe(30);
+    expect(e.evidence?.pairs).toBe(0);
+    expect(e.evidence?.wins).toBe(0);
+
+    // one fresh observation must NOT re-fire the gate on stale (pre-drift) pairs
+    const rec = ladder.observePair("seed-a", { win: true, ts: 9_000 });
+    expect(rec).toBeUndefined();
+    expect(ladder.stateOf("seed-a")).not.toBe("promoted");
+
+    // it has to climb again on fresh evidence
+    driveWins(ladder, "seed-a", 29, 1, 9_001);
+    expect(ladder.stateOf("seed-a")).toBe("promoted");
+  });
+
   it("serialises to a ladder-state map keyed by procedureId", () => {
     const ladder = new Ladder(defaultLadderConfig());
     ladder.admit("seed-a", "curated");

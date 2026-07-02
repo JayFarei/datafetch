@@ -24,6 +24,7 @@
 // second-corpus differential (V7:G2) sees an empty src/ diff.
 
 import { execFileSync } from "node:child_process";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -31,7 +32,8 @@ import { makeAbstain, validateAnswer } from "./answerContract.js";
 import { preregHash } from "./boundary.js";
 import { runForcedDriftProbe } from "./driftProbe.js";
 import { runFloorProbe } from "./floorProbe.js";
-import { scorePair } from "./pairing.js";
+import { ExecContext } from "./executor.js";
+import { LIBRARY_TOKENS, scorePair } from "./pairing.js";
 import { REPO_ROOT, repoRelative, tenantSnapshotDir } from "./paths.js";
 import { buildRegistry } from "./registry.js";
 import { mountSnapshot, type MountedSnapshot } from "./snapshot.js";
@@ -60,14 +62,33 @@ function gitHead(): string {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: REPO_ROOT }).toString().trim();
 }
 
-/** Masked outbound prompt: ZERO library tokens (the verifier greps this file, V3). */
-function maskedBody(tenant: string, sourceCollection: string, query: string): string {
+/**
+ * Masked outbound prompt: ZERO library tokens (the verifier greps this file, V3).
+ * NOTE: this is the SIMULATED outbound prompt of the masked arm. The demo driver
+ * is scripted with no LLM, so nothing consumes this text at runtime — the masked
+ * answer is computed directly by the inline executor over the same snapshot the
+ * prompt names. We record `promptHash` on the episode so the row is tied to the
+ * exact bytes on disk. The prompt references the snapshot by fingerprint + record
+ * count (it does not inline the records) so it makes no false "records below"
+ * claim.
+ */
+function maskedBody(
+  tenant: string,
+  sourceCollection: string,
+  query: string,
+  recordCount: number,
+  snapshotHash: string,
+): string {
   return (
     `TENANT ${tenant}\n` +
     `QUERY: ${query}\n` +
-    `Instructions: compute the answer ONLY from the raw ${sourceCollection} records provided below. ` +
-    `No helper procedures and no procedure catalogue are available to you.\n`
+    `Instructions: compute the answer ONLY from the ${recordCount} raw ${sourceCollection} records in ` +
+    `snapshot ${snapshotHash}. No helper procedures and no procedure catalogue are available to you.\n`
   );
+}
+
+function sha256(s: string): string {
+  return crypto.createHash("sha256").update(s).digest("hex");
 }
 
 /** Exposed outbound prompt: genuinely references the library surface the mask removes. */
@@ -152,12 +173,28 @@ function runTenant(plan: TenantPlan, commit: string, ph: string): TenantOutput {
 
     // shared, byte-identical prompts: the outbound prompt is a function of
     // (tenant, task, arm, lineage) and constant across a procedure's pairs.
+    const recordCount = snapshot.collections[task.sourceCollection]?.length ?? 0;
+    const maskedText = maskedBody(
+      plan.tenant,
+      task.sourceCollection,
+      task.query,
+      recordCount,
+      snapshot.sourceFingerprint,
+    );
+    const exposedText = exposedBody(plan.tenant, [item.procId], task.query);
+    // The masked arm's whole point is that it cannot see the library. Assert it
+    // here so a leak crashes generation (load-bearing), not just the V3 grep.
+    if (LIBRARY_TOKENS.test(maskedText)) {
+      throw new Error(`masked prompt for ${item.taskId} leaks library surface`);
+    }
     const maskedPath = path.join(promptDir, `masked-${plan.tenant}-${item.taskId}.txt`);
     const exposedPath = path.join(promptDir, `exposed-${plan.tenant}-${item.procId}.txt`);
-    fs.writeFileSync(maskedPath, maskedBody(plan.tenant, task.sourceCollection, task.query));
-    fs.writeFileSync(exposedPath, exposedBody(plan.tenant, [item.procId], task.query));
+    fs.writeFileSync(maskedPath, maskedText);
+    fs.writeFileSync(exposedPath, exposedText);
     const maskedRel = repoRelative(maskedPath);
     const exposedRel = repoRelative(exposedPath);
+    const maskedHash = sha256(maskedText);
+    const exposedHash = sha256(exposedText);
 
     for (let k = 0; k < item.pairs; k++) {
       const tsMasked = BASE_TS + step * STEP_SEC;
@@ -180,6 +217,7 @@ function runTenant(plan: TenantPlan, commit: string, ph: string): TenantOutput {
         arm: "masked",
         pairId,
         promptPath: maskedRel,
+        promptHash: maskedHash,
         answer: score.masked.answer,
         answerSchemaOk: validateAnswer(score.masked.answer).ok,
         abstained: score.masked.answer.kind === "abstain",
@@ -200,6 +238,7 @@ function runTenant(plan: TenantPlan, commit: string, ph: string): TenantOutput {
         arm: "exposed",
         pairId,
         promptPath: exposedRel,
+        promptHash: exposedHash,
         answer: score.exposed.answer,
         answerSchemaOk: validateAnswer(score.exposed.answer).ok,
         abstained: score.exposed.answer.kind === "abstain",
@@ -218,16 +257,21 @@ function runTenant(plan: TenantPlan, commit: string, ph: string): TenantOutput {
   if (plan.adversarial) {
     const task = getTask("alpha-open-high");
     // Prose stuffed into the numeric answer field — the LLM path of least
-    // resistance. We RUN the contract on it; contractRejected is its verdict.
+    // resistance. The "model" pages the store (MEASURED turns via ExecContext)
+    // and then emits prose in the numeric field; we RUN the contract on that
+    // output and contractRejected is its verdict, so we abstain rather than
+    // commit an untyped answer. `turns` is measured, never a constant.
+    const advCtx = new ExecContext(snapshot);
+    advCtx.scanAll(task.sourceCollection);
+    const advTurns = advCtx.turns;
     const proseInString = { kind: "count", value: "about forty open high-priority tickets" };
     const contractRejected = validateAnswer(proseInString).ok === false;
     const fallback = makeAbstain("contract-rejected: prose stuffed in count.value");
-    const advPromptPath = path.join(promptDir, "adversarial-prose-in-string.txt");
-    fs.writeFileSync(
-      advPromptPath,
+    const advText =
       `TENANT ${plan.tenant}\nQUERY: ${task.query}\n` +
-        `ADVERSARIAL: model returned {"kind":"count","value":"about forty ..."} — prose in a numeric field.\n`,
-    );
+      `ADVERSARIAL: model returned {"kind":"count","value":"about forty ..."} — prose in a numeric field.\n`;
+    const advPromptPath = path.join(promptDir, "adversarial-prose-in-string.txt");
+    fs.writeFileSync(advPromptPath, advText);
     rows.push({
       episodeId: "adversarial-prose-in-string",
       ts: BASE_TS + step * STEP_SEC,
@@ -241,11 +285,12 @@ function runTenant(plan: TenantPlan, commit: string, ph: string): TenantOutput {
       arm: "exposed",
       pairId: null,
       promptPath: repoRelative(advPromptPath),
+      promptHash: sha256(advText),
       answer: fallback,
       answerSchemaOk: validateAnswer(fallback).ok,
       abstained: true,
       drifted: false,
-      turns: 0,
+      turns: advTurns,
       lineage: [],
       fixture: "prose-in-string",
       contractRejected,
@@ -443,6 +488,8 @@ function buildReport(alpha: TenantOutput, beta: TenantOutput, commit: string): s
 
 _Driver: \`scripted\` (deterministic policy over real mounted fixtures). Every turn count below is MEASURED by the executor, never a constant. Commit stamped on episodes: \`${commit}\`._
 
+_Scope note (honest limits of this scripted demo): the timeline is synthetic — episodes are stamped on a scripted clock (base epoch ${BASE_TS}, ${STEP_SEC}s steps), so \`ts\` values are simulated, not wall-clock, and the pair-window / holdout-ordering checks run against that synthetic clock. Each procedure's traffic is repeated identical calls over one static committed snapshot (same query, same snapshot, same answer per pair); this exercises the ladder MECHANICS but does NOT demonstrate generalisation across varied inputs — that needs richer fixtures and is future work._
+
 This is NOT a claim that helpers beat inline for a frontier model, nor that agent-authored procedures promote under live traffic (plan 016 P4, open). It shows the ladder MECHANICS working end to end on two schema-distinct tenants.
 
 ## Per-user learning (promoted sets diverge)
@@ -462,6 +509,8 @@ After alpha promotes, its winner is offered into beta's quarantine. Governance i
 
 ${sug || "_(no suggestions)_"}
 
+Note: this demo exercises only the DECLINE half of earn-or-stay-put — the suggested procedure has no matching index/schema on the receiving tenant, so it abstains and the gate rejects it. The promote-on-own-evidence half (a suggestion that has a valid index on the receiving tenant and earns promotion there) is covered by a unit test, not by this run.
+
 ## DL-per-intent (measured cost, inline vs library)
 
 "DL" here is the per-call cost proxy = executor turns. Inline = masked-arm scan; exposed = library-backed index read.
@@ -478,7 +527,7 @@ ${b.dlPerIntent.map(dlRow).join("\n") || "| _(none)_ | | | | |"}
 
 ## Inline-rederivation falls with usage
 
-Once a procedure crosses the boundary, the intent it serves no longer needs inline rederivation on subsequent traffic. Cumulative inline turns avoided post-promotion: **alpha ${a.inlineTurnsAvoidedCumulative}**, **beta ${b.inlineTurnsAvoidedCumulative}**. Full per-episode curve in \`curves.json\` (\`tenants.<t>.inlineRederivationCurve\`).
+Once a procedure crosses the boundary, the intent it serves no longer needs inline rederivation on production traffic. This curve is COUNTERFACTUAL, not an observed drop: the paired harness runs BOTH arms on every episode (that is how a win is scored), so inline is never actually skipped here. "Avoided" = the inline turns that promoted-serving production traffic WOULD skip once the procedure is promoted (episodes with \`ts > promotedAt\`, flagged \`servedByPromoted\`). Cumulative inline turns avoided post-promotion: **alpha ${a.inlineTurnsAvoidedCumulative}**, **beta ${b.inlineTurnsAvoidedCumulative}**. Full per-episode curve in \`curves.json\` (\`tenants.<t>.inlineRederivationCurve\`).
 
 ## Composition depth
 

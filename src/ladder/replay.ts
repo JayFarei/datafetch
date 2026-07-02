@@ -21,6 +21,8 @@ export interface ReplayResult {
   answer: Answer;
   turns: number;
   drifted: boolean;
+  /** fingerprint of the snapshot actually mounted for this replay. */
+  snapshotHash: string;
 }
 
 /** Recompute an episode's answer from the live snapshot + registry. */
@@ -30,7 +32,26 @@ export function replayEpisode(
 ): ReplayResult {
   const snapshot = mountSnapshot(tenantSnapshotDir(episode.tenant), episode.tenant);
   const task = getTask(episode.taskId);
-  return execute(task, episode.arm, episode.lineage ?? [], registry, snapshot);
+  return { ...execute(task, episode.arm, episode.lineage ?? [], registry, snapshot), snapshotHash: snapshot.sourceFingerprint };
+}
+
+/**
+ * Reproducibility guard: a replay is only admissible if it ran against the SAME
+ * world-state the episode was committed on (mounted fingerprint == recorded
+ * snapshotHash) AND it reproduces the committed answer. Without this, replay
+ * proves only in-process determinism against today's fixtures, not that the
+ * committed evidence is reproducible — a stale or forged answer would sail
+ * through the double-run and the ablation alike. Returns an error string on
+ * mismatch, or undefined when the replay is anchored.
+ */
+function anchorMismatch(episode: Episode, replay: ReplayResult): string | undefined {
+  if (replay.snapshotHash !== episode.snapshotHash) {
+    return `snapshotHash drift: recorded ${episode.snapshotHash}, mounted ${replay.snapshotHash}`;
+  }
+  if (canonicalJson(replay.answer) !== canonicalJson(episode.answer)) {
+    return `answer not reproducible: recorded ${canonicalJson(episode.answer)}, replayed ${canonicalJson(replay.answer)}`;
+  }
+  return undefined;
 }
 
 export function readJsonl<T>(file: string): T[] {
@@ -43,9 +64,11 @@ export function readJsonl<T>(file: string): T[] {
 }
 
 /**
- * Self-test: replay each pinned fixture episode twice and require the two
- * canonical answers (and turn counts) to be byte-identical. Returns
- * `{ ok, checked }`.
+ * Self-test: for every pinned fixture episode, require that (1) the replay runs
+ * against the recorded world-state and reproduces the committed answer
+ * (anchored), and (2) two replays are byte-identical (deterministic). Either an
+ * unreproducible committed answer or a non-deterministic replay is a divergence.
+ * Returns `{ ok, checked }`.
  */
 export function selfTestDoubleRun(episodesPath: string): { ok: boolean; checked: number; firstDivergence?: string } {
   const episodes = readJsonl<Episode>(episodesPath);
@@ -53,9 +76,12 @@ export function selfTestDoubleRun(episodesPath: string): { ok: boolean; checked:
   let checked = 0;
   for (const ep of episodes) {
     const a = replayEpisode(ep, registry);
+    // anchor: replay must match the committed world-state + committed answer
+    const anchor = anchorMismatch(ep, a);
+    if (anchor) return { ok: false, checked, firstDivergence: `${ep.episodeId}: ${anchor}` };
     const b = replayEpisode(ep, registry);
     if (canonicalJson(a.answer) !== canonicalJson(b.answer) || a.turns !== b.turns) {
-      return { ok: false, checked, firstDivergence: ep.episodeId };
+      return { ok: false, checked, firstDivergence: `${ep.episodeId}: non-deterministic` };
     }
     checked++;
   }
@@ -93,6 +119,13 @@ export function ablatePromoted(statePath: string, episodesPath: string): Ablatio
       return { ok: false, offender: id, reason: "promoted but never on an exposed answer path", checked };
     }
     const full = replayEpisode(origin, registry);
+    // anchor the ablation to committed evidence: the origin episode must replay
+    // against its recorded snapshot and reproduce its recorded answer, else the
+    // "change on removal" is measured against stale/forged evidence, not truth.
+    const anchor = anchorMismatch(origin, full);
+    if (anchor) {
+      return { ok: false, offender: id, reason: `origin episode not reproducible (${anchor})`, checked };
+    }
     const ablated = replayEpisode(origin, without(registry, id));
     if (canonicalJson(full.answer) === canonicalJson(ablated.answer)) {
       return { ok: false, offender: id, reason: "removal did not change the replayed answer (decorative)", checked };

@@ -64,6 +64,8 @@ export interface Episode {
   pairId: string | null;
   /** repo-root-relative path to the outbound prompt file (must exist on disk). */
   promptPath: string;
+  /** sha256 of the exact bytes written to `promptPath` (ties this row to that file). */
+  promptHash?: string;
   answer: Answer;
   answerSchemaOk: boolean;
   abstained: boolean;
@@ -101,6 +103,12 @@ export interface LadderEntry {
   provenance: Provenance;
   promotedAt?: number;
   evidence?: EvidenceBlock;
+  /**
+   * Pre-drift evidence, archived when a promoted procedure is demoted. It is
+   * kept for audit but is NOT live: a demoted procedure must re-earn promotion on
+   * fresh post-drift pairs, never re-promote on the wins it held before drift.
+   */
+  demotedEvidence?: EvidenceBlock & { reason: string };
   driftProbe?: DriftProbe;
 }
 
