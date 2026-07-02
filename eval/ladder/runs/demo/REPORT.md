@@ -1,6 +1,8 @@
 # Ladder demo — learning dashboard
 
-_Driver: `scripted` (deterministic policy over real mounted fixtures). Every turn count below is MEASURED by the executor, never a constant. Commit stamped on episodes: `433d26233d502f7d17b620134e091df320386997`._
+_Driver: `scripted` (deterministic policy over real mounted fixtures). Every turn count below is MEASURED by the executor, never a constant. Commit stamped on episodes: `5808341fbd60cde2b6151bf8ed6229d14154ae13`._
+
+_Scope note (honest limits of this scripted demo): the timeline is synthetic — episodes are stamped on a scripted clock (base epoch 1800000000, 120s steps), so `ts` values are simulated, not wall-clock, and the pair-window / holdout-ordering checks run against that synthetic clock. Each procedure's traffic is repeated identical calls over one static committed snapshot (same query, same snapshot, same answer per pair); this exercises the ladder MECHANICS but does NOT demonstrate generalisation across varied inputs — that needs richer fixtures and is future work._
 
 This is NOT a claim that helpers beat inline for a frontier model, nor that agent-authored procedures promote under live traffic (plan 016 P4, open). It shows the ladder MECHANICS working end to end on two schema-distinct tenants.
 
@@ -21,6 +23,8 @@ After alpha promotes, its winner is offered into beta's quarantine. Governance i
 
 - `alpha-open-high-count` (suggested from **alpha**): stayed put — beta's gate declined it (no matching index/schema, never won a pair)
 
+Note: this demo exercises only the DECLINE half of earn-or-stay-put — the suggested procedure has no matching index/schema on the receiving tenant, so it abstains and the gate rejects it. The promote-on-own-evidence half (a suggestion that has a valid index on the receiving tenant and earns promotion there) is covered by a unit test, not by this run.
+
 ## DL-per-intent (measured cost, inline vs library)
 
 "DL" here is the per-call cost proxy = executor turns. Inline = masked-arm scan; exposed = library-backed index read.
@@ -39,7 +43,7 @@ After alpha promotes, its winner is offered into beta's quarantine. Governance i
 
 ## Inline-rederivation falls with usage
 
-Once a procedure crosses the boundary, the intent it serves no longer needs inline rederivation on subsequent traffic. Cumulative inline turns avoided post-promotion: **alpha 60**, **beta 60**. Full per-episode curve in `curves.json` (`tenants.<t>.inlineRederivationCurve`).
+Once a procedure crosses the boundary, the intent it serves no longer needs inline rederivation on production traffic. This curve is COUNTERFACTUAL, not an observed drop: the paired harness runs BOTH arms on every episode (that is how a win is scored), so inline is never actually skipped here. "Avoided" = the inline turns that promoted-serving production traffic WOULD skip once the procedure is promoted (episodes with `ts > promotedAt`, flagged `servedByPromoted`). Cumulative inline turns avoided post-promotion: **alpha 60**, **beta 60**. Full per-episode curve in `curves.json` (`tenants.<t>.inlineRederivationCurve`).
 
 ## Composition depth
 

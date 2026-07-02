@@ -1,3 +1,3 @@
 TENANT beta
 QUERY: List the distinct regions with placed (not-yet-shipped) orders.
-Instructions: compute the answer ONLY from the raw orders records provided below. No helper procedures and no procedure catalogue are available to you.
+Instructions: compute the answer ONLY from the 24 raw orders records in snapshot 8bc5c5987e6f62f5bab8fa9d34b5cf99c452143ecfaa72b5839b7513ccdbeac0. No helper procedures and no procedure catalogue are available to you.
