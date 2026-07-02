@@ -1,3 +1,0 @@
-TENANT alpha
-QUERY: How many open tickets are priority high?
-Instructions: use the df.lib procedure(s) [alpha-open-high-count]. Look up their signatures in df.d.ts and via man(alpha-open-high-count) / apropos.

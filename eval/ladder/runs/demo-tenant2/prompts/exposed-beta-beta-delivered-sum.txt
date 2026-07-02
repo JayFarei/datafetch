@@ -1,3 +1,0 @@
-TENANT beta
-QUERY: What is the total value of delivered orders?
-Instructions: use the df.lib procedure(s) [beta-delivered-sum]. Look up their signatures in df.d.ts and via man(beta-delivered-sum) / apropos.

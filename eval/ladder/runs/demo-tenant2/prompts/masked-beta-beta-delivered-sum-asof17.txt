@@ -1,0 +1,3 @@
+TENANT beta
+QUERY: As of the first 17 orders placed, what is the total value of delivered orders?
+Instructions: compute the answer ONLY from the first 17 of the 24 raw orders records in snapshot 8bc5c5987e6f62f5bab8fa9d34b5cf99c452143ecfaa72b5839b7513ccdbeac0. No helper procedures and no procedure catalogue are available to you.

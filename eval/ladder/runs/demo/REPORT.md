@@ -1,8 +1,8 @@
 # Ladder demo — learning dashboard
 
-_Driver: `scripted` (deterministic policy over real mounted fixtures). Every turn count below is MEASURED by the executor, never a constant. Commit stamped on episodes: `5808341fbd60cde2b6151bf8ed6229d14154ae13`._
+_Driver: `scripted` (deterministic policy over real mounted fixtures). Every turn count below is MEASURED by the executor, never a constant. Commit stamped on episodes: `6247dce2b253c41ef8008f2f5706fb5a8c804cbd`._
 
-_Scope note (honest limits of this scripted demo): the timeline is synthetic — episodes are stamped on a scripted clock (base epoch 1800000000, 120s steps), so `ts` values are simulated, not wall-clock, and the pair-window / holdout-ordering checks run against that synthetic clock. Each procedure's traffic is repeated identical calls over one static committed snapshot (same query, same snapshot, same answer per pair); this exercises the ladder MECHANICS but does NOT demonstrate generalisation across varied inputs — that needs richer fixtures and is future work._
+_Scope note (honest limits of this scripted demo): the timeline is synthetic — episodes are stamped on a scripted clock (base epoch 1800000000, 120s steps), so `ts` values are simulated, not wall-clock, and the pair-window / holdout-ordering checks run against that synthetic clock. Traffic is DISTINCT per pair: each pair instantiates its task on a different "as of the first N records filed" window (distinct query text, and distinct answers where the data supports it), the quarantine→shadow genericity rung counts distinct query identities (identical replays never advance it), and every post-promotion holdout pair reads a window strictly later than anything seen before promotion — so the win-floor (V7:G1) is earned on unseen inputs. The variation is still a single parametric family over one static committed snapshot; generalisation across query FAMILIES or live corpora is not claimed._
 
 This is NOT a claim that helpers beat inline for a frontier model, nor that agent-authored procedures promote under live traffic (plan 016 P4, open). It shows the ladder MECHANICS working end to end on two schema-distinct tenants.
 

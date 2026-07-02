@@ -1,3 +1,0 @@
-TENANT alpha
-QUERY: List the distinct topics of open tickets.
-Instructions: use the df.lib procedure(s) [alpha-open-topics-index]. Look up their signatures in df.d.ts and via man(alpha-open-topics-index) / apropos.
