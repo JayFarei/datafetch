@@ -1,0 +1,35 @@
+#!/usr/bin/env node
+// ladder-replay — launcher shim for the P0 replay executor (kb/plans/016).
+//
+// verify/ladder.sh (checks V2 and V6) shells out to this executable with the
+// flags documented in src/ladder/replayCli.ts. Like bin/datafetch.mjs, this
+// runs as a plain Node script, resolves tsx's loader from the package's own
+// node_modules (so it works regardless of cwd), then re-execs Node with the
+// real CLI and the user's args appended after the script path.
+
+import { spawn } from "node:child_process";
+import { createRequire } from "node:module";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import path from "node:path";
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const pkgRoot = path.resolve(here, "..");
+const cliPath = path.join(pkgRoot, "src", "ladder", "replayCli.ts");
+
+const requireFromPkg = createRequire(path.join(pkgRoot, "package.json"));
+const tsxLoaderUrl = pathToFileURL(requireFromPkg.resolve("tsx")).href;
+
+const userArgs = process.argv.slice(2);
+const child = spawn(
+  process.execPath,
+  ["--import", tsxLoaderUrl, cliPath, ...userArgs],
+  { stdio: "inherit" },
+);
+
+child.on("exit", (code, signal) => {
+  if (signal) {
+    process.kill(process.pid, signal);
+    return;
+  }
+  process.exit(code ?? 0);
+});

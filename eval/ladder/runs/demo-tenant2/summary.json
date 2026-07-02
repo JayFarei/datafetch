@@ -1,0 +1,12 @@
+{
+  "tenant": "beta",
+  "driver": "scripted",
+  "terminalState": "promotions-with-wins",
+  "promoted": [
+    "beta-delivered-sum",
+    "beta-open-regions-index"
+  ],
+  "rejected": [
+    "alpha-open-high-count"
+  ]
+}

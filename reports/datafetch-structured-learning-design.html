@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>datafetch — Structured Learning over a Frozen Substrate</title>
+<style>
+  :root{
+    --ink:#1a1d23;
+    --ink-soft:#3a4049;
+    --muted:#6b7280;
+    --line:#e3e6ea;
+    --line-soft:#eef1f4;
+    --bg:#ffffff;
+    --bg-soft:#f7f9fb;
+    --accent:#1f6f6b;        /* teal */
+    --accent-soft:#e7f1f0;
+    --accent2:#b4541a;       /* warm rust, used sparingly */
+    --accent2-soft:#fbeee5;
+    --code-bg:#f4f6f8;
+    --zebra:#f6f8fa;
+    --maxw:860px;
+    --toc-w:248px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Helvetica Neue",sans-serif;
+    color:var(--ink);
+    background:var(--bg);
+    line-height:1.62;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+    overflow-wrap:break-word;
+    -webkit-text-size-adjust:100%;
+  }
+  .layout{display:flex;align-items:flex-start;}
+  /* ---- TOC ---- */
+  nav.toc{
+    position:sticky;
+    top:0;
+    width:var(--toc-w);
+    flex:0 0 var(--toc-w);
+    height:100vh;
+    overflow-y:auto;
+    padding:28px 18px 40px 26px;
+    border-right:1px solid var(--line);
+    background:var(--bg-soft);
+    font-size:13.5px;
+  }
+  nav.toc .brand{
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:.01em;
+    color:var(--accent);
+    margin-bottom:4px;
+  }
+  nav.toc .brand small{display:block;font-weight:500;color:var(--muted);font-size:11.5px;margin-top:3px;line-height:1.4;}
+  nav.toc ol{list-style:none;margin:18px 0 0;padding:0;counter-reset:toc;}
+  nav.toc li{margin:0 0 2px;}
+  nav.toc a{
+    display:block;
+    text-decoration:none;
+    color:var(--ink-soft);
+    padding:6px 8px;
+    border-radius:6px;
+    border-left:2px solid transparent;
+    counter-increment:toc;
+  }
+  nav.toc a::before{
+    content:counter(toc) ".";
+    color:var(--muted);
+    font-variant-numeric:tabular-nums;
+    margin-right:7px;
+    font-size:12px;
+  }
+  nav.toc a:hover{background:var(--accent-soft);color:var(--accent);border-left-color:var(--accent);}
+  /* ---- main ---- */
+  main{flex:1 1 auto;min-width:0;display:flex;justify-content:center;padding:0 28px;}
+  .content{max-width:var(--maxw);width:100%;padding:40px 0 90px;}
+  header.doc{border-bottom:2px solid var(--accent);padding-bottom:22px;margin-bottom:14px;}
+  header.doc h1{font-size:30px;line-height:1.2;margin:0 0 8px;letter-spacing:-.01em;}
+  header.doc .sub{font-size:16px;color:var(--accent2);font-weight:600;margin:0 0 10px;}
+  header.doc .meta{font-size:13px;color:var(--muted);}
+  header.doc .meta code{font-size:12px;}
+  section{margin-top:46px;scroll-margin-top:20px;}
+  section>h2{
+    font-size:23px;
+    letter-spacing:-.01em;
+    margin:0 0 6px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--line);
+  }
+  section>h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:10px;}
+  h3{font-size:18px;margin:30px 0 8px;color:var(--ink);}
+  h4{font-size:15px;margin:22px 0 6px;color:var(--ink-soft);text-transform:none;}
+  p{margin:12px 0;}
+  ul,ol{margin:12px 0;padding-left:24px;}
+  li{margin:5px 0;}
+  a{color:var(--accent);}
+  strong{color:var(--ink);}
+  code{
+    font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    font-size:13px;
+    background:var(--code-bg);
+    padding:1px 5px;
+    border-radius:4px;
+    color:#324;
+  }
+  pre{
+    background:var(--code-bg);
+    border:1px solid var(--line);
+    border-left:3px solid var(--accent);
+    border-radius:6px;
+    padding:14px 16px;
+    overflow-x:auto;
+    margin:16px 0;
+  }
+  pre code{background:none;padding:0;font-size:12.5px;line-height:1.55;color:var(--ink);}
+  /* ---- tables ---- */
+  .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:18px 0;border:1px solid var(--line);border-radius:8px;}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;}
+  th,td{padding:9px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line-soft);overflow-wrap:break-word;}
+  thead th{
+    background:var(--accent);
+    color:#fff;
+    font-size:11.5px;
+    font-weight:700;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    border-bottom:none;
+    position:sticky;
+    top:0;
+  }
+  tbody tr:nth-child(even){background:var(--zebra);}
+  tbody tr:hover{background:var(--accent-soft);}
+  td strong{color:var(--accent);}
+  td code{font-size:12px;}
+  /* ---- callouts ---- */
+  .callout{
+    border-radius:8px;
+    padding:14px 18px;
+    margin:20px 0;
+    border:1px solid var(--line);
+    background:var(--bg-soft);
+  }
+  .callout .label{
+    font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+    display:block;margin-bottom:6px;
+  }
+  .callout p:first-of-type{margin-top:0;}
+  .callout p:last-child{margin-bottom:0;}
+  .callout.falsify{background:var(--accent2-soft);border-color:#e6c2a8;border-left:4px solid var(--accent2);}
+  .callout.falsify .label{color:var(--accent2);}
+  .callout.kill{background:#fbeceb;border-color:#e8bcb8;border-left:4px solid #b4302a;}
+  .callout.kill .label{color:#b4302a;}
+  .callout.success{background:#e9f3ec;border-color:#bcd9c4;border-left:4px solid #2e7d44;}
+  .callout.success .label{color:#2e7d44;}
+  .callout.formula{background:var(--accent-soft);border-color:#bfdcd9;border-left:4px solid var(--accent);}
+  .callout.formula .label{color:var(--accent);}
+  .callout.formula pre{background:#fbfdfd;border-left-color:var(--accent);margin:8px 0 0;}
+  blockquote{
+    margin:18px 0;padding:14px 18px;
+    background:var(--accent-soft);
+    border-left:4px solid var(--accent);
+    border-radius:0 8px 8px 0;
+  }
+  blockquote p:first-child{margin-top:0;}
+  blockquote ul{margin:8px 0;}
+  /* ---- figures ---- */
+  figure{margin:24px 0;text-align:center;}
+  figure svg{max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fff;padding:8px;}
+  figcaption{font-size:12.5px;color:var(--muted);margin-top:8px;}
+  /* ---- key takeaways ---- */
+  .takeaways{
+    margin:24px 0 8px;
+    background:var(--bg-soft);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:14px 18px 14px;
+  }
+  .takeaways .label{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;display:block;}
+  .takeaways ul{margin:6px 0 0;padding-left:20px;}
+  .takeaways li{font-size:14px;color:var(--ink-soft);}
+  footer.doc{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);}
+  footer.doc code{font-size:11.5px;}
+  /* ---- responsive ---- */
+  .toc-cb{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;}
+  .toc-toggle{display:none;}
+  @media (max-width:920px){
+    .layout{flex-direction:column;align-items:stretch;}
+    main{width:100%;}
+    nav.toc{
+      position:sticky;top:0;z-index:50;
+      width:100%;flex-basis:auto;height:auto;
+      border-right:none;border-bottom:1px solid var(--line);
+      padding:10px 16px;
+      display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;
+      box-shadow:0 2px 6px rgba(16,24,32,.05);
+    }
+    nav.toc .brand{margin-bottom:0;flex:1 1 auto;font-size:13px;}
+    nav.toc .brand small{display:none;}
+    .toc-toggle{
+      display:inline-flex;align-items:center;gap:7px;flex:0 0 auto;
+      cursor:pointer;user-select:none;
+      font-size:13px;font-weight:600;color:var(--accent);
+      background:var(--accent-soft);border:1px solid #bfdcd9;
+      padding:8px 13px;border-radius:7px;
+    }
+    .toc-toggle .bars{font-size:15px;line-height:1;}
+    nav.toc ol{
+      display:none;flex-basis:100%;width:100%;
+      column-count:1;margin:8px 0 2px;
+      max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    }
+    #toctoggle:checked ~ ol{display:block;}
+    nav.toc li{margin:0;}
+    nav.toc a{padding:11px 10px;}
+    main{padding:0 16px;}
+    thead th{position:static;}
+  }
+  @media (max-width:560px){
+    header.doc h1{font-size:22px;}
+    header.doc .sub{font-size:14px;}
+    .content{padding:26px 0 70px;}
+    section{margin-top:38px;}
+    section>h2{font-size:20px;}
+    h3{font-size:16px;}
+    main{padding:0 14px;}
+    table{font-size:12.5px;}
+    th,td{padding:7px 9px;}
+    code,td code{font-size:11.5px;}
+    .callout,.takeaways,blockquote{padding:12px 14px;}
+    pre{padding:12px 12px;}
+    pre code{font-size:11.5px;}
+  }
+  /* ---- print ---- */
+  @media print{
+    nav.toc{display:none;}
+    .layout{display:block;}
+    main{padding:0;}
+    .content{max-width:100%;padding:0;}
+    body{font-size:11pt;line-height:1.4;}
+    thead th{position:static;background:#222 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    tbody tr:nth-child(even){background:#f0f0f0 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .callout,blockquote,pre,figure svg{break-inside:avoid;}
+    section{break-inside:auto;}
+    h2,h3{break-after:avoid;}
+    a{color:var(--ink);text-decoration:none;}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="toc" aria-label="Table of contents">
+    <input type="checkbox" id="toctoggle" class="toc-cb" aria-hidden="true">
+    <div class="brand">datafetch
+      <small>Structured Learning over a Frozen Substrate · CodeOpt (014) / Procedure-Grammar Induction (015)</small>
+    </div>
+    <label for="toctoggle" class="toc-toggle"><span class="bars" aria-hidden="true">☰</span> Contents</label>
+    <ol>
+      <li><a href="#background">Background</a></li>
+      <li><a href="#product-vision">Product Vision</a></li>
+      <li><a href="#methodology">Methodology</a></li>
+      <li><a href="#paper-to-artifacts">Paper → Artifact Analogy Mapping</a></li>
+      <li><a href="#data-strategy">Data Strategy</a></li>
+      <li><a href="#verifier-strategy">Verifier Strategy</a></li>
+      <li><a href="#experiment">Experiment: R-vs-C Bake-Off</a></li>
+    </ol>
+  </nav>
+
+  <main>
+  <div class="content">
+    <header class="doc">
+      <h1>datafetch — Structured Learning over a Frozen Substrate</h1>
+      <p class="sub">Two forks of one locked control half: CodeOpt (plan 014) and Procedure-Grammar Induction (plan 015)</p>
+      <p class="meta">Adapting SkillOpt (<code>arXiv:2605.23904</code>) to a typed program object · generated 2026-06-22</p>
+    </header>
+
+    <!-- ===================== 1. BACKGROUND ===================== -->
+    <section id="background">
+      <h2><span class="num">1</span>Background</h2>
+
+      <p>This design sits at the intersection of two prior systems, one external and one our own, and is shaped by a hard empirical result that constrains what we are allowed to claim. To read the rest of the document you need three things in hand: what <strong>SkillOpt</strong> is and the one assumption it never relaxes; what <strong>datafetch</strong> is and the bet it places; and the <strong>empirical arc</strong> that tells us which value regime survives. We close with the problem statement that the learning layer exists to solve.</p>
+
+      <blockquote>
+        <p><strong>Key facts (load-bearing)</strong></p>
+        <ul>
+          <li><strong>SkillOpt</strong> (Microsoft, <code>arXiv:2605.23904</code>) trains a prose <code>skill.md</code> as the external state of a <em>frozen</em> agent, using a tight deep-learning analogy: parameter = <code>skill.md</code>, gradient = a trajectory-derived reflection edit, learning-rate = a bounded edit budget <code>L_t</code> (cosine 4→2), validation = a held-out selection gate that accepts <strong>iff</strong> the candidate strictly improves, rejected-edit buffer = in-epoch negative memory, momentum = an epoch-wise slow/meta update. Splits are <code>D_tr / D_sel / D_test</code>.</li>
+          <li><strong>SkillOpt's one limitation:</strong> every one of its five evaluators is a deterministic per-task <strong>gold</strong> comparison (SearchQA SQuAD-EM, DocVQA ANLS, LiveMath MCQ, OfficeQA EM/F1, SpreadsheetBench cell-diff). It <strong>assumes a per-task oracle</strong>, and it optimizes <strong>prose the agent READS</strong> — the artifact is never executed, so its validation signal is the model re-reading its own prose (circular, oracle-bound).</li>
+          <li><strong>datafetch</strong> is a substrate where a frozen agent writes typed <code>df.*</code> code over a mounted dataset; every primitive call is captured as structured trajectory lineage; an observer crystallises reusable typed <code>df.lib.*</code> helpers the agent later <strong>INVOKES</strong> (progressive disclosure via <code>apropos</code> / <code>man</code> / <code>df.d.ts</code>). Its bet: <strong>code is a learnable interface</strong>.</li>
+          <li><strong>The falsification that reframes everything:</strong> SkillCraft proved skill-based learning works (94.4% / 172× / R7 = 0.846). But the cost-amortisation thesis was <strong>FALSIFIED</strong> on shallow fan-outs — a valid k=5 PokeAPI paired run showed <em>(commit <code>0665d5a27</code>)</em> warm crystallised helpers cost <strong>more in every token unit AND were less correct</strong> than inline re-derivation; a quality-only gate would have promoted the losers. The surviving value regime is <strong>serial-DEPTH governance</strong> (the dark-store family showed +13.5pp).</li>
+        </ul>
+      </blockquote>
+
+      <h3>1. SkillOpt: a text-space optimizer with one fixed assumption</h3>
+      <p>SkillOpt's contribution is to treat a natural-language <strong>skill document</strong> as the trainable external state of a frozen agent and to optimize it as if it were a neural network's parameters. The frozen agent is never fine-tuned; instead, a prose <code>skill.md</code> is updated step by step, and SkillOpt makes the deep-learning analogy explicit and complete:</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th>DL concept</th><th>SkillOpt instantiation</th></tr></thead>
+        <tbody>
+          <tr><td>Parameter</td><td>the prose <code>skill.md</code> (one document, one scalar objective)</td></tr>
+          <tr><td>Gradient / edit</td><td>a trajectory-derived <strong>reflection</strong> edit (JSON patch of English rules)</td></tr>
+          <tr><td>Learning rate</td><td>a bounded edit budget <code>L_t</code>, cosine-scheduled 4→2</td></tr>
+          <tr><td>Validation</td><td>a held-out <strong>selection gate</strong>: accept <strong>iff</strong> <code>cand_score &gt; current</code> strictly</td></tr>
+          <tr><td>Negative memory</td><td>a rejected-edit buffer, rendered back into the optimizer prompt within the epoch</td></tr>
+          <tr><td>Momentum</td><td>an epoch-wise slow / meta update</td></tr>
+        </tbody>
+      </table></div>
+
+      <p>Its splits are <code>D_tr / D_sel / D_test</code>, and its deployment companion (SkillOpt-Sleep) already runs the offline harvest→replay→consolidate→gate→stage loop we might otherwise have reinvented. SkillOpt's ablations are worth internalising: gains are largely insensitive to batch size and schedule, but <strong>collapse without the gate and the slow update</strong>. That discipline is real and transferable.</p>
+
+      <p>But SkillOpt has exactly one assumption it never relaxes, and it is the assumption this design must reach past. <strong>Every</strong> SkillOpt benchmark hands the optimizer a deterministic per-task gold comparison — SQuAD-EM, ANLS, MCQ, EM/F1, cell-diff — and SkillOpt simply aggregates that oracle over a held-out split. It never builds a verifier; it assumes one. And the object it optimizes is <strong>prose the agent reads</strong>: the artifact has no execution semantics, so "validation" reduces to the frozen model re-reading its own English and re-attempting the task. That validation signal is circular and oracle-bound by construction.</p>
+
+      <h3>2. datafetch: code as a learnable interface</h3>
+      <p>datafetch starts from a different object. The agent is still frozen, but it does not read a prose skill — it <strong>writes typed <code>df.*</code> code</strong> over a mounted dataset and returns an answer (<code>return await df.lib.someIntent(...)</code>). Every primitive <code>df.*</code> call is captured as <strong>structured trajectory lineage</strong>: typed I/O, scope and depth nesting, replay-executable bodies. An <strong>observer</strong> mines recurring shapes from that lineage and <strong>crystallises</strong> them into typed, callable <code>df.lib.*</code> helpers, content-addressed by shape and intent, which the frozen agent later discovers through progressive disclosure (<code>apropos</code> / <code>man</code> / <code>df.d.ts</code>) and <strong>INVOKES</strong> rather than reads.</p>
+
+      <p>The substrate's bet is that <strong>code is a learnable interface</strong> — that the right external state for a frozen agent over data is not a prose tip-sheet but a growing library of typed callables. This single substitution (read→invoke, prose→typed code) is what makes datafetch a system delta rather than a reskin of SkillOpt-Sleep, and the difference is sharpest precisely at the place SkillOpt is weakest: <strong>a typed callable can be validated by executing it</strong> — re-run the helper on promoted literals and assert <code>answerEquals</code> against the agent's own prior committed answer — producing a <strong>deterministic, model-independent, oracle-free</strong> signal that prose categorically cannot generate (plan 014 §1–2). Where SkillOpt has one parameter and one scalar objective, a library is <strong>combinatorial</strong>: which helpers exist, where their boundaries fall, and crucially <em>when to retrieve-and-reuse versus synthesize fresh</em>. That governance frontier has no analog in SkillOpt-Sleep.</p>
+
+      <h3>3. The empirical arc that constrains the design</h3>
+      <p>Three results, in order, fix the value regime the learning layer is allowed to chase.</p>
+
+      <p><strong>SkillCraft (positive).</strong> Skill-based learning over this substrate works: 94.4% pass, 172× reuse, R7 transfer = 0.846. Crystallised helpers can fire, persist, and lower per-episode work. The mechanism is sound.</p>
+
+      <div class="callout falsify">
+        <span class="label">The falsification constraint</span>
+        <p><strong>PokeAPI k=5.</strong> On <strong>shallow fan-outs</strong>, the cost-amortisation thesis is FALSIFIED. In a valid, paired k=5 run, warm crystallised helpers came out <strong>more expensive in every token unit AND less correct</strong> than inline re-derivation against a frontier baseline (plan 014 §1). The sharp consequence: a <strong>quality-only gate would have promoted those losers</strong>. SkillOpt's own gate — <code>Δquality &gt; 0</code>, blind to cost — is exactly such a gate. The forensic detail matters downstream: the cost gap was a <strong>turn-count tax</strong>, and the only lever that moved cost materially (~3.5×) was helper <strong>DEPTH</strong>, not width.</p>
+      </div>
+
+      <p><strong>Dark-store family (the surviving regime).</strong> On serial-<strong>DEPTH</strong> corpora, a governed helper that <strong>declines</strong> under detected drift can strictly beat an ungoverned clone that confidently returns a stale-sibling wrong answer (the +13.5pp depth signal under a tri-state grader). This — <strong>governance-under-staleness on deep, serial-dependency tasks</strong> — is the only regime where the value claim is reachable, and the headline is therefore moved <strong>off</strong> cost-amortisation and <strong>onto</strong> a cost-aware, <strong>executed</strong>, oracle-free promotion gate whose job is to correctly <em>reject</em> confidently-wrong or more-expensive helpers and <em>promote</em> only the equally-correct-cheaper ones (plan 014 §1, §4).</p>
+
+      <h3>4. The problem this design solves</h3>
+      <p>We want a learning layer for the datafetch substrate that is as <strong>disciplined</strong> as SkillOpt but reaches the parts SkillOpt structurally could not. SkillOpt gives us a control half worth inheriting <em>verbatim</em> — the held-out gate, the bounded edit budget, the rejected-edit memory, and the fast/slow split — and the empirical arc tells us that this control half is exactly what stops a learned artifact from drifting into confidently-wrong reuse. We do <strong>not</strong> relitigate it; we lock it as an invariant shared by both forks (plan 015 §0–1) and never re-tune it.</p>
+
+      <p>The novelty budget is spent on the three things SkillOpt assumed away:</p>
+      <ol>
+        <li><strong>Executed, oracle-free verification.</strong> SkillOpt assumes a per-task gold oracle. We cannot. We need a verifier that promotes from <strong>deterministic execution</strong> (replay-equality, drift-gated abstention, anecdotal oracle-free checks plus a computed process-reward stack that scores the <em>procedure</em>, not just the answer) rather than from the model judging its own output.</li>
+        <li><strong>Compositional, cost-aware acceptance.</strong> SkillOpt's gate sees a single monolith and accepts on <code>Δquality &gt; 0</code>. Ours must subtract a fully-instrumented lifetime cost (build, per-call discovery and invocation <strong>turns</strong>, staleness risk, minus inline saved) and, where the object composes, optimize <strong>global compositional cost / description-length from the first commit</strong> — something SkillOpt's gate cannot see because its artifact does not compose (plan 015 §4).</li>
+        <li><strong>A structured object, and the optimizer that object demands.</strong> The headline rule: <strong>object class picks the optimizer.</strong> Prose takes reflection; a program takes induction. Running reflection on a typed call-graph is editing a program with a prose tool, and it bottoms out at thin shims by construction. The two forks (014 CodeOpt = a flat helper set under LLM reflection; 015 Procedure-Grammar Induction = a compositional typed grammar under structured anti-unify→MDL-select→gate induction) differ <strong>only</strong> in synthesis and object, over the one locked control half.</li>
+      </ol>
+
+      <div class="callout">
+        <span class="label">Problem statement</span>
+        <p><em>Given a frozen agent whose external state is a library of typed, invocable <code>df.lib.*</code> helpers crystallised from trajectory lineage — and given that no per-task oracle is available and that naive cost-amortisation has been empirically falsified on shallow fan-outs — design a learning layer that inherits SkillOpt's control discipline unchanged, and adds (a) an executed, oracle-free, cost-aware promotion gate that rejects confidently-wrong or more-expensive helpers and promotes only equally-correct-cheaper ones, and (b) a synthesis half matched to the object class, such that the system delivers measurable governance-under-staleness correctness on serial-depth corpora.</em></p>
+      </div>
+
+      <figure>
+        <svg viewBox="0 0 760 230" role="img" aria-labelledby="fig1title fig1desc" xmlns="http://www.w3.org/2000/svg">
+          <title id="fig1title">SkillOpt to datafetch pipeline</title>
+          <desc id="fig1desc">A frozen agent writes typed df.* code over a mounted dataset; lineage is captured; an observer synthesises a trainable grammar; a cost-aware executed oracle-free gate promotes only equally-correct-cheaper procedures.</desc>
+          <defs>
+            <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#1f6f6b"/></marker>
+          </defs>
+          <!-- frozen substrate band -->
+          <rect x="14" y="20" width="732" height="74" rx="8" fill="#f7f9fb" stroke="#e3e6ea"/>
+          <text x="24" y="38" font-size="11" font-weight="700" fill="#6b7280" font-family="sans-serif">FROZEN SUBSTRATE (never optimized)</text>
+          <rect x="28" y="46" width="150" height="38" rx="6" fill="#fff" stroke="#bfdcd9"/>
+          <text x="103" y="63" font-size="11.5" text-anchor="middle" fill="#1a1d23" font-family="sans-serif">Frozen agent</text>
+          <text x="103" y="77" font-size="10" text-anchor="middle" fill="#6b7280" font-family="monospace">writes df.* code</text>
+          <rect x="210" y="46" width="150" height="38" rx="6" fill="#fff" stroke="#bfdcd9"/>
+          <text x="285" y="63" font-size="11.5" text-anchor="middle" fill="#1a1d23" font-family="sans-serif">Mounted dataset</text>
+          <text x="285" y="77" font-size="10" text-anchor="middle" fill="#6b7280" font-family="monospace">df.db.* / df.compute.*</text>
+          <rect x="392" y="46" width="160" height="38" rx="6" fill="#fff" stroke="#bfdcd9"/>
+          <text x="472" y="63" font-size="11.5" text-anchor="middle" fill="#1a1d23" font-family="sans-serif">Lineage capture</text>
+          <text x="472" y="77" font-size="10" text-anchor="middle" fill="#6b7280" font-family="monospace">typed I/O · depth</text>
+          <line x1="178" y1="65" x2="208" y2="65" stroke="#1f6f6b" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="360" y1="65" x2="390" y2="65" stroke="#1f6f6b" stroke-width="1.5" marker-end="url(#arr)"/>
+          <!-- trainable -->
+          <rect x="566" y="46" width="166" height="38" rx="6" fill="#e7f1f0" stroke="#1f6f6b"/>
+          <text x="649" y="62" font-size="11.5" text-anchor="middle" fill="#1f6f6b" font-weight="700" font-family="sans-serif">TRAINABLE grammar G</text>
+          <text x="649" y="77" font-size="10" text-anchor="middle" fill="#1f6f6b" font-family="monospace">df.lib.* procedures</text>
+          <line x1="552" y1="65" x2="564" y2="65" stroke="#1f6f6b" stroke-width="1.5" marker-end="url(#arr)"/>
+          <!-- synthesis + gate row -->
+          <rect x="160" y="130" width="200" height="44" rx="6" fill="#fff" stroke="#b4541a"/>
+          <text x="260" y="149" font-size="11.5" text-anchor="middle" fill="#b4541a" font-weight="700" font-family="sans-serif">Synthesis (reflection / induction)</text>
+          <text x="260" y="164" font-size="10" text-anchor="middle" fill="#6b7280" font-family="monospace">cluster → anti-unify → MDL</text>
+          <rect x="400" y="130" width="240" height="44" rx="6" fill="#e7f1f0" stroke="#1f6f6b"/>
+          <text x="520" y="149" font-size="11.5" text-anchor="middle" fill="#1f6f6b" font-weight="700" font-family="sans-serif">Cost-aware EXECUTED gate</text>
+          <text x="520" y="164" font-size="10" text-anchor="middle" fill="#1f6f6b" font-family="monospace">oracle-free · promote iff cheaper∧correct</text>
+          <line x1="649" y1="84" x2="540" y2="128" stroke="#1f6f6b" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="360" y1="152" x2="398" y2="152" stroke="#1f6f6b" stroke-width="1.5" marker-end="url(#arr)"/>
+          <text x="260" y="118" font-size="10" text-anchor="middle" fill="#6b7280" font-family="sans-serif">object class picks the optimizer</text>
+          <line x1="472" y1="200" x2="472" y2="206" stroke="none"/>
+          <text x="14" y="216" font-size="10" fill="#6b7280" font-family="sans-serif">Locked control half (gate · bounded edit budget · rejected-edit memory · fast/slow split) ported verbatim from SkillOpt, never re-tuned.</text>
+        </svg>
+        <figcaption>Figure 1 — The SkillOpt→datafetch pipeline: a frozen substrate feeds lineage to synthesis; only the cost-aware executed oracle-free gate promotes into the trainable grammar.</figcaption>
+      </figure>
+
+      <div class="takeaways">
+        <span class="label">Key takeaways</span>
+        <ul>
+          <li>SkillOpt trains a prose <code>skill.md</code> as a frozen agent's external state via a complete DL analogy (parameter/gradient/LR/gate/momentum), but assumes a per-task gold oracle and optimizes prose the agent READS, making validation circular and oracle-bound.</li>
+          <li>datafetch changes the object: a frozen agent writes typed <code>df.*</code> code over a mounted dataset, lineage is captured, and an observer crystallises invocable <code>df.lib.*</code> helpers; its bet is "code as a learnable interface," and unlike prose a typed callable can be validated by deterministic execution (oracle-free).</li>
+          <li>The empirical arc is decisive: SkillCraft proved skill-learning works (94.4%/172×/R7=0.846), but PokeAPI k=5 FALSIFIED cost-amortisation on shallow fan-outs (warm helpers cost more AND were less correct; a quality-only gate promotes losers), leaving serial-DEPTH governance-under-staleness as the only surviving value regime.</li>
+          <li>The cost gap was a turn-count tax and DEPTH (not width) was the only ~3.5× cost lever, which is why the headline moves off amortisation onto a cost-aware executed gate on deep corpora.</li>
+          <li>This design inherits SkillOpt's control half verbatim (held-out gate, bounded edit budget, rejected-edit memory, fast/slow split) as a locked invariant and spends novelty only on executed oracle-free verification, compositional cost-aware acceptance, and a structured object.</li>
+          <li>Headline rule: object class picks the optimizer (prose→reflection, program→induction); reflection on a typed call-graph yields thin shims by construction. Forks 014 (flat set + reflection) and 015 (compositional grammar + induction) differ only in synthesis and object over the one shared control half.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 2. PRODUCT VISION ===================== -->
+    <section id="product-vision">
+      <h2><span class="num">2</span>Product Vision</h2>
+
+      <h3>The core claim: a data interface that distils instead of accumulating</h3>
+      <p>datafetch ships a per-tenant interface to a dataset that gets <strong>structurally simpler and cheaper to use the more it is used</strong>. A frozen agent writes typed <code>df.*</code> code over a mounted dataset; every primitive call is captured as structured trajectory lineage; and a synthesis layer turns recurring intent into a <strong>compositional, typed procedure grammar</strong> the agent later invokes by name. The product is not the agent and not the dataset. It is the grammar in the middle, and the disciplined optimizer that keeps it honest. The grammar is the bet under pre-registered test (the R-vs-C bake-off behind the depth floor); if structured induction does not separate from flat reflection on a depth corpus, the shipped object is the flat 014 library and we say so.</p>
+
+      <p>The thing being sold is a negative space as much as a positive one. The default outcome of "let a model accumulate helpers" is a growing pile of thin shims that a frontier model bypasses, because reflecting over a typed call-graph is <em>editing a program with a prose tool</em> and bottoms out at shims by construction (plan 015, headline rule; plan 014 §2 honesty note: invoke-vs-read is cosmetic everywhere except the gate). datafetch makes the opposite commitment. Plan 015 §6 states it exactly: "SkillOpt stays small by <strong>rejecting</strong> (passive: don't grow). 015 stays small by <strong>compressing</strong> (active: shrink)." The interface anti-unifies same-intent trajectory clusters into parameterized procedures, MDL-selects only the abstractions that shorten the whole corpus, and raises lower procedures into higher ones, so the library's description length per intent <em>falls</em> as coverage rises. Distillation, not accumulation, is the product category.</p>
+
+      <p>We are honest about the regime where this can pay. Our own valid k=5 PokeAPI run <strong>falsified cost-amortisation on shallow fan-outs</strong>: warm crystallised helpers came out more expensive in every token unit and less correct than inline re-derivation, and a quality-only gate would have promoted those losers (plan 014 §1 reframe, anchor commit <code>0665d5a27</code>). So the value regime is explicitly serial-<strong>DEPTH</strong> corpora, where a top-level procedure that composes several learned sub-procedures is genuinely expensive to inline, which is the only place the cost gate clears (plan 015 §2; the dark-store family's +13.5pp depth signal). We do not promise amortisation everywhere. We promise distillation where depth exists, and correct refusal to promote where it does not.</p>
+
+      <h3>"Improves the more you use it" is a measurement, not a hope</h3>
+      <p>The claim is instrumented, not asserted. Plan 015 §6 defines three <strong>distillation curves</strong> that are the product's primary telemetry:</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th>Curve</th><th>Direction if the interface is distilling</th><th>What flat means</th></tr></thead>
+        <tbody>
+          <tr><td>Description-length-per-intent</td><td><strong>↓</strong> falling</td><td>the grammar is not compressing</td></tr>
+          <tr><td>Compositional depth (mean nesting / serial-dependency length of accepted procedures)</td><td><strong>↑</strong> rising</td><td>procedures are not composing, only listing</td></tr>
+          <tr><td>Inline-rederivation rate (fraction of episodes the agent re-derives instead of calling a procedure)</td><td><strong>↓</strong> receding</td><td>the agent is bypassing the library</td></tr>
+        </tbody>
+      </table></div>
+
+      <figure>
+        <svg viewBox="0 0 700 240" role="img" aria-labelledby="fig2title fig2desc" xmlns="http://www.w3.org/2000/svg">
+          <title id="fig2title">The three distillation curves over usage</title>
+          <desc id="fig2desc">Description-length-per-intent falls, compositional depth rises, and inline-rederivation rate falls as usage increases — the signature of a distilling interface.</desc>
+          <!-- axes -->
+          <line x1="60" y1="30" x2="60" y2="190" stroke="#6b7280" stroke-width="1.2"/>
+          <line x1="60" y1="190" x2="660" y2="190" stroke="#6b7280" stroke-width="1.2"/>
+          <text x="360" y="220" font-size="12" text-anchor="middle" fill="#6b7280" font-family="sans-serif">usage →</text>
+          <text x="30" y="110" font-size="11" text-anchor="middle" fill="#6b7280" font-family="sans-serif" transform="rotate(-90 30 110)">metric</text>
+          <!-- DL/intent down (rust) -->
+          <path d="M70,55 C200,75 380,140 650,170" fill="none" stroke="#b4541a" stroke-width="2.5"/>
+          <text x="655" y="170" font-size="11" fill="#b4541a" font-family="sans-serif" text-anchor="end">DL / intent ↓</text>
+          <!-- depth up (teal) -->
+          <path d="M70,175 C220,160 420,90 650,50" fill="none" stroke="#1f6f6b" stroke-width="2.5"/>
+          <text x="655" y="46" font-size="11" fill="#1f6f6b" font-family="sans-serif" text-anchor="end">depth ↑</text>
+          <!-- inline rederivation down (dashed grey) -->
+          <path d="M70,70 C210,95 410,150 650,178" fill="none" stroke="#6b7280" stroke-width="2" stroke-dasharray="5 4"/>
+          <text x="655" y="186" font-size="11" fill="#6b7280" font-family="sans-serif" text-anchor="end">inline-rederivation ↓</text>
+        </svg>
+        <figcaption>Figure 2 — A distilling interface bends three curves: DL-per-intent ↓, compositional depth ↑, inline-rederivation ↓. Flat curves are reported as a null (SkillOpt with extra machinery).</figcaption>
+      </figure>
+
+      <p>The honesty clause is part of the product, not a caveat hidden from it. Plan 015 §6 is unambiguous: "if those three curves are flat, you have built SkillOpt with extra machinery and must say so. If they bend, that is the result." A customer dashboard that can only ever go up is a vanity metric; these three can stay flat and that is reported as a null. Acceptance is governed by a gate that optimizes <strong>global compositional MDL/cost from the first commit</strong> (plan 015 §4) rather than a per-helper "does this one lift beat inline" objective, which is already falsified. And promotion is filtered by a <strong>computed process-reward stack</strong> (faithfulness, generality, parsimony, coverage, robustness) calibrated against a manufactured-gold selection split, with any dimension that fails to predict held-out correctness dropped (plan 015 §6). The curves measure whether the interface is earning its keep; the process stack stops it from "winning" by abstracting structure that does not track correctness.</p>
+
+      <h3>The two-loop architecture, and why governance is the differentiated product</h3>
+      <p>The system is two stacked optimizers over one locked control half (held-out gate, bounded edit budget, rejected-edit memory, fast/slow split, ported verbatim from SkillOpt and never re-tuned; plan 015 §1, plan 014 §3 mapping).</p>
+      <ul>
+        <li><strong>Loop A (tenant, fast).</strong> A per-tenant cycle proposes at most L bounded mutations to the tenant's grammar, gated on the tenant's own held-out split, with rejects sent to a <code>shapeHash</code>-keyed buffer the proposer never re-offers. Output: an updated <code>lib/&lt;tenant&gt;/</code>, staged for human adoption. The tenant's interface improves by being used. (plan 014 §6 Loop A.)</li>
+        <li><strong>Loop B (provider, slow).</strong> A periodic reshape of the shared base abstractions by mining cross-tenant <code>intentSignature</code> clusters, accepted <strong>only if no regressed bucket grows for any tenant</strong> AND aggregate cross-tenant lifetime cost drops AND drift fingerprints still validate. Catastrophic-forgetting protection becomes catastrophic-cross-tenant-regression protection. This is explicitly future-work, gated behind ≥2 real tenants <strong>(and the one live governance run to date inverted — the gate fired 0/22, which is itself why it is future-work, not a green light)</strong> (plan 014 §6 Loop B, P5).</li>
+      </ul>
+
+      <p>The reason this architecture matters is the most important honest concession in the design: against a frontier model, <strong>single-session correctness is roughly neutral</strong> (plan 014 §1, §11). If the pitch were "the agent answers better," there would be no product, because the frontier model already answers about as well inline. The differentiated product is <strong>governance and auditability</strong>:</p>
+      <ul>
+        <li><strong>Verifier-gated, not usage-gated promotion.</strong> A procedure is promoted because it passes an <em>executed, oracle-free</em> replay plus a paired cost-win plus non-regression where an oracle exists, never merely because it was called N times (plan 014 §5). This is the one place the system is strictly past SkillOpt: code can be validated by deterministic execution (model-independent), whereas prose can only be validated by the model re-reading it (circular, oracle-bound) (plan 014 §11). The gate's job is to <strong>correctly reject confidently-wrong or more-expensive helpers</strong> and promote only equally-correct-cheaper ones, which is precisely what ratifies our own falsification rather than papering over it.</li>
+        <li><strong>Decline-under-drift beats confident-stale.</strong> Each procedure carries a <code>@source-hash</code> drift fingerprint; under detected drift the committed answer is no longer a valid fixed point, so the system forces re-derive-or-decline (plan 014 §5 fix b). On a truthfulness-graded score with a hallucination penalty (CRAG's −1 grader), a governed library that <strong>declines</strong> under drift strictly beats an ungoverned clone that confidently returns a stale, wrong answer (plan 014 §1, P4 headline). Governance-under-staleness, not raw correctness, is where <code>reward &gt; 0</code> is reachable.</li>
+      </ul>
+
+      <p>So the product is an <strong>auditable, self-distilling evidence layer over a dataset</strong>: every promotion is gated, replayable, and lineage-backed; every refusal under drift is a feature; and the whole library tends toward fewer, deeper, better-tested procedures over time.</p>
+
+      <h3>Who it is for and why now</h3>
+      <p>This is for teams who put a frozen agent in front of a <strong>proprietary, drifting dataset</strong> and need the interface to that data to be governed, not vibes. Three things make it timely. First, frontier single-session correctness has saturated, so the marginal product is no longer "a smarter answer" but "an auditable, cheaper-at-depth, drift-aware path to the answer," and that is exactly what the two-loop gate produces. Second, the prevailing pattern (let the model accumulate skills/tools and reuse them) is the pile-of-shims failure mode we have a measured falsification for, so a system that compresses under a cost-aware gate is a concrete corrective, not a slogan. Third, datasets drift, and confident-stale answers are the expensive failure mode in production; a system whose default under drift is honest abstention, with the decline itself logged and gated, is the governance posture compliance-sensitive and high-stakes data teams actually need. The honest boundary of the offer: the win lands on serial-depth corpora and on governance-under-staleness, and the design says so in its own kill criteria rather than overselling amortisation everywhere.</p>
+
+      <div class="takeaways">
+        <span class="label">Key takeaways</span>
+        <ul>
+          <li>The product is a per-tenant procedure grammar that DISTILS (compresses under a cost-aware MDL gate) rather than ACCUMULATES thin shims a frontier model bypasses; distillation, not amortisation-everywhere, is the category.</li>
+          <li>"Improves the more you use it" is instrumented as three falsifiable distillation curves (description-length-per-intent down, compositional depth up, inline-rederivation rate down) with an explicit honesty clause: flat curves = SkillOpt-plus-machinery, reported as a null.</li>
+          <li>Two stacked loops over one locked control half: Loop A (fast, per-tenant, gated, staged for human adopt) and Loop B (slow, cross-tenant base reshape with a per-tenant no-regression veto, explicitly future-work behind 2+ tenants, with its one live run having inverted at 0/22).</li>
+          <li>Because single-session correctness is ~neutral against a frontier model, the differentiated product is GOVERNANCE: verifier-gated (executed oracle-free replay + paired cost-win), not usage-gated promotion, and decline-under-drift that beats confident-stale on a hallucination-penalized grader.</li>
+          <li>Value regime is honestly bounded to serial-DEPTH corpora (where deep composition is costly to inline) and governance-under-staleness; cost-amortisation on shallow fan-outs was falsified on our own k=5 PokeAPI run and the gate's job is to correctly REJECT that class.</li>
+          <li>For teams running a frozen agent over a proprietary, drifting dataset who need an auditable, lineage-backed, drift-aware data interface; timely because frontier correctness has saturated and confident-stale answers are the expensive production failure.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 3. METHODOLOGY ===================== -->
+    <section id="methodology">
+      <h2><span class="num">3</span>Methodology</h2>
+
+      <h3>1. The frame: a frozen substrate and a trainable artifact over it</h3>
+      <p>The method partitions the system into two strata that are never confused. The <strong>frozen substrate</strong> is the alphabet you never rewrite: the typed primitives <code>df.db.*</code> and <code>df.compute.*</code> exposed over a mounted dataset, together with the frozen agent that emits <code>df.*</code> code, the deterministic authoring cascade (<code>src/observer/author.ts</code>, <code>authorFromSource.ts</code>: promote top-of-<code>main</code> literals to typed params, rewrite <code>df.answer</code> to <code>return</code>, content-address by <code>shapeHash</code> + <code>intentSignature</code>), and the lineage capture that records every primitive call as typed I/O with scope/depth nesting and a replay-executable body. None of this is optimized. The <strong>trainable artifact</strong> is the per-tenant library of typed callable helpers the agent <em>invokes</em> (<code>return await df.lib.someIntent(...)</code>) via progressive disclosure (<code>apropos</code> / <code>man</code> / <code>df.d.ts</code>). This is the single substitution that makes the project a system delta rather than a reskin of SkillOpt: SkillOpt's trainable state is <em>prose the agent reads</em>; ours is <em>typed code the agent runs</em> (plan 014, sec 1–2). The consequence that earns the whole method is at the validation boundary — a prose skill is "validated" by the model re-reading it and completing a held-out task (the artifact is never executed; the signal is the model judging its own prose, circular and oracle-bound), whereas a typed callable is validated by <strong>running it</strong> on promoted literals and asserting <code>answerEquals</code> against the agent's prior committed answer: a deterministic, model-independent, oracle-free signal prose categorically cannot produce because prose has no execution semantics (plan 014, sec 2, anchor <code>quarantineValidator.ts:326/338</code>).</p>
+
+      <p>In plan 015 the trainable artifact changes <em>class</em> again: from a flat set of helpers to a <strong>compositional typed procedure grammar</strong> <code>G</code> where procedures compose procedures over the same frozen alphabet (<code>df.db.*</code> / <code>df.compute.*</code> / other learned procedures), each member carrying a typed signature, a deterministic skeleton, holes parameterizing the LLM-leaf judgments, and a co-emitted process-verifier contract (plan 015, sec 0, sec 2). The substrate is identical; only the object you train over it differs.</p>
+
+      <h3>2. The locked control half (inherited from SkillOpt via plan 014)</h3>
+      <p>Both forks share <strong>one control half</strong>, ported verbatim from SkillOpt and treated as a <strong>locked invariant</strong> — never re-tuned, because a change to control is a change to <em>both</em> forks (plan 015, sec 1). SkillOpt already paid the compute to establish that bounded, gated text-space optimization is what keeps a learned artifact from drifting: its ablations show gains are insensitive to batch and schedule but collapse without the gate and the slow update. We inherit that stance rather than relitigate it, and spend the novelty budget only on synthesis and the gate (plan 015, sec 0, sec 1). The learning rate is reproduced with full rigor below, and for a <em>program</em> object it gains a structural step-size — the trust region <code>Δ_t</code> — that prose never needed.</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th>Control parameter</th><th>SkillOpt definition</th><th>Induction (015) definition</th><th>Default</th><th>Bounds / why</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Parameter</strong></td><td><code>skill.md</code> (one prose doc)</td><td>grammar <strong>G</strong> — a typed compositional procedure library</td><td>—</td><td>the trained state</td></tr>
+          <tr><td><strong>LR — count <code>L_t</code></strong></td><td>max #edits accepted/step</td><td>max #grammar mutations <strong>accepted</strong>/step</td><td><strong>4 → 2 cosine</strong></td><td>how far G may move per step; caps mutations admitted per offline step</td></tr>
+          <tr><td><strong>LR — trust region <code>Δ_t</code></strong> (NEW for a program object)</td><td>implicit (bounded only by <code>L_t</code>)</td><td>max <strong>structural magnitude per op</strong>: max ΔDL per op, <strong>≤ 1 abstraction-level raised per op</strong></td><td><strong>≤ 1 level early, tighten late</strong></td><td>keeps each revision near <code>G_t</code> so the rejected-buffer + proposer retain a meaningful optimization history. SkillOpt's exact rationale: revisions that jump too far destroy learnable history. A prose object only needed a <em>count</em> bound; a program object also needs a <em>magnitude</em> bound on each structural op</td></tr>
+          <tr><td><strong>Schedule</strong></td><td>const / linear / cosine / autonomous</td><td>same, applied over the pair <code>(L_t, Δ_t)</code></td><td><strong>cosine</strong></td><td>broad early, conservative late</td></tr>
+          <tr><td><strong>Autonomous LR (gate-clamped)</strong></td><td>LLM sizes its own batch</td><td>LLM <strong>proposes</strong> the count; the <strong>gate caps</strong> it → <code>min(proposed, gate-passing)</code></td><td>gate-clamped</td><td>propose-never-dispose; authority over what lands sits with the gate, not the proposer</td></tr>
+          <tr><td><strong>Rollout batch <code>B</code></strong></td><td>evidence per step</td><td>trajectories harvested/replayed per step</td><td>corpus-covering</td><td>insensitive per SkillOpt ablation — <strong>do not tune</strong></td></tr>
+          <tr><td><strong>Minibatch</strong></td><td>success/failure groups</td><td><strong>the intent-cluster</strong> (the anti-unify unit)</td><td><code>k ≥</code> depth-floor min</td><td>not a knob — it is the <em>unit of generalization</em>, the set anti-unification operates over</td></tr>
+          <tr><td><strong>Validation gate</strong></td><td>held-out score strictly up (quality-only)</td><td><strong>corpus DL/cost strictly down ∧ process-stack pass ∧ no anecdotal regression</strong></td><td>strict</td><td>global and compositional from the first commit (sec 4)</td></tr>
+          <tr><td><strong>Rejected buffer</strong></td><td>failed edits rendered back into optimizer prompts, then dropped</td><td><strong>rejected-abstraction buffer</strong>, keyed by abstraction <code>shapeHash</code> (persisted <code>observer/&lt;tenant&gt;/rejected-shapes.jsonl</code>)</td><td>per-corpus-epoch</td><td>the proposer never re-offers a structural loser (in-epoch negative memory)</td></tr>
+          <tr><td><strong>Momentum / slow update</strong></td><td>epoch slow/meta guidance, <code>build_comparison_pairs</code> bucketing</td><td><strong>refactoring slow-pass</strong> (sec 5): same gate, its own <code>(L_t, Δ_t)</code>, its own rejected buffer</td><td>per-corpus-boundary, smaller LR</td><td>a load-bearing consolidation phase, not a leaf hint</td></tr>
+          <tr><td><strong>Epoch</strong></td><td>one pass over data</td><td>fast admit-passes over all clusters + <strong>one slow refactor-pass</strong> at the boundary</td><td>—</td><td>the fast/slow split (sec 5)</td></tr>
+        </tbody>
+      </table></div>
+
+      <p>The inherited stance is non-negotiable: <strong>preserve the gate and the slow update</strong> (load-bearing per SkillOpt's ablations); <strong>do not tune batch or schedule</strong> (insensitive). All novelty is spent in the synthesis fork and the gate, never on control (plan 015, sec 1).</p>
+
+      <h3>3. The headline rule and the two forks</h3>
+      <p><strong>Object class picks the optimizer.</strong> A prose object takes reflection; a program object takes induction. Running reflection on a typed call-graph is <em>editing a program with a prose tool</em>, and it bottoms out at thin shims by construction, not by tuning (plan 015, sec 0). This single rule generates the fork:</p>
+      <ul>
+        <li><strong>Fork 014 (CodeOpt) — flat set + reflection.</strong> The trainable object is a <em>flat</em> library of <code>df.lib.*</code> helpers; the optimizer is SkillOpt's reflection optimizer re-targeted to emit executable code: the optimizer-LLM reads structured <code>df.*</code> call lineage plus the rejected-shape buffer and proposes the next library mutation (<code>emit / merge / split / widen-params / deepen-body / demote / delete</code>), emitted as code through the deterministic authoring cascade (plan 014, sec 3, sec 8). Honesty constraint folded in from the adversarial panel: this is <em>not</em> "a learning algorithm" — it is reflection re-targeted to emit code under a cost-aware executed gate; novelty is claimed at the gate and the second (retrieval/governance) optimizer, never at optimizer-as-reflection (plan 014, sec 8).</li>
+        <li><strong>Fork 015 (Procedure-Grammar Induction) — grammar + induction.</strong> The object is the compositional typed grammar <code>G</code>; the optimizer is <strong>structured library induction</strong> with three operations that replace 014's single-trajectory reflective lift (plan 015, sec 3): (1) <strong>anti-unify</strong> (least-general-generalization) over a same-<code>intentSignature</code> cluster of trajectories to a candidate parameterized procedure — the operation that turns k anecdotes into one procedure; (2) <strong>compress / select by MDL</strong> over the whole corpus — keep a candidate iff it lowers corpus description length (recurs across ≥ k trajectories, shortens future caller-programs), the MDL prior <em>being</em> the statement "raw usage is noise, signal compounds across uses"; (3) <strong>accept by the gate</strong> (sec 4). The LLM is proposer, never disposer: neural picks which clusters to anti-unify, names and types the holes, suggests splits/merges; symbolic compression plus the gate decide (plan 015, sec 3).</li>
+      </ul>
+      <p>The two forks are decided by a pre-registered R-vs-C bake-off behind a depth floor (plan 015, sec 7) — they are forks of one locked control half, differing <em>only</em> in synthesis and object.</p>
+
+      <h3>4. The gate's precise scalar</h3>
+      <p>The local objective ("does this one lift beat inline") is already falsified, so 015's gate is not rebuilt on it. The acceptance signal is <strong>corpus description length as the proxy for expected cost across all future callers</strong> (plan 015, sec 4):</p>
+
+      <div class="callout formula">
+        <span class="label">Key formula — global compositional gate (015)</span>
+        <pre><code>score(G) = Σ_{x ∈ corpus} cost(caller-program_x | G)  +  λ · |G|
+           └──── data cost (cost-aware token + TURN units, 014 §4) ────┘   └ library cost ┘
+
+ACCEPT a mutation iff:
+        score(G_{t+1}) &lt; score(G_t)            (strict)
+   AND  process-reward stack passes             (anti-Goodhart, §6)
+   AND  no anecdotal-verifier regression        (014 §5 stack)</code></pre>
+      </div>
+
+      <p>The <code>cost(caller-program_x | G)</code> term is measured in the cost-aware token-and-<strong>TURN</strong> units of plan 014's lifetime-cost model — the falsified +66,521-token gap was a turn-count tax, and the only lever that moved cost ~3.5x was helper <em>depth</em>, not width (plan 014, sec 4), which is precisely why 015's compositional grammar is the only object with cost headroom (plan 015, sec 2). This is the single place the method is <strong>strictly past SkillOpt</strong>: SkillOpt's gate is whole-artifact validation and <em>cannot see composition</em> because its artifact does not compose; ours <em>optimizes</em> compositional cost rather than merely validating a monolith (plan 015, sec 4). The process-reward guardrails are mandatory — they stop compression from "winning" by abstracting structure that does not track correctness.</p>
+
+      <p>For the flat fork (014), the same accept logic is instantiated as the cost-aware reward over the held-out selection split, paired against the inline-rewrite adversary on the <em>same</em> questions, where the lifetime cost decomposes into <code>build_cost / E[reuses] + per_call_cost + staleness_risk_penalty − inline_cost_saved</code> <em>(cost in token AND TURN units — the falsified +66,521 gap was a turn-count tax, 014 §4)</em>, with acceptance requiring <code>reward &gt; 0</code> strictly <strong>and</strong> a per-pair cost-win fraction ≥ 0.70 <strong>and</strong> mean paired ratio ≤ 0.70 (the R8 dual anti-gaming gate) <strong>and</strong> a non-inferiority floor <code>Δquality ≥ −ε</code> — we require non-regression, never a correctness lift (plan 014, sec 4). The contrast with SkillOpt is exact: SkillOpt's <code>select_gate_score</code> returns <code>Δquality</code> alone and accepts on <code>Δquality &gt; 0</code>, so <em>equally-correct-cheaper</em> helpers are invisible to it and <em>equally-correct-more-expensive</em> helpers (the falsified arm4 class) would be promoted; our gate promotes the former and rejects the latter.</p>
+
+      <h3>5. The fast/slow split (momentum)</h3>
+      <p>The optimizer runs as two loops, mapping SkillOpt's fast per-step gate and epoch-wise slow update onto a library/grammar object (plan 014, sec 6; plan 015, sec 5):</p>
+      <ul>
+        <li><strong>Fast pass (Loop A, per-tenant).</strong> A nightly per-tenant cycle proposes ≤ <code>L_t</code> mutations via the synthesis operator (deterministic cascade in 014, anti-unify + MDL in 015), each gated by the sec 4 scalar on the tenant's held-out split, with rejects written to the <code>shapeHash</code>-keyed rejected-abstraction buffer. The fast pass <em>proposes</em> abstractions; output is an updated <code>lib/&lt;tenant&gt;/</code> (014) or admitted grammar members (015), staged for human adopt.</li>
+        <li><strong>Slow pass (Loop B / refactoring pass, momentum).</strong> At each corpus boundary, one gated consolidation pass <em>consolidates depth</em> under its own conservative <code>(L_t, Δ_t)</code> and its own rejected buffer: it <strong>merges</strong> same-intent / different-shape procedures into one parameterized procedure (the cure for the silent-wrong-sibling landmine), <strong>splits</strong> a procedure whose intent-signature spans families when a sibling regresses, <strong>raises abstraction level</strong> by rewriting top-level procedures to call newly-admitted sub-procedures, and <strong>retires</strong> procedures the corpus stopped calling — every move through the <em>same</em> gate (plan 015, sec 5). In 014 the slow loop is made cross-tenant (reshape the shared <code>lib/__seed__/</code> base abstractions by mining cross-tenant <code>intentSignature</code> clusters), accepted only if no regressed bucket grows for <em>any</em> tenant and aggregate cross-tenant lifetime cost drops; catastrophic-forgetting protection becomes catastrophic-cross-tenant-regression protection (plan 014, sec 6). Without the slow pass the optimizer is under-built — it is SkillOpt's momentum term, not an optional hint.</li>
+      </ul>
+
+      <div class="takeaways">
+        <span class="label">Key takeaways</span>
+        <ul>
+          <li>The system is partitioned into a frozen substrate (<code>df.db.*</code>/<code>df.compute.*</code> — the alphabet you never rewrite, plus the frozen agent, authoring cascade, and lineage capture) and a trainable artifact (014: a flat library of invoked <code>df.lib.*</code> helpers; 015: a compositional typed procedure grammar G). The load-bearing consequence is at validation: prose is validated by the model re-reading it (circular, oracle-bound), code by deterministic execution (oracle-free, model-independent).</li>
+          <li>Both forks share ONE locked control half ported verbatim from SkillOpt and never re-tuned: count <code>L_t</code> (4→2 cosine), the NEW trust-region <code>Δ_t</code> for the program object (max ΔDL, ≤1 abstraction-level raised/op — keeps revisions near <code>G_t</code> so the rejected buffer and proposer retain learnable history), cosine schedule, gate-clamped autonomous LR (LLM proposes count, gate caps), insensitive rollout batch B, the intent-cluster minibatch, strict gate, <code>shapeHash</code>-keyed rejected buffer, refactoring slow-update momentum, and the fast/slow epoch.</li>
+          <li>The headline rule — object class picks the optimizer (prose→reflection, program→induction) — generates the fork: 014 = flat set + reflection re-targeted to emit code; 015 = grammar + structured induction (anti-unify a same-<code>intentSignature</code> cluster → MDL-select corpus-shortening abstractions → gate). Reflection on a typed call-graph yields thin shims by construction.</li>
+          <li>The gate optimizes a global compositional scalar <code>score(G) = Σ_x cost(caller-program_x | G) + λ·|G|</code>, accepting a mutation iff score strictly drops AND the computed process-reward stack passes AND no anecdotal-verifier regresses. This is strictly past SkillOpt, whose whole-artifact quality-only gate cannot see composition; cost is in token+TURN units because the falsified gap was a turn-count tax and only helper depth moved cost.</li>
+          <li>The fast/slow split is SkillOpt's momentum: a fast per-tenant pass proposes ≤<code>L_t</code> gated mutations with <code>shapeHash</code>-keyed rejects, and a slow refactoring pass at each corpus boundary consolidates depth (merge/split/raise-level/retire) through the same gate under its own conservative <code>(L_t, Δ_t)</code> and buffer — load-bearing per SkillOpt's ablations, not optional.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 4. PAPER → ARTIFACT ===================== -->
+    <section id="paper-to-artifacts">
+      <h2><span class="num">4</span>Paper → Our-Artifacts Analogy Mapping</h2>
+
+      <p>SkillOpt (<code>arXiv:2605.23904</code>) is a text-space optimizer whose entire learning machinery is a <strong>data discipline plus a control loop</strong> wrapped around a frozen agent: it splits mined task records into <code>train / val / test</code> (<code>mine.py::assign_splits</code>), replays a rollout batch and reflects over minibatches into a single prose <code>skill.md</code>, gates each edit on a held-out split, decays a bounded edit budget on a cosine schedule, and runs an epoch-wise slow/meta update (<code>slow_update.py</code>) for momentum. <strong>Critically, every one of its five evaluators is a deterministic per-task GOLD comparison</strong> — SearchQA SQuAD-EM, DocVQA ANLS, LiveMath MCQ, OfficeQA EM/F1, SpreadsheetBench cell-diff — so SkillOpt <em>assumes the oracle</em> and never builds a verifier. The split manifest makes this literal: <code>data/searchqa_id_split/split_manifest.json</code> carries only <code>{"id": ...}</code> rows (<code>train/items.json</code> is a list of bare hash IDs like <code>221c83e6630f...</code>) because the gold answer is fetched by <code>id</code> from <code>lucadiliello/searchqa</code> at eval time.</p>
+
+      <p>We inherit this control half <strong>wholesale and unre-tuned</strong> — it is the LOCKED INVARIANT shared by both forks (plan 015 §1; plan 014 §3) — and diverge in exactly two places: (1) our object is a typed program (a flat <code>df.lib.*</code> set in 014, a compositional procedure grammar in 015), so reflection becomes induction; and (2) our oracle is scarce, so SkillOpt's assumed per-task gold is replaced by an EXECUTED, cost-aware, oracle-free gate (014 §4–§5, 015 §4/§6). The mapping below anchors each row to the SkillOpt function we port from and the artifact/file we map it onto.</p>
+
+      <h3>Table A — The Three Splits</h3>
+      <p>A SkillOpt "task item" is a <code>TaskRecord</code> mined from a session digest (<code>mine.py::heuristic_mine</code>, lines 137–202): <code>{id, project, intent, context_excerpt, attempted_solution, outcome, reference_kind, reference, tags, source_sessions}</code>. Our analogue is the harvested trajectory unit <code>(intent, trajectory-lineage, committed-answer)</code>: <code>intent</code> ← <code>TaskRecord.intent</code> (the first substantive user prompt); <code>trajectory-lineage</code> ← the captured <code>df.*</code> primitive call-graph that replaces SkillOpt's <code>attempted_solution</code> prose; <code>committed-answer</code> ← the agent's own <code>trajectory.answer.value</code>, which 014 §5 Tier-1 demotes to a <strong>fixed point / determinism anchor, not gold</strong> (<code>quarantineValidator.ts:326/338</code>). The held-out discipline is identical and load-bearing: in <code>assign_splits</code> (lines 221–278) <strong>dream/synthetic tasks are forced to train unconditionally</strong> (<code>for t in dream: t.split = "train"</code>, line 251–252), while <code>val</code> and <code>test</code> are drawn <strong>ONLY from real mined tasks</strong> via a stable per-id hash bucket (<code>sha256(seed+id) % 100</code>, line 257) so the same real task lands in the same split every night.</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th></th><th>SkillOpt</th><th>What it GOVERNS in SkillOpt</th><th>Our analogue</th><th>What it GOVERNS for us</th></tr></thead>
+        <tbody>
+          <tr><td><strong>D_tr (train)</strong></td><td><code>split=="train"</code> pool; <strong>all</strong> <code>origin=="dream"</code> forced here (<code>mine.py:251–252</code>); real tasks with <code>bucket ≥ val_cut+test_cut</code> (<code>mine.py:262–263</code>)</td><td>Experience the reflector edits from (rollout + reflect source)</td><td>Harvested trajectory corpus (real lineage + dream-augmented) the synthesizer mines: anti-unify clusters / single-trajectory lifts</td><td>Source of candidate mutations (helpers in 014, grammar abstractions in 015); synthetic-augmented trajectories may seed proposals but <strong>never</strong> enter the gate</td></tr>
+          <tr><td><strong>D_sel (val)</strong></td><td><code>split=="val"</code>, REAL-only, non-empty guaranteed for ≥2 real tasks (<code>mine.py:266–268</code>)</td><td>Gate accept/reject — <code>cand_score &gt; current</code> on held-out (quality-only)</td><td>Held-out selection split the <strong>cost+MDL gate</strong> reads, paired against the inline-rewrite adversary on the SAME questions (014 §4; 015 §4)</td><td>Promotion decision: accept a mutation iff it strictly lowers corpus cost/DL AND passes the process-reward stack AND shows no anecdotal-verifier regression</td></tr>
+          <tr><td><strong>D_test</strong></td><td><code>split=="test"</code>, REAL-only, carved from train if requested-but-empty at ≥3 real tasks (<code>mine.py:272–277</code>); default <code>test_fraction=0.0</code></td><td>Final held-out report only (never touched by the gate)</td><td>Locked test corpus — frozen paired regression suite</td><td>Final reported endpoint (gate-pass rate Arm C − Arm R, 015 §7; governance-graded score net of cost, 014 §8 P4); <strong>never</strong> read during optimization</td></tr>
+        </tbody>
+      </table></div>
+
+      <p><strong>Held-out contract (verbatim from <code>assign_splits</code>):</strong> real tasks split deterministically by id-hash so val/test are stable across nights (a fixed gate, mirroring SkillOpt's D_sel/D_test); synthetic/dream tasks are quarantined into train so a manufactured item can never inflate the gate or the final number. This is exactly our "REAL-only in val/test, synthetic forced to train" rule — ported, not reinvented.</p>
+
+      <h3>Table B — Batches &amp; Minibatches</h3>
+      <p>SkillOpt's rollout batch is <code>batch_size: 40</code> (<code>default.yaml:63</code>) with <code>accumulation: 1</code> (line 64); the reflection minibatch is <code>gradient.minibatch_size: 8</code> (line 67), and contrastive reflection groups rollouts into success/failure buckets. The paper's ablation reports gains are <strong>insensitive to batch and minibatch size</strong> (and to the schedule) — they collapse only without the gate and the slow update — which is why both forks tag these as <strong>"do not tune"</strong> (015 §1 control table rows for <code>B</code> and Minibatch; 014 §3 "reuse-as-is").</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th></th><th>SkillOpt</th><th>Our analogue</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Rollout batch <code>B</code></strong></td><td><code>batch_size=40</code>, <code>multi_rollout</code> over the train split per step (<code>default.yaml:63</code>; <code>rollout.py</code>)</td><td>Trajectories harvested/replayed per offline step; one <code>CodeEnvAdapter.rollout()</code> runs the frozen agent on the mounted dataset with the current library on <code>df.d.ts</code>, then executes (014 §3 Adapter row)</td><td>Corpus-covering, <strong>insensitive per the ablation — not a knob</strong> (015 §1)</td></tr>
+          <tr><td><strong>Reflection minibatch</strong></td><td><code>minibatch_size=8</code> success/failure groups fed to the analyst (<code>default.yaml:67</code>; <code>gradient.analyst_workers:16</code>)</td><td>The <strong>intent-CLUSTER</strong> = the anti-unify unit: a same-<code>intentSignature</code> cluster of trajectories (015 §3 op 1; 015 §1 Minibatch row)</td><td><strong>The unit of generalization, not a knob</strong> — anti-unify (least-general-generalization) over the cluster is literally the operation that turns k anecdotes into one parameterized procedure; the minibatch <em>is</em> the abstraction boundary</td></tr>
+          <tr><td><strong>Accumulation</strong></td><td><code>accumulation=1</code> (<code>default.yaml:64</code>)</td><td>One commit per gated step; <code>L_t</code> accepted mutations/step (Table E)</td><td>Kept at 1; the autonomous-LR gate, not gradient accumulation, controls step magnitude</td></tr>
+        </tbody>
+      </table></div>
+
+      <p>The reframe vs SkillOpt: SkillOpt's minibatch is a sampling artifact (group rollouts so the reflector sees contrast). <strong>Ours is the generalization primitive</strong> — the cluster size <code>k</code> is anchored to a depth-floor minimum (015 §7: <code>D_min ≥ 3</code> recurring cross-intent sub-procedures, N sized for ≥80% power), not tuned for variance reduction.</p>
+
+      <h3>Table C — Budgets</h3>
+      <p><code>budget.py</code> lets the user cap a night's "dreaming" in <code>max_tokens</code> or <code>max_minutes</code> (lines 14–18) and <code>plan_depth</code> (lines 58–75) schedules <strong>(nights, rollouts-per-task <code>k</code>)</strong> within it: <code>rollouts_affordable = max_tokens/1500</code> (line 69), <code>nights = clamp(1..4, rollouts_affordable // per_night)</code> (line 71), surplus spent on <code>k = clamp(1..5, ...)</code> (line 74). It "stops cleanly when exhausted and reports what it skipped (no silent truncation)."</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th></th><th>SkillOpt (<code>budget.py</code>)</th><th>Our analogue</th><th>Discipline</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Spend cap</strong></td><td><code>max_tokens</code> / <code>max_minutes</code> (lines 16–17); <code>exhausted()</code> / <code>remaining_fraction()</code> (lines 33–47)</td><td>Offline compute budget for an optimization run (token + wall-clock ceiling)</td><td>Same clean-stop / no-silent-truncation contract; surfaces what it skipped</td></tr>
+          <tr><td><strong>Depth schedule</strong></td><td><code>plan_depth → (nights, k)</code> from the token budget (lines 58–75)</td><td>(corpus epochs, replay/rollout depth per step) — fast admit-passes ×N + one slow refactor-pass (Table E)</td><td>More budget → more nights → more contrastive <code>k</code> (deeper paired signal), exactly as <code>plan_depth</code> scales surplus into <code>k</code></td></tr>
+          <tr><td><strong>$0 ceiling probe</strong></td><td><code>MockBackend</code> runs the whole cycle with no API (<code>default.yaml</code> <code>backend</code> is swappable; <code>slow_update.py</code> runs "through the Backend abstraction … no openai dependency")</td><td><strong>MockBackend ceiling-probe-before-spend</strong> (014 §9 PORT-FROM: "<code>budget.py</code> + <code>MockBackend</code> ($0 CI ceiling probe before live spend)")</td><td>Run the full driver on the mock to confirm the accept-set <em>can</em> be non-empty and the wiring holds <strong>before</strong> spending a single live token — falsification insurance for the depth-corpus P0 (014 §8)</td></tr>
+        </tbody>
+      </table></div>
+
+      <p>The $0 discipline is doctrine, not convenience: the amortisation thesis was already FALSIFIED once on a valid live k=5 PokeAPI run, so every live spend is gated behind a MockBackend ceiling probe that proves the gate's accept-set is plausibly non-empty (014 §10 risk 1: "P0 detects this in ≤4 days … the corpus pre-screen excludes the falsified regime by construction").</p>
+
+      <h3>Table D — Meta-Learning / Momentum</h3>
+      <p><code>slow_update.py::run_slow_update</code> (lines 103–142) is SkillOpt's epoch-wise slow/meta update. Its core is <code>_summarize_pairs</code> (lines 75–100) — the buckets the orchestration prompt calls <code>build_comparison_pairs</code> — which compares behavior under <code>prev_skill</code> vs <code>curr_skill</code> across the <strong>same</strong> tasks and sorts each into one of four buckets by hard-score delta (lines 86–95): <code>improved</code> (<code>b&gt;a</code>), <code>regressed</code> (<code>b&lt;a</code>), <code>stable_success</code> (<code>b&gt;=1.0</code>), <code>persistent_fail</code> (else). It then distills a SHORT, durable, <strong>general</strong> guidance block into a PROTECTED field (<code>&lt;!-- SLOW_UPDATE_START/END --&gt;</code>, lines 30–31) that step-level edits never touch (<code>replace_slow_field</code>, lines 64–70). It runs even in greedy mode so nightly experience is consolidated, not lost.</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th></th><th>SkillOpt (<code>slow_update.py</code>)</th><th>Our analogue</th><th>Mapping</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Comparison buckets</strong></td><td><code>_summarize_pairs</code> → <code>{improved, regressed, persistent_fail, stable_success}</code> keyed by <code>prev.hard</code> vs <code>curr.hard</code> (lines 82–96)</td><td>Adjacent-corpus-version outcome buckets driving the slow pass and Loop B veto</td><td>The bucket signal is the <strong>momentum gradient</strong>: <code>regressed</code>/<code>persistent_fail</code> rows (lines 97–98) are what a refactor/reshape must not grow</td></tr>
+          <tr><td><strong>Slow / meta guidance</strong></td><td>durable protected-field guidance, refined not restated (lines 123–133); <code>use_meta_skill: true</code>, <code>slow_update_samples: 20</code> (<code>default.yaml:79–83</code>)</td><td><strong>REFACTOR slow-pass</strong> (015 §5): gated <strong>merge / split / raise-abstraction-level / retire</strong>, each through the SAME gate (§4) under its own conservative <code>(L_t, Δ_t)</code> and its own rejected-abstraction buffer</td><td>SkillOpt's slow update is a <em>leaf hint</em>; ours is a <em>load-bearing phase</em> (015 §1 Momentum row) — refactoring is first-class, not an appendix note; without it "the optimizer is under-built"</td></tr>
+          <tr><td><strong>Cross-tenant reshape</strong></td><td>(absent — SkillOpt has one parameter, no library to reshape)</td><td><strong>Provider Loop B</strong> (014 §6): periodic reshape of shared <code>lib/__seed__/</code> base abstractions by mining cross-tenant <code>intentSignature</code> clusters</td><td>Accept a reshape ONLY IF <strong>no regressed bucket grows for ANY tenant</strong> AND aggregate cross-tenant lifetime cost drops AND drift fingerprints validate — catastrophic-forgetting protection becomes catastrophic-cross-tenant-regression protection. <strong>Explicitly future-work (P5)</strong> — the one live governance run inverted (gate fired 0/22)</td></tr>
+        </tbody>
+      </table></div>
+
+      <p>The bucket vocabulary is ported verbatim (<code>improved/regressed/persistent_fail/stable_success</code>) because it is exactly the no-regression veto our refactor pass and Loop B both need: a structural move is only momentum if it advances <code>improved</code>/<code>stable_success</code> without growing <code>regressed</code>/<code>persistent_fail</code>.</p>
+
+      <h3>Table E — Learning Rate / Edit Budget / Epochs</h3>
+      <p>SkillOpt's learning rate is <code>optimizer.learning_rate: 4</code> max edits/step, decaying to <code>min_learning_rate: 2</code> on <code>lr_scheduler: cosine</code> (<code>default.yaml:74–76</code>), with <code>lr_control_mode: fixed/autonomous/none</code> (line 77) — autonomous lets the LLM size its own edit count. Epochs are <code>train.num_epochs: 4</code> (line 60). For a <strong>prose</strong> object, edit count is the whole step-size — there is no notion of structural distance.</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th></th><th>SkillOpt (<code>default.yaml</code>)</th><th>Our analogue</th><th>Why it diverges</th></tr></thead>
+        <tbody>
+          <tr><td><strong>LR — count <code>L_t</code></strong></td><td><code>learning_rate:4 → min:2</code>, cosine (lines 74–76); <code>build_scheduler</code> / <code>decide_autonomous_learning_rate</code></td><td>max #mutations <strong>accepted</strong>/step: helper mutations (014 §3) / grammar mutations (015 §1)</td><td><strong>Reuse-as-is</strong> (014 §3: "reuse-as-is <code>build_scheduler</code>, <code>decide_autonomous_learning_rate</code>"); same <code>4→2 cosine</code> default</td></tr>
+          <tr><td><strong>LR — trust region <code>Δ_t</code></strong></td><td>implicit — bounded only by <code>L_t</code> (prose has no structural magnitude)</td><td><strong>NEW for a program object</strong> (015 §1): max structural magnitude/op — max ΔDL per op, ≤1 abstraction-level raised/op; <code>≤1 level early, tighten late</code></td><td>A program object <em>has</em> a structural step-size prose lacks; bounds each revision near <code>G_t</code> so the rejected-buffer + proposer keep a meaningful optimization history (SkillOpt's own rationale: revisions that jump too far destroy learnable history)</td></tr>
+          <tr><td><strong>Autonomous LR</strong></td><td><code>lr_control_mode: autonomous</code> — LLM sizes its batch (line 77)</td><td>LLM <strong>proposes</strong> count; <strong>gate caps</strong> → <code>min(proposed, gate-passing)</code> (015 §1)</td><td>"Propose-never-dispose" — authority sits with the gate, not the proposer (015 §3)</td></tr>
+          <tr><td><strong>Schedule</strong></td><td><code>cosine</code> over edit count (line 76)</td><td>cosine over the pair <code>(L_t, Δ_t)</code> (015 §1)</td><td>Broad early, conservative late — same shape, now two-dimensional</td></tr>
+          <tr><td><strong>Epochs</strong></td><td><code>num_epochs: 4</code> (line 60)</td><td><strong>fast admit-passes</strong> over all clusters + <strong>one slow refactor-pass</strong> at the corpus boundary (015 §1 Epoch row; §5)</td><td>The fast/slow split: an epoch = a pass over the corpus that <em>proposes</em> abstractions (fast) followed by one boundary pass that <em>consolidates depth</em> (slow)</td></tr>
+          <tr><td><strong>Rejected buffer</strong></td><td>per-epoch failed-edits list re-rendered into optimizer prompts (<code>trainer.py step_buffer</code>)</td><td><strong>rejected-abstraction buffer</strong> keyed by <code>shapeHash</code> / abstraction <code>shapeHash</code> (014 §3; 015 §1), persisted <code>observer/&lt;tenant&gt;/rejected-shapes.jsonl</code></td><td><strong>Reuse-as-is</strong> (014 §3) — the proposer never re-offers a structural loser within the epoch</td></tr>
+        </tbody>
+      </table></div>
+
+      <p>The single structural addition is <code>Δ_t</code>: SkillOpt never needed a trust region because editing prose has no compositional distance metric. Our artifact composes, so "how far did G move" is a real, measurable quantity (ΔDL, abstraction levels raised) that the gate clamps — the autonomous-LR mechanism is ported, but it now governs <em>two</em> schedules, count and structural magnitude.</p>
+
+      <h3>Prose synthesis</h3>
+      <p><strong>Why the mapping is faithful:</strong> we inherit SkillOpt's control machinery <em>wholesale and unre-tuned</em> — the three-way real-only-held-out split (<code>mine.py::assign_splits</code>, dream-forced-to-train at line 251), the cosine-decayed bounded edit budget (<code>default.yaml</code> <code>learning_rate:4→2</code>), the <code>shapeHash</code>-keyed rejected-edit buffer, the four-bucket slow/meta momentum pass (<code>slow_update.py::_summarize_pairs</code>), and the token/minute budget controller with its MockBackend $0 ceiling probe (<code>budget.py</code>) — because SkillOpt already paid the compute to prove that <em>bounded, gated, held-out optimization is what keeps a learned artifact from drifting</em>, and its own ablation says these knobs are insensitive while the gate and the slow update are load-bearing; we do not relitigate what it settled. <strong>Where it necessarily diverges:</strong> our trainable object <em>composes</em> and SkillOpt's prose <code>skill.md</code> does not, and our oracle is scarce where SkillOpt's is assumed per-task gold — so the optimizer changes class (reflection→induction, because reflection on a typed call-graph is editing a program with a prose tool and bottoms out at thin shims by construction), the learning rate gains a structural trust region <code>Δ_t</code> prose never needed, and most importantly the validation gate stops being whole-artifact quality-only (<code>select_gate_score</code> accepting on <code>Δquality&gt;0</code>, which would have promoted the falsified arm4) and becomes a <strong>global, compositional MDL/cost gate that optimizes</strong> expected lifetime cost across all future callers from the first commit — the one place we are strictly past SkillOpt, available to us precisely <em>because</em> our artifact composes and SkillOpt's cannot.</p>
+
+      <div class="takeaways">
+        <span class="label">Key takeaways</span>
+        <ul>
+          <li>The three splits port verbatim from <code>mine.py::assign_splits</code>: dream/synthetic tasks are FORCED to train (line 251–252), val and test are drawn ONLY from real mined tasks via a stable <code>sha256(seed+id)%100</code> hash bucket so the held-out gate is fixed across nights. Our task item <code>(intent, trajectory-lineage, committed-answer)</code> maps onto <code>TaskRecord</code>, with committed-answer demoted from gold to a determinism fixed-point.</li>
+          <li>Batch (40) and minibatch (8) are "do not tune" per SkillOpt's own ablation (gains insensitive to both); the divergence is conceptual — our minibatch is the intent-CLUSTER, the anti-unify unit of GENERALIZATION (k anchored to a depth/power floor, <code>D_min≥3</code>), not a variance knob.</li>
+          <li><code>budget.py</code>'s <code>plan_depth</code> schedules (nights, k) from a token/minute cap; we inherit it plus the doctrine that every live spend is gated behind a $0 MockBackend ceiling probe — mandatory because the amortisation thesis was already falsified once on a valid live PokeAPI run.</li>
+          <li>Momentum maps <code>slow_update.py</code>'s four-bucket <code>build_comparison_pairs</code> (improved/regressed/persistent_fail/stable_success) onto a gated REFACTOR slow-pass (merge/split/raise/retire) and the cross-tenant Loop B no-regression veto; SkillOpt's slow update is a leaf hint, ours is a load-bearing phase.</li>
+          <li>Learning rate count <code>L_t</code> (4→2 cosine) is reused as-is; the NEW addition is the structural trust region <code>Δ_t</code> (max ΔDL, ≤1 abstraction level/op) that a program object has and prose never did, both gate-clamped under propose-never-dispose autonomous LR.</li>
+          <li>The single faithful-but-divergent thesis: we inherit the entire control half unre-tuned (split discipline, bounded edit budget, rejected buffer, slow/meta momentum, budget+MockBackend), and diverge ONLY where the object composes — reflection becomes induction, LR gains <code>Δ_t</code>, and the quality-only gate (<code>select_gate_score</code>, which would promote the falsified arm4) becomes a global compositional MDL/cost gate, the one place strictly past SkillOpt.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 5. DATA STRATEGY ===================== -->
+    <section id="data-strategy">
+      <h2><span class="num">5</span>Data Strategy: Corpus Inventory, Fitness Matrix, and the Hill-Climbing Data Plan</h2>
+
+      <p>The learning layer adapts SkillOpt's text-space optimizer to a typed program object, and SkillOpt's most load-bearing structural fact is also its most overlooked: <strong>every one of its five benchmark evaluators is a deterministic per-task gold comparison</strong> (SearchQA SQuAD-EM, DocVQA ANLS, LiveMath MCQ, OfficeQA EM/F1, SpreadsheetBench cell-diff), and its splits are flat ID partitions — <code>/tmp/SkillOpt/data/searchqa_id_split/split_manifest.json</code> ships <code>{train: 400, val: 200, test: 1400}</code> as bare ID lists with the payload materialized from the source HF dataset. SkillOpt assumes the oracle and optimizes a prose <code>skill.md</code> against the held-out <code>D_sel</code> selection gate. Our fork keeps that locked control half (gate, bounded edit budget <code>L_t</code>, rejected-edit memory, fast/slow split) and changes only the object class and synthesis operator. That single decision reshapes the data requirement: a prose optimizer can climb on any oracle-bearing QA split, but a <strong>procedure-grammar</strong> optimizer (plan 015) can only climb where the corpus contains genuinely compositional serial depth — where ≥3 cross-intent sub-procedures recur and where re-deriving them inline is more expensive than calling a crystallised abstraction (br/16 Criterion-3). The entire data question therefore collapses to one screen: <em>which of our corpora clears the depth floor as a value corpus, and which can only serve as a falsification control?</em></p>
+
+      <p>The empirical constraints are not opinions. The cost-amortisation thesis was <strong>falsified</strong> on shallow fan-outs: the valid k=5 PokeAPI run showed warm crystallised helpers cost more in every token unit and were less correct than inline re-derivation, and a quality-only gate would have promoted the losers. SkillCraft is <strong>saturated and cheap-to-inline</strong>: datafetch already reaches 94.4% pass on the full 126-task surface (<code>eval/skillcraft/proof.md</code>) at 3,027 effective tokens/task, but its 21 families are single-shape fan-outs that a frontier model re-derives inline at low token cost (br/16 Criterion-3 ranks symbolic/fan-out structure lowest-value). The only regime that has ever shown a positive depth signal is the <strong>OpenTraces dark-store family (+13.5pp)</strong>, which is why plan 015 §7 names it as the candidate value corpus behind a pre-registered depth floor. The data strategy below makes that concrete.</p>
+
+      <h3>(1) Inventory and Required Fitness Matrix</h3>
+      <p>Every corpus the team has used, scored against the five hill-climb requirements. The columns map directly to the optimizer's needs: <strong>serial DEPTH</strong> (does the object have composition for the grammar to abstract, vs a flat fan-out reflection can shim); <strong>≥3 recurring cross-intent sub-procedures</strong> (the <code>D_min ≥ 3</code> structural pre-scan floor from plan 015 §7 — without it Arm C cannot separate from Arm R <em>even with a correct mechanism</em>, a low-power false negative); <strong>oracle / oracle-free checkable</strong> (the gate's selection signal, since unlike SkillOpt we cannot assume a per-task gold for oracle-scarce search); <strong>cost-to-inline &gt; cost-to-call</strong> (br/16 Criterion-3, the condition without which the agent bypasses the library and the value collapses); <strong>paired k≥5</strong> (whether the corpus supports the interleaved paired design of br/19).</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th>Corpus</th><th>Serial DEPTH?</th><th>≥3 recurring cross-intent sub-procedures (D_min)?</th><th>Oracle / oracle-free signal?</th><th>cost-to-inline &gt; cost-to-call?</th><th>Paired k≥5?</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td><strong>OpenTraces dark-store</strong> (208 Q, 26 templates, 4 personas)</td><td><strong>Yes</strong> — pointer-resolve → window-filter → session/run-dedup → group-by → cross-store join is a genuine serial chain; difficulty spans <code>aggregate / filter / cross-store join / temporal+aggregate / drift-spanning / abstention</code></td><td><strong>Yes</strong> — <code>window-filter</code> recurs in ~24/26 templates, <code>group-by</code> across aggregate+join families, <code>pointer-resolve</code> (the stale-body <code>current.json</code> rule) across all, <code>session-vs-run dedup</code> across P1/P4, <code>skill-join</code> across P2; ≥5 candidate sub-procedures span ≥2 personas each</td><td><strong>Yes, strongest</strong> — deterministic stdlib-only reference solvers (<code>solvers/&lt;template_id&gt;.py</code>, <code>common.emit(gold, evidence)</code>), byte-identical on double-regen (plan R1); gold + evidence pointers sealed in <code>questions/pack.jsonl</code>; <strong>manufactured-gold already exists</strong></td><td><strong>Yes</strong> — G0 probe measured <strong>50.06× median naive/expert token spread</strong> (758k-token median absolute gap); pointer-resolution + schema-discovery is expensive to rediscover inline, cheap to call once crystallised</td><td><strong>Yes</strong> — sealed 208-row pack, persona-balanced (P1=56, P4=56, P2=48, P3=48), per-template seedable</td><td><strong>REUSE-as-VALUE-corpus</strong></td></tr>
+          <tr><td><strong>SkillCraft</strong> (126 tasks, 21 families × 6 levels)</td><td><strong>No</strong> — single-shape parameterised fan-out per family; no cross-intent composition</td><td><strong>No</strong> — one shape per family; reflection shim captures it</td><td>Yes — ships per-task ground-truth evaluator</td><td><strong>No</strong> — saturated at 94.4%/3,027 tok; frontier model re-derives inline cheaply (br/16 Criterion-3 lowest tier)</td><td>Yes — paired harness exists (<code>skillcraftFullDatafetch.ts</code>)</td><td><strong>REUSE-as-CONTROL</strong> (regression arm: must hold the 94.4% baseline; a positive Arm C lift here would be suspicious)</td></tr>
+          <tr><td><strong>PokeAPI</strong> (k=5 evolution-chain fan-out)</td><td><strong>No</strong> — shallow 2-call fan-out</td><td><strong>No</strong></td><td>Binary pass/fail oracle</td><td><strong>No — FALSIFIED</strong>: warm helper cost more in every token unit AND less correct</td><td>Yes (valid k=5 run exists)</td><td><strong>REUSE-as-FALSIFICATION-CONTROL</strong> (the negative-control arm: gate MUST stay empty, per plan 014 §run; if Arm C promotes here the gate is broken)</td></tr>
+          <tr><td><strong>CRAG</strong> (2,706 public / 4,409 full)</td><td>Partial — multi-hop/set/aggregation question types exist</td><td><strong>Blocked, not absent</strong> — the br/17 shape probe shows the substrate collapses all chained shapes to <code>FANOUT(tool)</code>, authors one frozen data-shape-clone per tenant, and reuse returns silently-wrong answers; depth is in the corpus but <strong>the substrate cannot currently surface it</strong></td><td>Tri-state +1/0/-1 grader (oracle-bearing) but judge-variance heavy</td><td>Mixed — high-value 3-hop cells qualify, but most questions are inline-cheap</td><td>Well-powered (br/19: ~236 paired Q for 10pp at p_d=0.30)</td><td><strong>UNFIT for first hill-climb</strong> (substrate blockers in br/17 must clear first: <code>FANOUT(tool)</code> collapse, name-collision silent-skip, db-rooted sub-graph extractor; revisit as scale-up corpus after the dark-store kill resolves)</td></tr>
+          <tr><td><strong>FinChain</strong> (290 templates, 12 domains, 2,900 instances)</td><td>Partial — 4-step Advanced templates have chain depth; Basic/Intermediate do not</td><td>Weak — symbolic formulas, low cross-intent sharing; templates are within-topic siblings, not cross-intent sub-procedures</td><td><strong>Yes</strong> — executable Python traces + ChainEval intermediate-step metric + paper-baseline (<code>configs/paper-baseline.json</code>, paper baseline only — not a pinned-snapshot parity target; FinChain serves as symbolic-saturation control, not a value endpoint)</td><td><strong>No for Basic, marginal for Advanced</strong> — br/16 ranks FinChain lowest cost-to-inline; frontier model re-derives compound-interest in tokens</td><td>Yes — full harness (<code>finchainFullDatafetch.ts</code>, family×level mapping)</td><td><strong>REUSE-as-CONTROL</strong> (symbolic-saturation control; the Advanced-tier subset is a <em>secondary</em> depth probe only if the dark-store kill is ambiguous)</td></tr>
+          <tr><td><strong>BIRD-SQL + FinQA</strong> (br/06 hybrid)</td><td>FinQA Yes (compilable programs: <code>divide(table_lookup(...), table_lookup(...))</code>); BIRD cross-collection only</td><td>FinQA medium (per-filing program shapes recur); BIRD weak</td><td>FinQA gold programs (from <code>czyssrs/FinQA</code>, not HF mirror); BIRD gold SQL needs execution against 33.4GB SQLite</td><td>FinQA medium-high (find-then-compute twist); BIRD discovery-bound</td><td>Possible but <strong>not yet loaded</strong> (ETL is ~half-day, not done)</td><td><strong>UNFIT for first hill-climb</strong> (no manufactured-gold loaded, ETL+program-merge outstanding; FinQA is a strong <em>future</em> value corpus once the compilable-program gold is merged)</td></tr>
+        </tbody>
+      </table></div>
+
+      <p><strong>Why each verdict, tied to the known results:</strong></p>
+      <ul>
+        <li><strong>OpenTraces wins as the value corpus</strong> because it is the <em>only</em> corpus that simultaneously (a) showed a positive depth signal (+13.5pp), (b) measured an enormous inline-vs-call gap (50.06× token spread, with 8/10 naive answers <em>wrong</em> — the rediscovery cost is not just expensive, it is error-prone), and (c) already ships a manufactured-gold oracle (deterministic solvers, sealed 208-row pack, Codex-audited 24/24). It is the single corpus where the procedure-grammar object has real composition to abstract and where the gate has a clean checkable signal.</li>
+        <li><strong>SkillCraft and FinChain are controls, not value corpora</strong>, for the same reason: br/16 Criterion-3 places both at the bottom of the cost-to-inline ranking, and SkillCraft is empirically saturated. A learning-layer lift on these would more likely indicate a measurement artifact than genuine value. They earn their keep as the <em>regression arm</em> (SkillCraft must not drop below 94.4%) and the <em>symbolic-saturation control</em> (FinChain).</li>
+        <li><strong>PokeAPI is the falsification control by construction.</strong> The amortisation thesis died here; its job now is to keep the gate honest. Per plan 014 §run, PokeAPI runs as the negative control where the gate <strong>must stay empty</strong> — if Arm C crystallises and promotes a PokeAPI helper, the cost-aware executed gate is broken, independent of anything that happens on the dark-store.</li>
+        <li><strong>CRAG and BIRD/FinQA are unfit <em>for the first hill-climb</em></strong> for orthogonal reasons: CRAG is blocked by the br/17 substrate gaps (the <code>FANOUT(tool)</code> signature collapse means every chained shape authors one frozen clone — the eval "cannot run honestly today"), and BIRD/FinQA has no manufactured-gold loaded yet. Both are scale-up corpora for <em>after</em> the dark-store kill-or-confirm resolves.</li>
+      </ul>
+
+      <h3>(2) Requirements Spec — only if the dark-store fails the depth floor</h3>
+      <p>The dark-store <strong>clears the floor today</strong> (the structural pre-scan finds ≥5 recurring cross-intent sub-procedures; see §3), so this spec is the contingency invoked only if the $0 static pre-scan comes back below <code>D_min = 3</code>. If that happens, build a corpus to this spec rather than firing the kill on an underpowered negative (plan 015 §7: "pick a richer corpus, do not fire the kill"):</p>
+      <ul>
+        <li><strong>Serial-dependency tasks.</strong> Each task must require an ordered chain where step <em>k+1</em> consumes the typed output of step <em>k</em> (resolve → filter → dedup → aggregate → join), so the object the optimizer edits is a <em>call-graph with depth ≥ 3</em>, not a flat fan-out. This is the structural property that makes the grammar's anti-unify/MDL operator non-trivial; without it, reflection's flat shim captures all the value.</li>
+        <li><strong>≥3 recurring cross-intent sub-procedures by construction.</strong> Author the corpus from a small library of shared primitives (target 5–7) and guarantee each primitive appears in ≥2 distinct intent families. The pre-scan must be able to <em>statically</em> recover ≥3 of them from the lineage forest before any LLM call. Anchor on the dark-store's observed pattern: a <code>window-filter</code> that recurs across nearly every template is the existence proof that this is achievable.</li>
+        <li><strong>Manufactured-gold feasible.</strong> A deterministic reference solver (stdlib-only, no wall-clock, no randomness, byte-identical on double-regen) OR curated gold per task — exactly the dark-store <code>solvers/common.py</code> contract. This is the <code>D_sel</code> selection-split oracle that calibrates the computed process-reward stack (faithfulness, generality, parsimony, coverage, robustness). Without manufactured-gold the gate cannot be calibrated and the oracle-free anecdotal checks have nothing to anchor against.</li>
+        <li><strong>Intent-family partition for clustering.</strong> Tasks must carry an <code>intentSignature</code>-recoverable family label (the dark-store uses persona × template). Clustering by intent is the <em>minibatch</em> of the optimizer analogy (see §3): anti-unify operates <em>within</em> a same-intent cluster, so the partition must produce clusters of ≥5 siblings.</li>
+        <li><strong>Size for power.</strong> N = (intents × seeds) sized for ≥80% power at a pre-registered minimum-detectable gate-pass gap, anchored so the gap could reflect the +13.5pp depth signal. Per br/19's paired-McNemar table, a 10pp delta at discordance p_d=0.30 needs ~236 paired tasks; a 15pp delta needs ~105. Target <strong>≥150 tasks across ≥20 intent families × ≥5 seeds</strong> so both the 13.5pp depth gap and the depth-floor's compositional-reuse secondary endpoint are powered.</li>
+      </ul>
+
+      <h3>(3) The Hill-Climbing Data Plan</h3>
+      <p><strong>Corpus:</strong> OpenTraces dark-store (208 sealed questions, <code>eval/opentraces/questions/pack.jsonl</code>), confirmed value corpus. PokeAPI k=5 as the negative-control arm (gate must stay empty). SkillCraft 126 as the regression arm (must hold 94.4%). This mirrors plan 015 §7's R-vs-C bake-off, with the dark-store carrying the depth signal and the two controls bounding the kill's interpretability.</p>
+
+      <p><strong>The depth-floor pre-scan ($0, static, runs FIRST):</strong> Before any paired run, execute the cheap static pass over the lineage forest (the same 30-minute, zero-LLM pattern that the br/17 CRAG probe used). Two gates must both clear or the kill is uninterpretable:</p>
+      <ol>
+        <li><strong>Structural pre-scan</strong> — cluster harvested trajectories by <code>intentSignature</code>, anti-unify within each cluster, and confirm <strong>≥ D_min = 3</strong> recurring cross-intent sub-procedures. Dark-store candidates already visible statically: <code>window-filter</code> (≈24/26 templates), <code>group-by</code> (aggregate + join families), <code>pointer-resolve</code> (the stale-<code>current.json</code> rule, all templates), <code>session-vs-run dedup</code> (P1/P4), <code>skill-join</code> (P2). This is comfortably above the floor — but it must be <em>run and recorded</em>, not assumed, because plan 015 transposes SkillOpt's own quiet warning (1–4 accepted edits carried its gains; high-leverage structure was sparse).</li>
+        <li><strong>Power floor</strong> — N sized for ≥80% power at the pre-registered minimum-detectable gate-pass gap anchored on +13.5pp. 208 questions at k≥5 seeds clears the br/19 threshold for a 13.5pp delta (~80 paired at p_d=0.30) with headroom; if the realised discordant count <code>b+c &lt; 25</code>, fall back to mid-p McNemar and <strong>report <code>b, c, b+c</code> honestly</strong> — a near-zero count is itself the finding.</li>
+      </ol>
+
+      <p><strong>The 3-split layout (the SkillOpt analogy, ported exactly):</strong> The locked control half requires SkillOpt's <code>D_tr / D_sel / D_test</code> partition, so partition the 208 dark-store questions by <em>intent family</em> (persona × template), never by raw ID, so that no sub-procedure leaks across splits:</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th>SkillOpt split</th><th>Role in optimizer analogy</th><th>Dark-store mapping</th></tr></thead>
+        <tbody>
+          <tr><td><strong>D_tr</strong> (train)</td><td>minibatch source — trajectories the synthesis operator learns from; one <em>cluster</em> = one minibatch</td><td>~50% of intent families (e.g. P1 + P2 templates), all seeds; trajectories harvested here feed anti-unify (Arm C) / authorFromSource (Arm R)</td></tr>
+          <tr><td><strong>D_sel</strong> (selection gate)</td><td>the validation gate — accept an edit <strong>iff</strong> it strictly improves on held-out; calibrates the computed process-reward stack</td><td>~25% of families held out; this is where the cost-aware executed oracle-free gate runs and where manufactured-gold calibrates the reward</td></tr>
+          <tr><td><strong>D_test</strong> (test)</td><td>final held-out report; the default held-out persona</td><td><strong>P3 (sharing-steward)</strong> is the pre-registered default held-out persona (<code>eval/opentraces/README.md</code>), never seen during synthesis or selection</td></tr>
+        </tbody>
+      </table></div>
+
+      <p>The <strong>minibatch = same-intent cluster</strong> is the crux of the analogy: SkillOpt's edit operates on a minibatch of tasks; our anti-unify operator (Arm C) operates on a <em>cluster of same-<code>intentSignature</code> trajectories</em>, and the MDL-select step asks whether the abstraction shortens the <em>corpus</em> description length across that cluster. This is why the split must be by intent family, not by ID — an ID split (SkillOpt's own default, seen in <code>searchqa_id_split</code>) would scatter siblings of one sub-procedure across train and test and destroy the compositional-reuse measurement.</p>
+
+      <p><strong>k≥5 interleaved seeds (br/19 variance control):</strong> Run k≥5 seeds per arm per question (k=8 to match τ-bench <code>pass^k</code> reporting), with <strong>Arm R and Arm C interleaved within one calendar session</strong> against a pinned dated Sonnet snapshot (never a rolling alias), logging the returned model version per response. The dark-store templates are seedable per <code>task_config</code>, so each (template, seed) is a reproducible sibling. Measure the same-arm same-question disagreement rate as the explicit noise floor; the inter-arm signal must exceed it.</p>
+
+      <p><strong>Primary and secondary endpoints (plan 015 §7):</strong> Primary = <strong>gate-pass rate</strong> (procedure beats inline net of lifetime cost AND passes the process-reward stack), Arm C − Arm R, paired by intent, McNemar. Secondary = generality (genericity pass-fraction), <strong>compositional reuse</strong> (top-level procedures calling ≥1 learned sub-procedure — the property only the grammar object can produce), depth, and the distillation curves. Because the corpus has manufactured-gold, the gate is calibrated against a real selection oracle rather than an assumed one — the one place we go <em>strictly past</em> SkillOpt, whose flat gate cannot see composition.</p>
+
+      <div class="callout">
+        <span class="label">The kill, made interpretable by the controls</span>
+        <p>With both floors cleared, if Arm C is no deeper, no more general, and no better at gate-pass than Arm R at k≥5 on the pre-registered endpoint → synthesis power was not the bottleneck → stay with 014 fork-a (flat reflection). SkillCraft holding 94.4% confirms no regression; PokeAPI's gate staying empty confirms the gate is sound; so a dark-store null is a <em>real</em> null, not an artifact. Success = a compositional library whose sub-procedures are reused across ≥2 intents and whose top-level procedures clear the cost gate where Arm R's flat anecdotes don't.</p>
+      </div>
+
+      <div class="takeaways">
+        <span class="label">Key takeaways</span>
+        <ul>
+          <li>OpenTraces dark-store is the only REUSE-as-VALUE corpus: it is the sole corpus with a positive depth signal (+13.5pp), a measured 50.06× inline-vs-call token gap (8/10 naive answers wrong), AND a ready manufactured-gold oracle (deterministic solvers, sealed 208-row Codex-audited pack).</li>
+          <li>SkillCraft and FinChain are CONTROLS not value corpora (br/16 Criterion-3 cheapest-to-inline; SkillCraft saturated at 94.4%); PokeAPI is the FALSIFICATION control where the gate must stay empty (amortisation already falsified there); CRAG and BIRD/FinQA are UNFIT for the first hill-climb (CRAG blocked by br/17 substrate gaps, BIRD/FinQA has no gold loaded).</li>
+          <li>No new corpus is needed — the dark-store clears the <code>D_min≥3</code> depth floor today (window-filter, group-by, pointer-resolve, session/run-dedup, skill-join all recur cross-intent). A requirements spec is provided only as the contingency if the $0 static pre-scan returns below floor.</li>
+          <li>The hill-climb runs plan-015's R-vs-C bake-off behind TWO pre-registered $0 gates that must clear before the kill: a static structural pre-scan (≥3 recurring cross-intent sub-procedures) and a power floor (N sized for 80% power at the +13.5pp gap, ~80 paired at k≥5 clears br/19's threshold with headroom).</li>
+          <li>The 3-split layout ports SkillOpt's <code>D_tr/D_sel/D_test</code> by INTENT FAMILY not by ID (P3 sharing-steward is the pre-registered held-out test persona); the minibatch = same-<code>intentSignature</code> cluster is the unit anti-unify operates on, so an ID split would scatter sub-procedure siblings and destroy the compositional-reuse measurement.</li>
+          <li>Interpretability of the kill is bought by the controls: SkillCraft holding 94.4% rules out regression and PokeAPI's empty gate rules out a broken gate, so a dark-store null is a real null (synthesis power was not the bottleneck, stay with flat reflection) rather than an artifact.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 6. VERIFIER STRATEGY ===================== -->
+    <section id="verifier-strategy">
+      <h2><span class="num">6</span>Verifier Strategy: Constructed Oracle-Free Checks for the Oracle-Scarce Search Regime</h2>
+
+      <h3>The problem SkillOpt hides inside its benchmark choices</h3>
+      <p>SkillOpt's entire optimizer discipline — bounded edit budget, rejected-edit buffer, slow update, and above all the <strong>held-out selection gate</strong> — rests on a precondition it never names: a <strong>per-task oracle</strong>. Every one of its five benchmark evaluators is a deterministic gold comparison. SearchQA is scored by SQuAD-EM against a gold string, DocVQA by ANLS against a gold transcription, LiveMath by MCQ-key match, OfficeQA by EM/F1 against gold fields, SpreadsheetBench by cell-diff against a gold workbook. In every case <code>evaluate(answer)</code> reduces to <code>answer == gold</code> (modulo a string metric). The gate's <code>select_gate_score</code> returns <code>passrate(candidate) − passrate(current)</code> and accepts on strict improvement, and that <code>passrate</code> is <em>only definable because each held-out task carries its own gold</em>.</p>
+
+      <p>This is fine for SkillOpt and fatal to lift directly. SkillOpt <strong>never verifies a search; it scores an answer against gold.</strong> It assumes the oracle and then does the genuinely hard work — aggregating the oracle's verdict over a held-out split to validate a <em>general</em> artifact. For real agentic search over a mounted, mutating dataset, the gold frequently does not exist: the question is open-ended, the corpus drifts under <code>@source-hash</code> fingerprints, the "right answer" is a defensible synthesis over evidence rather than a key in an answer file. Worse, our own falsification makes the missing oracle load-bearing rather than incidental: the valid k=5 PokeAPI run (commit <code>0665d5a27</code>) showed warm crystallised helpers were <strong>more expensive in every token unit AND less correct</strong> than inline re-derivation, and a quality-only gate — exactly SkillOpt's gate — <strong>would have promoted those losers</strong>. So we cannot inherit the gate and swap in an LLM-judge for the missing gold: that re-introduces the circular, oracle-bound signal we are trying to escape (014 §2: prose "validation" is the model judging its own prose). We need a gate signal that is <strong>deterministic, model-independent, and oracle-free</strong>, and we need it to be <em>denser</em> than a sparse terminal gold so it can drive credit assignment where answer-gold is absent.</p>
+
+      <h3>The reframe: don't build a search verifier, build a stack of per-search checks and aggregate</h3>
+      <p>The move is structurally identical to SkillOpt's own shape, with one substitution. SkillOpt validates a <strong>general artifact</strong> by running <strong>per-task checks</strong> (the gold comparison) and taking the <strong>mean over a held-out split</strong>. We do exactly the same — general artifact, per-instance checks, mean over held-out — except SkillOpt <em>receives</em> its per-task check (gold is handed to every benchmark) and <strong>we CONSTRUCT it.</strong> We do not attempt a general "is this search correct" verifier; no such oracle-free function exists in the open-search regime. Instead we assemble a <strong>stack of anecdotal, per-search, oracle-free checks</strong>, each of which is individually weak and partial, and aggregate them. None is gold; together they constrain the answer space enough to gate.</p>
+
+      <p>Two anti-circularity disciplines govern the whole construction, inherited from 014 §5's verifier-panel patches:</p>
+      <ul>
+        <li><strong>Demote replay from oracle to determinism check.</strong> 014's executed replay (<code>quarantineValidator.ts:326/338</code>) re-runs a helper and asserts <code>answerEquals</code> against <code>trajectory.answer.value</code>. That expected value is a <strong>fixed point the agent already committed to, not gold.</strong> Treating it as gold is the circularity trap. So replay is a <em>non-regression / determinism</em> check — "running this helper still reproduces what the agent decided" — and we <strong>never promote on replay alone</strong> in the no-oracle regime.</li>
+        <li><strong>Drift gates the fixed point.</strong> Under detected <code>@source-hash</code> drift the committed answer is no longer a valid fixed point (the live data moved). Drift is therefore a <strong>hard pre-replay gate</strong> (014 §5 fix b): on drift we skip idempotency and force re-derive-or-decline. This is precisely what stops a memorised stale clone from tautologically passing the determinism check.</li>
+      </ul>
+
+      <h3>The anecdotal verifier stack (per-search, oracle-free), ranked</h3>
+      <p>Ranked from strongest constraint to floor. This is the 014 §5 stack, made explicit and de-circularised. The first row carries the most signal but also the most circularity risk, hence the independent-checkability caveat.</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th>Rank</th><th>Check</th><th>What it checks</th><th>How it is computed oracle-free</th><th>What failure it catches</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><strong>Evidence-grounded faithfulness</strong></td><td>The committed answer is <em>entailed by</em> the specific evidence the procedure cited.</td><td>Re-run the procedure's lineage; confirm every claim in the answer maps to a cited <code>df.db.*</code> retrieval record. <strong>Circularity caveat:</strong> the evidence <em>selection</em> must be independently checkable — the constraining test is <strong>ablation</strong>: remove a cited evidence item and the answer must change. If it doesn't, the citation was decorative and the check is voided for that step.</td><td>Hallucinated answers that cite evidence post-hoc; answers that don't actually depend on what they claim to depend on.</td></tr>
+          <tr><td>2</td><td><strong>Cross-path agreement</strong></td><td>Two independent derivation paths to the same intent converge.</td><td>Re-derive the answer via a distinct lineage (different retrieval order / sibling sub-procedure) and compare under <code>answerEquals</code> (FAC rel-tol 1e-2). Agreement is oracle-free corroboration; disagreement flags one path wrong without telling you which.</td><td>Path-dependent / brittle answers; silent reliance on an incidental ordering or a single fragile fetch.</td></tr>
+          <tr><td>3</td><td><strong>Emitted invariants / postconditions</strong></td><td>Self-asserted structural facts the answer must satisfy (e.g. monotonicity, sum-to-total, type/range bounds, non-empty coverage).</td><td>The procedure co-emits typed postcondition predicates as part of its contract (015 §2: "co-emitted process-verifier contract"); they execute against the result deterministically, no gold needed.</td><td>Type-correct-but-wrong outputs; violations of domain invariants the gold-free answer string would never reveal.</td></tr>
+          <tr><td>4</td><td><strong>Coverage / abstention</strong> (the governance check)</td><td>The procedure answered only when it had grounds, and <strong>declined</strong> under insufficient or drifted evidence.</td><td>Compute coverage fraction from lineage (evidence touched vs evidence required); under <code>@source-hash</code> drift, require explicit abstention. Scored against CRAG's tri-state grader where the <strong>−1 hallucination penalty</strong> makes a correct decline strictly beat a confident stale-wrong answer.</td><td>The exact falsification regime: an ungoverned clone that confidently returns a stale-sibling wrong answer instead of declining. This is the headline governance-under-staleness win.</td></tr>
+          <tr><td>5</td><td><strong>Replay-determinism (the floor)</strong></td><td>Re-executing the procedure on the same pinned snapshot reproduces the committed answer.</td><td><code>replayOnTrajectory</code> (<code>quarantineValidator.ts:326</code>) re-mounts the pinned snapshot, re-executes, <code>answerEquals</code> vs the committed fixed point. <strong>A determinism check, NOT an oracle</strong> — and gated off entirely under drift.</td><td>Non-deterministic / non-reproducible procedures; flaky bodies that can't be trusted as a stable library member. Never sufficient alone.</td></tr>
+        </tbody>
+      </table></div>
+
+      <p>The genericity dimension threads through rows 1–3: every check is run not just on the originating trajectory but on <strong>N ≥ k ≥ 3 same-<code>intentSignature</code> siblings with distribution-shifted literals</strong> (014 §5 fix a — the current code wrongly filters on <code>sourceHash</code> only). A check that passes on the origin but fails on siblings means the procedure memorised rather than generalised, and the artifact stays quarantined. Honest abstention beats a coin-flip pass.</p>
+
+      <h3>The computed process-reward stack (computed, NOT judged)</h3>
+      <p>The anecdotal stack above is a <strong>pass/fail gate</strong> on a finished answer. The process-reward stack is a <strong>dense, scalar reward over the procedure itself</strong> — it scores <em>how the answer was produced</em>, not just whether it survived. This is the 015 §6 stack, and its defining constraint is <strong>no LLM-judge appears anywhere in the reward.</strong> Every dimension is computed deterministically from lineage. A judge would re-import the circularity and the Goodhart surface we are spending the whole section to avoid.</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th>Dimension</th><th>How it is computed from lineage (no judge)</th><th>What it stops</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Faithfulness</strong></td><td>Re-execute the lineage; assert each recorded step's output matches the replayed output. A computed entailment-by-reproduction, not a judged "looks grounded."</td><td>Procedures whose recorded steps don't actually produce the claimed intermediate results — fabricated or drifted internals.</td></tr>
+          <tr><td><strong>Generality</strong></td><td>Genericity pass-fraction over <strong>k ≥ 3 held-out same-intent siblings</strong> with shifted literals (the §5-fix-a sibling set). A ratio, not a verdict.</td><td>Overfit one-trajectory shims; abstractions that hold only on the literal they were lifted from.</td></tr>
+          <tr><td><strong>Parsimony</strong></td><td>Count steps / redundant fetches directly from the call graph; reward fewer steps and no duplicate <code>df.db.*</code> retrievals.</td><td>Bloated procedures that pass on correctness but add cost — the anti-distillation failure (015 §6 wants DL-per-intent to fall).</td></tr>
+          <tr><td><strong>Coverage</strong></td><td>Evidence-touched / evidence-required fraction from lineage, plus the abstention invariant under drift.</td><td>Confident under-grounded answers; the ungoverned-clone failure mode that the −1 grader punishes.</td></tr>
+          <tr><td><strong>Robustness</strong></td><td>Run failure-branch fixtures (empty result, malformed record, drifted source) and score graceful handling vs crash/hallucinate.</td><td>Procedures that work on the happy path and silently corrupt under the perturbations a live mutating dataset guarantees.</td></tr>
+        </tbody>
+      </table></div>
+
+      <p>Each dimension must be <strong>constraining</strong>, the same ablation discipline as faithfulness above: if removing the cited evidence (or the relevant input) does <strong>not</strong> change the score, the dimension is decorative for that procedure and contributes nothing.</p>
+
+      <h3>The reward shape</h3>
+      <p>The gate consumes a single scalar that fuses the answer-level stack, the process-level stack, and the lifetime cost from 014 §4:</p>
+
+      <div class="callout formula">
+        <span class="label">Key formula — fused gate reward</span>
+        <pre><code>reward(H) = λ_ans · answer_stack(H)
+          + λ_proc · process_stack(H)
+          − amortised_lifetime_cost(H)
+
+answer_stack   = aggregate over the anecdotal per-search checks (faithfulness, cross-path,
+                 invariants, coverage/abstention, replay-determinism), each run over k≥3 siblings
+process_stack  = Σ over the computed dimensions (faithfulness, generality, parsimony,
+                 coverage, robustness), weights calibrated on the manufactured-gold split
+amortised_lifetime_cost = build_cost / E[reuses] + per_call_cost
+                          + staleness_risk_penalty − inline_cost_saved        # 014 §4, in TURNS not just tokens</code></pre>
+      </div>
+
+      <p>The process-reward term earns its place for three distinct reasons, and the third is why it is <em>essential</em> rather than merely nice:</p>
+      <ol>
+        <li><strong>A better gate.</strong> It rejects procedures that reach a right answer by an untrustworthy path (low faithfulness, zero generality, crashes on the failure fixture) — confidently-wrong helpers the answer string alone would wave through. This is the 014 §4 falsification insurance expressed at the procedure level.</li>
+        <li><strong>A denser gradient (credit assignment).</strong> A terminal pass/fail gold gives the optimizer one bit per trajectory and no signal about <em>which step</em> was good. The process stack scores the procedure step-wise, so the reflection proposer (014) and the anti-unify/MDL inducer (015) get <strong>per-step credit</strong> — they learn which sub-procedure to keep, split, or retire, not just whether the whole thing passed.</li>
+        <li><strong>Essential in the low-oracle regime.</strong> Where answer-gold is sparse or absent, the answer stack is thin and noisy. The process stack <strong>densifies the signal precisely where the oracle is missing</strong> — it is computable on every trajectory regardless of whether a gold answer exists, because it scores the lineage, which always exists. This is the only way the gate has anything to optimize over an open-search corpus.</li>
+      </ol>
+
+      <h3>Anti-Goodhart guardrails</h3>
+      <p>Constructed checks invite gaming; the manufactured reward is a Goodhart magnet. Four guardrails, each load-bearing:</p>
+      <ul>
+        <li><strong>Compute, don't judge.</strong> No LLM-judge in either stack. Every score is a deterministic function of lineage and execution. A judge is a soft target that the optimizer learns to flatter; a computed check is a hard constraint it must actually satisfy.</li>
+        <li><strong>Checks must be CONSTRAINING.</strong> The universal test: <strong>remove the cited evidence and the answer must change.</strong> Faithfulness, coverage, and every process dimension are voided for any procedure where ablation leaves the output unmoved — that proves the citation/input was decorative. A check that nothing can fail is not a check.</li>
+        <li><strong>Calibrate λ against the manufactured-gold split, and DROP dead dimensions.</strong> Weights <code>λ_ans</code>, <code>λ_proc</code>, and the per-dimension weights inside <code>process_stack</code> are fit on a held-out <strong>manufactured-gold selection split</strong> (a constructed corpus where we <em>do</em> know the right answer). <strong>Any dimension that does not predict held-out correctness on that split is dropped from the reward.</strong> A dimension that scores high on procedures the gold says are wrong is a Goodhart channel, not a verifier, and is removed — not down-weighted.</li>
+        <li><strong>Genericity-over-siblings everywhere.</strong> Single-trajectory passes are inadmissible; every check runs over k ≥ 3 distribution-shifted siblings. This is the cheapest, strongest defence against memorisation-as-correctness.</li>
+      </ul>
+
+      <h3>How the verifier and process-reward feed the gate</h3>
+      <p>The two stacks are not the gate; they are the gate's <strong>signal</strong>. The gate (014 §4 / 015 §4) consumes them in a fixed precedence so that a strong correctness signal can never be bought with cost savings, and a cost win can never be bought with an ungrounded answer.</p>
+      <p>A mutation is <strong>ACCEPTED</strong> iff, on the held-out selection split, paired against the inline-rewrite adversary by intent:</p>
+      <ol>
+        <li><strong>Anecdotal stack passes with no regression</strong> — replay-determinism holds (drift-gated), faithfulness/cross-path/invariants/coverage all clear over k ≥ 3 siblings (014 §5: "no anecdotal-verifier regression"). A single hard failure here vetoes regardless of cost.</li>
+        <li><strong>Process-reward stack passes</strong> — every surviving (calibrated, non-dropped) dimension clears its threshold (015 §4/§6 anti-Goodhart filter). This stops compression or reflection from "winning" by abstracting structure that doesn't track correctness.</li>
+        <li><strong><code>reward(H) &gt; 0</code> strictly</strong> — the fused scalar is positive after subtracting amortised lifetime cost, with the R8 dual cost-win (per-pair cost-win fraction ≥ 0.70 AND mean paired ratio ≤ 0.70) and the non-inferiority floor <code>Δquality ≥ −ε</code>.</li>
+        <li>For 015 specifically, the same signals additionally gate the <strong>global compositional objective</strong>: <code>score(G_{t+1}) &lt; score(G_t)</code> strict on corpus description length, <strong>conjoined</strong> with (1) and (2) above. The verifier stack is what keeps MDL compression honest — you may only shrink the grammar in ways that the anecdotal and process checks certify don't lose correctness.</li>
+      </ol>
+
+      <p>This precedence is the whole point. Verification gates promotion (<strong>verifier-gated, not usage-gated</strong> — never "called N times"); the process reward both tightens that gate and supplies the dense gradient the synthesis loops train on; and the cost term sits <em>underneath</em> both, able to reject an equally-correct-more-expensive helper (the falsified arm4 class) but never able to rescue an ungrounded or non-generalising one. The construction is strictly past SkillOpt on exactly the axis SkillOpt assumed away: it gates a <em>search</em> with no gold by constructing, calibrating, and pruning the per-search checks itself.</p>
+
+      <div class="takeaways">
+        <span class="label">Key takeaways</span>
+        <ul>
+          <li>SkillOpt never verifies a search — all five of its evaluators are deterministic gold comparisons (SQuAD-EM, ANLS, MCQ, EM/F1, cell-diff); its gate's passrate is only definable because every held-out task carries gold. The open-search regime frequently has no such oracle.</li>
+          <li>The reframe keeps SkillOpt's exact shape (general artifact, per-instance checks, mean over held-out) but CONSTRUCTS the per-search checks instead of receiving them. No general search verifier is built; a stack of individually-weak oracle-free checks is aggregated.</li>
+          <li>The anecdotal verifier stack, ranked: evidence-grounded faithfulness (ablation-tested for circularity), cross-path agreement, emitted invariants/postconditions, coverage/abstention (the governance check, scored on CRAG's −1 grader), replay-determinism (the floor — a determinism check NOT an oracle, gated off under drift).</li>
+          <li>Replay is demoted from oracle to determinism check because the expected value is the agent's own committed fixed point, not gold; <code>@source-hash</code> drift is a hard pre-replay gate that forces re-derive-or-decline and stops stale clones passing tautologically.</li>
+          <li>The process-reward stack (faithfulness, generality over k≥3 siblings, parsimony, coverage, robustness) is COMPUTED from lineage, never LLM-judged — a judge would re-import the circularity and Goodhart surface the whole section avoids.</li>
+          <li>Reward = <code>λ_ans·answer_stack + λ_proc·process_stack − amortised_lifetime_cost</code>. Process reward is a better gate (rejects right-answer-wrong-path), a denser gradient (per-step credit assignment for the synthesis loops), AND essential in the low-oracle regime (it densifies signal where answer-gold is sparse because it scores the always-present lineage).</li>
+          <li>Anti-Goodhart guardrails: compute-don't-judge; checks must be CONSTRAINING (ablate the cited evidence and the answer must change); calibrate λ on the manufactured-gold split and DROP any dimension that doesn't predict held-out correctness (remove, not down-weight); enforce genericity over k≥3 distribution-shifted siblings everywhere.</li>
+          <li>Verifier-gated, not usage-gated: acceptance precedence is anecdotal-stack-no-regression → process-stack-pass → <code>reward&gt;0</code> with R8 dual cost-win → (for 015) global compositional MDL decrease. Cost sits underneath correctness and can reject an equally-correct-more-expensive helper but never rescue an ungrounded one.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 7. EXPERIMENT ===================== -->
+    <section id="experiment">
+      <h2><span class="num">7</span>Experiment: The R-vs-C Bake-Off Behind a Pre-Registered Depth Floor</h2>
+
+      <p>This experiment is pre-registered. It exists to answer exactly one question with a clean kill: <strong>does structured library induction over a structured object (Arm C, 015) produce a deeper, more general, better-amortising procedure library than reflection over a flat set (Arm R, 014 fork-a)?</strong> Everything below is fixed before any trajectory is harvested. The control half (gate, bounded edit budget <code>(L_t, Δ_t)</code>, rejected-edit memory, fast/slow split) is the LOCKED INVARIANT inherited from 014/SkillOpt and is identical across both arms — the only variable that moves is the synthesis half (object + optimizer). If the two halves were allowed to differ on anything else, the kill would be uninterpretable.</p>
+
+      <h3>1. The single isolated variable</h3>
+      <p>Both arms share one frozen substrate alphabet (<code>df.db.*</code> / <code>df.compute.*</code>), one harvest pipeline, one anecdotal verifier stack (014 §5), one cost-aware gate comparator (014 §4 — gate-pass means R8 dual cost-win: per-pair cost-win fraction ≥ 0.70 AND mean paired ratio ≤ 0.70, non-inferiority floor <code>Δquality ≥ −ε</code>), one corpus pre-screen, and one manufactured-gold selection split. The only thing that differs:</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th></th><th>Arm R (control = 014 fork-a)</th><th>Arm C (treatment = 015)</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Object</strong></td><td>flat set of <code>df.lib</code> helpers</td><td>2-level compositional typed procedure <strong>grammar</strong> G</td></tr>
+          <tr><td><strong>Optimizer</strong></td><td>single-trajectory reflective lift (<code>authorFromSource</code>)</td><td>structured <strong>induction</strong>: cluster → anti-unify → MDL-select → slow refactor-pass</td></tr>
+          <tr><td><strong>Synthesis unit</strong></td><td>one trajectory</td><td>the <strong>intent-cluster</strong> (anti-unify unit)</td></tr>
+          <tr><td><strong>What the gate sees</strong></td><td>per-lift local cost</td><td><strong>global compositional corpus DL/cost</strong> (§4)</td></tr>
+          <tr><td>Control half (§1)</td><td>LOCKED — identical</td><td>LOCKED — identical</td></tr>
+        </tbody>
+      </table></div>
+
+      <p>Arm R is the honest, strong baseline: it is the falsification-skeptic's position made operational ("reflection on a flat set already captures the value; you don't need a grammar"). Arm C wins only if structure separates from it on the pre-registered endpoints. This is the headline rule under test — <em>object class picks the optimizer</em> — instantiated as a controlled comparison rather than asserted.</p>
+
+      <h3>2. The pre-registered depth floor (run BEFORE the bake-off)</h3>
+      <p>This transposes SkillOpt's quiet warning: 1–4 accepted edits carried its gains because high-leverage compressible structure was sparse. If our cross-intent compressible structure lives in only 1–2 sub-procedures, a flat Arm R that lifts them captures most of the value and Arm C cannot separate <strong>even with a perfectly correct mechanism</strong> — a low-power false negative that would let us kill 015 for the wrong reason. So both gates must clear <em>before</em> the bake-off fires, or the kill is uninterpretable.</p>
+
+      <p><strong>Gate 1 — Structural pre-scan ($0 static pass over the lineage forest).</strong> A cheap static pass over the harvested lineage forest must find <strong>≥ D_min ≥ 3 recurring cross-intent sub-procedures</strong> (sub-graphs that recur across ≥2 distinct <code>intentSignature</code> clusters). This is pure static analysis over already-captured lineage — zero LLM spend, zero live runs.</p>
+
+      <p><strong>Gate 2 — Power floor.</strong> N = (intents × seeds) must be sized for <strong>≥80% power</strong> at a pre-registered minimum-detectable gate-pass gap (MDE), with the MDE anchored so it could reflect the <strong>+13.5pp dark-store depth signal</strong>. N is fixed now, from the anchor effect size and the paired McNemar design (§3), not chosen after seeing data.</p>
+
+      <div class="callout formula">
+        <span class="label">Depth-floor decision</span>
+        <pre><code>if (recurring_cross_intent_subprocs &gt;= 3) AND (N gives &gt;=80% power at MDE):
+    → floors cleared, proceed to build + bake-off
+else:
+    → corpus UNDERPOWERED → pick a richer DEPTH corpus, DO NOT fire the kill</code></pre>
+      </div>
+
+      <p>A floor failure is <strong>never</strong> a kill of 015. It is a statement that <em>this corpus</em> cannot adjudicate the question. The only corpora admitted are DEPTH/serial corpora that pass the br/16 Criterion-3 pre-screen and in which sub-procedures plausibly recur across intents (the OpenTraces dark-store family with its +13.5pp signal, or a constructed deep-search corpus). Width/shallow-fanout corpora are excluded by construction — they are the regime where amortisation was already falsified.</p>
+
+      <h3>3. Endpoints (pre-registered)</h3>
+      <p><strong>PRIMARY — paired gate-pass rate, Arm C − Arm R.</strong> For each intent, "gate-pass" means the synthesised procedure <strong>beats inline re-derivation net of lifetime cost (token + TURN units, 014 §4 — R8 dual cost-win: per-pair cost-win fraction ≥ 0.70 AND mean paired ratio ≤ 0.70, non-inferiority floor <code>Δquality ≥ −ε</code>) AND passes the process-reward stack (§6) AND shows no anecdotal-verifier regression (014 §5)</strong>. This is a binary per-intent outcome under each arm. Paired by intent, <strong>k ≥ 5 interleaved seeds</strong>, analysed with the <strong>mid-p McNemar test</strong> on the discordant pairs (C-passes/R-fails vs R-passes/C-fails). Interleaving seeds across arms removes harvest-order and corpus-drift confounds. The gate-pass endpoint — not raw correctness and not raw token count — is the contract, because the amortisation-only framing was already falsified; the value claim lives in <em>governed, cost-aware, process-checked promotion</em>.</p>
+
+      <p><strong>SECONDARY (pre-registered, reported regardless of primary outcome):</strong></p>
+      <ol>
+        <li><strong>Generality</strong> — genericity pass-fraction on k≥3 held-out same-intent siblings (does the procedure survive new arguments, not just the trajectory it was lifted from).</li>
+        <li><strong>Compositional reuse</strong> — count/fraction of top-level procedures that call ≥1 learned sub-procedure (structurally impossible for Arm R, which has no sub-procedures; this is the mechanistic fingerprint of the treatment).</li>
+        <li><strong>Depth</strong> — mean nesting / serial-dependency length of accepted procedures.</li>
+        <li><strong>The three distillation curves (§6):</strong> description-length-per-intent ↓, compositional depth ↑, inline-rederivation rate ↓.</li>
+      </ol>
+
+      <h3>4. Decision rules (pre-registered, both directions)</h3>
+      <p>Read only <strong>after</strong> both depth floors have cleared.</p>
+
+      <div class="callout kill">
+        <span class="label">KILL → stay with 014 fork-a</span>
+        <p>With both floors cleared, if at k≥5 on the pre-registered primary endpoint Arm C is <strong>no deeper, no more general, and no better at gate-pass</strong> than Arm R (mid-p McNemar not significant in C's favour, and secondary depth/generality not separating), then synthesis power was not the bottleneck — the structured take adds nothing over reflection on this DEPTH corpus where it had every chance. Stop. Do not ship the grammar; the flat set is sufficient.</p>
+      </div>
+
+      <div class="callout success">
+        <span class="label">SUCCESS → structure is what produces reusable procedures</span>
+        <p>Arm C grows a compositional library whose sub-procedures are reused across ≥2 intents, whose top-level procedures clear the cost gate where Arm R's flat anecdotes do not, with the mid-p McNemar significant in C's favour AND the three distillation curves bending (DL-per-intent down, depth up, inline-rederivation down). The honesty clause from §6 binds here: <strong>flat curves mean we built SkillOpt with extra machinery and must say so</strong> — the curves bending is the load-bearing evidence, not the p-value alone.</p>
+      </div>
+
+      <p>Either outcome is a clean, publishable result. The experiment is designed so that "stay with 014" is a fully acceptable, pre-committed answer — there is no degree of freedom to rescue 015 post hoc.</p>
+
+      <h3>5. Build scope (experiment-first, minimal)</h3>
+      <p>The bake-off requires only <strong>two new pieces plus one slow-pass</strong>; everything else is reused as-is. This keeps the build smaller than a full induction stack and ensures the only code paths that differ between arms are the ones under test.</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th>Status</th><th>Component</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td><strong>BUILD (new)</strong></td><td>Anti-unification (least-general-generalization) over the typed lineage forest</td><td>§3 op 1</td></tr>
+          <tr><td><strong>BUILD (new)</strong></td><td>MDL selector (keep a candidate iff it lowers corpus description length)</td><td>§3 op 2</td></tr>
+          <tr><td><strong>BUILD (new)</strong></td><td>Refactoring slow-pass (merge / split / raise-level / retire, own <code>(L_t,Δ_t)</code> + own rejected-abstraction buffer)</td><td>§5</td></tr>
+          <tr><td>REUSE as-is</td><td>Harvest pipeline</td><td>shared</td></tr>
+          <tr><td>REUSE as-is</td><td><code>authorFromSource</code> lift (= Arm R in full)</td><td>014 fork-a</td></tr>
+          <tr><td>REUSE as-is</td><td>Anecdotal verifier stack</td><td>014 §5</td></tr>
+          <tr><td>REUSE as-is</td><td>Cost-aware gate comparator (token + TURN units)</td><td>014 §4 / P2</td></tr>
+          <tr><td>REUSE as-is</td><td>Corpus pre-screen (br/16 Criterion-3)</td><td>shared</td></tr>
+          <tr><td>REUSE as-is</td><td>Manufactured-gold selection split + process-reward calibration</td><td>§6</td></tr>
+          <tr><td>LOCKED</td><td>Control half (gate, <code>(L_t,Δ_t)</code>, rejected-edit memory, fast/slow split)</td><td>§1, inherited from 014 untouched</td></tr>
+        </tbody>
+      </table></div>
+
+      <p>Note that Arm R <strong>is</strong> the reused lift pipeline with nothing added — building Arm R is free. The entire incremental build cost of this experiment is the two new synthesis pieces and the slow-pass.</p>
+
+      <h3>6. Execution ordering (runnable protocol)</h3>
+      <pre><code>STEP 0  Pre-register: corpus, N, seeds (k&gt;=5), MDE (anchored on +13.5pp),
+        D_min(&gt;=3), primary/secondary endpoints, decision rules. FREEZE.
+
+STEP 1  Harvest M trajectories from one DEPTH/serial corpus that passes
+        the br/16 Criterion-3 pre-screen.
+
+STEP 2  STRUCTURAL PRE-SCAN ($0 static pass over the lineage forest).
+        Count recurring cross-intent sub-procedures.
+          - if &lt; D_min(3)  → corpus underpowered → STEP 1 with richer corpus.
+                             (DO NOT build, DO NOT fire kill.)
+          - else           → continue.
+
+STEP 3  POWER FLOOR check. Confirm N gives &gt;=80% power at the MDE.
+          - if underpowered → enlarge corpus/seeds or STEP 1. (No kill.)
+          - else            → both floors cleared → build is authorised.
+
+STEP 4  BUILD the two new pieces (anti-unify, MDL selector) + the slow-pass.
+        Arm R needs no new build (reused lift).
+
+STEP 5  RUN THE BAKE-OFF, interleaved seeds:
+          for each seed in 1..k(&gt;=5), interleaved across arms:
+            Arm R: single-trajectory authorFromSource lift → flat df.lib helpers.
+            Arm C: cluster by intentSignature → anti-unify each cluster
+                   → MDL-select corpus-shortening abstractions
+                   → build 2-level library (sub-procedures + composing tops)
+                   → slow refactor-pass → accept via the LOCKED gate (§4).
+          Record per-intent gate-pass (binary), generality, compositional
+          reuse, depth, and the three distillation curves.
+
+STEP 6  ANALYSE: paired mid-p McNemar on gate-pass (C - R); report all
+        secondaries + curves regardless of primary.
+
+STEP 7  DECIDE per pre-registered rules (§4): KILL (stay 014) or SUCCESS.</code></pre>
+
+      <p>The ordering is the safeguard. The structural pre-scan is a $0 gate that runs first and can abort the whole program before a single dollar of build or live-run spend is committed — which is also the honest surfacing mechanism for the "no compressible skeleton" risk: if the trajectories are mostly LLM-glue, the pre-scan finds nothing and the kill fires honestly, for free, before any synthesis is built.</p>
+
+      <div class="takeaways">
+        <span class="label">Key takeaways</span>
+        <ul>
+          <li>The bake-off isolates exactly one variable — structured induction over a grammar (Arm C, 015) vs reflection over a flat set (Arm R, 014 fork-a) — with the entire control half (gate, bounded LR, rejected memory, fast/slow split) LOCKED identical across both arms so the kill is interpretable.</li>
+          <li>A pre-registered depth floor must clear BEFORE the bake-off: a $0 structural pre-scan finding ≥3 recurring cross-intent sub-procedures, AND a power floor sizing N for ≥80% power at an MDE anchored on the +13.5pp dark-store signal. A floor failure means "pick a richer corpus", never "kill 015".</li>
+          <li>Primary endpoint is paired gate-pass rate (procedure beats inline net of lifetime cost under the R8 dual cost-win AND passes the process stack), Arm C − Arm R, paired by intent, k≥5 interleaved seeds, mid-p McNemar — not raw correctness or token count, because amortisation-only was already falsified.</li>
+          <li>KILL (stay with 014) if, both floors cleared, Arm C is no deeper/more-general/better at gate-pass than Arm R; SUCCESS if Arm C grows a reused compositional library that clears the gate where R's anecdotes don't AND the three distillation curves bend. Flat curves = SkillOpt-with-extra-machinery and must be reported as such.</li>
+          <li>Build scope is minimal and experiment-first: only two new pieces (anti-unification over the typed lineage forest + the MDL selector) plus the refactor slow-pass; harvest, lift, verifier, gate, pre-screen and manufactured-gold split are reused as-is. Arm R requires no new build.</li>
+          <li>Execution ordering is the safeguard: structural pre-scan ($0) → power floor → build → interleaved bake-off → mid-p McNemar → pre-registered decision. The pre-scan can abort the whole program for free before any build or live-run spend, and is also how the "no compressible skeleton" risk surfaces honestly.</li>
+        </ul>
+      </div>
+    </section>
+
+    <footer class="doc">
+      <p>Derived from <code>kb/plans/014</code> (CodeOpt) + <code>kb/plans/015</code> (Procedure-Grammar Induction) and SkillOpt (<code>arXiv:2605.23904</code>). Empirical constraints anchored to the valid k=5 PokeAPI falsification (commit <code>0665d5a27</code>), the SkillCraft proof (<code>eval/skillcraft/proof.md</code>), and the OpenTraces dark-store +13.5pp depth signal. Generated 2026-06-22.</p>
+    </footer>
+  </div>
+  </main>
+</div>
+</body>
+</html>

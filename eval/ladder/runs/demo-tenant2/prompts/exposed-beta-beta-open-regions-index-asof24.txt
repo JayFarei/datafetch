@@ -1,0 +1,3 @@
+TENANT beta
+QUERY: As of the first 24 orders placed, list the distinct regions with placed (not-yet-shipped) orders.
+Instructions: use the df.lib procedure(s) [beta-open-regions-index]. Look up their signatures in df.d.ts and via man(beta-open-regions-index) / apropos.

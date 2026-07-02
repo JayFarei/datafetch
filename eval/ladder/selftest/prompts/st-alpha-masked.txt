@@ -1,0 +1,3 @@
+TENANT alpha
+QUERY: As of the first 13 tickets filed, how many open tickets are priority high?
+Instructions: answer from the first 13 raw tickets records only.

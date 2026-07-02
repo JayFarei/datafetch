@@ -1,0 +1,33 @@
+{
+  "beta-delivered-sum": {
+    "state": "promoted",
+    "provenance": "curated",
+    "evidence": {
+      "pairs": 40,
+      "wins": 40,
+      "distinctQueries": 10,
+      "boundaryRef": "prereg:0bc3ddcef56d8347e6a1d834dd0a41e6b948ee43fba6536a59b961bf349215fe@pairs=30,wins=30"
+    },
+    "promotedAt": 1800003481
+  },
+  "beta-open-regions-index": {
+    "state": "promoted",
+    "provenance": "curated",
+    "evidence": {
+      "pairs": 40,
+      "wins": 40,
+      "distinctQueries": 10,
+      "boundaryRef": "prereg:0bc3ddcef56d8347e6a1d834dd0a41e6b948ee43fba6536a59b961bf349215fe@pairs=30,wins=30"
+    },
+    "promotedAt": 1800008281
+  },
+  "alpha-open-high-count": {
+    "state": "shadow",
+    "provenance": "curated",
+    "evidence": {
+      "pairs": 30,
+      "wins": 0,
+      "distinctQueries": 6
+    }
+  }
+}

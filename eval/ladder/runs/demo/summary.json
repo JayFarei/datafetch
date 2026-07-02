@@ -1,0 +1,13 @@
+{
+  "tenant": "alpha",
+  "driver": "scripted",
+  "terminalState": "promotions-with-wins",
+  "promoted": [
+    "alpha-open-high-count",
+    "alpha-open-topics-index"
+  ],
+  "rejected": [
+    "shallow-control",
+    "degenerate-control"
+  ]
+}

@@ -1,0 +1,3 @@
+TENANT beta
+QUERY: As of the first 17 orders placed, what is the total value of delivered orders?
+Instructions: answer from the first 17 raw orders records only.
