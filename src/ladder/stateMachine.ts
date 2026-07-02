@@ -5,8 +5,10 @@
 // compressor output, or negative control — enters at quarantine and climbs on
 // its OWN paired evidence:
 //
-//   quarantine -> shadow    : exercised on >= shadowAfterCalls distinct real
-//                             calls (genericity: not a one-off).
+//   quarantine -> shadow    : exercised on >= shadowAfterCalls DISTINCT query
+//                             identities (genericity: not a one-off, and not N
+//                             identical replays of one literal — repeats of the
+//                             same queryKey never advance this rung).
 //   shadow    -> candidate  : cumulative counterfactual win-rate clears the
 //                             pre-registered win floor once candidateAfterCalls
 //                             pairs have accumulated.
@@ -32,7 +34,7 @@ import type {
 
 export interface LadderConfig {
   boundaries: Boundaries;
-  /** quarantine -> shadow after this many distinct real calls */
+  /** quarantine -> shadow after this many DISTINCT query identities */
   shadowAfterCalls: number;
   /** shadow -> candidate after this many pairs, if win-rate clears the floor */
   candidateAfterCalls: number;
@@ -52,6 +54,8 @@ export function defaultLadderConfig(): LadderConfig {
 interface Bookkeeping {
   pairs: number;
   wins: number;
+  /** distinct query identities observed — the genericity evidence */
+  distinct: Set<string>;
   /** the gate fires exactly once per procedure (until a drift demotion resets it) */
   gated: boolean;
 }
@@ -59,6 +63,12 @@ interface Bookkeeping {
 export interface ObservePairInput {
   win: boolean;
   ts: number;
+  /**
+   * Identity of the query instance this pair ran (e.g. `${taskId}:asOf=${n}`).
+   * Genericity (quarantine -> shadow) counts DISTINCT keys; identical replays
+   * of one literal never advance the rung.
+   */
+  queryKey: string;
 }
 
 /** The ladder over a single run. Produces `ladder-state.json` + `promotions.jsonl`. */
@@ -75,9 +85,9 @@ export class Ladder {
     this.entries.set(id, {
       state: "quarantine",
       provenance,
-      evidence: { pairs: 0, wins: 0 },
+      evidence: { pairs: 0, wins: 0, distinctQueries: 0 },
     });
-    this.book.set(id, { pairs: 0, wins: 0, gated: false });
+    this.book.set(id, { pairs: 0, wins: 0, distinct: new Set(), gated: false });
   }
 
   private require(id: string): { entry: LadderEntry; book: Bookkeeping } {
@@ -97,15 +107,18 @@ export class Ladder {
 
     book.pairs += 1;
     if (input.win) book.wins += 1;
+    book.distinct.add(input.queryKey);
     const winRate = book.wins / book.pairs;
     entry.evidence = {
       pairs: book.pairs,
       wins: book.wins,
+      distinctQueries: book.distinct.size,
       ...(entry.evidence?.boundaryRef ? { boundaryRef: entry.evidence.boundaryRef } : {}),
     };
 
-    // rung advancement (monotone, below the gate)
-    if (entry.state === "quarantine" && book.pairs >= this.cfg.shadowAfterCalls) {
+    // rung advancement (monotone, below the gate). Genericity counts DISTINCT
+    // query identities — pairs of one repeated literal keep this at 1 forever.
+    if (entry.state === "quarantine" && book.distinct.size >= this.cfg.shadowAfterCalls) {
       entry.state = "shadow";
     }
     if (
@@ -126,6 +139,7 @@ export class Ladder {
         entry.evidence = {
           pairs: book.pairs,
           wins: book.wins,
+          distinctQueries: book.distinct.size,
           boundaryRef: decision.boundaryRef,
         };
         const rec: PromotionRecord = {
@@ -171,9 +185,10 @@ export class Ladder {
     if (entry.evidence) {
       entry.demotedEvidence = { ...entry.evidence, reason };
     }
-    entry.evidence = { pairs: 0, wins: 0 };
+    entry.evidence = { pairs: 0, wins: 0, distinctQueries: 0 };
     book.pairs = 0;
     book.wins = 0;
+    book.distinct = new Set();
     book.gated = false;
     return from;
   }

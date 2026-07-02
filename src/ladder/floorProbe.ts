@@ -15,7 +15,7 @@ import { execute } from "./executor.js";
 import { tenantSnapshotDir } from "./paths.js";
 import { buildRegistry } from "./registry.js";
 import { mountSnapshot } from "./snapshot.js";
-import { getTask } from "./tasks.js";
+import { fullParam, getTask } from "./tasks.js";
 import type { Answer } from "./types.js";
 
 export interface FloorProbe {
@@ -51,7 +51,8 @@ export function runFloorProbe(tenant = "alpha"): FloorProbeResult {
 
   // ---- masked serve on the fresh committed snapshot ----
   const fresh = mountSnapshot(tenantSnapshotDir(tenant), tenant);
-  const masked = execute(task, "masked", [], registry, fresh);
+  const freshParam = fullParam((fresh.collections[sourceCollection] ?? []).length);
+  const masked = execute(task, freshParam, "masked", [], registry, fresh);
   const maskedServeOk = validateAnswer(masked.answer).ok && masked.answer.kind !== "abstain";
 
   // ---- drift abstention on a mutated copy (index goes stale, not rebuilt) ----
@@ -64,7 +65,8 @@ export function runFloorProbe(tenant = "alpha"): FloorProbeResult {
     fs.writeFileSync(srcPath, JSON.stringify(records));
 
     const drifted = mountSnapshot(dir, tenant);
-    const drift = execute(task, "exposed", [seedId], registry, drifted);
+    const driftParam = fullParam((drifted.collections[sourceCollection] ?? []).length);
+    const drift = execute(task, driftParam, "exposed", [seedId], registry, drifted);
     const driftAbstained = drift.answer.kind === "abstain" && drift.drifted === true;
 
     return {

@@ -42,6 +42,20 @@ export interface AbstainAnswer {
 
 export type Answer = CountAnswer | ListAnswer | AbstainAnswer;
 
+/**
+ * A per-query parameter that instantiates a task on a distinct slice of the
+ * corpus. The scripted driver walks a deterministic grid of these (one per
+ * pair), so each pair issues a DISTINCT query (and, where the data supports it,
+ * a distinct answer). `asOf` is an inclusive upper bound on record sequence —
+ * an "as of the first N records filed" window. It is monotone across the grid,
+ * so post-promotion pairs read windows never seen before promotion (the holdout
+ * is earned on distinct traffic, not identical replays).
+ */
+export interface TaskParam {
+  /** inclusive upper bound on record sequence (the "as of #N filed" window). */
+  asOf: number;
+}
+
 /** One episode row in `episodes.jsonl`. */
 export interface Episode {
   episodeId: string;
@@ -62,6 +76,12 @@ export interface Episode {
   arm: Arm;
   /** null for un-paired episodes (probes, adversarial fixtures). */
   pairId: string | null;
+  /**
+   * The parameter that instantiated this episode's query (the distinct-traffic
+   * fix). Replay uses it to recompute the answer; absent rows replay at the
+   * full-corpus window.
+   */
+  taskParam?: TaskParam;
   /** repo-root-relative path to the outbound prompt file (must exist on disk). */
   promptPath: string;
   /** sha256 of the exact bytes written to `promptPath` (ties this row to that file). */
@@ -84,6 +104,8 @@ export interface Episode {
 export interface EvidenceBlock {
   pairs: number;
   wins: number;
+  /** distinct query identities observed (genericity is earned on these, not raw pair count) */
+  distinctQueries?: number;
   boundaryRef?: string;
 }
 

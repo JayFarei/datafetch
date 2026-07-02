@@ -54,13 +54,15 @@ export const staleCloneSeed: Seed = {
   provenance: "control",
   indexName: "stale-clone-count",
   buildIndex(records) {
-    const count = records.filter(
-      (r) => r["status"] === "open" && r["priority"] === "high",
-    ).length;
-    return { count };
+    const matchPositions = records
+      .map((r, pos) => ({ r, pos }))
+      .filter(({ r }) => r["status"] === "open" && r["priority"] === "high")
+      .map(({ pos }) => pos);
+    return { matchPositions };
   },
-  reduceIndex(index) {
-    return { kind: "count", value: Number(index["count"]) };
+  reduceIndex(index, param) {
+    const positions = (index["matchPositions"] as number[]) ?? [];
+    return { kind: "count", value: positions.filter((p) => p < param.asOf).length };
   },
 };
 

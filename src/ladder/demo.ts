@@ -33,18 +33,19 @@ import { preregHash } from "./boundary.js";
 import { runForcedDriftProbe } from "./driftProbe.js";
 import { runFloorProbe } from "./floorProbe.js";
 import { ExecContext } from "./executor.js";
-import { LIBRARY_TOKENS, scorePair } from "./pairing.js";
+import { LIBRARY_TOKENS, queryKey, scorePair } from "./pairing.js";
 import { REPO_ROOT, repoRelative, tenantSnapshotDir } from "./paths.js";
 import { buildRegistry } from "./registry.js";
 import { mountSnapshot, type MountedSnapshot } from "./snapshot.js";
 import { defaultLadderConfig, Ladder } from "./stateMachine.js";
-import { getTask } from "./tasks.js";
+import { fullParam, getTask, paramGridFor } from "./tasks.js";
 import type {
   DriftProbe,
   Episode,
   LadderState,
   Provenance,
   PromotionRecord,
+  TaskParam,
 } from "./types.js";
 
 /** Base epoch second for the demo timeline; pairs advance by STEP_SEC. */
@@ -76,14 +77,16 @@ function maskedBody(
   tenant: string,
   sourceCollection: string,
   query: string,
+  asOf: number,
   recordCount: number,
   snapshotHash: string,
 ): string {
   return (
     `TENANT ${tenant}\n` +
     `QUERY: ${query}\n` +
-    `Instructions: compute the answer ONLY from the ${recordCount} raw ${sourceCollection} records in ` +
-    `snapshot ${snapshotHash}. No helper procedures and no procedure catalogue are available to you.\n`
+    `Instructions: compute the answer ONLY from the first ${asOf} of the ${recordCount} raw ` +
+    `${sourceCollection} records in snapshot ${snapshotHash}. No helper procedures and no ` +
+    `procedure catalogue are available to you.\n`
   );
 }
 
@@ -100,6 +103,11 @@ function exposedBody(tenant: string, lineage: string[], query: string): string {
     `Instructions: use the df.lib procedure(s) [${lineage.join(", ")}]. ` +
     `Look up their signatures in df.d.ts and via man(${head}) / apropos.\n`
   );
+}
+
+interface PromptRef {
+  rel: string;
+  hash: string;
 }
 
 interface ScheduleItem {
@@ -171,37 +179,62 @@ function runTenant(plan: TenantPlan, commit: string, ph: string): TenantOutput {
     ladder.admit(item.procId, item.provenance);
     const task = getTask(item.taskId);
 
-    // shared, byte-identical prompts: the outbound prompt is a function of
-    // (tenant, task, arm, lineage) and constant across a procedure's pairs.
+    // Distinct traffic (review F4): each pair instantiates the task on a
+    // distinct "as of #N filed" window. The first minPairs pairs cycle the
+    // promotion grid; the pairs after the gate decision cycle the HOLDOUT grid,
+    // whose windows are strictly later than every promotion window — so the
+    // post-promotion win-floor (V7:G1) is earned on record windows never seen
+    // before promotion, and the genericity rung counts distinct queryKeys.
     const recordCount = snapshot.collections[task.sourceCollection]?.length ?? 0;
-    const maskedText = maskedBody(
-      plan.tenant,
-      task.sourceCollection,
-      task.query,
-      recordCount,
-      snapshot.sourceFingerprint,
-    );
-    const exposedText = exposedBody(plan.tenant, [item.procId], task.query);
-    // The masked arm's whole point is that it cannot see the library. Assert it
-    // here so a leak crashes generation (load-bearing), not just the V3 grep.
-    if (LIBRARY_TOKENS.test(maskedText)) {
-      throw new Error(`masked prompt for ${item.taskId} leaks library surface`);
+    const grid = paramGridFor(recordCount);
+    const params: TaskParam[] = [];
+    for (let k = 0; k < item.pairs; k++) {
+      params.push(
+        k < CONTROL_PAIRS
+          ? grid.promotion[k % grid.promotion.length]!
+          : grid.holdout[(k - CONTROL_PAIRS) % grid.holdout.length]!,
+      );
     }
-    const maskedPath = path.join(promptDir, `masked-${plan.tenant}-${item.taskId}.txt`);
-    const exposedPath = path.join(promptDir, `exposed-${plan.tenant}-${item.procId}.txt`);
-    fs.writeFileSync(maskedPath, maskedText);
-    fs.writeFileSync(exposedPath, exposedText);
-    const maskedRel = repoRelative(maskedPath);
-    const exposedRel = repoRelative(exposedPath);
-    const maskedHash = sha256(maskedText);
-    const exposedHash = sha256(exposedText);
+
+    // One prompt file per (task/procedure, arm, window): the outbound prompt is
+    // a function of the actual query text, so distinct queries have distinct
+    // prompt files, each tied to its rows by promptHash.
+    const maskedRefs = new Map<number, PromptRef>();
+    const exposedRefs = new Map<number, PromptRef>();
+    for (const p of new Set(params.map((p) => p.asOf))) {
+      const q = task.queryFor({ asOf: p });
+      const maskedText = maskedBody(
+        plan.tenant,
+        task.sourceCollection,
+        q,
+        p,
+        recordCount,
+        snapshot.sourceFingerprint,
+      );
+      // The masked arm's whole point is that it cannot see the library. Assert
+      // it here so a leak crashes generation (load-bearing), not just the V3 grep.
+      if (LIBRARY_TOKENS.test(maskedText)) {
+        throw new Error(`masked prompt for ${item.taskId} leaks library surface`);
+      }
+      const exposedText = exposedBody(plan.tenant, [item.procId], q);
+      const maskedPath = path.join(promptDir, `masked-${plan.tenant}-${item.taskId}-asof${p}.txt`);
+      const exposedPath = path.join(promptDir, `exposed-${plan.tenant}-${item.procId}-asof${p}.txt`);
+      fs.writeFileSync(maskedPath, maskedText);
+      fs.writeFileSync(exposedPath, exposedText);
+      maskedRefs.set(p, { rel: repoRelative(maskedPath), hash: sha256(maskedText) });
+      exposedRefs.set(p, { rel: repoRelative(exposedPath), hash: sha256(exposedText) });
+    }
 
     for (let k = 0; k < item.pairs; k++) {
       const tsMasked = BASE_TS + step * STEP_SEC;
       const tsExposed = tsMasked + 1;
       step += 1;
 
-      const score = scorePair(item.taskId, [item.procId], registry, snapshot);
+      const param = params[k]!;
+      const maskedRef = maskedRefs.get(param.asOf)!;
+      const exposedRef = exposedRefs.get(param.asOf)!;
+      const q = task.queryFor(param);
+      const score = scorePair(item.taskId, param, [item.procId], registry, snapshot);
       const pairId = `${plan.tenant}-${item.procId}-p${String(k).padStart(3, "0")}`;
 
       rows.push({
@@ -211,13 +244,14 @@ function runTenant(plan: TenantPlan, commit: string, ph: string): TenantOutput {
         preregHash: ph,
         tenant: plan.tenant,
         driver: "scripted",
-        query: task.query,
+        query: q,
         taskId: item.taskId,
         snapshotHash: snapshot.sourceFingerprint,
         arm: "masked",
         pairId,
-        promptPath: maskedRel,
-        promptHash: maskedHash,
+        taskParam: param,
+        promptPath: maskedRef.rel,
+        promptHash: maskedRef.hash,
         answer: score.masked.answer,
         answerSchemaOk: validateAnswer(score.masked.answer).ok,
         abstained: score.masked.answer.kind === "abstain",
@@ -232,13 +266,14 @@ function runTenant(plan: TenantPlan, commit: string, ph: string): TenantOutput {
         preregHash: ph,
         tenant: plan.tenant,
         driver: "scripted",
-        query: task.query,
+        query: q,
         taskId: item.taskId,
         snapshotHash: snapshot.sourceFingerprint,
         arm: "exposed",
         pairId,
-        promptPath: exposedRel,
-        promptHash: exposedHash,
+        taskParam: param,
+        promptPath: exposedRef.rel,
+        promptHash: exposedRef.hash,
         answer: score.exposed.answer,
         answerSchemaOk: validateAnswer(score.exposed.answer).ok,
         abstained: score.exposed.answer.kind === "abstain",
@@ -248,7 +283,11 @@ function runTenant(plan: TenantPlan, commit: string, ph: string): TenantOutput {
         pairWin: score.win,
       });
 
-      const rec = ladder.observePair(item.procId, { win: score.win, ts: tsExposed });
+      const rec = ladder.observePair(item.procId, {
+        win: score.win,
+        ts: tsExposed,
+        queryKey: queryKey(item.taskId, param),
+      });
       if (rec?.decision === "promote") promotedAt[item.procId] = rec.ts;
     }
   }
@@ -261,14 +300,15 @@ function runTenant(plan: TenantPlan, commit: string, ph: string): TenantOutput {
     // and then emits prose in the numeric field; we RUN the contract on that
     // output and contractRejected is its verdict, so we abstain rather than
     // commit an untyped answer. `turns` is measured, never a constant.
+    const advParam = fullParam(snapshot.collections[task.sourceCollection]?.length ?? 0);
     const advCtx = new ExecContext(snapshot);
-    advCtx.scanAll(task.sourceCollection);
+    advCtx.scanPrefix(task.sourceCollection, advParam.asOf);
     const advTurns = advCtx.turns;
     const proseInString = { kind: "count", value: "about forty open high-priority tickets" };
     const contractRejected = validateAnswer(proseInString).ok === false;
     const fallback = makeAbstain("contract-rejected: prose stuffed in count.value");
     const advText =
-      `TENANT ${plan.tenant}\nQUERY: ${task.query}\n` +
+      `TENANT ${plan.tenant}\nQUERY: ${task.queryFor(advParam)}\n` +
       `ADVERSARIAL: model returned {"kind":"count","value":"about forty ..."} — prose in a numeric field.\n`;
     const advPromptPath = path.join(promptDir, "adversarial-prose-in-string.txt");
     fs.writeFileSync(advPromptPath, advText);
@@ -279,11 +319,12 @@ function runTenant(plan: TenantPlan, commit: string, ph: string): TenantOutput {
       preregHash: ph,
       tenant: plan.tenant,
       driver: "scripted",
-      query: task.query,
+      query: task.queryFor(advParam),
       taskId: "alpha-open-high",
       snapshotHash: snapshot.sourceFingerprint,
       arm: "exposed",
       pairId: null,
+      taskParam: advParam,
       promptPath: repoRelative(advPromptPath),
       promptHash: sha256(advText),
       answer: fallback,
@@ -380,11 +421,17 @@ function tenantCurves(out: TenantOutput): TenantCurves {
 
   // DL-per-intent: measured inline vs exposed turns per task (from promoted procs)
   const dlByTask = new Map<string, IntentCost>();
+  const maskedByPair = new Map(
+    out.rows.filter((r) => r.arm === "masked" && r.pairId !== null).map((r) => [r.pairId!, r]),
+  );
   for (const id of out.promoted) {
     if (out.state[id]?.provenance === "control") continue;
-    const ep = exposed.find((r) => (r.lineage ?? []).includes(id));
+    // representative pair: the LAST (largest-window, post-promotion) exposed episode,
+    // costed against the masked row of the SAME pair (exact counterfactual).
+    const eps = exposed.filter((r) => (r.lineage ?? []).includes(id));
+    const ep = eps[eps.length - 1];
     if (!ep) continue;
-    const masked = out.rows.find((r) => r.arm === "masked" && r.taskId === ep.taskId);
+    const masked = maskedByPair.get(ep.pairId!);
     const inlineTurns = masked?.turns ?? 0;
     dlByTask.set(ep.taskId, {
       taskId: ep.taskId,
@@ -407,7 +454,7 @@ function tenantCurves(out: TenantOutput): TenantCurves {
   ordered.forEach((r, i) => {
     const id = (r.lineage ?? []).find((x) => promotableIds.has(x))!;
     const t = out.promotedAt[id];
-    const masked = out.rows.find((m) => m.arm === "masked" && m.taskId === r.taskId);
+    const masked = maskedByPair.get(r.pairId!);
     const inlineTurns = masked?.turns ?? 0;
     const servedByPromoted = t !== undefined && r.ts > t;
     if (servedByPromoted) avoided += inlineTurns;
@@ -488,7 +535,7 @@ function buildReport(alpha: TenantOutput, beta: TenantOutput, commit: string): s
 
 _Driver: \`scripted\` (deterministic policy over real mounted fixtures). Every turn count below is MEASURED by the executor, never a constant. Commit stamped on episodes: \`${commit}\`._
 
-_Scope note (honest limits of this scripted demo): the timeline is synthetic — episodes are stamped on a scripted clock (base epoch ${BASE_TS}, ${STEP_SEC}s steps), so \`ts\` values are simulated, not wall-clock, and the pair-window / holdout-ordering checks run against that synthetic clock. Each procedure's traffic is repeated identical calls over one static committed snapshot (same query, same snapshot, same answer per pair); this exercises the ladder MECHANICS but does NOT demonstrate generalisation across varied inputs — that needs richer fixtures and is future work._
+_Scope note (honest limits of this scripted demo): the timeline is synthetic — episodes are stamped on a scripted clock (base epoch ${BASE_TS}, ${STEP_SEC}s steps), so \`ts\` values are simulated, not wall-clock, and the pair-window / holdout-ordering checks run against that synthetic clock. Traffic is DISTINCT per pair: each pair instantiates its task on a different "as of the first N records filed" window (distinct query text, and distinct answers where the data supports it), the quarantine→shadow genericity rung counts distinct query identities (identical replays never advance it), and every post-promotion holdout pair reads a window strictly later than anything seen before promotion — so the win-floor (V7:G1) is earned on unseen inputs. The variation is still a single parametric family over one static committed snapshot; generalisation across query FAMILIES or live corpora is not claimed._
 
 This is NOT a claim that helpers beat inline for a frontier model, nor that agent-authored procedures promote under live traffic (plan 016 P4, open). It shows the ladder MECHANICS working end to end on two schema-distinct tenants.
 

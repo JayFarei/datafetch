@@ -15,6 +15,8 @@ import { REPO_ROOT, tenantSnapshotDir } from "../../src/ladder/paths.js";
 import { buildRegistry } from "../../src/ladder/registry.js";
 import { mountSnapshot } from "../../src/ladder/snapshot.js";
 
+const FULL = { asOf: 24 };
+
 const registry = buildRegistry({ withControls: true });
 const tmp: string[] = [];
 function tmpDir(): string {
@@ -30,14 +32,14 @@ describe("shadow-pair harness (V3, defeaters D4/D5)", () => {
   const snap = mountSnapshot(tenantSnapshotDir("alpha"), "alpha");
 
   it("scores an index-backed exposed arm as a cost win over the inline masked arm", () => {
-    const score = scorePair("alpha-open-high", ["alpha-open-high-count"], registry, snap);
+    const score = scorePair("alpha-open-high", FULL, ["alpha-open-high-count"], registry, snap);
     expect(score.exposed.turns).toBeLessThan(score.masked.turns); // measured, real
     expect(score.win).toBe(true);
   });
 
   it("excludes a degenerate empty-list answer from winning (D2)", () => {
     // list task; the degenerate control returns [] — trivial, cannot win.
-    const score = scorePair("alpha-open-topics", ["degenerate-control"], registry, snap);
+    const score = scorePair("alpha-open-topics", FULL, ["degenerate-control"], registry, snap);
     expect(score.win).toBe(false);
   });
 
@@ -66,6 +68,7 @@ describe("shadow-pair harness (V3, defeaters D4/D5)", () => {
       pairId: "P-1",
       tenant: "alpha",
       taskId: "alpha-open-high",
+      taskParam: FULL,
       lineage: ["alpha-open-high-count"],
       tsMasked: 1_800_000_000,
       tsExposed: 1_800_000_001,
@@ -98,6 +101,7 @@ describe("shadow-pair harness (V3, defeaters D4/D5)", () => {
       pairId: "P-2",
       tenant: "beta",
       taskId: "beta-delivered-sum",
+      taskParam: FULL,
       lineage: ["beta-delivered-sum"],
       tsMasked: 1_800_000_000,
       tsExposed: 1_800_000_002,

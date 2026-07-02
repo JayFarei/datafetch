@@ -22,7 +22,7 @@ import { REPO_ROOT, tenantSnapshotDir } from "../../../src/ladder/paths.js";
 import { buildRegistry } from "../../../src/ladder/registry.js";
 import { mountSnapshot } from "../../../src/ladder/snapshot.js";
 import { getTask } from "../../../src/ladder/tasks.js";
-import type { Arm, Episode, LadderState } from "../../../src/ladder/types.js";
+import type { Arm, Episode, LadderState, TaskParam } from "../../../src/ladder/types.js";
 
 const SELFTEST_DIR = path.join(REPO_ROOT, "eval", "ladder", "selftest");
 const PROMPTS_DIR = path.join(SELFTEST_DIR, "prompts");
@@ -41,15 +41,17 @@ interface Spec {
   taskId: string;
   arm: Arm;
   lineage: string[];
+  /** the query window this pinned episode instantiates (distinct across specs) */
+  taskParam: TaskParam;
 }
 
 const specs: Spec[] = [
-  { episodeId: "st-alpha-exposed", tenant: "alpha", taskId: "alpha-open-high", arm: "exposed", lineage: ["alpha-open-high-count"] },
-  { episodeId: "st-alpha-masked", tenant: "alpha", taskId: "alpha-open-high", arm: "masked", lineage: [] },
-  { episodeId: "st-beta-exposed", tenant: "beta", taskId: "beta-delivered-sum", arm: "exposed", lineage: ["beta-delivered-sum"] },
-  { episodeId: "st-beta-masked", tenant: "beta", taskId: "beta-delivered-sum", arm: "masked", lineage: [] },
+  { episodeId: "st-alpha-exposed", tenant: "alpha", taskId: "alpha-open-high", arm: "exposed", lineage: ["alpha-open-high-count"], taskParam: { asOf: 13 } },
+  { episodeId: "st-alpha-masked", tenant: "alpha", taskId: "alpha-open-high", arm: "masked", lineage: [], taskParam: { asOf: 13 } },
+  { episodeId: "st-beta-exposed", tenant: "beta", taskId: "beta-delivered-sum", arm: "exposed", lineage: ["beta-delivered-sum"], taskParam: { asOf: 17 } },
+  { episodeId: "st-beta-masked", tenant: "beta", taskId: "beta-delivered-sum", arm: "masked", lineage: [], taskParam: { asOf: 17 } },
   // origin episode for the decorative-shim ablation negative fixture
-  { episodeId: "st-alpha-decorated", tenant: "alpha", taskId: "alpha-open-high", arm: "exposed", lineage: ["shallow-control", "alpha-open-high-count"] },
+  { episodeId: "st-alpha-decorated", tenant: "alpha", taskId: "alpha-open-high", arm: "exposed", lineage: ["shallow-control", "alpha-open-high-count"], taskParam: { asOf: 24 } },
 ];
 
 fs.mkdirSync(PROMPTS_DIR, { recursive: true });
@@ -57,14 +59,15 @@ fs.mkdirSync(PROMPTS_DIR, { recursive: true });
 const rows: Episode[] = specs.map((s) => {
   const snapshot = mountSnapshot(tenantSnapshotDir(s.tenant), s.tenant);
   const task = getTask(s.taskId);
-  const { answer, turns, drifted } = execute(task, s.arm, s.lineage, registry, snapshot);
+  const { answer, turns, drifted } = execute(task, s.taskParam, s.arm, s.lineage, registry, snapshot);
 
   // write the outbound prompt file; masked arm contains zero library surface
   const promptPath = path.join(PROMPTS_DIR, `${s.episodeId}.txt`);
+  const q = task.queryFor(s.taskParam);
   const body =
     s.arm === "masked"
-      ? `TENANT ${s.tenant}\nQUERY: ${task.query}\nInstructions: answer from the raw ${task.sourceCollection} records only.`
-      : `TENANT ${s.tenant}\nQUERY: ${task.query}\nInstructions: use the library procedure(s): ${s.lineage.join(", ")}.`;
+      ? `TENANT ${s.tenant}\nQUERY: ${q}\nInstructions: answer from the first ${s.taskParam.asOf} raw ${task.sourceCollection} records only.`
+      : `TENANT ${s.tenant}\nQUERY: ${q}\nInstructions: use the library procedure(s): ${s.lineage.join(", ")}.`;
   fs.writeFileSync(promptPath, body + "\n");
 
   return {
@@ -73,11 +76,12 @@ const rows: Episode[] = specs.map((s) => {
     commit: "SELFTEST",
     tenant: s.tenant,
     driver: "scripted",
-    query: task.query,
+    query: task.queryFor(s.taskParam),
     taskId: s.taskId,
     snapshotHash: snapshot.sourceFingerprint,
     arm: s.arm,
     pairId: null,
+    taskParam: s.taskParam,
     promptPath: path.relative(REPO_ROOT, promptPath),
     answer,
     // The single gate every committed answer passes through. An abstain answer

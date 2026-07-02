@@ -14,7 +14,7 @@ import { tenantSnapshotDir } from "./paths.js";
 import { buildRegistry, without } from "./registry.js";
 import { canonicalJson } from "./serialize.js";
 import { mountSnapshot } from "./snapshot.js";
-import { getTask } from "./tasks.js";
+import { fullParam, getTask } from "./tasks.js";
 import type { Answer, Episode, LadderState } from "./types.js";
 
 export interface ReplayResult {
@@ -27,12 +27,18 @@ export interface ReplayResult {
 
 /** Recompute an episode's answer from the live snapshot + registry. */
 export function replayEpisode(
-  episode: Pick<Episode, "tenant" | "taskId" | "arm" | "lineage">,
+  episode: Pick<Episode, "tenant" | "taskId" | "arm" | "lineage" | "taskParam">,
   registry: ReadonlyMap<string, Procedure>,
 ): ReplayResult {
   const snapshot = mountSnapshot(tenantSnapshotDir(episode.tenant), episode.tenant);
   const task = getTask(episode.taskId);
-  return { ...execute(task, episode.arm, episode.lineage ?? [], registry, snapshot), snapshotHash: snapshot.sourceFingerprint };
+  // the recorded query window; rows without one replay at the full corpus
+  const param =
+    episode.taskParam ?? fullParam((snapshot.collections[task.sourceCollection] ?? []).length);
+  return {
+    ...execute(task, param, episode.arm, episode.lineage ?? [], registry, snapshot),
+    snapshotHash: snapshot.sourceFingerprint,
+  };
 }
 
 /**

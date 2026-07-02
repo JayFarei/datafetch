@@ -3,9 +3,10 @@ import { describe, expect, it } from "vitest";
 import { defaultLadderConfig, Ladder } from "../../src/ladder/stateMachine.js";
 
 function driveWins(ladder: Ladder, id: string, n: number, winEvery: number, startTs = 1_800_000_000) {
-  // winEvery = 1 -> always win; 2 -> every other; etc.
+  // winEvery = 1 -> always win; 2 -> every other; etc. Each pair carries a
+  // DISTINCT queryKey (the genericity rung counts identities, not raw pairs).
   for (let i = 0; i < n; i++) {
-    ladder.observePair(id, { win: i % winEvery === 0, ts: startTs + i });
+    ladder.observePair(id, { win: i % winEvery === 0, ts: startTs + i, queryKey: `q${i}` });
   }
 }
 
@@ -15,15 +16,15 @@ describe("ladder state machine (V4/V5)", () => {
     ladder.admit("seed-a", "curated");
 
     expect(ladder.stateOf("seed-a")).toBe("quarantine");
-    ladder.observePair("seed-a", { win: true, ts: 1 });
-    ladder.observePair("seed-a", { win: true, ts: 2 });
-    ladder.observePair("seed-a", { win: true, ts: 3 }); // >= shadowAfterCalls(3)
+    ladder.observePair("seed-a", { win: true, ts: 1, queryKey: "q1" });
+    ladder.observePair("seed-a", { win: true, ts: 2, queryKey: "q2" });
+    ladder.observePair("seed-a", { win: true, ts: 3, queryKey: "q3" }); // >= 3 DISTINCT keys
     expect(ladder.stateOf("seed-a")).toBe("shadow");
 
-    for (let i = 4; i <= 10; i++) ladder.observePair("seed-a", { win: true, ts: i });
+    for (let i = 4; i <= 10; i++) ladder.observePair("seed-a", { win: true, ts: i, queryKey: `q${i}` });
     expect(ladder.stateOf("seed-a")).toBe("candidate"); // >= candidateAfterCalls(10), winRate 1.0
 
-    for (let i = 11; i <= 30; i++) ladder.observePair("seed-a", { win: true, ts: i });
+    for (let i = 11; i <= 30; i++) ladder.observePair("seed-a", { win: true, ts: i, queryKey: `q${i}` });
     expect(ladder.stateOf("seed-a")).toBe("promoted");
   });
 
@@ -107,13 +108,23 @@ describe("ladder state machine (V4/V5)", () => {
     expect(e.evidence?.wins).toBe(0);
 
     // one fresh observation must NOT re-fire the gate on stale (pre-drift) pairs
-    const rec = ladder.observePair("seed-a", { win: true, ts: 9_000 });
+    const rec = ladder.observePair("seed-a", { win: true, ts: 9_000, queryKey: "fresh-0" });
     expect(rec).toBeUndefined();
     expect(ladder.stateOf("seed-a")).not.toBe("promoted");
 
     // it has to climb again on fresh evidence
     driveWins(ladder, "seed-a", 29, 1, 9_001);
     expect(ladder.stateOf("seed-a")).toBe("promoted");
+  });
+
+  it("identical replays of ONE query never leave quarantine (genericity counts distinct identities, F4)", () => {
+    const ladder = new Ladder(defaultLadderConfig());
+    ladder.admit("one-trick", "curated");
+    for (let i = 0; i < 20; i++) {
+      ladder.observePair("one-trick", { win: true, ts: 1_800_000_000 + i, queryKey: "same-literal" });
+    }
+    expect(ladder.stateOf("one-trick")).toBe("quarantine");
+    expect(ladder.entry("one-trick").evidence?.distinctQueries).toBe(1);
   });
 
   it("serialises to a ladder-state map keyed by procedureId", () => {

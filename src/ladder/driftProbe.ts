@@ -21,11 +21,11 @@ import path from "node:path";
 import { execute } from "./executor.js";
 import { defaultLadderConfig, Ladder, type LadderConfig } from "./stateMachine.js";
 import { staleCloneSeed } from "./controls.js";
-import { isWin } from "./pairing.js";
+import { isWin, queryKey } from "./pairing.js";
 import { tenantSnapshotDir } from "./paths.js";
 import { seedProcedure } from "./seed.js";
 import { mountSnapshot } from "./snapshot.js";
-import { getTask } from "./tasks.js";
+import { fullParam, getTask, paramGridFor } from "./tasks.js";
 import type { Answer, DriftProbe } from "./types.js";
 
 const CLONE_ID = "stale-clone-control";
@@ -70,16 +70,26 @@ export function runForcedDriftProbe(cfg: LadderConfig = defaultLadderConfig()): 
     ladder.admit(CLONE_ID, "control");
 
     // ---- edge 1: earn promotion on fresh winning pairs, observing it serves ----
+    // The clone climbs on DISTINCT query windows like any real procedure — the
+    // genericity rung counts distinct queryKeys, so identical replays would
+    // never leave quarantine.
     const fresh = mountSnapshot(dir, "alpha");
+    const recordCount = (fresh.collections[task.sourceCollection] ?? []).length;
+    const grid = paramGridFor(recordCount).promotion;
     let servedBefore: Answer | undefined;
     let ts = 1_800_000_000;
     // enough pairs to cross the frozen boundary
     const need = cfg.boundaries.minPairs;
     for (let i = 0; i < need; i++) {
-      const exposed = execute(task, "exposed", [CLONE_ID], registry, fresh);
-      const masked = execute(task, "masked", [], registry, fresh);
+      const param = grid[i % grid.length]!;
+      const exposed = execute(task, param, "exposed", [CLONE_ID], registry, fresh);
+      const masked = execute(task, param, "masked", [], registry, fresh);
       if (i === 0) servedBefore = exposed.answer; // the served (non-abstain) edge
-      ladder.observePair(CLONE_ID, { win: isWin(exposed, masked), ts: ts++ });
+      ladder.observePair(CLONE_ID, {
+        win: isWin(exposed, masked),
+        ts: ts++,
+        queryKey: queryKey(task.id, param),
+      });
     }
     const stateBeforeMutation = ladder.stateOf(CLONE_ID);
 
@@ -90,7 +100,8 @@ export function runForcedDriftProbe(cfg: LadderConfig = defaultLadderConfig()): 
     fs.writeFileSync(ticketsPath, JSON.stringify(tickets)); // index NOT rebuilt
 
     const drifted = mountSnapshot(dir, "alpha");
-    const next = execute(task, "exposed", [CLONE_ID], registry, drifted);
+    const driftedCount = (drifted.collections[task.sourceCollection] ?? []).length;
+    const next = execute(task, fullParam(driftedCount), "exposed", [CLONE_ID], registry, drifted);
     const abstentionRecorded = next.answer.kind === "abstain" && next.drifted === true;
     let demotedFrom = stateBeforeMutation;
     if (abstentionRecorded) demotedFrom = ladder.demote(CLONE_ID, next.answer.kind === "abstain" ? next.answer.reason : "drift");

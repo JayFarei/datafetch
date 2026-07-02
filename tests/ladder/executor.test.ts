@@ -8,7 +8,9 @@ import { execute, executeInline } from "../../src/ladder/executor.js";
 import { tenantSnapshotDir } from "../../src/ladder/paths.js";
 import { buildRegistry, without } from "../../src/ladder/registry.js";
 import { mountSnapshot } from "../../src/ladder/snapshot.js";
-import { getTask } from "../../src/ladder/tasks.js";
+import { fullParam, getTask } from "../../src/ladder/tasks.js";
+
+const FULL = fullParam(24);
 
 const tmpRoots: string[] = [];
 afterAll(() => {
@@ -29,8 +31,8 @@ describe("executor with measured turns (C1)", () => {
     const snap = mountSnapshot(tenantSnapshotDir("alpha"), "alpha");
     const task = getTask("alpha-open-high");
 
-    const inline = executeInline(task, snap);
-    const exposed = execute(task, "exposed", ["alpha-open-high-count"], registry, snap);
+    const inline = executeInline(task, FULL, snap);
+    const exposed = execute(task, FULL, "exposed", ["alpha-open-high-count"], registry, snap);
 
     // 24 records / pageSize 8 = 3 pages of inline scanning
     expect(inline.turns).toBe(3);
@@ -43,8 +45,8 @@ describe("executor with measured turns (C1)", () => {
   it("inline and index paths produce the SAME answer (correctness parity)", () => {
     const snap = mountSnapshot(tenantSnapshotDir("beta"), "beta");
     const task = getTask("beta-delivered-sum");
-    const inline = executeInline(task, snap);
-    const exposed = execute(task, "exposed", ["beta-delivered-sum"], registry, snap);
+    const inline = executeInline(task, FULL, snap);
+    const exposed = execute(task, FULL, "exposed", ["beta-delivered-sum"], registry, snap);
     expect(exposed.answer).toEqual(inline.answer);
     expect(exposed.answer).toEqual({ kind: "count", value: 1224 });
   });
@@ -52,7 +54,7 @@ describe("executor with measured turns (C1)", () => {
   it("exposed with empty lineage falls to the inline baseline", () => {
     const snap = mountSnapshot(tenantSnapshotDir("alpha"), "alpha");
     const task = getTask("alpha-open-high");
-    const r = execute(task, "exposed", [], registry, snap);
+    const r = execute(task, FULL, "exposed", [], registry, snap);
     expect(r.turns).toBe(3);
     expect(r.answer).toEqual({ kind: "count", value: 8 });
   });
@@ -61,15 +63,15 @@ describe("executor with measured turns (C1)", () => {
     const snap = mountSnapshot(tenantSnapshotDir("alpha"), "alpha");
     const task = getTask("alpha-open-high");
     const ablated = without(registry, "alpha-open-high-count");
-    const r = execute(task, "exposed", ["alpha-open-high-count"], ablated, snap);
+    const r = execute(task, FULL, "exposed", ["alpha-open-high-count"], ablated, snap);
     expect(r.answer.kind).toBe("abstain");
   });
 
   it("a decorative shim before the solver leaves the answer unchanged", () => {
     const snap = mountSnapshot(tenantSnapshotDir("alpha"), "alpha");
     const task = getTask("alpha-open-high");
-    const withShim = execute(task, "exposed", ["shallow-control", "alpha-open-high-count"], registry, snap);
-    const solo = execute(task, "exposed", ["alpha-open-high-count"], registry, snap);
+    const withShim = execute(task, FULL, "exposed", ["shallow-control", "alpha-open-high-count"], registry, snap);
+    const solo = execute(task, FULL, "exposed", ["alpha-open-high-count"], registry, snap);
     expect(withShim.answer).toEqual(solo.answer);
   });
 
@@ -83,12 +85,12 @@ describe("executor with measured turns (C1)", () => {
 
     const snap = mountSnapshot(dir, "alpha");
     const task = getTask("alpha-open-high");
-    const r = execute(task, "exposed", ["alpha-open-high-count"], registry, snap);
+    const r = execute(task, FULL, "exposed", ["alpha-open-high-count"], registry, snap);
     expect(r.answer.kind).toBe("abstain");
     expect(r.drifted).toBe(true);
 
     // the masked inline path still serves a fresh, correct answer under drift
-    const inline = execute(task, "masked", [], registry, snap);
+    const inline = execute(task, fullParam(25), "masked", [], registry, snap);
     expect(inline.answer).toEqual({ kind: "count", value: 9 });
     expect(inline.drifted).toBe(false);
   });

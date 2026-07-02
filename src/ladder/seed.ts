@@ -8,7 +8,7 @@ import { makeAbstain } from "./answerContract.js";
 import type { ExecContext, Procedure, ProcResult } from "./executor.js";
 import type { IndexArtifact } from "./snapshot.js";
 import type { Task } from "./tasks.js";
-import type { Answer, Provenance } from "./types.js";
+import type { Answer, Provenance, TaskParam } from "./types.js";
 
 export interface Seed {
   id: string;
@@ -18,8 +18,13 @@ export interface Seed {
   indexName: string;
   /** compute the derived payload from raw records (no fingerprint) */
   buildIndex(records: Record<string, unknown>[]): Record<string, unknown>;
-  /** read the derived index into an answer */
-  reduceIndex(index: IndexArtifact): Answer;
+  /**
+   * Read the derived index into an answer for the given query window. Indexes
+   * are prefix-capable (position-aware aggregates), so one index serves the
+   * whole "as of #N filed" query family — that is what makes the seed win
+   * DISTINCT queries, not one memorised literal.
+   */
+  reduceIndex(index: IndexArtifact, param: TaskParam): Answer;
 }
 
 /**
@@ -31,7 +36,7 @@ export interface Seed {
 export function seedProcedure(seed: Seed): Procedure {
   return {
     id: seed.id,
-    run(ctx: ExecContext, task: Task): ProcResult {
+    run(ctx: ExecContext, task: Task, param: TaskParam): ProcResult {
       // A seed answers exactly one task. If it lands on any other task (e.g. a
       // cross-tenant suggestion, or an index-name collision), it must ABSTAIN
       // rather than serve an answer for the wrong question — a wrong-task serve
@@ -44,7 +49,7 @@ export function seedProcedure(seed: Seed): Procedure {
       if (index.sourceFingerprint !== ctx.sourceFingerprint) {
         return makeAbstain("drift:stale-index");
       }
-      return seed.reduceIndex(index);
+      return seed.reduceIndex(index, param);
     },
   };
 }

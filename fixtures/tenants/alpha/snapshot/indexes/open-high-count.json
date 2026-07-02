@@ -1,4 +1,13 @@
 {
   "sourceFingerprint": "3bdcb3aa4bd95b6b526e2550dc177bfb8b1ce2c4295a735f1cb20b6a87162023",
-  "count": 8
+  "matchPositions": [
+    0,
+    3,
+    7,
+    10,
+    13,
+    15,
+    18,
+    22
+  ]
 }

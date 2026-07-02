@@ -10,7 +10,7 @@
 import { makeAbstain } from "./answerContract.js";
 import type { MountedSnapshot } from "./snapshot.js";
 import type { Task } from "./tasks.js";
-import type { Answer, Arm } from "./types.js";
+import type { Answer, Arm, TaskParam } from "./types.js";
 
 export const PAGE_SIZE = 8;
 
@@ -42,6 +42,21 @@ export class ExecContext {
     return all;
   }
 
+  /**
+   * Page through the FIRST `asOf` records of a collection (records are stored
+   * in filing order, so the "as of #N filed" window is a prefix). One turn per
+   * page actually read — an asOf-window query genuinely costs fewer turns than
+   * a full scan, and the cost varies with the parameter (measured, not
+   * constant).
+   */
+  scanPrefix(collection: string, asOf: number): Record<string, unknown>[] {
+    const all = this.snapshot.collections[collection] ?? [];
+    const take = Math.max(0, Math.min(asOf, all.length));
+    const pages = Math.max(1, Math.ceil(take / this.pageSize));
+    for (let p = 0; p < pages; p++) this.turns += 1;
+    return all.slice(0, take);
+  }
+
   /** Read one derived index; one turn. Returns undefined if absent. */
   readIndex(name: string) {
     this.turns += 1;
@@ -57,16 +72,17 @@ export class ExecContext {
  */
 export interface Procedure {
   id: string;
-  run(ctx: ExecContext, task: Task): ProcResult;
+  run(ctx: ExecContext, task: Task, param: TaskParam): ProcResult;
 }
 
 /** The honest inline computation — the masked-arm baseline. */
 export function executeInline(
   task: Task,
+  param: TaskParam,
   snapshot: MountedSnapshot,
 ): { answer: Answer; turns: number; drifted: boolean } {
   const ctx = new ExecContext(snapshot);
-  const records = ctx.scanAll(task.sourceCollection);
+  const records = ctx.scanPrefix(task.sourceCollection, param.asOf);
   return { answer: task.reduceRecords(records), turns: ctx.turns, drifted: false };
 }
 
@@ -84,6 +100,7 @@ export function executeInline(
  */
 export function executeExposed(
   task: Task,
+  param: TaskParam,
   lineage: string[],
   registry: ReadonlyMap<string, Procedure>,
   snapshot: MountedSnapshot,
@@ -91,7 +108,7 @@ export function executeExposed(
   const ctx = new ExecContext(snapshot);
 
   if (lineage.length === 0) {
-    const records = ctx.scanAll(task.sourceCollection);
+    const records = ctx.scanPrefix(task.sourceCollection, param.asOf);
     return { answer: task.reduceRecords(records), turns: ctx.turns, drifted: false };
   }
 
@@ -99,7 +116,7 @@ export function executeExposed(
   for (const id of lineage) {
     const proc = registry.get(id);
     if (!proc) continue; // ablated / not registered → contributes nothing
-    const result = proc.run(ctx, task);
+    const result = proc.run(ctx, task, param);
     if (result !== PASS) {
       answer = result;
       break;
@@ -114,12 +131,13 @@ export function executeExposed(
 /** Dispatch on arm. Masked never consults a procedure or index. */
 export function execute(
   task: Task,
+  param: TaskParam,
   arm: Arm,
   lineage: string[],
   registry: ReadonlyMap<string, Procedure>,
   snapshot: MountedSnapshot,
 ): { answer: Answer; turns: number; drifted: boolean } {
   return arm === "masked"
-    ? executeInline(task, snapshot)
-    : executeExposed(task, lineage, registry, snapshot);
+    ? executeInline(task, param, snapshot)
+    : executeExposed(task, param, lineage, registry, snapshot);
 }

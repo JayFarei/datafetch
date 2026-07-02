@@ -23,7 +23,12 @@ import { repoRelative } from "./paths.js";
 import { canonicalJson } from "./serialize.js";
 import type { MountedSnapshot } from "./snapshot.js";
 import { getTask, type Task } from "./tasks.js";
-import type { Answer, Arm, Episode } from "./types.js";
+import type { Answer, Arm, Episode, TaskParam } from "./types.js";
+
+/** Identity of a query instance — the unit distinct-genericity counts. */
+export function queryKey(taskId: string, param: TaskParam): string {
+  return `${taskId}:asOf=${param.asOf}`;
+}
 
 /** The exact tokens verify/ladder.sh (V3) greps masked prompts for. */
 export const LIBRARY_TOKENS = /df\.lib|apropos|df\.d\.ts|\bman\(/;
@@ -67,13 +72,14 @@ export function isWin(exposed: ArmOutcome, masked: ArmOutcome): boolean {
  */
 export function scorePair(
   taskId: string,
+  param: TaskParam,
   lineage: string[],
   registry: ReadonlyMap<string, Procedure>,
   snapshot: MountedSnapshot,
 ): PairScore {
   const task = getTask(taskId);
-  const exposed = execute(task, "exposed", lineage, registry, snapshot);
-  const masked = execute(task, "masked", [], registry, snapshot);
+  const exposed = execute(task, param, "exposed", lineage, registry, snapshot);
+  const masked = execute(task, param, "masked", [], registry, snapshot);
   return { exposed, masked, win: isWin(exposed, masked) };
 }
 
@@ -88,20 +94,21 @@ export function writePairPrompts(
   pairId: string,
   tenant: string,
   task: Task,
+  param: TaskParam,
   lineage: string[],
 ): { exposedPath: string; maskedPath: string } {
   fs.mkdirSync(promptDir, { recursive: true });
 
   const maskedBody =
     `TENANT ${tenant}\n` +
-    `QUERY: ${task.query}\n` +
-    `Instructions: compute the answer ONLY from the raw ${task.sourceCollection} records provided below. ` +
+    `QUERY: ${task.queryFor(param)}\n` +
+    `Instructions: compute the answer ONLY from the first ${param.asOf} raw ${task.sourceCollection} records. ` +
     `No helper procedures and no procedure catalogue are available to you.\n`;
 
   const head = lineage[0] ?? "procedure";
   const exposedBody =
     `TENANT ${tenant}\n` +
-    `QUERY: ${task.query}\n` +
+    `QUERY: ${task.queryFor(param)}\n` +
     `Instructions: use the df.lib procedure(s) [${lineage.join(", ")}]. ` +
     `Look up their signatures in df.d.ts and via man(${head}) / apropos.\n`;
 
@@ -116,6 +123,8 @@ export interface PairEpisodesInput {
   pairId: string;
   tenant: string;
   taskId: string;
+  /** the query window this pair instantiates (distinct traffic, F4) */
+  taskParam: TaskParam;
   lineage: string[];
   /** timestamp of the masked arm (epoch seconds) */
   tsMasked: number;
@@ -141,12 +150,13 @@ export interface PairEpisodes {
  */
 export function buildPairEpisodes(input: PairEpisodesInput): PairEpisodes {
   const task = getTask(input.taskId);
-  const score = scorePair(input.taskId, input.lineage, input.registry, input.snapshot);
+  const score = scorePair(input.taskId, input.taskParam, input.lineage, input.registry, input.snapshot);
   const { exposedPath, maskedPath } = writePairPrompts(
     input.promptDir,
     input.pairId,
     input.tenant,
     task,
+    input.taskParam,
     input.lineage,
   );
   const snapshotHash = input.snapshot.sourceFingerprint;
@@ -165,11 +175,12 @@ export function buildPairEpisodes(input: PairEpisodesInput): PairEpisodes {
     ...(input.preregHash ? { preregHash: input.preregHash } : {}),
     tenant: input.tenant,
     driver: "scripted",
-    query: task.query,
+    query: task.queryFor(input.taskParam),
     taskId: input.taskId,
     snapshotHash,
     arm,
     pairId: input.pairId,
+    taskParam: input.taskParam,
     promptPath: repoRelative(promptAbs),
     answer: outcome.answer,
     answerSchemaOk: validateAnswer(outcome.answer).ok,
