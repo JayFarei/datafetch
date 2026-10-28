@@ -2299,6 +2299,14 @@
   }
 </style>
 <script src="https://lazyanalytics.fareiunastrage.workers.dev/tracker.js" data-site-id="datafetch.ai"></script>
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script>
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[target="_blank"]');
+    if (a) window.va('event', { name: 'Outbound', data: { target: a.hostname.replace(/^www\./, '') + a.pathname } });
+  });
+</script>
 </head>
 <body>
 
